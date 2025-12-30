@@ -1,4 +1,3 @@
-#![cfg(feature = "clickhouse")]
 use anyhow::Result;
 use async_trait::async_trait;
 use clickhouse::{Client, Row};

@@ -307,7 +307,7 @@ fn handle_panning(
     _events: &mut Vec<LogicEvent>,
 ) -> Option<InteractionMode> {
     if !input.mouse_buttons.middle {
-        return Some(InteractionMode::Idle);
+        Some(InteractionMode::Idle)
     } else {
         let delta = input.mouse_pos - start_drag;
         view.transform.pan = initial_transform.pan + delta;
@@ -332,7 +332,7 @@ fn handle_dragging_nodes<T: model::NodeData>(
 ) -> Option<InteractionMode> {
     if !input.mouse_buttons.left {
         // Emit event on release?
-        return Some(InteractionMode::Idle);
+        Some(InteractionMode::Idle)
     } else {
         let current_mouse_world = view.screen_to_world(input.mouse_pos);
         let delta = current_mouse_world - start_mouse_world;

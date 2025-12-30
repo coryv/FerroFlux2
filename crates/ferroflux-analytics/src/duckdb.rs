@@ -1,4 +1,3 @@
-#![cfg(feature = "duckdb")]
 use anyhow::Result;
 use async_trait::async_trait;
 use duckdb::Connection;

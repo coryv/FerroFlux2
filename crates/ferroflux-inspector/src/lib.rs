@@ -38,7 +38,7 @@ impl InspectorState {
     /// Validates a specific field.
     pub fn validate_field(&mut self, field_id: &str) {
         if let Some(field) = self.fields.iter().find(|f| f.id == field_id) {
-            if field.required && self.values.get(field_id).map_or(true, |v| v.is_null()) {
+            if field.required && self.values.get(field_id).is_none_or(|v| v.is_null()) {
                 self.errors
                     .insert(field_id.to_string(), "Required".to_string());
             } else {
