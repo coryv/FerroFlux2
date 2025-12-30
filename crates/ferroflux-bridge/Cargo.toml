@@ -1,0 +1,19 @@
+[package]
+name = "ferroflux-bridge"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ferroflux_core = { path = "../FerroFlux-core" }
+flow_canvas = { path = "../FlowCanvas" }
+bevy_ecs = "0.13"
+tokio = { version = "1.0", features = ["full"] }
+uuid = { version = "1.0", features = ["serde", "v4"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tracing = "0.1"
+anyhow = "1.0"
+glam = "0.30"
+
+[dev-dependencies]
+tracing-subscriber = "0.3"
