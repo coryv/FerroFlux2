@@ -1,0 +1,11 @@
+[package]
+name = "flow_canvas"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bitflags = { version = "2.10.0", features = ["serde"] }
+glam = { version = "0.30.9", features = ["serde"] }
+serde = { version = "1.0.228", features = ["derive"] }
+slotmap = { version = "1.1.1", features = ["serde"] }
+uuid = { version = "1.19.0", features = ["serde", "v4"] }
