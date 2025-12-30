@@ -9,6 +9,7 @@ use glam::Vec2;
 use serde::{Deserialize, Serialize};
 use slotmap::SlotMap;
 use slotmap::new_key_type;
+use std::collections::HashMap;
 
 /// Trait that user data must implement to be stored in the graph.
 pub trait NodeData: Clone + std::fmt::Debug {}
@@ -139,6 +140,9 @@ pub struct GraphState<T> {
     /// Lower index = Background/Bottom.
     /// Higher index = Foreground/Top.
     pub draw_order: Vec<NodeId>,
+    /// Index for O(1) UUID to NodeId lookup.
+    #[serde(default, skip)]
+    pub uuid_index: HashMap<Uuid, NodeId>,
 }
 
 impl<T> Default for GraphState<T> {
@@ -148,6 +152,7 @@ impl<T> Default for GraphState<T> {
             ports: SlotMap::with_key(),
             connections: SlotMap::with_key(),
             draw_order: Vec::new(),
+            uuid_index: HashMap::new(),
         }
     }
 }
@@ -173,5 +178,27 @@ impl<T: NodeData> GraphState<T> {
         }
 
         None
+    }
+
+    /// Inserts a node and updates the UUID index.
+    pub fn insert_node(&mut self, mut node: Node<T>) -> NodeId {
+        let id = self.nodes.insert_with_key(|key| {
+            node.id = key;
+            node
+        });
+        // We get the node back if we clone or just re-access
+        let uuid = self.nodes[id].uuid;
+        self.uuid_index.insert(uuid, id);
+        id
+    }
+
+    /// Removes a node and updates the UUID index.
+    pub fn remove_node(&mut self, id: NodeId) -> Option<Node<T>> {
+        if let Some(node) = self.nodes.remove(id) {
+            self.uuid_index.remove(&node.uuid);
+            Some(node)
+        } else {
+            None
+        }
     }
 }

@@ -203,5 +203,7 @@ impl<T: NodeData + Serialize + for<'de> Deserialize<'de>> GraphState<T> {
                 }
             }
         }
+
+        self.uuid_index = uuid_to_new_id;
     }
 }

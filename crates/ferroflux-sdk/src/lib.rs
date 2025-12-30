@@ -2,46 +2,50 @@ use anyhow::Result;
 use bevy_ecs::prelude::*;
 use ferroflux_core::api::events::SystemEvent;
 use ferroflux_core::app::App;
+use ferroflux_core::app::AppBuilder;
 use ferroflux_core::components::core::{Edge, NodeConfig};
-use flow_canvas::model::{GraphState, NodeData, NodeId};
+use flow_canvas::model::{GraphState, NodeData};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::{Mutex, broadcast};
-use uuid::Uuid;
 
-/// The Bridge between the visual FlowCanvas and the FerroFlux computation engine.
+/// The SDK Client for interacting with the FerroFlux Engine.
 ///
-/// It manages the lifecycle of the engine and the synchronization of data
-/// without coupling the two core domains directly.
-pub struct FerroFluxAdapter<T: NodeData> {
+/// This client manages the lifecycle of the engine, graph deployment,
+/// and event synchronization, serving as the primary interface for
+/// Desktop, Web, and CLI applications.
+pub struct FerroFluxClient<T: NodeData> {
     /// Handle to the underlying FerroFlux engine.
     pub engine: Arc<Mutex<App>>,
-    /// Mapping from stable Engine UUIDs to transient Canvas Node IDs.
-    pub uuid_to_canvas: HashMap<Uuid, NodeId>,
-    /// Mapping from transient Canvas Node IDs to stable Engine UUIDs.
-    pub canvas_to_uuid: HashMap<NodeId, Uuid>,
     /// Subscriber to the engine's event bus.
     event_rx: broadcast::Receiver<SystemEvent>,
     _marker: std::marker::PhantomData<T>,
 }
 
-impl<T: NodeData> FerroFluxAdapter<T> {
-    /// Creates a new adapter for a given engine instance.
+impl<T: NodeData> FerroFluxClient<T> {
+    /// Initializes a new SDK client with default engine settings.
+    ///
+    /// This is the standard entry point for most applications.
+    pub async fn init() -> Result<Self> {
+        let (engine, _api_tx, event_tx, ..) = AppBuilder::new().build().await?;
+        Ok(Self::new(engine, event_tx))
+    }
+
+    /// Creates a new SDK client for a given engine instance.
     pub fn new(engine: App, event_bus: broadcast::Sender<SystemEvent>) -> Self {
         Self {
             engine: Arc::new(Mutex::new(engine)),
-            uuid_to_canvas: HashMap::new(),
-            canvas_to_uuid: HashMap::new(),
             event_rx: event_bus.subscribe(),
             _marker: std::marker::PhantomData,
         }
     }
 
-    /// Deploys the current Canvas state to the Engine.
+    /// Compiles and deploys the current Canvas state to the Engine.
     ///
-    /// This "lowers" the visual graph into a set of ECS entities and components.
-    /// It strips away layout information (position, size) as the engine doesn't need it.
-    pub async fn deploy(&mut self, graph: &GraphState<T>) -> Result<()> {
+    /// This process "lowers" the high-level visual graph into a set of optimized
+    /// ECS entities and components ready for execution. It strips away layout
+    /// information (position, size) as the engine operates purely on logic.
+    pub async fn compile_and_deploy(&mut self, graph: &GraphState<T>) -> Result<()> {
         let mut engine = self.engine.lock().await;
         let world = &mut engine.world;
 
@@ -52,9 +56,6 @@ impl<T: NodeData> FerroFluxAdapter<T> {
         for entity in entities {
             world.despawn(entity);
         }
-
-        self.uuid_to_canvas.clear();
-        self.canvas_to_uuid.clear();
 
         let mut canvas_to_entity = HashMap::new();
 
@@ -71,8 +72,6 @@ impl<T: NodeData> FerroFluxAdapter<T> {
                 .id();
 
             canvas_to_entity.insert(id, entity);
-            self.uuid_to_canvas.insert(node.uuid, id);
-            self.canvas_to_uuid.insert(id, node.uuid);
         }
 
         // 3. Spawn Edges
@@ -80,6 +79,7 @@ impl<T: NodeData> FerroFluxAdapter<T> {
             let from_node_id = graph.ports.get(conn.from).map(|p| p.node);
             let to_node_id = graph.ports.get(conn.to).map(|p| p.node);
 
+            #[allow(clippy::collapsible_if)]
             if let (Some(from_id), Some(to_id)) = (from_node_id, to_node_id) {
                 if let (Some(&src_entity), Some(&target_entity)) =
                     (canvas_to_entity.get(&from_id), canvas_to_entity.get(&to_id))
@@ -104,7 +104,8 @@ impl<T: NodeData> FerroFluxAdapter<T> {
                 SystemEvent::NodeTelemetry {
                     node_id, success, ..
                 } => {
-                    if let Some(&canvas_id) = self.uuid_to_canvas.get(&node_id) {
+                    #[allow(clippy::collapsible_if)]
+                    if let Some(&canvas_id) = graph.uuid_index.get(&node_id) {
                         if let Some(_node) = graph.nodes.get_mut(canvas_id) {
                             // Here we could trigger a "Pulse" animation or change style
                             // For now, let's just log it.

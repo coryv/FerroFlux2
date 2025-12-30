@@ -1,0 +1,12 @@
+[package]
+name = "ferroflux-playground"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+macroquad = "0.4"
+tokio = { version = "1.0", features = ["full"] }
+ferroflux-sdk = { path = "../../crates/ferroflux-sdk" }
+flow_canvas = { path = "../../crates/FlowCanvas" }
+glam = "0.30"
+uuid = { version = "1.0", features = ["v4"] }

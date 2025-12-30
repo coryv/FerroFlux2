@@ -23,8 +23,8 @@ fn main() {
     let mut graph = GraphState::<MyNodeData>::default();
 
     // 3. Populate Graph with some data
-    let node1 = graph.nodes.insert(flow_canvas::model::Node {
-        id: flow_canvas::model::NodeId::default(), // Placeholder, slotmap overwrites key
+    let node1 = graph.insert_node(flow_canvas::model::Node {
+        id: flow_canvas::model::NodeId::default(), // key replaced by helper
         uuid: uuid::Uuid::new_v4(),
         position: Vec2::new(100.0, 100.0),
         size: Vec2::new(150.0, 100.0),
@@ -42,12 +42,8 @@ fn main() {
             text_color: glam::Vec4::new(0.0, 0.0, 0.0, 1.0),
         }),
     });
-    // Fixup ID reference (in real app, use the returned key directly)
-    if let Some(n) = graph.nodes.get_mut(node1) {
-        n.id = node1;
-    }
 
-    let node2 = graph.nodes.insert(flow_canvas::model::Node {
+    let node2 = graph.insert_node(flow_canvas::model::Node {
         id: flow_canvas::model::NodeId::default(),
         uuid: uuid::Uuid::new_v4(),
         position: Vec2::new(400.0, 200.0),
@@ -61,9 +57,6 @@ fn main() {
         flags: Default::default(),
         style: None, // Use default
     });
-    if let Some(n) = graph.nodes.get_mut(node2) {
-        n.id = node2;
-    }
 
     println!("Created graph with 2 nodes:");
     println!("  - Node A: {:?}", graph.nodes.get(node1).map(|n| &n.data));
