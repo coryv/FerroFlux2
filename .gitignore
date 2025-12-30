@@ -3,3 +3,6 @@
 Cargo.lock
 .DS_Store
 /.agent
+ferroflux.key
+ferroflux.db
+*.key
