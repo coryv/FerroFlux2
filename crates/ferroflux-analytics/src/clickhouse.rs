@@ -1,18 +1,15 @@
-use super::{AnalyticsBackend, AnalyticsEvent, PerformanceMetric};
+#![cfg(feature = "clickhouse")]
 use anyhow::Result;
 use async_trait::async_trait;
 use clickhouse::{Client, Row};
+use ferroflux_core::store::analytics::{AnalyticsBackend, AnalyticsEvent, PerformanceMetric};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Row, Serialize, Deserialize)]
 struct ClickHouseEvent {
     id: Uuid,
-    timestamp: i64, // ClickHouse DateTime64(3) often expects milliseconds if using i64 or specific format.
-    // Actually clickhouse crate handles DateTime<Utc> usually if feature enabled, otherwise i64 is safer for epoch ms.
-    // Let's use i64 for epoch ms to be safe with `toYYYYMM` partition relying on types.
-    // Or just let serde handle it?
-    // Let's use i64 ms.
+    timestamp: i64,
     tenant_id: String,
     node_id: String,
     workflow_id: String,
@@ -44,21 +41,18 @@ pub struct ClickHouseStore {
 
 impl ClickHouseStore {
     pub fn new(url: &str) -> Self {
-        let client = Client::default().with_url(url).with_database("default"); // Could be configurable
+        let client = Client::default().with_url(url).with_database("default");
         Self { client }
     }
 
-    // Schema init must be done separately or via specialized query
     pub async fn init_schema(&self) -> Result<()> {
         let schema_sql =
             std::fs::read_to_string("assets/sql/analytics_clickhouse.sql").or_else(|_| {
                 Ok::<String, anyhow::Error>(
-                    include_str!("../../../assets/sql/analytics_clickhouse.sql").to_string(),
+                    include_str!("../assets/sql/analytics_clickhouse.sql").to_string(),
                 )
             })?;
 
-        // Split by ; if multiple queries? Clickhouse crate usually expects one query per call.
-        // The file has CREATE TABLE.
         self.client.query(&schema_sql).execute().await?;
         Ok(())
     }
@@ -82,7 +76,6 @@ impl AnalyticsBackend for ClickHouseStore {
         _limit: i64,
         _offset: i64,
     ) -> Result<Vec<AnalyticsEvent>> {
-        // Not implemented yet
         Ok(vec![])
     }
 
@@ -91,7 +84,6 @@ impl AnalyticsBackend for ClickHouseStore {
         _tenant_id: &str,
         _trace_id: &str,
     ) -> Result<Vec<AnalyticsEvent>> {
-        // Not implemented yet
         Ok(vec![])
     }
 
@@ -100,7 +92,6 @@ impl AnalyticsBackend for ClickHouseStore {
         tenant_id: &str,
         node_id: &str,
     ) -> Result<Vec<PerformanceMetric>> {
-        // Query logic for ClickHouse
         let mut query_str = String::from(
             r#"
             SELECT 
@@ -130,7 +121,6 @@ impl AnalyticsBackend for ClickHouseStore {
     }
 }
 
-// Helper for fetching metrics
 #[derive(Row, Deserialize)]
 struct ClickHouseMetric {
     node_id: String,

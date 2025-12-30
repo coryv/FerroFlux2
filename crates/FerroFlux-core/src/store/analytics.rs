@@ -2,8 +2,37 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-pub mod clickhouse;
-pub mod duckdb;
+#[derive(Debug, Clone, Default)]
+pub struct NoopStore;
+
+#[async_trait]
+impl AnalyticsBackend for NoopStore {
+    async fn ingest_batch(&self, _events: Vec<AnalyticsEvent>) -> anyhow::Result<()> {
+        Ok(())
+    }
+    async fn get_node_performance(
+        &self,
+        _tenant_id: &str,
+        _node_id: &str,
+    ) -> anyhow::Result<Vec<PerformanceMetric>> {
+        Ok(vec![])
+    }
+    async fn get_recent_executions(
+        &self,
+        _tenant_id: &str,
+        _limit: i64,
+        _offset: i64,
+    ) -> anyhow::Result<Vec<AnalyticsEvent>> {
+        Ok(vec![])
+    }
+    async fn get_execution_events(
+        &self,
+        _tenant_id: &str,
+        _trace_id: &str,
+    ) -> anyhow::Result<Vec<AnalyticsEvent>> {
+        Ok(vec![])
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalyticsEvent {

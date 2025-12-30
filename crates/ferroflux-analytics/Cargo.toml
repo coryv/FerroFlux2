@@ -1,0 +1,22 @@
+[package]
+name = "ferroflux-analytics"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ferroflux_core = { path = "../FerroFlux-core" }
+anyhow = "1.0"
+async-trait = "0.1"
+chrono = { version = "0.4", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.0", features = ["serde", "v4"] }
+duckdb = { version = "1.0.0", features = ["bundled", "chrono"], optional = true }
+clickhouse = { version = "0.12", features = ["lz4"], optional = true }
+tracing = "0.1"
+
+[features]
+default = []
+duckdb = ["dep:duckdb"]
+clickhouse = ["dep:clickhouse"]
+full = ["duckdb", "clickhouse"]

@@ -3,7 +3,7 @@ use crate::components::{AgentConcurrency, WorkDone};
 use crate::nodes::register_core_nodes;
 use crate::resources::GlobalHttpClient;
 use crate::store::BlobStore;
-use crate::store::analytics::{AnalyticsBackend, clickhouse::ClickHouseStore, duckdb::DuckDbStore};
+use crate::store::analytics::{AnalyticsBackend, NoopStore};
 use crate::store::batcher::AnalyticsBatcher;
 use crate::store::database::PersistentStore;
 use crate::systems::api_worker::api_command_worker;
@@ -21,6 +21,7 @@ pub struct AppBuilder {
     store: Option<PersistentStore>,
     master_key: Option<Vec<u8>>,
     import_flows: bool,
+    analytics_backend: Option<Arc<dyn AnalyticsBackend>>,
 }
 
 impl Default for AppBuilder {
@@ -36,6 +37,7 @@ impl AppBuilder {
             store: None,
             master_key: None,
             import_flows: true,
+            analytics_backend: None,
         }
     }
 
@@ -65,6 +67,11 @@ impl AppBuilder {
 
     pub fn with_master_key(mut self, key: Vec<u8>) -> Self {
         self.master_key = Some(key);
+        self
+    }
+
+    pub fn with_analytics_backend(mut self, backend: Arc<dyn AnalyticsBackend>) -> Self {
+        self.analytics_backend = Some(backend);
         self
     }
 
@@ -136,26 +143,9 @@ impl AppBuilder {
         let master_key_clone = master_key.clone();
 
         // 6.5 Analytics Setup
-        let driver = std::env::var("ANALYTICS_DRIVER").unwrap_or_else(|_| "duckdb".to_string());
-        let backend: Arc<dyn AnalyticsBackend> = match driver.as_str() {
-            "clickhouse" => {
-                let url = std::env::var("CLICKHOUSE_URL")
-                    .unwrap_or_else(|_| "http://localhost:8123".to_string());
-                tracing::info!("Initializing Analytics: ClickHouse at {}", url);
-                let store = ClickHouseStore::new(&url);
-                if let Err(e) = store.init_schema().await {
-                    tracing::error!("Failed to init ClickHouse schema: {}", e);
-                }
-                Arc::new(store)
-            }
-            _ => {
-                tracing::info!("Initializing Analytics: DuckDB (Local)");
-                let store = DuckDbStore::new("analytics.db")
-                    .await
-                    .expect("Failed to init DuckDB");
-                Arc::new(store)
-            }
-        };
+        let backend = self
+            .analytics_backend
+            .unwrap_or_else(|| Arc::new(NoopStore));
         let analytics = Arc::new(AnalyticsBatcher::new(backend));
 
         // 7. API Server components (returned, not spawned)

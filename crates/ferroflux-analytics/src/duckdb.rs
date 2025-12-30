@@ -1,7 +1,8 @@
-use super::{AnalyticsBackend, AnalyticsEvent, PerformanceMetric};
+#![cfg(feature = "duckdb")]
 use anyhow::Result;
 use async_trait::async_trait;
 use duckdb::Connection;
+use ferroflux_core::store::analytics::{AnalyticsBackend, AnalyticsEvent, PerformanceMetric};
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
@@ -15,13 +16,10 @@ impl DuckDbStore {
         let conn = Connection::open(db_path)?;
 
         // Initialize schema
-        // Note: For now we embed the SQL or read it. Since we are in src, we can use include_str!
-        // if we put the sql in src, but it is in assets.
-        // We will read it relative to CWD.
         let schema_sql =
             std::fs::read_to_string("assets/sql/analytics_duckdb.sql").or_else(|_| {
                 Ok::<String, anyhow::Error>(
-                    include_str!("../../../assets/sql/analytics_duckdb.sql").to_string(),
+                    include_str!("../assets/sql/analytics_duckdb.sql").to_string(),
                 )
             })?;
 
@@ -101,8 +99,6 @@ impl AnalyticsBackend for DuckDbStore {
             ])?;
         }
 
-        // Appender autoflushes on drop usually, or we can explicit flush if available?
-        // duckdb-rs appender flushes on drop.
         Ok(())
     }
 
@@ -126,7 +122,6 @@ impl AnalyticsBackend for DuckDbStore {
             "#,
         )?;
 
-        let _node_id_param = node_id.to_string();
         let rows = stmt.query_map(duckdb::params![tenant_id, node_id, node_id], |row| {
             Ok(PerformanceMetric {
                 node_id: row.get(0)?,
@@ -143,14 +138,13 @@ impl AnalyticsBackend for DuckDbStore {
 
         Ok(metrics)
     }
+
     async fn get_execution_events(
         &self,
         tenant_id: &str,
         trace_id: &str,
     ) -> Result<Vec<AnalyticsEvent>> {
         let conn = self.conn.lock().unwrap();
-        // DuckDB JSON filtering: json_extract(payload, '$.trace_id')
-        // We also check "payload" column.
         let mut stmt = conn.prepare(
             r#"
             SELECT 

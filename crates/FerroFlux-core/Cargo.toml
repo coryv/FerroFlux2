@@ -45,8 +45,6 @@ schemars = { version = "0.8", features = ["chrono"] }
 wasmtime = "19.0"
 wasi-common = "19.0"
 lettre = { version = "0.11.19", features = ["builder"] }
-duckdb = { version = "1.0.0", features = ["bundled", "chrono"] }
-clickhouse = { version = "0.12", features = ["lz4"] }
 
 [dev-dependencies]
 wiremock = "0.6"
