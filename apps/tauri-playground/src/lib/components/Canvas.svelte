@@ -2,6 +2,8 @@
     import { invoke } from "@tauri-apps/api/core";
     import type { GraphState, SerializableNode } from "$lib/types";
     import Node from "./Node.svelte";
+    import Edge from "./Edge.svelte";
+    import { findPortPosition, type Obstacle } from "../utils/routing";
 
     let { graph, onRefresh } = $props<{
         graph: GraphState;
@@ -159,264 +161,43 @@
         return Object.values(g.edges);
     }
 
-    function findPortPosition(portId: string) {
-        const nodes = Object.values(graph.nodes) as SerializableNode[];
-        for (const node of nodes) {
-            const inIdx = node.inputs.indexOf(portId);
-            if (inIdx !== -1) {
-                const spacing = node.size[1] / (node.inputs.length + 1);
-                return {
-                    x: node.position[0],
-                    y: node.position[1] + spacing * (inIdx + 1),
-                };
-            }
-            const outIdx = node.outputs.indexOf(portId);
-            if (outIdx !== -1) {
-                const spacing = node.size[1] / (node.outputs.length + 1);
-                return {
-                    x: node.position[0] + node.size[0],
-                    y: node.position[1] + spacing * (outIdx + 1),
-                };
-            }
-        }
-        return null;
+    let draggingNodePorts = $derived(
+        draggingNodeId && graph.nodes[draggingNodeId]
+            ? new Set([
+                  ...graph.nodes[draggingNodeId].inputs,
+                  ...graph.nodes[draggingNodeId].outputs,
+              ])
+            : new Set<string>(),
+    );
+
+    function getSortedEdges(g: GraphState) {
+        if (!g || !g.edges) return [];
+        const edges = Object.values(g.edges);
+        if (!draggingNodeId) return edges;
+
+        // Collect all ports belonging to the dragging node
+        const node = graph.nodes[draggingNodeId];
+        const connectedPorts = new Set([...node.inputs, ...node.outputs]);
+
+        return [...edges].sort((a, b) => {
+            const aConn =
+                connectedPorts.has(a.from) || connectedPorts.has(a.to);
+            const bConn =
+                connectedPorts.has(b.from) || connectedPorts.has(b.to);
+            if (aConn && !bConn) return 1;
+            if (!aConn && bConn) return -1;
+            return 0;
+        });
     }
 
-    function getSmartOrthogonalPath(
-        start: { x: number; y: number },
-        end: { x: number; y: number },
-        edge: { from: string; to: string },
-        buffer: number = 20,
-    ) {
-        const outset = 20;
-        const pStartReal = { x: start.x, y: start.y };
-        const pStart = { x: start.x + outset, y: start.y };
-        const pEndReal = { x: end.x, y: end.y };
-        const pEnd = { x: end.x - outset, y: end.y };
-
-        if (
-            Math.abs(pStart.x - pEnd.x) < 1 &&
-            Math.abs(pStart.y - pEnd.y) < 1
-        ) {
-            return [pStartReal, pEndReal];
-        }
-
-        // 1. Collect obstacles (exclude from/to nodes)
-        const allNodes = Object.values(graph.nodes) as SerializableNode[];
-
-        const obstacles = allNodes.map((n) => ({
+    function getObstacles(g: GraphState): Obstacle[] {
+        return Object.values(g.nodes).map((n) => ({
             min: { x: n.position[0], y: n.position[1] },
             max: {
                 x: n.position[0] + n.size[0],
                 y: n.position[1] + n.size[1],
             },
         }));
-
-        // 2. Generate Grid
-        let xs = [pStart.x, pEnd.x];
-        let ys = [pStart.y, pEnd.y];
-
-        // Global bypass lanes
-        let minX = Math.min(pStart.x, pEnd.x);
-        let maxX = Math.max(pStart.x, pEnd.x);
-        let minY = Math.min(pStart.y, pEnd.y);
-        let maxY = Math.max(pStart.y, pEnd.y);
-        for (const obs of obstacles) {
-            minX = Math.min(minX, obs.min.x);
-            maxX = Math.max(maxX, obs.max.x);
-            minY = Math.min(minY, obs.min.y);
-            maxY = Math.max(maxY, obs.max.y);
-        }
-        xs.push(minX - 100, maxX + 100);
-        ys.push(minY - 100, maxY + 100);
-
-        for (const obs of obstacles) {
-            // Main buffer lanes
-            xs.push(obs.min.x - buffer, obs.max.x + buffer);
-            ys.push(obs.min.y - buffer, obs.max.y + buffer);
-
-            // Intermediate lanes
-            xs.push(obs.min.x - buffer - 20, obs.max.x + buffer + 20);
-            ys.push(obs.min.y - buffer - 20, obs.max.y + buffer + 20);
-
-            // Help with notches
-            xs.push((obs.min.x + obs.max.x) / 2);
-            ys.push((obs.min.y + obs.max.y) / 2);
-        }
-
-        xs = [...new Set(xs.map((x) => Math.round(x)))].sort((a, b) => a - b);
-        ys = [...new Set(ys.map((y) => Math.round(y)))].sort((a, b) => a - b);
-
-        // 3. A* Search
-        const findClosest = (val: number, arr: number[]) => {
-            let minDiff = Infinity;
-            let idx = 0;
-            for (let i = 0; i < arr.length; i++) {
-                const diff = Math.abs(arr[i] - val);
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    idx = i;
-                }
-            }
-            return idx;
-        };
-
-        const startX = findClosest(pStart.x, xs);
-        const startY = findClosest(pStart.y, ys);
-        const endX = findClosest(pEnd.x, xs);
-        const endY = findClosest(pEnd.y, ys);
-
-        const openSet: [number, number, number, number][] = [
-            [startX, startY, 0, 1],
-        ]; // x, y, fScore, dir (1: Right, 2: Left, 3: Down, 4: Up)
-        const gScore: Map<string, number> = new Map();
-        const cameFrom: Map<string, [number, number]> = new Map();
-
-        gScore.set(`${startX},${startY}`, 0);
-
-        let found = false;
-        while (openSet.length > 0) {
-            openSet.sort((a, b) => a[2] - b[2]);
-            const [cx, cy, _f, cDir] = openSet.shift()!;
-
-            if (cx === endX && cy === endY) {
-                found = true;
-                break;
-            }
-
-            const neighbors = [
-                [cx + 1, cy, 1], // Right
-                [cx - 1, cy, 2], // Left
-                [cx, cy + 1, 3], // Down
-                [cx, cy - 1, 4], // Up
-            ];
-
-            for (const [nx, ny, nDir] of neighbors) {
-                if (nx < 0 || nx >= xs.length || ny < 0 || ny >= ys.length)
-                    continue;
-
-                // 180-degree turn check
-                if (cDir !== 0) {
-                    if (
-                        (cDir === 1 && nDir === 2) ||
-                        (cDir === 2 && nDir === 1)
-                    )
-                        continue;
-                    if (
-                        (cDir === 3 && nDir === 4) ||
-                        (cDir === 4 && nDir === 3)
-                    )
-                        continue;
-                }
-
-                const nPos = { x: xs[nx], y: ys[ny] };
-                const cPos = { x: xs[cx], y: ys[cy] };
-                const mPos = {
-                    x: (nPos.x + cPos.x) / 2,
-                    y: (nPos.y + cPos.y) / 2,
-                };
-
-                let blocked = false;
-                for (const obs of obstacles) {
-                    // Strict boundary check
-                    const isInside = (p: { x: number; y: number }) =>
-                        p.x >= obs.min.x &&
-                        p.x <= obs.max.x &&
-                        p.y >= obs.min.y &&
-                        p.y <= obs.max.y;
-
-                    if (isInside(nPos) || isInside(mPos)) {
-                        // Safety Zone Check (Docking/Undocking)
-                        // Allow being inside an obstacle if we are within 5px of the start/end targets.
-                        const distToStart =
-                            Math.abs(nPos.x - pStart.x) +
-                            Math.abs(nPos.y - pStart.y);
-                        const distToEnd =
-                            Math.abs(nPos.x - pEnd.x) +
-                            Math.abs(nPos.y - pEnd.y);
-
-                        if (distToStart < 5 || distToEnd < 5) {
-                            continue;
-                        }
-
-                        blocked = true;
-                        break;
-                    }
-                }
-                if (blocked) continue;
-
-                const dist =
-                    Math.abs(nPos.x - cPos.x) + Math.abs(nPos.y - cPos.y);
-                let stepCost = dist;
-
-                // Proximity penalty
-                for (const obs of obstacles) {
-                    if (
-                        nPos.x > obs.min.x - buffer &&
-                        nPos.x < obs.max.x + buffer &&
-                        nPos.y > obs.min.y - buffer &&
-                        nPos.y < obs.max.y + buffer
-                    ) {
-                        stepCost += dist * 3;
-                    }
-                }
-
-                // Turn penalty
-                if (cDir !== 0 && cDir !== nDir) stepCost += 150;
-
-                const tentativeG = gScore.get(`${cx},${cy}`)! + stepCost;
-
-                if (tentativeG < (gScore.get(`${nx},${ny}`) ?? Infinity)) {
-                    cameFrom.set(`${nx},${ny}`, [cx, cy]);
-                    gScore.set(`${nx},${ny}`, tentativeG);
-                    const fScore =
-                        tentativeG +
-                        Math.abs(nPos.x - xs[endX]) +
-                        Math.abs(nPos.y - ys[endY]);
-                    openSet.push([nx, ny, fScore, nDir]);
-                }
-            }
-        }
-
-        if (found) {
-            const path = [pEndReal, pEnd];
-            let curr: [number, number] = [endX, endY];
-            while (cameFrom.has(`${curr[0]},${curr[1]}`)) {
-                path.push({ x: xs[curr[0]], y: ys[curr[1]] });
-                curr = cameFrom.get(`${curr[0]},${curr[1]}`)!;
-            }
-            path.push(pStart);
-            path.push(pStartReal);
-            path.reverse();
-
-            // Simplified
-            const simplified = [path[0]];
-            for (let i = 1; i < path.length - 1; i++) {
-                const prev = simplified[simplified.length - 1];
-                const next = path[i + 1];
-                if (
-                    !(
-                        (prev.x === path[i].x && path[i].x === next.x) ||
-                        (prev.y === path[i].y && path[i].y === next.y)
-                    )
-                ) {
-                    simplified.push(path[i]);
-                }
-            }
-            simplified.push(path[path.length - 1]);
-            return simplified;
-        }
-
-        // Fallback
-        const midX = (pStart.x + pEnd.x) / 2;
-        return [
-            pStartReal,
-            pStart,
-            { x: midX, y: pStart.y },
-            { x: midX, y: pEnd.y },
-            pEnd,
-            pEndReal,
-        ];
     }
 
     async function cycleEdgeStyle(edgeId: string, currentStyle: string) {
@@ -467,86 +248,35 @@
                 </marker>
             </defs>
             {#if graph}
-                {#each getEdges(graph) as edge (edge.id)}
-                    {@const start = findPortPosition(edge.from)}
-                    {@const end = findPortPosition(edge.to)}
+                {@const nodes = getNodes(graph)}
+                {@const obstacles = getObstacles(graph)}
+                {#each getSortedEdges(graph) as edge (edge.id)}
+                    {@const start = findPortPosition(nodes, edge.from)}
+                    {@const end = findPortPosition(nodes, edge.to)}
                     {#if start && end}
-                        {#if edge.style === "Cubic"}
-                            {@const dx = end.x - start.x}
-                            {@const dy = end.y - start.y}
-                            {@const dist = Math.sqrt(dx * dx + dy * dy)}
-                            {@const controlDist = Math.min(dist * 0.5, 150)}
-                            <!-- svelte-ignore a11y_click_events_have_key_events -->
-                            <path
-                                d="M {start.x} {start.y} C {start.x +
-                                    controlDist} {start.y}, {end.x -
-                                    controlDist} {end.y}, {end.x} {end.y}"
-                                stroke="#666"
-                                stroke-width="2"
-                                fill="none"
-                                class="edge-path"
-                                role="button"
-                                tabindex="0"
-                                onclick={() =>
-                                    cycleEdgeStyle(edge.id, edge.style)}
-                            />
-                        {:else if edge.style === "Orthogonal"}
-                            {@const points = getSmartOrthogonalPath(
-                                start,
-                                end,
-                                edge,
-                            )}
-                            <!-- svelte-ignore a11y_click_events_have_key_events -->
-                            <path
-                                d="M {points[0].x} {points[0].y} {points
-                                    .slice(1)
-                                    .map((p) => `L ${p.x} ${p.y}`)
-                                    .join(' ')}"
-                                stroke="#666"
-                                stroke-width="2"
-                                fill="none"
-                                class="edge-path"
-                                role="button"
-                                tabindex="0"
-                                onclick={() =>
-                                    cycleEdgeStyle(edge.id, edge.style)}
-                            />
-                        {:else}
-                            <!-- svelte-ignore a11y_click_events_have_key_events -->
-                            <line
-                                x1={start.x}
-                                y1={start.y}
-                                x2={end.x}
-                                y2={end.y}
-                                stroke="#666"
-                                stroke-width="2"
-                                class="edge-path"
-                                role="button"
-                                tabindex="0"
-                                onclick={() =>
-                                    cycleEdgeStyle(edge.id, edge.style)}
-                            />
-                        {/if}
+                        <Edge
+                            {start}
+                            {end}
+                            style={edge.style}
+                            {obstacles}
+                            selected={draggingNodePorts.has(edge.from) ||
+                                draggingNodePorts.has(edge.to)}
+                            onclick={() => cycleEdgeStyle(edge.id, edge.style)}
+                        />
                     {/if}
                 {/each}
             {/if}
 
             <!-- Temporary Edge -->
             {#if connectingFrom && tempEdgeEnd}
-                {@const start = findPortPosition(connectingFrom.portId)}
+                {@const nodes = getNodes(graph)}
+                {@const start = findPortPosition(nodes, connectingFrom.portId)}
                 {#if start}
-                    {@const dx = tempEdgeEnd.x - start.x}
-                    {@const dy = tempEdgeEnd.y - start.y}
-                    {@const dist = Math.sqrt(dx * dx + dy * dy)}
-                    {@const controlDist = Math.min(dist * 0.5, 150)}
-                    <path
-                        d="M {start.x} {start.y} C {start.x +
-                            controlDist} {start.y}, {tempEdgeEnd.x -
-                            controlDist} {tempEdgeEnd.y}, {tempEdgeEnd.x} {tempEdgeEnd.y}"
-                        stroke="#007acc"
-                        stroke-width="2"
-                        stroke-dasharray="4"
-                        fill="none"
+                    <Edge
+                        {start}
+                        end={tempEdgeEnd}
+                        style="Cubic"
+                        selected={true}
                     />
                 {/if}
             {/if}
@@ -593,14 +323,5 @@
         height: 100%;
         pointer-events: none;
         overflow: visible;
-    }
-    .edge-path {
-        cursor: pointer;
-        pointer-events: visibleStroke;
-        transition: stroke 0.2s;
-    }
-    .edge-path:hover {
-        stroke: #999;
-        stroke-width: 3;
     }
 </style>
