@@ -14,16 +14,20 @@ export function findPortPosition(nodes: SerializableNode[], portId: string): Vec
     for (const node of nodes) {
         const inIdx = node.inputs.indexOf(portId);
         if (inIdx !== -1) {
+            const count = node.inputs.length;
+            const availableHeight = node.size[1] - 40; // 20px padding top/bottom
             return {
-                x: node.position[0],
-                y: node.position[1] + (inIdx + 1) * 20 + 30,
+                x: node.position[0] - 1,
+                y: node.position[1] + 20 + (inIdx + 0.5) * (availableHeight / count),
             };
         }
         const outIdx = node.outputs.indexOf(portId);
         if (outIdx !== -1) {
+            const count = node.outputs.length;
+            const availableHeight = node.size[1] - 40; // 20px padding top/bottom
             return {
-                x: node.position[0] + node.size[0],
-                y: node.position[1] + (outIdx + 1) * 20 + 30,
+                x: node.position[0] + node.size[0] + 1,
+                y: node.position[1] + 20 + (outIdx + 0.5) * (availableHeight / count),
             };
         }
     }

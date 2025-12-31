@@ -14,6 +14,7 @@
     let zoom = $state(1);
     let isDraggingCanvas = $state(false);
     let draggingNodeId = $state<string | null>(null);
+    let selectedNodeId = $state<string | null>(null);
     let canvasElement = $state<HTMLDivElement | null>(null);
 
     // Connection state
@@ -35,6 +36,7 @@
         if (e.button === 0 || e.button === 1) {
             e.preventDefault();
             isDraggingCanvas = true;
+            selectedNodeId = null;
         }
     }
 
@@ -42,6 +44,7 @@
         e.stopPropagation();
         e.preventDefault();
         draggingNodeId = nodeId;
+        selectedNodeId = nodeId;
 
         // Bring to front in backend
         try {
@@ -161,11 +164,11 @@
         return Object.values(g.edges);
     }
 
-    let draggingNodePorts = $derived(
-        draggingNodeId && graph.nodes[draggingNodeId]
+    let selectedNodePorts = $derived(
+        selectedNodeId && graph.nodes[selectedNodeId]
             ? new Set([
-                  ...graph.nodes[draggingNodeId].inputs,
-                  ...graph.nodes[draggingNodeId].outputs,
+                  ...graph.nodes[selectedNodeId].inputs,
+                  ...graph.nodes[selectedNodeId].outputs,
               ])
             : new Set<string>(),
     );
@@ -173,10 +176,10 @@
     function getSortedEdges(g: GraphState) {
         if (!g || !g.edges) return [];
         const edges = Object.values(g.edges);
-        if (!draggingNodeId) return edges;
+        if (!selectedNodeId || !graph.nodes[selectedNodeId]) return edges;
 
-        // Collect all ports belonging to the dragging node
-        const node = graph.nodes[draggingNodeId];
+        // Collect all ports belonging to the selected node
+        const node = graph.nodes[selectedNodeId];
         const connectedPorts = new Set([...node.inputs, ...node.outputs]);
 
         return [...edges].sort((a, b) => {
@@ -259,8 +262,8 @@
                             {end}
                             style={edge.style}
                             {obstacles}
-                            selected={draggingNodePorts.has(edge.from) ||
-                                draggingNodePorts.has(edge.to)}
+                            selected={selectedNodePorts.has(edge.from) ||
+                                selectedNodePorts.has(edge.to)}
                             onclick={() => cycleEdgeStyle(edge.id, edge.style)}
                         />
                     {/if}
