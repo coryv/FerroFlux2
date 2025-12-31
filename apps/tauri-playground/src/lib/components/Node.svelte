@@ -1,27 +1,30 @@
 <script lang="ts">
     import type { SerializableNode } from "$lib/types";
 
-    let { node, onMouseDown, onPortMouseDown, onPortMouseUp } = $props<{
-        node: SerializableNode;
-        onMouseDown: (e: MouseEvent, id: string) => void;
-        onPortMouseDown: (
-            e: MouseEvent,
-            nodeId: string,
-            portId: string,
-            isOutput: boolean,
-        ) => void;
-        onPortMouseUp: (
-            e: MouseEvent,
-            nodeId: string,
-            portId: string,
-            isOutput: boolean,
-        ) => void;
-    }>();
+    let { node, selected, onMouseDown, onPortMouseDown, onPortMouseUp } =
+        $props<{
+            node: SerializableNode;
+            selected: boolean;
+            onMouseDown: (e: MouseEvent, id: string) => void;
+            onPortMouseDown: (
+                e: MouseEvent,
+                nodeId: string,
+                portId: string,
+                isOutput: boolean,
+            ) => void;
+            onPortMouseUp: (
+                e: MouseEvent,
+                nodeId: string,
+                portId: string,
+                isOutput: boolean,
+            ) => void;
+        }>();
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
     class="node"
+    class:selected
     onmousedown={(e) => onMouseDown(e, node.id)}
     style="transform: translate({node.position[0]}px, {node
         .position[1]}px); width: {node.size[0]}px; height: {node.size[1]}px;"
@@ -58,6 +61,7 @@
         position: absolute;
         top: 0;
         left: 0;
+        pointer-events: auto; /* Restore interactivity */
         background: #2a2a2a;
         border: 1px solid #444;
         border-radius: 6px;
@@ -68,8 +72,20 @@
         flex-direction: column;
         cursor: grab;
     }
+    .node.selected {
+        border-color: #3b82f6;
+        box-shadow:
+            0 0 0 2px rgba(59, 130, 246, 0.5),
+            0 8px 24px rgba(0, 0, 0, 0.7);
+        z-index: 100 !important;
+    }
     .node:active {
         cursor: grabbing;
+    }
+    .node.selected header {
+        background: #3b82f6;
+        color: white;
+        border-bottom-color: #2563eb;
     }
     header {
         background: #333;

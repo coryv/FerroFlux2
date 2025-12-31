@@ -35,11 +35,17 @@ export function findPortPosition(nodes: SerializableNode[], portId: string): Vec
 }
 
 export function calculateBezierPoints(start: Vec2, end: Vec2): [Vec2, Vec2] {
-    const dx = Math.abs(end.x - start.x);
-    const midX = start.x + dx / 2;
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    // Increase the weight multiplier and floor to make curves "less harsh"
+    // effectively "dragging the handles out" more.
+    const weight = Math.min(Math.max(dist * 0.5, 80), 300);
+
     return [
-        { x: midX, y: start.y },
-        { x: midX, y: end.y },
+        { x: start.x + weight, y: start.y },
+        { x: end.x - weight, y: end.y },
     ];
 }
 

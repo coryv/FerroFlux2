@@ -39,9 +39,11 @@ impl Rect {
 /// This assumes a horizontal flow (left-to-right).
 pub fn calculate_bezier_points(start: Vec2, end: Vec2) -> (Vec2, Vec2) {
     let dist = start.distance(end);
-    let control_dist = (dist * 0.5).min(150.0);
-    let cp1 = start + Vec2::new(control_dist, 0.0);
-    let cp2 = end - Vec2::new(control_dist, 0.0);
+    // Use a scaling weight with a minimum "outset" to ensure clear port exits
+    // Softer weight for more graceful curves
+    let weight = (dist * 0.5).clamp(80.0, 300.0);
+    let cp1 = start + Vec2::new(weight, 0.0);
+    let cp2 = end - Vec2::new(weight, 0.0);
     (cp1, cp2)
 }
 

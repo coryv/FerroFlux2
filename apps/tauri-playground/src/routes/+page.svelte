@@ -4,6 +4,7 @@
     import type { GraphState } from "$lib/types";
     import Toolbar from "$lib/components/Toolbar.svelte";
     import Canvas from "$lib/components/Canvas.svelte";
+    import NodeTray from "$lib/components/NodeTray.svelte";
 
     // State
     let graph = $state<GraphState>({ nodes: {}, edges: {}, draw_order: [] });
@@ -58,14 +59,11 @@
     onMount(init);
 </script>
 
+<svelte:window />
+
 <main>
-    <Toolbar
-        {status}
-        onRefresh={refreshGraph}
-        onAddNode={addNode}
-        onDeploy={deploy}
-    />
-    <Canvas {graph} onRefresh={refreshGraph} />
+    <Canvas {graph} {status} onDeploy={deploy} onRefresh={refreshGraph} />
+    <NodeTray />
 </main>
 
 <style>

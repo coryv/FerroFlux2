@@ -7,30 +7,39 @@
         type Obstacle,
     } from "../utils/routing";
 
-    export let start: Vec2;
-    export let end: Vec2;
-    export let style: "Linear" | "Cubic" | "Orthogonal" = "Linear";
-    export let selected = false;
-    export let obstacles: Obstacle[] = [];
-    export let buffer = 20;
-    export let onclick: (() => void) | null = null;
+    let {
+        start,
+        end,
+        style = "Linear",
+        selected = false,
+        obstacles = [],
+        buffer = 20,
+        onclick = null,
+    } = $props<{
+        start: Vec2;
+        end: Vec2;
+        style?: "Linear" | "Cubic" | "Orthogonal";
+        selected?: boolean;
+        obstacles?: Obstacle[];
+        buffer?: number;
+        onclick?: (() => void) | null;
+    }>();
 
-    let pathPoints: Vec2[] = [];
-
-    $: {
+    let pathPoints = $derived.by(() => {
         if (style === "Cubic") {
             const [cp1, cp2] = calculateBezierPoints(start, end);
-            pathPoints = [start, cp1, cp2, end];
+            return [start, cp1, cp2, end];
         } else if (style === "Linear") {
-            pathPoints = calculateLinearPoints(start, end);
+            return calculateLinearPoints(start, end);
         } else if (style === "Orthogonal") {
-            pathPoints = getSmartOrthogonalPath(start, end, obstacles, buffer);
+            return getSmartOrthogonalPath(start, end, obstacles, buffer);
         }
-    }
+        return [start, end];
+    });
 
-    function getD(points: Vec2[], style: string) {
+    function getD(points: Vec2[], s: string) {
         if (points.length < 2) return "";
-        if (style === "Cubic") {
+        if (s === "Cubic" && points.length === 4) {
             return `M ${points[0].x} ${points[0].y} C ${points[1].x} ${points[1].y}, ${points[2].x} ${points[2].y}, ${points[3].x} ${points[3].y}`;
         }
         return (
@@ -42,35 +51,52 @@
         );
     }
 
-    $: d = getD(pathPoints, style);
+    let d = $derived(getD(pathPoints, style));
 </script>
 
 <g class="edge-group" class:selected>
-    <!-- Halo for crossing differentiation -->
+    <!-- Halo for crossing differentiation and easier clicking -->
     <path
         {d}
         fill="none"
-        stroke="var(--canvas-bg, #0f0f11)"
+        stroke="var(--canvas-bg, #111)"
         stroke-width="12"
-        stroke-opacity="0.4"
+        stroke-opacity="0.1"
         class="halo"
     />
 
+    <!-- Selection glow -->
+    {#if selected}
+        <path
+            {d}
+            fill="none"
+            stroke="#60a5fa"
+            stroke-width="6"
+            stroke-opacity="0.3"
+            class="glow-path"
+        />
+    {/if}
+
     <!-- Main visible edge -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <path
         {d}
         fill="none"
-        stroke={selected
-            ? "var(--edge-selected, #60a5fa)"
-            : "var(--edge-color, #4b5563)"}
-        stroke-width="2.5"
+        stroke={selected ? "#60a5fa" : "#4b5563"}
+        stroke-width={selected ? "3" : "2"}
         stroke-linecap="round"
         stroke-linejoin="round"
         class="main-path"
+        class:selected
         role="button"
         tabindex="0"
-        {onclick}
+        onmousedown={(e) => {
+            if (onclick) {
+                e.stopPropagation();
+                onclick();
+            }
+        }}
     />
 </g>
 
@@ -79,16 +105,24 @@
         pointer-events: none;
     }
     .main-path {
-        transition: stroke 0.2s ease;
+        transition:
+            stroke 0.2s ease,
+            stroke-width 0.2s ease;
         pointer-events: visibleStroke;
         cursor: pointer;
     }
     .main-path:hover {
-        stroke: var(--edge-hover, #9ca3af) !important;
-        stroke-width: 3.5;
+        stroke: #9ca3af !important;
+        stroke-width: 4 !important;
+    }
+    .main-path.selected:hover {
+        stroke: #93c5fd !important;
+    }
+    .glow-path {
+        pointer-events: none;
+        filter: blur(2px);
     }
     .halo {
-        /* This ensures the halo blends with the background */
-        mix-blend-mode: normal;
+        pointer-events: visibleStroke;
     }
 </style>
