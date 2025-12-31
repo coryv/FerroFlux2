@@ -33,9 +33,14 @@ fn test_panning() {
     assert_eq!(canvas.view.transform.pan, Vec2::ZERO);
 
     // 2. Start Pan (Middle Click)
-    let mut input = InputState::default();
-    input.mouse_pos = Vec2::new(100.0, 100.0);
-    input.mouse_buttons.middle = true;
+    let mut input = InputState {
+        mouse_pos: Vec2::new(100.0, 100.0),
+        mouse_buttons: flow_canvas::input::MouseButtons {
+            middle: true,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
 
     // Update should transition to Panning
     canvas.update(&input, 0.016, &mut graph);
@@ -87,9 +92,14 @@ fn test_selection_and_z_ordering() {
     assert_eq!(graph.draw_order[1], node2_id);
 
     // 1. Click Node 1 (at 110, 110) - Default pan
-    let mut input = InputState::default();
-    input.mouse_pos = Vec2::new(110.0, 110.0);
-    input.mouse_buttons.left = true;
+    let input = InputState {
+        mouse_pos: Vec2::new(110.0, 110.0),
+        mouse_buttons: flow_canvas::input::MouseButtons {
+            left: true,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
 
     canvas.update(&input, 0.016, &mut graph);
 
@@ -118,9 +128,14 @@ fn test_dragging() {
     let (mut graph, node_id) = create_test_graph();
 
     // 1. Click on Node to start drag
-    let mut input = InputState::default();
-    input.mouse_pos = Vec2::new(110.0, 110.0);
-    input.mouse_buttons.left = true;
+    let mut input = InputState {
+        mouse_pos: Vec2::new(110.0, 110.0),
+        mouse_buttons: flow_canvas::input::MouseButtons {
+            left: true,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
     canvas.update(&input, 0.016, &mut graph);
 
     // 2. Drag
