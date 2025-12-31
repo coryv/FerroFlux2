@@ -8,7 +8,6 @@
 use glam::Vec2;
 use serde::{Deserialize, Serialize};
 use slotmap::SlotMap;
-use slotmap::new_key_type;
 use std::collections::HashMap;
 
 /// Trait that user data must implement to be stored in the graph.
@@ -40,14 +39,67 @@ impl NodeData for () {
     }
 }
 
-new_key_type! {
-    /// Unique identifier for a Node.
-    pub struct NodeId;
-    /// Unique identifier for a Port.
-    pub struct PortId;
-    /// Unique identifier for a Connection.
-    pub struct ConnectionId;
+macro_rules! define_id_type {
+    ($name:ident) => {
+        #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+        pub struct $name(slotmap::DefaultKey);
+
+        impl From<slotmap::DefaultKey> for $name {
+            fn from(key: slotmap::DefaultKey) -> Self {
+                Self(key)
+            }
+        }
+
+        impl From<$name> for slotmap::DefaultKey {
+            fn from(id: $name) -> Self {
+                id.0
+            }
+        }
+
+        impl From<slotmap::KeyData> for $name {
+            fn from(data: slotmap::KeyData) -> Self {
+                Self(data.into())
+            }
+        }
+
+        unsafe impl slotmap::Key for $name {
+            fn data(&self) -> slotmap::KeyData {
+                self.0.data()
+            }
+        }
+
+        impl std::fmt::Debug for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}({:?})", stringify!($name), self.0)
+            }
+        }
+
+        impl Serialize for $name {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                use slotmap::Key;
+                serializer.serialize_str(&self.data().as_ffi().to_string())
+            }
+        }
+
+        impl<'de> Deserialize<'de> for $name {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                let s = String::deserialize(deserializer)?;
+                let bits = s.parse::<u64>().map_err(serde::de::Error::custom)?;
+                Ok(slotmap::KeyData::from_ffi(bits).into())
+            }
+        }
+    };
 }
+
+define_id_type!(NodeId);
+define_id_type!(PortId);
+define_id_type!(ConnectionId);
 
 /// Bitflags representing various boolean states of a Node.
 use bitflags::bitflags;
@@ -225,5 +277,55 @@ impl<T: NodeData> GraphState<T> {
         } else {
             None
         }
+    }
+
+    /// Adds a port to a node.
+    pub fn add_port(&mut self, node_id: NodeId, is_input: bool) -> PortId {
+        let port_id = self.ports.insert_with_key(|key| Port {
+            id: key,
+            node: node_id,
+        });
+
+        if let Some(node) = self.nodes.get_mut(node_id) {
+            if is_input {
+                node.inputs.push(port_id);
+            } else {
+                node.outputs.push(port_id);
+            }
+        }
+        port_id
+    }
+
+    /// Connects two ports with a specific style.
+    pub fn connect_with_style(
+        &mut self,
+        from: PortId,
+        to: PortId,
+        style: WireStyle,
+    ) -> ConnectionId {
+        self.connections.insert(Connection {
+            from,
+            to,
+            style,
+            visual_style: None,
+        })
+    }
+
+    /// Connects two ports with default style (Cubic).
+    pub fn connect(&mut self, from: PortId, to: PortId) -> ConnectionId {
+        self.connect_with_style(from, to, WireStyle::Cubic)
+    }
+
+    pub fn set_connection_style(&mut self, id: ConnectionId, style: WireStyle) {
+        if let Some(conn) = self.connections.get_mut(id) {
+            conn.style = style;
+        }
+    }
+
+    pub fn get_node_rects(&self) -> Vec<crate::math::Rect> {
+        self.nodes
+            .values()
+            .map(|node| crate::math::Rect::new(node.position, node.size))
+            .collect()
     }
 }

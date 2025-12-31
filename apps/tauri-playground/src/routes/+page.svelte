@@ -6,7 +6,7 @@
     import Canvas from "$lib/components/Canvas.svelte";
 
     // State
-    let graph = $state<GraphState>({ nodes: {} });
+    let graph = $state<GraphState>({ nodes: {}, edges: {}, draw_order: [] });
     let status = $state("Loading...");
 
     async function refreshGraph() {
@@ -65,7 +65,7 @@
         onAddNode={addNode}
         onDeploy={deploy}
     />
-    <Canvas {graph} />
+    <Canvas {graph} onRefresh={refreshGraph} />
 </main>
 
 <style>

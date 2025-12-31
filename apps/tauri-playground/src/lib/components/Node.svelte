@@ -1,9 +1,21 @@
 <script lang="ts">
     import type { SerializableNode } from "$lib/types";
 
-    let { node, onMouseDown } = $props<{
+    let { node, onMouseDown, onPortMouseDown, onPortMouseUp } = $props<{
         node: SerializableNode;
         onMouseDown: (e: MouseEvent, id: string) => void;
+        onPortMouseDown: (
+            e: MouseEvent,
+            nodeId: string,
+            portId: string,
+            isOutput: boolean,
+        ) => void;
+        onPortMouseUp: (
+            e: MouseEvent,
+            nodeId: string,
+            portId: string,
+            isOutput: boolean,
+        ) => void;
     }>();
 </script>
 
@@ -14,6 +26,26 @@
     style="transform: translate({node.position[0]}px, {node
         .position[1]}px); width: {node.size[0]}px; height: {node.size[1]}px;"
 >
+    <!-- Ports -->
+    <div class="ports-in">
+        {#each node.inputs as portId}
+            <div
+                class="port input"
+                onmousedown={(e) => onPortMouseDown(e, node.id, portId, false)}
+                onmouseup={(e) => onPortMouseUp(e, node.id, portId, false)}
+            ></div>
+        {/each}
+    </div>
+    <div class="ports-out">
+        {#each node.outputs as portId}
+            <div
+                class="port output"
+                onmousedown={(e) => onPortMouseDown(e, node.id, portId, true)}
+                onmouseup={(e) => onPortMouseUp(e, node.id, portId, true)}
+            ></div>
+        {/each}
+    </div>
+
     <header>{node.data?.name || "Node"}</header>
     <div class="body">
         ID: {node.uuid?.slice(0, 8) || "?"}<br />
@@ -53,5 +85,34 @@
         color: #aaa;
         font-size: 12px;
         line-height: 1.4;
+    }
+    .ports-in,
+    .ports-out {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        padding: 20px 0;
+        z-index: 10;
+    }
+    .ports-in {
+        left: -8px;
+    }
+    .ports-out {
+        right: -8px;
+    }
+    .port {
+        width: 14px;
+        height: 14px;
+        background: #444;
+        border: 2px solid #222;
+        border-radius: 50%;
+        cursor: crosshair;
+    }
+    .port:hover {
+        background: #007acc;
+        scale: 1.2;
     }
 </style>
