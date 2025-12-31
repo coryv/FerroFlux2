@@ -10,6 +10,12 @@ struct MyNodeData {
     value: f32,
 }
 
+impl flow_canvas::model::NodeData for MyNodeData {
+    fn node_type(&self) -> String {
+        "HeadlessNode".to_string()
+    }
+}
+
 fn main() {
     println!("=== FlowCanvas Headless Demo ===");
 

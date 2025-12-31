@@ -6,6 +6,12 @@ use uuid::Uuid;
 #[derive(Clone, Debug)]
 struct MyData;
 
+impl flow_canvas::model::NodeData for MyData {
+    fn node_type(&self) -> String {
+        "DebugNode".to_string()
+    }
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();

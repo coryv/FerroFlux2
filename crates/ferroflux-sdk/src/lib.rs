@@ -65,7 +65,7 @@ impl<T: NodeData> FerroFluxClient<T> {
                 .spawn(NodeConfig {
                     id: node.uuid,
                     name: format!("{:?}", node.id), // Placeholder name
-                    node_type: "Default".to_string(), // This would come from node.data in a real app
+                    node_type: node.data.node_type(), // This now comes from node.data
                     workflow_id: None,
                     tenant_id: None,
                 })

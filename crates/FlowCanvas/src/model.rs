@@ -12,8 +12,33 @@ use slotmap::new_key_type;
 use std::collections::HashMap;
 
 /// Trait that user data must implement to be stored in the graph.
-pub trait NodeData: Clone + std::fmt::Debug {}
-impl<T: Clone + std::fmt::Debug> NodeData for T {}
+pub trait NodeData: Clone + std::fmt::Debug {
+    /// Returns the registry ID (type string) for this node, used by the engine.
+    fn node_type(&self) -> String;
+}
+
+// Default implementation for String (commonly used in tests/simple examples)
+impl NodeData for String {
+    fn node_type(&self) -> String {
+        // If the data is just a string, we assume it *is* the type, or "Default".
+        // For simple tests using "Node A", "Node B", let's return "Default"
+        // unless it looks like a type ID.
+        // NOTE: For now, let's just return "Default" to be safe for existing tests
+        // that use arbitrary strings like "Node A".
+        // Or better: let's return "Default" if it contains spaces, otherwise proper casing?
+        // Let's stick to "Default" for simple strings for now to match behavior,
+        // OR return self.clone() if we want dynamic string typing.
+        // given the user constraint: "return a String ... to ensure FlowCanvas remains decoupled"
+        "Default".to_string()
+    }
+}
+
+// Implementation for Unit type (if needed)
+impl NodeData for () {
+    fn node_type(&self) -> String {
+        "Default".to_string()
+    }
+}
 
 new_key_type! {
     /// Unique identifier for a Node.

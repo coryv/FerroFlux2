@@ -17,6 +17,12 @@ struct NodeData {
     name: String,
 }
 
+impl flow_canvas::model::NodeData for NodeData {
+    fn node_type(&self) -> String {
+        "PlaygroundNode".to_string()
+    }
+}
+
 // -- Messages --
 
 enum BackendMsg {
