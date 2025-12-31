@@ -118,7 +118,7 @@ pub fn calculate_smart_orthogonal(
     struct Node {
         x_idx: usize,
         y_idx: usize,
-        dir: i32, // 0: None, 1: H, 2: V
+        dir: i32, // 0: None, 1: Right, 2: Left, 3: Down, 4: Up
         g_score: f32,
         f_score: f32,
     }
@@ -187,10 +187,11 @@ pub fn calculate_smart_orthogonal(
     let mut g_score = HashMap::new();
     let mut came_from = HashMap::new();
 
+    // Start with dir: 1 (Right) because p_start is outset to the right
     open_set.push(Node {
         x_idx: start_x_idx,
         y_idx: start_y_idx,
-        dir: 0,
+        dir: 1,
         g_score: 0.0,
         f_score: Vec2::new(xs[start_x_idx], ys[start_y_idx])
             .distance(Vec2::new(xs[end_x_idx], ys[end_y_idx])),
@@ -206,26 +207,43 @@ pub fn calculate_smart_orthogonal(
         }
 
         let neighbors = [
-            (current.x_idx as i32 - 1, current.y_idx as i32, 1), // H
-            (current.x_idx as i32 + 1, current.y_idx as i32, 1), // H
-            (current.x_idx as i32, current.y_idx as i32 - 1, 2), // V
-            (current.x_idx as i32, current.y_idx as i32 + 1, 2), // V
+            (current.x_idx as i32 + 1, current.y_idx as i32, 1), // Right
+            (current.x_idx as i32 - 1, current.y_idx as i32, 2), // Left
+            (current.x_idx as i32, current.y_idx as i32 + 1, 3), // Down
+            (current.x_idx as i32, current.y_idx as i32 - 1, 4), // Up
         ];
 
         for (nx, ny, n_dir) in neighbors {
             if nx < 0 || nx >= xs.len() as i32 || ny < 0 || ny >= ys.len() as i32 {
                 continue;
             }
+
+            // 180-degree turn check
+            if current.dir != 0 {
+                if (current.dir == 1 && n_dir == 2) || (current.dir == 2 && n_dir == 1) {
+                    continue;
+                }
+                if (current.dir == 3 && n_dir == 4) || (current.dir == 4 && n_dir == 3) {
+                    continue;
+                }
+            }
+
             let nx = nx as usize;
             let ny = ny as usize;
             let neighbor_pos = Vec2::new(xs[nx], ys[ny]);
             let current_pos = Vec2::new(xs[current.x_idx], ys[current.y_idx]);
             let mid_pos = (current_pos + neighbor_pos) * 0.5;
 
-            // Robust collision check: check neighbor AND midpoint
+            // Strict collision check
             let mut blocked = false;
             for obs in obstacles {
-                if obs.expand(-2.0).contains(neighbor_pos) || obs.expand(-2.0).contains(mid_pos) {
+                let strict_obs = obs.expand(0.01);
+                if strict_obs.contains(neighbor_pos) || strict_obs.contains(mid_pos) {
+                    // Docking/Undocking Safety Check
+                    // Allow movement within 5px of start/end approach points
+                    if neighbor_pos.distance(p_start) < 5.0 || neighbor_pos.distance(p_end) < 5.0 {
+                        continue;
+                    }
                     blocked = true;
                     break;
                 }

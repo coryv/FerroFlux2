@@ -107,13 +107,10 @@ async fn get_graph(state: tauri::State<'_, AppState>) -> Result<SerializableGrap
             .unwrap_or(glam::Vec2::ZERO);
 
         // Identify which nodes to ignore as obstacles (the nodes this edge connects)
-        let from_node_id = graph.ports.get(conn.from).map(|p| p.node);
-        let to_node_id = graph.ports.get(conn.to).map(|p| p.node);
 
         let obstacles: Vec<flow_canvas::math::Rect> = graph
             .nodes
             .iter()
-            .filter(|(id, _)| Some(*id) != from_node_id && Some(*id) != to_node_id)
             .map(|(_, node)| flow_canvas::math::Rect::new(node.position, node.size))
             .collect();
 

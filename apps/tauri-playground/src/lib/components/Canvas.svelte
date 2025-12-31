@@ -203,20 +203,14 @@
 
         // 1. Collect obstacles (exclude from/to nodes)
         const allNodes = Object.values(graph.nodes) as SerializableNode[];
-        const fromNodeId = allNodes.find((n) =>
-            n.outputs.includes(edge.from),
-        )?.id;
-        const toNodeId = allNodes.find((n) => n.inputs.includes(edge.to))?.id;
 
-        const obstacles = allNodes
-            .filter((n) => n.id !== fromNodeId && n.id !== toNodeId)
-            .map((n) => ({
-                min: { x: n.position[0], y: n.position[1] },
-                max: {
-                    x: n.position[0] + n.size[0],
-                    y: n.position[1] + n.size[1],
-                },
-            }));
+        const obstacles = allNodes.map((n) => ({
+            min: { x: n.position[0], y: n.position[1] },
+            max: {
+                x: n.position[0] + n.size[0],
+                y: n.position[1] + n.size[1],
+            },
+        }));
 
         // 2. Generate Grid
         let xs = [pStart.x, pEnd.x];
@@ -273,8 +267,8 @@
         const endY = findClosest(pEnd.y, ys);
 
         const openSet: [number, number, number, number][] = [
-            [startX, startY, 0, 0],
-        ]; // x, y, fScore, dir
+            [startX, startY, 0, 1],
+        ]; // x, y, fScore, dir (1: Right, 2: Left, 3: Down, 4: Up)
         const gScore: Map<string, number> = new Map();
         const cameFrom: Map<string, [number, number]> = new Map();
 
@@ -291,15 +285,29 @@
             }
 
             const neighbors = [
-                [cx - 1, cy, 1],
-                [cx + 1, cy, 1],
-                [cx, cy - 1, 2],
-                [cx, cy + 1, 2],
+                [cx + 1, cy, 1], // Right
+                [cx - 1, cy, 2], // Left
+                [cx, cy + 1, 3], // Down
+                [cx, cy - 1, 4], // Up
             ];
 
             for (const [nx, ny, nDir] of neighbors) {
                 if (nx < 0 || nx >= xs.length || ny < 0 || ny >= ys.length)
                     continue;
+
+                // 180-degree turn check
+                if (cDir !== 0) {
+                    if (
+                        (cDir === 1 && nDir === 2) ||
+                        (cDir === 2 && nDir === 1)
+                    )
+                        continue;
+                    if (
+                        (cDir === 3 && nDir === 4) ||
+                        (cDir === 4 && nDir === 3)
+                    )
+                        continue;
+                }
 
                 const nPos = { x: xs[nx], y: ys[ny] };
                 const cPos = { x: xs[cx], y: ys[cy] };
@@ -310,17 +318,27 @@
 
                 let blocked = false;
                 for (const obs of obstacles) {
-                    // Check if neighbor or segment midpoint is inside obstacle
-                    if (
-                        (nPos.x > obs.min.x + 2 &&
-                            nPos.x < obs.max.x - 2 &&
-                            nPos.y > obs.min.y + 2 &&
-                            nPos.y < obs.max.y - 2) ||
-                        (mPos.x > obs.min.x + 2 &&
-                            mPos.x < obs.max.x - 2 &&
-                            mPos.y > obs.min.y + 2 &&
-                            mPos.y < obs.max.y - 2)
-                    ) {
+                    // Strict boundary check
+                    const isInside = (p: { x: number; y: number }) =>
+                        p.x >= obs.min.x &&
+                        p.x <= obs.max.x &&
+                        p.y >= obs.min.y &&
+                        p.y <= obs.max.y;
+
+                    if (isInside(nPos) || isInside(mPos)) {
+                        // Safety Zone Check (Docking/Undocking)
+                        // Allow being inside an obstacle if we are within 5px of the start/end targets.
+                        const distToStart =
+                            Math.abs(nPos.x - pStart.x) +
+                            Math.abs(nPos.y - pStart.y);
+                        const distToEnd =
+                            Math.abs(nPos.x - pEnd.x) +
+                            Math.abs(nPos.y - pEnd.y);
+
+                        if (distToStart < 5 || distToEnd < 5) {
+                            continue;
+                        }
+
                         blocked = true;
                         break;
                     }
