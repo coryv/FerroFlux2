@@ -1,5 +1,22 @@
 use bevy_ecs::prelude::*;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PortMetadata {
+    pub name: String,
+    pub data_type: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct NodeMetadata {
+    pub id: String,
+    pub name: String,
+    pub category: String,
+    pub description: Option<String>,
+    pub inputs: Vec<PortMetadata>,
+    pub outputs: Vec<PortMetadata>,
+}
 
 /// Trait for creating node entities from JSON configuration.
 ///
@@ -10,4 +27,7 @@ pub trait NodeFactory: Send + Sync {
 
     /// Serializes the node's configuration from the ECS entity.
     fn serialize(&self, world: &World, entity: Entity) -> Option<Value>;
+
+    /// Returns metadata about the node for UI/docs.
+    fn metadata(&self) -> NodeMetadata;
 }

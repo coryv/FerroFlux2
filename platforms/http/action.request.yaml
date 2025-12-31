@@ -1,0 +1,87 @@
+meta:
+  id: http.action.request
+  name: HTTP Request
+  category: Actions
+  type: Action
+  platform: http
+  description: "Performs an HTTP request using the platform's credentials."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: body
+      type: object
+      description: "Request body (for POST/PUT)"
+    - name: query
+      type: object
+      description: "Additional query parameters"
+
+  outputs:
+    - name: Exec
+      type: flow
+    - name: status
+      type: number
+    - name: body
+      type: object
+    - name: headers
+      type: object
+    - name: error
+      type: flow
+
+  settings:
+    - name: method
+      label: Method
+      type: select
+      default: GET
+      options: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    - name: url
+      label: URL / Path
+      type: string
+      description: "Full URL or path relative to Base URL"
+    - name: headers
+      label: Headers
+      type: dictionary
+      description: "Additional headers"
+
+execution:
+  # Logic to construct URL and Headers based on Platform Config requires complex templating 
+  # OR a specialized `http_smart_client` tool.
+  # For now, we will use Handlebars helpers if available, or just simple concatenation assuming the 
+  # Backend injects "derived" values like `platform.full_auth_header`.
+  
+  # Using standard http_client with assumed pre-calculated auth for now purely for structure.
+  
+  - id: req
+    tool: http_client
+    params:
+      method: "{{ settings.method }}"
+      url: "{{ platform.base_url }}{{ settings.url }}"
+      headers: "{{ settings.headers }}" # Merger required
+      body: "{{ inputs.body }}"
+    returns:
+      status: status_code
+      body: response_body
+      headers: response_headers
+
+routing:
+  match: "{{ steps.req.status }}"
+  cases:
+    # >= 400 is error? Simple heuristic:
+    default:
+      - tool: emit
+        params:
+          port: Exec
+      - tool: emit
+        params:
+          port: status
+          value: "{{ steps.req.status }}"
+      - tool: emit
+        params:
+          port: body
+          value: "{{ steps.req.body }}"
+      - tool: emit
+        params:
+          port: headers
+          value: "{{ steps.req.headers }}"

@@ -1,0 +1,69 @@
+meta:
+  id: core.trigger.schedule
+  name: Scheduler
+  category: Triggers
+  type: Trigger
+  platform: core
+  description: "Triggers the workflow at scheduled intervals."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Exec
+      type: flow
+    - name: timestamp
+      type: number
+
+  settings:
+    - name: mode
+      label: Recurrence
+      type: select
+      default: "interval"
+      options:
+        - label: "Recurring Interval"
+          value: "interval"
+        - label: "Specific Time (Daily)"
+          value: "daily"
+        - label: "Specific Time (Weekly)"
+          value: "weekly"
+    
+    # Interval Mode Settings
+    - name: interval_value
+      label: Every
+      type: number
+      default: 15
+      min: 1
+      show_if: "mode == 'interval'"
+      
+    - name: interval_unit
+      label: Unit
+      type: select
+      default: "minutes"
+      options: ["hours", "minutes", "seconds"]
+      show_if: "mode == 'interval'"
+
+    # Calendar Mode Settings
+    - name: time
+      label: Time (HH:MM)
+      type: time
+      default: "09:00"
+      show_if: "mode == 'daily' || mode == 'weekly'"
+      
+    - name: days
+      label: Days of Week
+      type: multi-select
+      options: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+      show_if: "mode == 'weekly'"
+
+execution:
+  - id: emit_time
+    tool: emit
+    params:
+      port: timestamp
+      value: "{{ event.timestamp }}"
+
+  - id: emit_exec
+    tool: emit
+    params:
+      port: Exec

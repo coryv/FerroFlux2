@@ -1,0 +1,90 @@
+meta:
+  id: openai.chat.completions
+  name: Chat Completion
+  category: AI/ML
+  type: Action
+  platform: openai
+  description: "Generate a chat completion"
+  version: "1.0.0"
+  data_strategy: enrich
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+      default_hidden: false
+    - name: user_prompt
+      type: string
+  
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: response
+      type: string
+
+  settings:
+    - name: model
+      label: Model
+      type: string
+      default: "gpt-4-turbo-preview"
+      options_provider: openai.list_models
+    - name: system_prompt
+      label: System Prompt
+      type: string
+      default: "You are a helpful assistant."
+
+execution:
+  - id: req
+    tool: http_client
+    params:
+      method: POST
+      url: "{{ platform.base_url }}/chat/completions"
+      headers: "{{ platform.headers }}"
+      body:
+        model: "{{ settings.model }}"
+        messages:
+          - role: system
+            content: "{{ settings.system_prompt }}"
+          - role: user
+            content: "{{ inputs.user_prompt }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: check_error
+    tool: switch
+    params:
+      value: "{{ steps.req.status }}"
+      cases:
+        - condition: "200"
+          output: success
+        - condition: default
+          output: error
+
+routing:
+  match: "{{ steps.check_error.branch }}"
+  cases:
+    success:
+      - tool: json_query
+        params:
+          json: "{{ steps.req.body }}"
+          path: "/choices/0/message/content"
+        returns:
+           result: final_content
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: response
+          value: "{{ final_content }}"
+    error:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.req.body }}"
+
+context:
+  model: "{{ settings.model }}"

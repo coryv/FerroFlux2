@@ -436,10 +436,10 @@
                 if (data.__ferroflux) {
                     // screenToWorld already handles rect.left/top
                     const { x, y } = screenToWorld(e.clientX, e.clientY);
-                    const log = `Canvas: dropping ${data.name} at (${x}, ${y})`;
+                    const log = `Canvas: dropping ${data.name} (id: ${data.id}) at (${x}, ${y})`;
                     console.log(log);
                     invoke("log_js", { msg: log });
-                    await invoke("add_node", { name: data.name, x, y });
+                    await invoke("add_node", { templateId: data.id, x, y });
                     console.log("Canvas: add_node invoked successfully");
                     await onRefresh();
                 }

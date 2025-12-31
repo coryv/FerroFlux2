@@ -25,3 +25,19 @@ export interface GraphState {
     edges: Record<string, SerializableEdge>;
     draw_order: string[];
 }
+
+export interface PortTemplate {
+    name: string;
+    data_type: string;
+}
+
+export interface NodeTemplate {
+    id: string;
+    name: string;
+    category: string;
+    description?: string;
+    inputs: PortTemplate[];
+    outputs: PortTemplate[];
+    default_width?: number;
+    default_height?: number;
+}

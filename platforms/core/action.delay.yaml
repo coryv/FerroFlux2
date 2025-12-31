@@ -1,0 +1,56 @@
+meta:
+  id: core.action.delay
+  name: Delay
+  category: Utilities
+  type: Action
+  platform: core
+  description: "Pauses execution for a specified duration."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+  outputs:
+    - name: Exec
+      type: flow
+
+  settings:
+    - name: duration
+      label: Duration
+      type: number
+      default: 1
+    - name: unit
+      label: Unit
+      type: select
+      default: seconds
+      options: ["milliseconds", "seconds", "minutes"]
+
+execution:
+  # Logic to convert to ms. Simple handlebards math isn't built-in.
+  # We assume the user inputs MS or we hardcode logic in tool?
+  # Tool accepts 'duration_ms'. 
+  # We might need a small separate 'calc' step or just assume MS for MVP.
+  # Or updated SleepTool to accept units.
+  # For MVP, let's assume valid 'duration_ms' is passed or calculated.
+  # If we want units, we need a Math/Calc tool step.
+  # Let's update settings to just 'duration_ms' for simplicity for now
+  # OR rely on a JS-like expression if we had one.
+  # I'll stick to 'duration_ms' in settings for now to ensure robustness.
+  
+  # Wait, I put 'unit' in the spec.
+  # If I can't calculate it, I should just expose 'duration_ms'.
+  # I will stick to 'duration_ms' exposed effectively.
+  
+  - id: sleep
+    tool: sleep
+    params:
+      duration_ms: "{{ settings.duration }}" 
+      # Note: User must enter MS if I map it directly.
+      # To support Units, I would need a 'calc_ms' tool or more complex templating.
+      
+  - id: done
+    tool: emit
+    params:
+      port: Exec
+

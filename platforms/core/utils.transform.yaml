@@ -1,0 +1,44 @@
+meta:
+  id: core.utils.transform
+  name: Transform
+  category: Utilities
+  type: Action
+  platform: core
+  description: "Transforms input data using a template."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: data
+      type: any
+  outputs:
+    - name: Exec
+      type: flow
+    - name: result
+      type: any
+
+  settings:
+    - name: template
+      label: Template (Handlebars)
+      type: code
+      description: "Use {{ inputs.data }} to access input."
+      default: "{{ inputs.data }}"
+
+execution:
+  # Just emits the resolved template string/value.
+  # The YAML engine resolves "{{ settings.template }}" - which might contain inner templates!
+  # If settings.template is "{{ inputs.data }}", the engine resolves it.
+  # This works for "One Pass" templating.
+  
+  - id: emit_res
+    tool: emit
+    params:
+      port: result
+      value: "{{ settings.template }}"
+
+  - id: done
+    tool: emit
+    params:
+      port: Exec

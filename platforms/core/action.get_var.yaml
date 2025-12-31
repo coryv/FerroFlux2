@@ -1,0 +1,43 @@
+meta:
+  id: core.action.get_var
+  name: Get Variable
+  category: State
+  type: Action
+  platform: core
+  description: "Retrieves a value from the workflow's global memory."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+  outputs:
+    - name: Exec
+      type: flow
+    - name: value
+      type: any
+
+  settings:
+    - name: variable_name
+      label: Variable Name
+      type: string
+      required: true
+
+execution:
+  - id: get
+    tool: get_var
+    params:
+      name: "{{ settings.variable_name }}"
+    returns:
+      value: var_val
+
+  - id: emit_val
+    tool: emit
+    params:
+      port: value
+      value: "{{ steps.get.value }}"
+
+  - id: done
+    tool: emit
+    params:
+      port: Exec

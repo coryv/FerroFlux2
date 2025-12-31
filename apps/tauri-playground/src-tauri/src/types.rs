@@ -5,6 +5,7 @@ use std::collections::HashMap;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlaygroundNodeData {
     pub name: String,
+    pub template_id: String,
 }
 
 impl NodeData for PlaygroundNodeData {
@@ -46,3 +47,6 @@ pub struct ClipboardData {
     pub nodes: Vec<Node<PlaygroundNodeData>>,
     pub edges: Vec<SerializableEdge>,
 }
+#[allow(dead_code)]
+pub type PortTemplate = ferroflux_core::traits::node_factory::PortMetadata;
+pub type NodeTemplate = ferroflux_core::traits::node_factory::NodeMetadata;

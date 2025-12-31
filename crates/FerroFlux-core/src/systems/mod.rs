@@ -13,6 +13,7 @@ pub mod io;
 pub mod janitor;
 pub mod logic;
 pub mod manipulation;
+pub mod pipeline;
 pub mod scheduler;
 pub mod transport;
 pub mod utils;

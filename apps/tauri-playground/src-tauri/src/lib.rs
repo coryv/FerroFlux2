@@ -23,6 +23,7 @@ pub fn run() {
             graph: Arc::new(Mutex::new(GraphState::default())),
             history: Arc::new(Mutex::new(HistoryManager::default())),
             default_wire_style: Arc::new(Mutex::new(WireStyle::Cubic)),
+            registry_cache: Arc::new(Mutex::new(std::collections::HashMap::new())),
         })
         .invoke_handler(tauri::generate_handler![
             commands::init_sdk,
@@ -39,6 +40,7 @@ pub fn run() {
             commands::redo,
             commands::copy_items,
             commands::paste_items,
+            commands::get_node_templates,
             commands::deploy
         ])
         .run(tauri::generate_context!())

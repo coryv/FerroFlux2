@@ -1,0 +1,47 @@
+meta:
+  id: core.action.switch
+  name: Logic Switch
+  category: Logic
+  type: Action
+  platform: core
+  description: "Routes data based on complex conditional rules (Segment-like)."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: data
+      type: object
+      description: "The object to evaluate conditions against."
+  
+  outputs:
+    - name: Exec
+      type: flow
+    - name: default
+      type: flow
+      description: "Fallback path if no rules match."
+    # Additional outputs correspond to 'output' names in rules.
+    # User must ensure ports exist or strict checking is disabled.
+
+  settings:
+    - name: rules
+      label: "Rules Configuration"
+      type: list 
+      description: "List of logic rules with conditions and output names."
+      default: []
+
+execution:
+  - id: check
+    tool: logic
+    params:
+      data: "{{ inputs.data }}"
+      rules: "{{ settings.rules }}"
+    returns:
+      match: target_port
+
+  - id: route_data
+    tool: emit
+    params:
+      port: "{{ steps.check.match }}"
+      value: "{{ inputs.data }}"

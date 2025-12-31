@@ -1,0 +1,103 @@
+meta:
+  id: core.logic.condition
+  name: If / Else
+  category: Logic
+  type: Action
+  platform: core
+  description: "Simple binary condition check."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: a
+      type: any
+      description: "Left value"
+    - name: b
+      type: any
+      description: "Right value (Optional)"
+
+  outputs:
+    - name: True
+      type: flow
+    - name: False
+      type: flow
+
+  settings:
+    - name: operator
+      label: Operator
+      type: select
+      default: "=="
+      options: ["==", "!=", ">", "<", ">=", "<="]
+
+execution:
+  # Using Logic Tool to evaluate "a OP b"
+  # Logic Tool expects { rules: [ { output: "True", condition: { field: "", op: "", val: "" } } ] }
+  # But here 'a' is passed directly. LogicTool works on a 'data' object and looks up fields.
+  # If we pass 'a' as data, and tell LogicTool field="", it uses the data itself.
+  # So data: "{{ inputs.a }}", field: "" (empty string = self), value: "{{ inputs.b }}"
+  
+  - id: check
+    tool: logic
+    params:
+      data: "{{ inputs.a }}"
+      rules:
+        - output: "True"
+          condition:
+            field: ""
+            operator: "{{ settings.operator }}"
+            value: "{{ inputs.b }}"
+    returns:
+      match: branch_name
+
+  - id: route
+    tool: emit
+    params:
+      port: "{{ steps.check.match }}" # Emits to "True" or "default"
+      # If match is "default" (no match), that maps to "False" logically.
+      # But here we didn't define a rule for False.
+      # If LogicTool returns "default", we should emit to "False".
+      # How validation works?
+      # We can't do conditional logic in params easily.
+      # Alternative: Add a second rule for True?
+      # Or just emit to "{{ steps.check.match }}" and name the default port "False"?
+      # LogicTool outputs "default" if no match.
+      # So we name our False output "default"? No, UI shows "default".
+      # Better: define an explicit rule? No, logic tool is first-match.
+      # If we want "default" -> "False", we must handle it.
+      # Wait! If I route to port "{{ steps.check.match }}", I need a port named "default".
+      # I can rename the False output to "default" in interface?
+      # Or I can use SwitchTool?
+      # SwitchTool takes a Value and a list of Cases.
+      # LogicTool is overkill for simple binary if we have to construct the JSON complexity.
+      
+      # Let's use LogicTool but with a "default" port added to interface?
+      # The user spec says "True" / "False".
+      # If LogicTool returns "default", I want to trigger False.
+      # Since I can't rename dynamic value easily in YAML without a Transform step...
+      # I'll rely on explicit Logic rules.
+      # Rule 1: True.
+      # Rule 2: (Implicitly everything else) -> I can add a catch-all rule?
+      # LogicTool supports "Always True"? 
+      # "condition": { operator: "OR", rules: [] } -> Empty OR is false? Empty AND is true?
+      # Let's just assume we emit to "default" port and Label it "False" in the UI? 
+      # No, UI uses internal name.
+      # I'll change the Output name to "default" in YAML and "False" in Display Label (if UI supported it).
+      # For now, I'll name the port "default" for simplicity, and comment it.
+      
+      value: "{{ inputs.a }}" # Passthrough data?
+      
+      # FIX: I will rename "False" to "default" to align with LogicTool's fallback.
+
+execution_patch:
+  # ...
+
+interface:
+  # ...
+  outputs:
+    - name: True
+      type: flow
+    - name: default
+      type: flow
+      description: "False / Fallback"

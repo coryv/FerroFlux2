@@ -1,0 +1,36 @@
+meta:
+  id: core.action.set_var
+  name: Set Variable
+  category: State
+  type: Action
+  platform: core
+  description: "Stores a value in the workflow's global memory."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: value
+      type: any
+  outputs:
+    - name: Exec
+      type: flow
+
+  settings:
+    - name: variable_name
+      label: Variable Name
+      type: string
+      required: true
+
+execution:
+  - id: set
+    tool: set_var
+    params:
+      name: "{{ settings.variable_name }}"
+      value: "{{ inputs.value }}"
+
+  - id: done
+    tool: emit
+    params:
+      port: Exec

@@ -1,0 +1,43 @@
+meta:
+  id: core.trigger.manual
+  name: Manual Trigger
+  category: Triggers
+  type: Trigger
+  platform: core
+  description: "Manually starts the workflow via a button click."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Exec
+      type: flow
+    - name: user_id
+      type: string
+    - name: timestamp
+      type: number
+
+  settings:
+    - name: label
+      label: Button Label
+      type: string
+      default: "Run Workflow"
+
+execution:
+  # The runner injects `event` context containing user_id and timestamp.
+  - id: emit_user
+    tool: emit
+    params:
+      port: user_id
+      value: "{{ event.user_id }}"
+
+  - id: emit_time
+    tool: emit
+    params:
+      port: timestamp
+      value: "{{ event.timestamp }}"
+
+  - id: emit_exec
+    tool: emit
+    params:
+      port: Exec

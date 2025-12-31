@@ -25,6 +25,28 @@ pub fn log_js(msg: String) {
 }
 
 #[tauri::command]
+pub async fn get_node_templates(
+    state: tauri::State<'_, AppState>,
+) -> Result<Vec<crate::types::NodeTemplate>, String> {
+    let (tx, rx) = oneshot::channel();
+    state
+        .engine_tx
+        .send(EngineCommand::GetTemplates(tx))
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let templates = rx.await.map_err(|e| e.to_string())??;
+
+    // Update cache
+    let mut cache = state.registry_cache.lock().await;
+    for t in &templates {
+        cache.insert(t.id.clone(), t.clone());
+    }
+
+    Ok(templates)
+}
+
+#[tauri::command]
 pub async fn get_graph(state: tauri::State<'_, AppState>) -> Result<SerializableGraph, String> {
     let graph = state.graph.lock().await;
 
@@ -178,13 +200,19 @@ pub async fn set_all_connection_wire_styles(
 #[tauri::command]
 pub async fn add_node(
     state: tauri::State<'_, AppState>,
-    name: String,
+    template_id: String,
     x: f32,
     y: f32,
 ) -> Result<String, String> {
-    println!("Backend: add_node called: {}", name);
+    println!("Backend: add_node called: {}", template_id);
     let mut graph = state.graph.lock().await;
     let mut history = state.history.lock().await;
+    let cache = state.registry_cache.lock().await;
+
+    // Find template from cache
+    let template = cache
+        .get(&template_id)
+        .ok_or_else(|| format!("Template not found (Refresh Palette): {}", template_id))?;
 
     history.commit(&graph);
 
@@ -193,17 +221,26 @@ pub async fn add_node(
         id: NodeId::default(),
         uuid: node_uuid,
         position: glam::Vec2::new(x, y),
-        size: glam::Vec2::new(160.0, 80.0),
+        size: glam::Vec2::new(160.0, 80.0), // TODO: Use template width/height if added to metadata
         inputs: vec![],
         outputs: vec![],
-        data: PlaygroundNodeData { name },
+        data: PlaygroundNodeData {
+            name: template.name.clone(),
+            template_id: template_id.clone(),
+        },
         flags: Default::default(),
         style: None,
     });
 
     graph.draw_order.push(node_id);
-    graph.add_port(node_id, true);
-    graph.add_port(node_id, false);
+
+    // Create ports from template
+    for _input in &template.inputs {
+        graph.add_port(node_id, true);
+    }
+    for _output in &template.outputs {
+        graph.add_port(node_id, false);
+    }
 
     Ok(format!("{:?}", node_id))
 }

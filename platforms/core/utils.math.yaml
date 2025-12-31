@@ -1,0 +1,58 @@
+meta:
+  id: core.utils.math
+  name: Math
+  category: Utilities
+  type: Action
+  platform: core
+  description: "Performs basic arithmetic operations."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: a
+      type: number
+    - name: b
+      type: number
+  outputs:
+    - name: Exec
+      type: flow
+    - name: result
+      type: number
+
+  settings:
+    - name: operation
+      label: Operation
+      type: select
+      default: add
+      options:
+        - label: Add
+          value: add
+        - label: Subtract
+          value: sub
+        - label: Multiply
+          value: mul
+        - label: Divide
+          value: div
+
+execution:
+  - id: calc
+    tool: math
+    params:
+      a: "{{ inputs.a }}"
+      b: "{{ inputs.b }}"
+      op: "{{ settings.operation }}"
+    returns:
+      result: math_res
+
+  - id: emit_res
+    tool: emit
+    params:
+      port: result
+      value: "{{ steps.calc.result }}"
+
+  - id: done
+    tool: emit
+    params:
+      port: Exec

@@ -27,7 +27,16 @@ impl<T: NodeData> FerroFluxClient<T> {
     ///
     /// This is the standard entry point for most applications.
     pub async fn init() -> Result<Self> {
-        let (engine, _api_tx, event_tx, ..) = AppBuilder::new().build().await?;
+        let (mut engine, _api_tx, event_tx, ..) = AppBuilder::new().build().await?;
+
+        // Register Core Tools
+        if let Some(mut registry) = engine
+            .world
+            .get_resource_mut::<ferroflux_core::tools::registry::ToolRegistry>()
+        {
+            ferroflux_core::tools::register_core_tools(&mut registry);
+        }
+
         Ok(Self::new(engine, event_tx))
     }
 
@@ -131,5 +140,84 @@ impl<T: NodeData> FerroFluxClient<T> {
         let mut engine = self.engine.lock().await;
         engine.update();
         Ok(())
+    }
+
+    /// Fetches all available node templates from the engine registry.
+    pub async fn get_node_templates(
+        &self,
+    ) -> Result<Vec<ferroflux_core::traits::node_factory::NodeMetadata>> {
+        let engine = self.engine.lock().await;
+        // Access NodeRegistry
+        let mut templates = Vec::new();
+
+        if let Some(registry) = engine
+            .world
+            .get_resource::<ferroflux_core::resources::registry::NodeRegistry>()
+        {
+            let core_temps = registry.list_templates();
+            println!("DEBUG: SDK found {} core templates", core_temps.len());
+            templates.extend(core_temps);
+        } else {
+            println!("DEBUG: SDK: NodeRegistry resource not found!");
+        }
+
+        // Access IntegrationRegistry if available
+        if let Some(registry) = engine
+            .world
+            .get_resource::<ferroflux_core::integrations::IntegrationRegistry>()
+        {
+            for (key, def) in &registry.definitions {
+                for (action_key, action) in &def.actions {
+                    let id = format!("integration/{}/{}", key, action_key);
+
+                    let mut inputs = action
+                        .inputs
+                        .iter()
+                        .map(|f| ferroflux_core::traits::node_factory::PortMetadata {
+                            name: f.name.clone(),
+                            data_type: "any".to_string(), // Schema types are complex, using any for now
+                        })
+                        .collect::<Vec<_>>();
+
+                    // Always add Exec input
+                    inputs.insert(
+                        0,
+                        ferroflux_core::traits::node_factory::PortMetadata {
+                            name: "Exec".to_string(),
+                            data_type: "flow".to_string(),
+                        },
+                    );
+
+                    let mut outputs = action
+                        .outputs
+                        .iter()
+                        .map(|f| ferroflux_core::traits::node_factory::PortMetadata {
+                            name: f.name.clone(),
+                            data_type: "any".to_string(),
+                        })
+                        .collect::<Vec<_>>();
+
+                    // Always add Exec output
+                    outputs.insert(
+                        0,
+                        ferroflux_core::traits::node_factory::PortMetadata {
+                            name: "Success".to_string(),
+                            data_type: "flow".to_string(),
+                        },
+                    );
+
+                    templates.push(ferroflux_core::traits::node_factory::NodeMetadata {
+                        id,
+                        name: format!("{} {}", def.name, action_key),
+                        category: "Integrations".to_string(),
+                        description: action.documentation.clone(),
+                        inputs,
+                        outputs,
+                    });
+                }
+            }
+        }
+
+        Ok(templates)
     }
 }

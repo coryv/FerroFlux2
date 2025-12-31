@@ -1,0 +1,58 @@
+meta:
+  id: core.trigger.webhook
+  name: Webhook
+  category: Triggers
+  type: Trigger
+  platform: core
+  description: "Triggers when a specific URL is called."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Exec
+      type: flow
+    - name: body
+      type: object
+    - name: headers
+      type: object
+    - name: query
+      type: object
+
+  settings:
+    - name: method
+      label: HTTP Method
+      type: select
+      default: POST
+      options: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    
+    - name: path
+      label: Webhook Path
+      type: string
+      description: "Unique path suffix (e.g. /my-hook)"
+      required: true
+
+execution:
+  # Runner injects `event` containing body, headers, query
+  - id: emit_body
+    tool: emit
+    params:
+      port: body
+      value: "{{ event.body }}"
+
+  - id: emit_headers
+    tool: emit
+    params:
+      port: headers
+      value: "{{ event.headers }}"
+
+  - id: emit_query
+    tool: emit
+    params:
+      port: query
+      value: "{{ event.query }}"
+
+  - id: emit_exec
+    tool: emit
+    params:
+      port: Exec

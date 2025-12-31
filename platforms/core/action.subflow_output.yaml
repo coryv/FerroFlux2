@@ -1,0 +1,26 @@
+meta:
+  id: core.action.subflow_output
+  name: Sub-workflow Output
+  category: Actions
+  type: Action
+  platform: core
+  description: "Returns data to the parent workflow and ends the sub-workflow."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: result
+      type: object
+  outputs: [] # No outputs, terminates flow
+
+  settings: []
+
+execution:
+  # Emits to a special system port expected by the Subflow Runner
+  - id: return_result
+    tool: emit
+    params:
+      port: _subflow_return
+      value: "{{ inputs.result }}"

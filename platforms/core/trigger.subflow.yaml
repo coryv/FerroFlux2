@@ -1,0 +1,31 @@
+meta:
+  id: core.trigger.subflow
+  name: Sub-workflow Input
+  category: Triggers
+  type: Trigger
+  platform: core
+  description: "Starts a sub-workflow, receiving data from the parent workflow."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Exec
+      type: flow
+    - name: payload
+      type: object
+
+  settings: []
+
+execution:
+  # Runner injects `event.payload` passed from parent
+  - id: emit_payload
+    tool: emit
+    params:
+      port: payload
+      value: "{{ event.payload }}"
+
+  - id: emit_exec
+    tool: emit
+    params:
+      port: Exec
