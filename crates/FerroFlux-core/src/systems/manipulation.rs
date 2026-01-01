@@ -78,7 +78,7 @@ pub fn splitter_worker(
                 {
                     let mut final_ticket = new_ticket;
                     final_ticket.metadata = ticket.metadata.clone();
-                    outbox.queue.push_back(final_ticket);
+                    outbox.queue.push_back((None, final_ticket));
                 }
             }
 
@@ -148,7 +148,7 @@ pub fn aggregator_worker(
                 ticket
                     .metadata
                     .insert("trace_id".to_string(), uuid::Uuid::new_v4().to_string());
-                outbox.queue.push_back(ticket);
+                outbox.queue.push_back((None, ticket));
             }
 
             // Emit Telemetry
@@ -217,7 +217,7 @@ pub fn transform_worker(
 
             if let Ok(mut new_ticket) = store.check_in(&final_output_bytes) {
                 new_ticket.metadata = ticket.metadata.clone();
-                outbox.queue.push_back(new_ticket);
+                outbox.queue.push_back((None, new_ticket));
             }
 
             let _ = event_tx.send(SystemEvent::NodeTelemetry {
@@ -293,7 +293,7 @@ pub fn stats_worker(
                 if let Ok(new_ticket) = store.check_in(&payload_bytes) {
                     let mut final_ticket = new_ticket;
                     final_ticket.metadata = ticket.metadata;
-                    outbox.queue.push_back(final_ticket);
+                    outbox.queue.push_back((None, final_ticket));
                 }
                 continue;
             }
@@ -347,7 +347,7 @@ pub fn stats_worker(
 
             if let Ok(mut new_ticket) = store.check_in(&final_bytes) {
                 new_ticket.metadata = ticket.metadata.clone();
-                outbox.queue.push_back(new_ticket);
+                outbox.queue.push_back((None, new_ticket));
             }
 
             let _ = event_tx.send(SystemEvent::NodeTelemetry {
@@ -465,7 +465,7 @@ pub fn window_worker(
                 && let Ok(mut new_ticket) = store.check_in(&bytes)
             {
                 new_ticket.metadata = ticket.metadata;
-                outbox.queue.push_back(new_ticket);
+                outbox.queue.push_back((None, new_ticket));
             }
 
             // Telemetry
@@ -602,7 +602,7 @@ pub fn expression_worker(
                 && let Ok(mut new_ticket) = store.check_in(&bytes)
             {
                 new_ticket.metadata = ticket.metadata;
-                outbox.queue.push_back(new_ticket);
+                outbox.queue.push_back((None, new_ticket));
             }
 
             let success = result.is_some();

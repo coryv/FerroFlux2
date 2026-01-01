@@ -47,4 +47,5 @@ pub fn register_core_tools(registry: &mut registry::ToolRegistry) {
     registry.register(SetVarTool);
     registry.register(GetVarTool);
     registry.register(MathTool);
+    registry.register(RhaiTool::default());
 }

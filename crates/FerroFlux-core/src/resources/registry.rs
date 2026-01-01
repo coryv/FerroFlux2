@@ -3,10 +3,17 @@ use crate::traits::node_factory::NodeFactory;
 use bevy_ecs::prelude::*;
 use std::collections::HashMap;
 
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Clone)]
 pub struct DefinitionRegistry {
     pub definitions: HashMap<String, NodeDefinition>,
     pub platforms: HashMap<String, PlatformDefinition>,
+}
+
+impl DefinitionRegistry {
+    pub fn clear(&mut self) {
+        self.definitions.clear();
+        self.platforms.clear();
+    }
 }
 
 #[derive(Resource, Default)]
@@ -27,6 +34,10 @@ impl NodeRegistry {
         self.factories
             .get(&node_type.to_lowercase())
             .map(|b| b.as_ref())
+    }
+
+    pub fn clear(&mut self) {
+        self.factories.clear();
     }
 
     pub fn list_templates(&self) -> Vec<crate::traits::node_factory::NodeMetadata> {

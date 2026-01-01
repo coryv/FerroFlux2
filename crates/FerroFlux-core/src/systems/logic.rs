@@ -185,7 +185,7 @@ pub fn script_worker(
             out_meta.insert("trace_id".to_string(), trace_id.clone());
 
             if let Ok(out_ticket) = store.check_in_with_metadata(output.as_bytes(), out_meta) {
-                outbox.queue.push_back(out_ticket);
+                outbox.queue.push_back((None, out_ticket));
                 tracing::info!(node_id = %node_config.id, "Executed script");
             }
 

@@ -1,106 +1,146 @@
-use ferroflux_core::components::pipeline::PipelineNode;
-use ferroflux_core::resources::registry::DefinitionRegistry;
-use ferroflux_core::systems::pipeline::execute_pipeline_node;
-use ferroflux_core::tools::primitives::{EmitTool, HttpClientTool, JsonQueryTool, SwitchTool};
-use ferroflux_core::tools::registry::ToolRegistry;
-use serde_json::json;
-use std::collections::HashMap;
-use std::path::PathBuf;
-use wiremock::matchers::{method, path};
-use wiremock::{Mock, MockServer, ResponseTemplate};
+use ferroflux_core::app::AppBuilder;
+use ferroflux_core::components::Outbox;
+use ferroflux_core::graph_loader::load_graph_from_str;
+use ferroflux_core::store::BlobStore;
+use uuid::Uuid;
 
-#[test]
-fn test_openai_chat_completion_yaml() {
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    // 1. Setup Mock Server
-    let mock_server = rt.block_on(MockServer::start());
+#[tokio::test]
+async fn test_yaml_pipeline_flow() {
+    // 1. Setup App
+    let (mut app, _api_tx, _event_tx, _store, _blob_store, _, _, _, _) = AppBuilder::new()
+        .build()
+        .await
+        .expect("Failed to build app");
 
-    rt.block_on(
-        Mock::given(method("POST"))
-            .and(path("/chat/completions"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
-                "id": "chatcmpl-123",
-                "object": "chat.completion",
-                "created": 1677652288,
-                "choices": [{
-                    "index": 0,
-                    "message": {
-                        "role": "assistant",
-                        "content": "Hello! How can I help you today?"
-                    },
-                    "finish_reason": "stop"
-                }],
-                "usage": {
-                    "prompt_tokens": 9,
-                    "completion_tokens": 12,
-                    "total_tokens": 21
-                }
-            })))
-            .mount(&mock_server),
+    app.schedule
+        .add_systems(ferroflux_core::systems::pipeline::pipeline_execution_system);
+
+    // 2. Define YAML (Manual -> Script)
+    let source_id = Uuid::new_v4();
+    let processor_id = Uuid::new_v4();
+
+    // Note: We use "core.action.script" which exists in "platforms/core".
+    // AppBuilder automatically loads it.
+    let yaml = format!(
+        r#"
+nodes:
+  - id: "{}"
+    type: "core.trigger.manual"
+    name: "Source"
+    config: {{}}
+  - id: "{}"
+    type: "core.action.script"
+    name: "Processor"
+    config:
+      script: |
+        return input + 10;
+edges:
+  - source_id: "{}"
+    target_id: "{}"
+    source_handle: "Exec"
+    target_handle: "Exec"
+"#,
+        source_id, processor_id, source_id, processor_id
     );
 
-    // 2. Load Registry
-    let mut def_registry = DefinitionRegistry::default();
-    let root_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf();
-    let platforms_dir = root_dir.join("platforms");
+    // 3. Load Graph
+    load_graph_from_str(
+        &mut app.world,
+        ferroflux_core::domain::TenantId::from("test"),
+        &yaml,
+    )
+    .expect("Failed to load graph");
 
-    // Load OpenAI platform and nodes
-    def_registry
-        .load_from_dir(&platforms_dir)
-        .expect("Failed to load platforms");
+    // 4. Trigger Source
+    {
+        let router = app
+            .world
+            .resource::<ferroflux_core::resources::NodeRouter>();
+        let source_entity = router.0.get(&source_id).cloned().expect("Source not found");
 
-    // 3. Override Base URL to point to Mock Server
-    if let Some(platform) = def_registry.platforms.get_mut("openai") {
-        platform
-            .config
-            .insert("base_url".to_string(), json!(mock_server.uri()));
-        // Disable auth for mock or keep it (mock ignores it)
-    } else {
-        panic!("OpenAI platform definition not found!");
+        let ticket = {
+            let store = app.world.resource::<BlobStore>();
+            store.check_in(br#"{"inputs": {"data": 5}}"#).unwrap()
+        };
+
+        let mut outbox_q = app.world.query::<&mut Outbox>();
+        let mut outbox = outbox_q
+            .get_mut(&mut app.world, source_entity)
+            .expect("Source Outbox missing");
+
+        // Emitting to "Exec" port to match Edge source_handle="Exec"
+        outbox.queue.push_back((Some("Exec".to_string()), ticket));
+
+        let processor_ent = *app
+            .world
+            .resource::<ferroflux_core::resources::NodeRouter>()
+            .0
+            .get(&processor_id)
+            .unwrap();
+        let _has_inbox = app
+            .world
+            .entity(processor_ent)
+            .contains::<ferroflux_core::components::Inbox>();
     }
 
-    // 4. Register Tools
-    let mut tool_registry = ToolRegistry::default();
-    tool_registry.register(HttpClientTool);
-    tool_registry.register(SwitchTool);
-    tool_registry.register(JsonQueryTool);
-    tool_registry.register(EmitTool);
+    // 5. Run Systems
+    // Tick 1: Topology update (likely)
+    // Tick 2: Transport moves ticket
+    // Tick 3: Pipeline executes
+    // Tick 4: Transport output
+    for _ in 0..5 {
+        app.update();
+    }
 
-    // 5. Create Node Instance
-    let mut node_config = HashMap::new();
-    node_config.insert("model".to_string(), json!("gpt-3.5-turbo"));
-    node_config.insert("system_prompt".to_string(), json!("You are a test bot."));
+    // 6. Verify Processor Output
+    {
+        let router = app
+            .world
+            .resource::<ferroflux_core::resources::NodeRouter>();
+        let processor_entity = router
+            .0
+            .get(&processor_id)
+            .cloned()
+            .expect("Processor not found");
 
-    let mut pipeline_node = PipelineNode::new("openai.chat.completions".to_string(), node_config);
+        let mut outbox_q = app.world.query::<&mut Outbox>();
+        let outbox = outbox_q
+            .get(&app.world, processor_entity)
+            .expect("Processor Outbox missing");
 
-    // 6. Execute
-    let mut inputs = HashMap::new();
-    inputs.insert("user_prompt".to_string(), json!("Hello"));
+        assert!(
+            !outbox.queue.is_empty(),
+            "Processor Outbox should have tickets"
+        );
 
-    let mut global_memory = HashMap::new();
+        // We expect result to be present in state
+        // Iterate tickets to find the one with enriched data
+        let store = app.world.resource::<BlobStore>();
+        let mut found_result = false;
 
-    let result = execute_pipeline_node(
-        &mut pipeline_node,
-        inputs,
-        &def_registry,
-        &tool_registry,
-        &mut global_memory,
-    )
-    .expect("Pipeline execution failed");
+        for (_port, ticket) in &outbox.queue {
+            let data = store.claim(ticket).unwrap();
+            if let Ok(state) = serde_json::from_slice::<
+                ferroflux_core::components::execution_state::ActiveWorkflowState,
+            >(&data)
+            {
+                // core.action.script defined returns: { result: script_result }
+                if let Some(val) = state.context.get("result") {
+                    if val.as_i64() == Some(15)
+                        || val.as_u64() == Some(15)
+                        || val.as_f64() == Some(15.0)
+                    {
+                        found_result = true;
+                        break;
+                    }
+                }
+                // Fallback: check if direct value? No, pipeline serializes ActiveWorkflowState.
+            }
+        }
 
-    // 7. Verify Output
-    // Check if 'response' output is emitted
-    // My execute_pipeline_node logic collects returns from context into map?
-    // The `EmitTool` writes to `_outputs` in context, which `execute_pipeline_node` returns.
-
-    println!("Pipeline Result: {:?}", result);
-
-    assert!(result.contains_key("Success"));
-    assert!(result.contains_key("response"));
-    assert_eq!(result["response"], "Hello! How can I help you today?");
+        assert!(
+            found_result,
+            "Did not find expected result (15) in output state"
+        );
+    }
 }

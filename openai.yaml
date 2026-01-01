@@ -1,0 +1,102 @@
+name: "openai"
+icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/openai.svg"
+base_url: "https://api.openai.com/v1"
+auth_type: "api_key"
+verify_endpoint: "/models"
+verify_params:
+  api_key: "api_key"
+auth:
+  type: "bearer" # Changed to standard Bearer for OpenAI
+connection_schema:
+  - name: "api_key"
+    type: "string"
+    required: true
+    is_secret: true
+    description: "OpenAI API Key"
+# --- TEMPLATES (Anchors) ---
+_templates:
+  chat_inputs: &chat_inputs
+    - name: "model"
+      type: "string"
+      required: true
+      default: "gpt-4o"
+    - name: "temperature"
+      type: "number"
+      default: 0.7
+    - name: "max_tokens"
+      type: "integer"
+      default: 4096
+    - name: "json_mode"
+      type: "boolean"
+      default: false
+      description: "Force output to be valid JSON"
+
+  chat_message_transform: &chat_message_transform |
+    {{#each messages}}
+    {
+      "role": "{{role}}",
+      "content": {{json content}}
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+
+  chat_implementation: &chat_implementation
+    type: "http"
+    config:
+      method: "POST"
+      path: "/chat/completions"
+      headers:
+        Content-Type: "application/json"
+      body_template: |
+        {
+          "model": "{{model}}",
+          "messages": [
+            {{#if system_instruction}}
+            { "role": "system", "content": {{json system_instruction}} },
+            {{/if}}
+            {{#if history}}
+             {{{history}}},
+            {{/if}}
+            { "role": "user", "content": {{json user_prompt}} }
+          ],
+          "temperature": {{temperature}},
+          "max_completion_tokens": {{max_tokens}},
+          {{#if json_mode}}
+          "response_format": { "type": "json_object" }
+          {{/if}}
+        }
+
+  chat_output_transform: &chat_output_transform
+    text: "choices[0].message.content"
+
+actions:
+  chat_completion:
+    name: "Chat Completion"
+    category: "AI"
+    subcategory: "LLM"
+    documentation: "Generate text using GPT-4o, GPT-4-Turbo, etc."
+    message_transform: *chat_message_transform
+    inputs: *chat_inputs
+    implementation: *chat_implementation
+    output_transform: *chat_output_transform
+
+utilities:
+  list_models:
+    name: "List Models"
+    implementation:
+      type: "http"
+      config:
+        method: "GET"
+        path: "/models"
+    output_transform:
+      text: "data[*].id"
+
+resources:
+  chat:
+    name: "Chat Capability"
+    category: "AI"
+    subcategory: "LLM"
+    documentation: "Raw Chat Capability for Agents"
+    message_transform: *chat_message_transform
+    inputs: *chat_inputs
+    implementation: *chat_implementation
+    output_transform: *chat_output_transform

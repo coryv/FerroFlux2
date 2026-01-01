@@ -54,7 +54,7 @@ fn test_expression_evaluation() {
     let outbox = world.get::<Outbox>(entity).unwrap();
     assert_eq!(outbox.queue.len(), 1);
 
-    let result_ticket = outbox.queue.front().unwrap();
+    let (_port, result_ticket) = outbox.queue.front().unwrap();
     let result_bytes = store.claim(result_ticket).unwrap();
     let result_json: serde_json::Value = serde_json::from_slice(&result_bytes).unwrap();
 
@@ -104,7 +104,7 @@ fn test_expression_functions() {
     schedule.run(&mut world);
 
     let outbox = world.get::<Outbox>(entity).unwrap();
-    let result_ticket = outbox.queue.front().unwrap();
+    let (_port, result_ticket) = outbox.queue.front().unwrap();
     let result_bytes = store.claim(result_ticket).unwrap();
     let result_json: serde_json::Value = serde_json::from_slice(&result_bytes).unwrap();
 

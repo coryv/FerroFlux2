@@ -10,6 +10,7 @@ pub enum EngineCommand {
         oneshot::Sender<Result<(), String>>,
     ),
     GetTemplates(oneshot::Sender<Result<Vec<crate::types::NodeTemplate>, String>>),
+    ReloadDefinitions(oneshot::Sender<Result<(), String>>),
 }
 
 pub fn spawn_engine_thread(mut engine_rx: mpsc::Receiver<EngineCommand>) {
@@ -60,8 +61,14 @@ pub fn spawn_engine_thread(mut engine_rx: mpsc::Receiver<EngineCommand>) {
                                 }
                             }
                         } else {
-                            // If client not init, return empty or error.
-                            // Better to try init? or error.
+                            let _ = tx.send(Err("Client not initialized".to_string()));
+                        }
+                    }
+                    EngineCommand::ReloadDefinitions(tx) => {
+                        if let Some(c) = client.as_ref() {
+                            let res = c.reload_definitions().await;
+                            let _ = tx.send(res.map_err(|e| e.to_string()));
+                        } else {
                             let _ = tx.send(Err("Client not initialized".to_string()));
                         }
                     }

@@ -70,7 +70,7 @@ fn test_window_rolling_mean() {
     let results: Vec<f64> = outbox
         .queue
         .iter()
-        .map(|ticket| {
+        .map(|(_port, ticket)| {
             let bytes = store.claim(ticket).unwrap();
             let json: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
             json.get("rolling_mean").unwrap().as_f64().unwrap()
@@ -148,7 +148,7 @@ fn test_window_rolling_variance() {
     let results: Vec<f64> = outbox
         .queue
         .iter()
-        .map(|ticket| {
+        .map(|(_port, ticket)| {
             let bytes = store.claim(ticket).unwrap();
             let json: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
             json.get("rolling_var").unwrap().as_f64().unwrap()

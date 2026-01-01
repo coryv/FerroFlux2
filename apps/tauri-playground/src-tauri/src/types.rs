@@ -6,6 +6,8 @@ use std::collections::HashMap;
 pub struct PlaygroundNodeData {
     pub name: String,
     pub template_id: String,
+    #[serde(default)]
+    pub settings: HashMap<String, serde_json::Value>,
 }
 
 impl NodeData for PlaygroundNodeData {

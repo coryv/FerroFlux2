@@ -77,7 +77,7 @@ pub fn http_worker(
                     ticket_id = %ticket.id,
                     "HTTP Result recorded"
                 );
-                outbox.queue.push_back(ticket);
+                outbox.queue.push_back((None, ticket));
                 work_done.0 = true;
             }
         }
@@ -101,7 +101,7 @@ pub fn http_worker(
             if let Some(pinned) = pinned_opt {
                 tracing::info!(entity = ?entity, "Node is PINNED. Skipping execution.");
                 // Push pinned ticket to outbox
-                outbox.queue.push_back(pinned.0.clone());
+                outbox.queue.push_back((None, pinned.0.clone()));
                 work_done.0 = true;
                 continue;
             }

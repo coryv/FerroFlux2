@@ -13,9 +13,11 @@ pub struct NodeMetadata {
     pub id: String,
     pub name: String,
     pub category: String,
+    pub platform: Option<String>,
     pub description: Option<String>,
     pub inputs: Vec<PortMetadata>,
     pub outputs: Vec<PortMetadata>,
+    pub settings: Vec<Value>, // Using Value for schema to avoid circular deps for now
 }
 
 /// Trait for creating node entities from JSON configuration.

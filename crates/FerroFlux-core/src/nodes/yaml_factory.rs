@@ -27,6 +27,8 @@ impl NodeFactory for YamlNodeFactory {
         let node = PipelineNode::new(self.definition.meta.id.clone(), config_map);
 
         entity.insert(node);
+        entity.insert(crate::components::Inbox::default());
+        entity.insert(crate::components::Outbox::default());
         Ok(())
     }
 
@@ -44,6 +46,7 @@ impl NodeFactory for YamlNodeFactory {
             id: meta.id.clone(),
             name: meta.name.clone(),
             category: meta.category.clone(),
+            platform: meta.platform.clone(),
             description: meta.description.clone(),
             inputs: interface
                 .inputs
@@ -60,6 +63,11 @@ impl NodeFactory for YamlNodeFactory {
                     name: p.name.clone(),
                     data_type: p.data_type.clone(),
                 })
+                .collect(),
+            settings: interface
+                .settings
+                .iter()
+                .map(|s| serde_json::to_value(s).unwrap())
                 .collect(),
         }
     }

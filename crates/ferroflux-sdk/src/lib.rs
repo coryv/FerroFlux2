@@ -17,6 +17,8 @@ use tokio::sync::{Mutex, broadcast};
 pub struct FerroFluxClient<T: NodeData> {
     /// Handle to the underlying FerroFlux engine.
     pub engine: Arc<Mutex<App>>,
+    /// Channel for sending commands to the engine.
+    api_tx: async_channel::Sender<ferroflux_core::api::ApiCommand>,
     /// Subscriber to the engine's event bus.
     event_rx: broadcast::Receiver<SystemEvent>,
     _marker: std::marker::PhantomData<T>,
@@ -27,7 +29,7 @@ impl<T: NodeData> FerroFluxClient<T> {
     ///
     /// This is the standard entry point for most applications.
     pub async fn init() -> Result<Self> {
-        let (mut engine, _api_tx, event_tx, ..) = AppBuilder::new().build().await?;
+        let (mut engine, api_tx, event_tx, ..) = AppBuilder::new().build().await?;
 
         // Register Core Tools
         if let Some(mut registry) = engine
@@ -37,13 +39,18 @@ impl<T: NodeData> FerroFluxClient<T> {
             ferroflux_core::tools::register_core_tools(&mut registry);
         }
 
-        Ok(Self::new(engine, event_tx))
+        Ok(Self::new(engine, api_tx, event_tx))
     }
 
     /// Creates a new SDK client for a given engine instance.
-    pub fn new(engine: App, event_bus: broadcast::Sender<SystemEvent>) -> Self {
+    pub fn new(
+        engine: App,
+        api_tx: async_channel::Sender<ferroflux_core::api::ApiCommand>,
+        event_bus: broadcast::Sender<SystemEvent>,
+    ) -> Self {
         Self {
             engine: Arc::new(Mutex::new(engine)),
+            api_tx,
             event_rx: event_bus.subscribe(),
             _marker: std::marker::PhantomData,
         }
@@ -96,6 +103,9 @@ impl<T: NodeData> FerroFluxClient<T> {
                     world.spawn(Edge {
                         source: src_entity,
                         target: target_entity,
+                        // TODO: Map actual port names from FlowCanvas once Port struct supports names
+                        source_handle: Some("Exec".to_string()),
+                        target_handle: Some("Exec".to_string()),
                     });
                 }
             }
@@ -139,6 +149,14 @@ impl<T: NodeData> FerroFluxClient<T> {
     pub async fn tick(&mut self) -> Result<()> {
         let mut engine = self.engine.lock().await;
         engine.update();
+        Ok(())
+    }
+
+    /// Triggers a reload of all YAML node definitions.
+    pub async fn reload_definitions(&self) -> Result<()> {
+        self.api_tx
+            .send(ferroflux_core::api::ApiCommand::ReloadDefinitions)
+            .await?;
         Ok(())
     }
 
@@ -210,9 +228,11 @@ impl<T: NodeData> FerroFluxClient<T> {
                         id,
                         name: format!("{} {}", def.name, action_key),
                         category: "Integrations".to_string(),
+                        platform: Some(key.clone()),
                         description: action.documentation.clone(),
                         inputs,
                         outputs,
+                        settings: vec![], // For now
                     });
                 }
             }

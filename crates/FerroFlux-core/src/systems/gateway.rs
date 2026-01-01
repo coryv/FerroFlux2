@@ -27,7 +27,7 @@ pub fn ingest_webhooks(
         if let Some(&entity) = node_router.0.get(&node_id) {
             if let Ok(mut outbox) = outbox_query.get_mut(entity) {
                 tracing::info!(webhook_id = %node_id, entity = ?entity, "Routing Webhook to Node");
-                outbox.queue.push_back(ticket.clone());
+                outbox.queue.push_back((None, ticket.clone()));
                 work_done.0 = true;
             } else {
                 tracing::warn!(entity = ?entity, "Found Node in Router, but missing Outbox component");

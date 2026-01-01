@@ -1,0 +1,44 @@
+meta:
+  id: core.action.split
+  name: Split Array
+  category: Transform
+  type: Action
+  platform: core
+  description: "Splits an array into individual items for stream processing."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: array
+      type: array
+  
+  outputs:
+    - name: item
+      type: flow
+    - name: Done
+      type: flow
+
+execution:
+  - id: split_op
+    tool: split
+    params:
+      array: "{{ inputs.array }}"
+    returns:
+      item: current_item
+      done: is_done
+
+  - id: emit_item
+    tool: emit
+    params:
+      port: item
+      value: "{{ steps.split_op.current_item }}"
+    
+  - id: check_done
+    tool: logic
+    params:
+      data: "{{ steps.split_op.is_done }}"
+      rules:
+        - condition: "val == true"
+          output: Done

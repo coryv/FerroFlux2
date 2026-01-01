@@ -1,3 +1,4 @@
+use crate::components::execution_state::ActiveWorkflowState;
 use crate::components::pipeline::PipelineNode;
 use crate::resources::registry::DefinitionRegistry;
 use crate::tools::ToolContext;
@@ -5,6 +6,7 @@ use crate::tools::registry::ToolRegistry;
 use anyhow::Result;
 use bevy_ecs::prelude::*;
 use handlebars::Handlebars;
+use jmespath;
 use serde_json::Value;
 use std::collections::HashMap;
 
@@ -13,38 +15,106 @@ use std::collections::HashMap;
 /// NOTE: In a real implementation, this would likely be an async system or spawned task.
 /// For this MVP, we execute synchronously when an "Exec" signal is received (implied).
 pub fn pipeline_execution_system(
-    mut _query: Query<(Entity, &mut PipelineNode)>,
-    _node_registry: Res<DefinitionRegistry>,
-    _tool_registry: Res<ToolRegistry>,
+    mut query: Query<(
+        Entity,
+        &mut PipelineNode,
+        &mut crate::components::Inbox,
+        &mut crate::components::Outbox,
+    )>,
+    node_registry: Res<DefinitionRegistry>,
+    tool_registry: Res<ToolRegistry>,
+    store: Res<crate::store::BlobStore>,
 ) {
-    // In a real FerroFlux engine, we'd check for an "Active" state or Input Event.
-    // Here we iterate all for demonstration, but logic usually requires a trigger.
+    println!("DEBUG: Pipeline System running");
+    for (_entity, mut node, mut inbox, mut outbox) in query.iter_mut() {
+        println!("DEBUG: Pipeline System: Found entity {:?}", _entity);
+        if !inbox.queue.is_empty() {
+            println!("DEBUG: Pipeline System: processing inbox for {:?}", _entity);
+        }
+        while let Some(ticket) = inbox.queue.pop_front() {
+            // 1. Load Data/Context
+            if let Ok(data) = store.claim(&ticket) {
+                let mut state: ActiveWorkflowState = if let Ok(s) = serde_json::from_slice(&data) {
+                    s
+                } else {
+                    // Fallback: Assume raw input payload (e.g. from Webhook)
+                    let mut s = ActiveWorkflowState::new();
+                    if let Ok(val) = serde_json::from_slice::<serde_json::Value>(&data) {
+                        s.merge(val);
+                    }
+                    s
+                };
 
-    // For the sake of this architectural MVP, we define the `execute_node` function
-    // which would be called by the graph runner.
+                // 2. Execute
+                let mut memory = HashMap::new(); // Global memory stub
+                // 3. Output
+                let active_ports = match execute_pipeline_node(
+                    &mut node,
+                    &mut state,
+                    &node_registry,
+                    &tool_registry,
+                    &mut memory,
+                ) {
+                    Ok(ports) => ports,
+                    Err(e) => {
+                        println!("ERROR: Pipeline execution failed: {:?}", e);
+                        tracing::error!("Pipeline execution failed: {}", e);
+                        // On error, maybe emit "Error" port if it exists?
+                        // For now, return empty ports (stop flow)
+                        Vec::new()
+                    }
+                };
+
+                // Serialize State
+                if let Ok(new_bytes) = serde_json::to_vec(&state) {
+                    println!("DEBUG: Active Ports: {:?}", active_ports);
+                    for port in active_ports {
+                        // Check in for each port? Or reuse?
+                        // Reuse same data ticket is fine if immutable.
+                        // But we might want unique tickets for tracing paths?
+                        // Reusing ticket is more efficient.
+                        // Store.check_in dedupes by hash anyway.
+                        if let Ok(new_ticket) =
+                            store.check_in_with_metadata(&new_bytes, ticket.metadata.clone())
+                        {
+                            println!("DEBUG: Pushed ticket to outbox port: {:?}", port);
+                            outbox.queue.push_back((Some(port), new_ticket));
+                        } else {
+                            println!("ERROR: Failed to check in ticket!");
+                        }
+                    }
+                } else {
+                    tracing::error!(
+                        "Failed to serialize workflow state for ticket {:?}",
+                        ticket.id
+                    );
+                }
+            } else {
+                tracing::error!("Failed to claim ticket from BlobStore: {:?}", ticket.id);
+            }
+        }
+    }
 }
 
 /// Helper function to execute a single pipeline node.
 /// This would be called by the main graph traversal loop.
 pub fn execute_pipeline_node(
     node: &mut PipelineNode,
-    inputs: HashMap<String, Value>,
+    workflow_state: &mut ActiveWorkflowState,
     definitions: &DefinitionRegistry,
     tools: &ToolRegistry,
     global_memory: &mut HashMap<String, Value>,
-) -> Result<HashMap<String, Value>> {
+) -> Result<Vec<String>> {
     let def = definitions
         .definitions
         .get(&node.definition_id)
         .ok_or_else(|| anyhow::anyhow!("Definition not found: {}", node.definition_id))?;
 
     // 1. Initialize Context
-    // Merge Inputs + Config into "execution_context"
-    // In spec: context keys map to specific inputs/settings via handlebars or direct mapping.
-    // For MVP: We dump inputs into `inputs` key and config into `settings` key.
+    // We start with the global workflow state
+    let mut ctx_map = workflow_state.context.clone();
 
-    let mut ctx_map = HashMap::new();
-    ctx_map.insert("inputs".to_string(), serde_json::to_value(&inputs)?);
+    // Inject Node Config into "settings"
     ctx_map.insert("settings".to_string(), serde_json::to_value(&node.config)?);
 
     // Inject Platform Config
@@ -103,10 +173,8 @@ pub fn execute_pipeline_node(
 
         // Returns Mapping
         for (key, var_name) in &step.returns {
-            if let Value::Object(res_obj) = &result {
-                if let Some(val) = res_obj.get(key) {
-                    ctx_map.insert(var_name.clone(), val.clone());
-                }
+            if let Some(val) = result.as_object().and_then(|obj| obj.get(key)) {
+                ctx_map.insert(var_name.clone(), val.clone());
             }
         }
     }
@@ -134,10 +202,8 @@ pub fn execute_pipeline_node(
 
                 // Returns Mapping (Routing)
                 for (key, var_name) in &action.returns {
-                    if let Value::Object(res_obj) = &result {
-                        if let Some(val) = res_obj.get(key) {
-                            ctx_map.insert(var_name.clone(), val.clone());
-                        }
+                    if let Some(val) = result.as_object().and_then(|obj| obj.get(key)) {
+                        ctx_map.insert(var_name.clone(), val.clone());
                     }
                 }
             }
@@ -145,13 +211,54 @@ pub fn execute_pipeline_node(
     }
 
     // 4. Collect Outputs (Emit tool writes to _outputs)
+
+    // 4a. Collect Outputs (Unified Signal / Enriched Bundle logic)
+    // We already have `ctx_map` containing step outputs.
+    // We merge `_outputs` (explicit emit) into workflow state.
+    // BUT we also support `output_transform` which generates new outputs from context.
+
+    // 5. Output Transform
+    if let Some(transform_map) = &def.output_transform {
+        // Run JMESPath against current context (including step outputs)
+        let context_json = serde_json::to_value(&ctx_map).unwrap_or(Value::Null);
+
+        for (out_key, expr_str) in transform_map {
+            // Compile and search
+            if let Ok(expr) = jmespath::compile(expr_str) {
+                if let Ok(search_res) = expr.search(&context_json) {
+                    let val: Value = serde_json::to_value(&search_res).unwrap_or(Value::Null);
+                    workflow_state.set(out_key, val);
+                }
+            }
+        }
+    }
+
+    // Merge `_outputs` (from explicit Emit tools)
     let outputs = ctx_map
         .get("_outputs")
         .cloned()
         .unwrap_or(serde_json::json!({}));
-    let output_map: HashMap<String, Value> = serde_json::from_value(outputs).unwrap_or_default();
+    workflow_state.merge(outputs.clone());
 
-    Ok(output_map)
+    // Determine Active Ports
+    let mut active_ports = Vec::new();
+    if let Some(out_obj) = outputs.as_object() {
+        for key in out_obj.keys() {
+            // Treat all emitted keys as potential ports
+            active_ports.push(key.clone());
+        }
+    }
+
+    // Default Fallback
+    if active_ports.is_empty() {
+        // Check if "Exec" is defined
+        let has_exec = def.interface.outputs.iter().any(|p| p.name == "Exec");
+        if has_exec {
+            active_ports.push("Exec".to_string());
+        }
+    }
+
+    Ok(active_ports)
 }
 
 fn resolve_recursive(
@@ -165,6 +272,7 @@ fn resolve_recursive(
             if trimmed.starts_with("{{") && trimmed.ends_with("}}") {
                 let inner = &trimmed[2..trimmed.len() - 2].trim();
                 // If simple variable ref without helpers/logic
+                #[allow(clippy::collapsible_if)]
                 if !inner.contains(' ') {
                     if let Some(val) = lookup_path(ctx, inner) {
                         return Ok(val.clone());

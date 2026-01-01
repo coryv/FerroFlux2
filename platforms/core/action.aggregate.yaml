@@ -1,0 +1,49 @@
+meta:
+  id: core.action.aggregate
+  name: Aggregate
+  category: Transform
+  type: Action
+  platform: core
+  description: "Collects items into a batch (array)."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: item
+      type: any
+  
+  outputs:
+    - name: batch
+      type: array
+    - name: Exec
+      type: flow
+
+settings:
+  - name: batch_size
+    label: Batch Size
+    type: number
+    default: 10
+
+execution:
+  - id: agg
+    tool: aggregate
+    params:
+      item: "{{ inputs.item }}"
+      limit: "{{ settings.batch_size }}"
+    returns:
+      batch: result_array
+      ready: is_ready
+
+  - id: check_ready
+    tool: logic
+    params:
+      data: "{{ steps.agg.is_ready }}"
+      rules:
+        - condition: "val == true"
+          output: Exec
+
+  - id: emit_batch
+    tool: emit
+    params:
+      port: batch
+      value: "{{ steps.agg.result_array }}"

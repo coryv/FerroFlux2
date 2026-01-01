@@ -70,7 +70,7 @@ fn test_transport_optimization_dynamic_edge() {
         .get_mut::<Outbox>(source)
         .unwrap()
         .queue
-        .push_back(ticket.clone());
+        .push_back((Some("Exec".to_string()), ticket.clone()));
 
     // 6. Run Schedule WITHOUT Edge -> Should receive nothing
     schedule.run(&mut world);
@@ -82,7 +82,12 @@ fn test_transport_optimization_dynamic_edge() {
     );
 
     // 7. Add Edge dynamically
-    world.spawn(Edge { source, target });
+    world.spawn(Edge {
+        source,
+        target,
+        source_handle: Some("Exec".to_string()),
+        target_handle: Some("Exec".to_string()),
+    });
 
     // 8. Run Schedule WITH Edge -> Topology should update, Ticket should move
     // We need to push ticket again because transport might have drained it?

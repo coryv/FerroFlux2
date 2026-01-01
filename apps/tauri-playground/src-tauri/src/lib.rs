@@ -41,7 +41,9 @@ pub fn run() {
             commands::copy_items,
             commands::paste_items,
             commands::get_node_templates,
-            commands::deploy
+            commands::deploy,
+            commands::update_node_settings,
+            commands::reload_definitions
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

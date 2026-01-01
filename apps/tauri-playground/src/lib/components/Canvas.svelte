@@ -4,6 +4,7 @@
     import Node from "./Node.svelte";
     import Edge from "./Edge.svelte";
     import Toolbar from "./Toolbar.svelte";
+    import PropertyInspector from "./PropertyInspector.svelte";
     import { findPortPosition, type Obstacle } from "../utils/routing";
     import { SvelteSet } from "svelte/reactivity";
     import { onMount } from "svelte";
@@ -544,6 +545,13 @@
         on:setStyle={(e) => setGlobalStyle(e.detail)}
         on:undo={onUndo}
         on:redo={onRedo}
+    />
+
+    <PropertyInspector
+        selectedNode={selectedNodeIds.size === 1
+            ? graph.nodes[Array.from(selectedNodeIds)[0]]
+            : null}
+        {onRefresh}
     />
 </div>
 

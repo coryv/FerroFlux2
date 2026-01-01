@@ -10,14 +10,9 @@ meta:
 interface:
   inputs: []
   outputs:
+
     - name: Exec
       type: flow
-    - name: body
-      type: object
-    - name: headers
-      type: object
-    - name: query
-      type: object
 
   settings:
     - name: method
@@ -31,6 +26,18 @@ interface:
       type: string
       description: "Unique path suffix (e.g. /my-hook)"
       required: true
+
+    - name: webhook_url_test
+      label: Test Webhook URL
+      type: url
+      read_only: true
+      default: "{{ system.webhook_base }}/test/{{ workflow.id }}{{ settings.path }}"
+
+    - name: webhook_url_prod
+      label: Production Webhook URL
+      type: url
+      read_only: true
+      default: "{{ system.webhook_base }}/prod/{{ workflow.id }}{{ settings.path }}"
 
 execution:
   # Runner injects `event` containing body, headers, query

@@ -7,6 +7,7 @@ pub mod compute;
 pub mod connectors;
 pub mod control;
 pub mod core;
+pub mod execution_state;
 pub mod integration;
 pub mod io;
 pub mod logic;

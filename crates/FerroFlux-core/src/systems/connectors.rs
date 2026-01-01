@@ -126,7 +126,7 @@ pub fn rss_worker(
                     ticket
                         .metadata
                         .insert("trace_id".into(), uuid::Uuid::new_v4().to_string());
-                    outbox.queue.push_back(ticket);
+                    outbox.queue.push_back((None, ticket));
                     emit_count += 1;
                 }
             }
@@ -207,7 +207,7 @@ pub fn xml_worker(
                         ) && let Ok(mut new_ticket) = store.check_in(&bytes)
                         {
                             new_ticket.metadata = ticket.metadata.clone();
-                            outbox.queue.push_back(new_ticket);
+                            outbox.queue.push_back((None, new_ticket));
                         }
 
                         let _ = event_tx.send(SystemEvent::NodeTelemetry {
@@ -322,7 +322,7 @@ pub fn ssh_worker(
                         && let Ok(mut t) = store.check_in(&bytes)
                     {
                         t.metadata = ticket.metadata.clone();
-                        outbox.queue.push_back(t);
+                        outbox.queue.push_back((None, t));
                     }
                 }
             }
@@ -399,7 +399,7 @@ pub fn ftp_worker(
                                     && let Ok(mut t) = store.check_in(&bytes)
                                 {
                                     t.metadata = ticket.metadata.clone();
-                                    outbox.queue.push_back(t);
+                                    outbox.queue.push_back((None, t));
                                 }
                             }
                         }

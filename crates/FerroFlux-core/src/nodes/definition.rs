@@ -9,6 +9,7 @@ pub struct NodeDefinition {
     pub interface: Interface,
     pub context: Option<HashMap<String, String>>, // Mappings: "key" -> "{{ settings.val }}"
     pub execution: Vec<PipelineStep>,
+    pub output_transform: Option<HashMap<String, String>>,
     pub routing: Option<RoutingLogic>,
 }
 
@@ -59,6 +60,8 @@ pub struct SettingDef {
     pub default: Option<Value>,
     pub required: Option<bool>,
     pub options_provider: Option<String>,
+    pub read_only: Option<bool>,
+    pub placeholder: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

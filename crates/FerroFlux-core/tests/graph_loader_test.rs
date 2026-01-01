@@ -1,16 +1,14 @@
 use bevy_ecs::prelude::*;
 use bevy_ecs::system::SystemState;
 use ferroflux_core::components::{
-    agent::AgentConfig,
     core::{Edge, EdgeLabel, NodeConfig},
-    io::HttpConfig,
-    logic::SwitchConfig,
+    pipeline::PipelineNode,
 };
 use ferroflux_core::domain::TenantId;
 use ferroflux_core::graph_loader::load_graph_from_str;
 use ferroflux_core::nodes::register_core_nodes;
 use ferroflux_core::resources::NodeRouter;
-use ferroflux_core::resources::registry::NodeRegistry;
+use ferroflux_core::resources::registry::{DefinitionRegistry, NodeRegistry};
 
 #[test]
 fn test_graph_loading_basic() {
@@ -18,21 +16,19 @@ fn test_graph_loading_basic() {
 nodes:
   - id: "11111111-1111-1111-1111-111111111111"
     name: "My Agent"
-    type: "Agent"
+    type: "core.action.agent"
     provider: "openai"
     model: "gpt-4o"
     system_instruction: "Sys"
-    user_prompt_template: "User"
-    result_key: "agent_out"
 
   - id: "22222222-2222-2222-2222-222222222222"
     name: "My Switch"
-    type: "Switch"
-    script: "input.val > 10"
+    type: "core.action.switch"
+    rules: []
 
   - id: "33333333-3333-3333-3333-333333333333"
     name: "My Http"
-    type: "Http"
+    type: "core.action.http"
     url: "http://example.com"
     method: "POST"
 
@@ -47,11 +43,32 @@ edges:
     let mut world = World::new();
     world.insert_resource(NodeRouter::default());
 
+    // Load YAML Definitions
+    let mut def_registry = DefinitionRegistry::default();
+    let platform_path = std::path::Path::new("../../platforms");
+    if platform_path.exists() {
+        def_registry
+            .load_from_dir(platform_path)
+            .expect("Failed to load platforms in test");
+    }
+
     // Register nodes
     world.insert_resource(NodeRegistry::default());
     let mut system_state = SystemState::<ResMut<NodeRegistry>>::new(&mut world);
-    let registry_res = system_state.get_mut(&mut world);
-    register_core_nodes(registry_res);
+    let mut registry_res = system_state.get_mut(&mut world);
+
+    // Register Legacy/Integration bridge
+    register_core_nodes(&mut registry_res);
+
+    // Register YAML nodes
+    for (id, def) in &def_registry.definitions {
+        registry_res.register(
+            id,
+            Box::new(ferroflux_core::nodes::yaml_factory::YamlNodeFactory::new(
+                def.clone(),
+            )),
+        );
+    }
 
     let tenant_id = TenantId::from("default_tenant");
     let loader_result = load_graph_from_str(&mut world, tenant_id, yaml);
@@ -61,34 +78,15 @@ edges:
         loader_result.err()
     );
 
-    // Verify Agent Node
-    let mut agent_query = world.query::<(&NodeConfig, &AgentConfig)>();
-    let (node, agent) = agent_query
-        .iter(&world)
-        .find(|(n, _)| n.name == "My Agent")
-        .expect("Agent node not found");
+    // Verify Nodes now use PipelineNode (the YAML-driven component)
+    let mut query = world.query::<(&NodeConfig, &PipelineNode)>();
+    let nodes: Vec<_> = query.iter(&world).collect();
+    assert_eq!(nodes.len(), 3);
 
+    // Verify Agent Node specifically
+    let (node, pipeline) = nodes.iter().find(|(n, _)| n.name == "My Agent").unwrap();
     assert_eq!(node.id.to_string(), "11111111-1111-1111-1111-111111111111");
-    assert_eq!(agent.provider, "openai");
-    assert_eq!(agent.model, "gpt-4o");
-    assert_eq!(agent.result_key, Some("agent_out".to_string()));
-
-    // Verify Switch Node
-    let mut switch_query = world.query::<(&NodeConfig, &SwitchConfig)>();
-    let (_, switch) = switch_query
-        .iter(&world)
-        .find(|(n, _)| n.name == "My Switch")
-        .expect("Switch node not found");
-    assert_eq!(switch.script, "input.val > 10");
-
-    // Verify Http Node
-    let mut http_query = world.query::<(&NodeConfig, &HttpConfig)>();
-    let (_, http) = http_query
-        .iter(&world)
-        .find(|(n, _)| n.name == "My Http")
-        .expect("Http node not found");
-    assert_eq!(http.url, "http://example.com");
-    assert_eq!(http.method, "POST");
+    assert_eq!(pipeline.definition_id, "core.action.agent");
 
     // Verify Edges
     let mut edge_query = world.query::<(&Edge, Option<&EdgeLabel>)>();

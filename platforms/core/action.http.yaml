@@ -1,0 +1,68 @@
+meta:
+  id: core.action.http
+  name: HTTP Request
+  category: Services
+  type: Action
+  platform: core
+  description: "Make an outgoing HTTP request (JSON/Text)."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: data
+      type: any
+      hidden: true # Deprecated but kept for compatibility? Or remove? Removing for clean break.
+  
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+
+  settings:
+    - name: url
+      label: URL
+      type: string
+      required: true
+    - name: method
+      label: Method
+      type: select
+      default: GET
+      options: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    - name: body
+      label: Body (JSON)
+      type: textarea
+      description: "JSON body or template. Use {{ inputs.my_var }}."
+    - name: output_var
+      label: Output Variable
+      type: string
+      default: "http_response"
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      url: "{{ settings.url }}"
+      method: "{{ settings.method }}"
+      body: "{{ settings.body }}"
+    returns:
+      body: response_body
+      status: response_status
+
+  - id: check_status
+    tool: logic
+    params:
+      data: "{{ steps.request.response_status }}"
+      rules:
+        - condition: "val < 400"
+          output: Success
+        - condition: "default"
+          output: Error
+
+  - id: emit_data
+    tool: emit
+    params:
+      port: "{{ settings.output_var }}"
+      value: "{{ steps.request.response_body }}"

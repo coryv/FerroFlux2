@@ -50,7 +50,7 @@ fn test_wasm_compute_quickjs() {
         !outbox.queue.is_empty(),
         "Outbox should have a result ticket"
     );
-    let result_ticket = outbox.queue.pop_front().unwrap();
+    let (_port, result_ticket) = outbox.queue.pop_front().unwrap();
 
     // Claim result
     let result_arc = store.claim(&result_ticket).expect("Failed to claim result");
@@ -107,7 +107,7 @@ fn test_wasm_timeout() {
     let mut query = world.query::<&mut Outbox>();
     let mut outbox = query.single_mut(&mut world);
 
-    let result_ticket = outbox.queue.pop_front().unwrap();
+    let (_port, result_ticket) = outbox.queue.pop_front().unwrap();
     let result_arc = store.claim(&result_ticket).expect("Failed to claim result");
     let result_str = String::from_utf8(result_arc.to_vec()).unwrap();
     println!("Timeout Output: {}", result_str);

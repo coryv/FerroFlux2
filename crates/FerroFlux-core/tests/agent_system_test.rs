@@ -203,7 +203,7 @@ fn test_agent_templating_and_generation() {
             let ticket = {
                 let mut query = world.query::<&Outbox>();
                 let outbox = query.get_single(&world).ok();
-                outbox.and_then(|o| o.queue.front().cloned())
+                outbox.and_then(|o| o.queue.front().map(|(_port, t)| t.clone()))
             };
 
             if let Some(ticket) = ticket {
@@ -291,7 +291,7 @@ fn test_agent_tools_payload() {
             let ticket = {
                 let mut query = world.query::<&Outbox>();
                 let outbox = query.get_single(&world).ok();
-                outbox.and_then(|o| o.queue.front().cloned())
+                outbox.and_then(|o| o.queue.front().map(|(_port, t)| t.clone()))
             };
             if ticket.is_some() {
                 success = true;
@@ -364,7 +364,7 @@ fn test_agent_retry_logic() {
             let ticket = {
                 let mut query = world.query::<&Outbox>();
                 let outbox = query.get_single(&world).ok();
-                outbox.and_then(|o| o.queue.front().cloned())
+                outbox.and_then(|o| o.queue.front().map(|(_port, t)| t.clone()))
             };
             if ticket.is_some() {
                 success = true;
@@ -443,7 +443,7 @@ fn test_agent_structured_output() {
             let ticket = {
                 let mut query = world.query::<&Outbox>();
                 let outbox = query.get_single(&world).ok();
-                outbox.and_then(|o| o.queue.front().cloned())
+                outbox.and_then(|o| o.queue.front().map(|(_port, t)| t.clone()))
             };
             if let Some(ticket) = ticket {
                 let data = store.claim(&ticket).unwrap();

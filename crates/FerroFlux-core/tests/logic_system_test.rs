@@ -75,7 +75,7 @@ fn test_script_node_execution() {
     let outbox = query.single(&world);
     assert!(!outbox.queue.is_empty());
 
-    let result_ticket = outbox.queue.front().unwrap();
+    let (_port, result_ticket) = outbox.queue.front().unwrap();
     let data = store.claim(result_ticket).unwrap();
     let result_str = String::from_utf8(data.to_vec()).unwrap();
 
@@ -120,7 +120,7 @@ fn test_script_node_enrichment() {
     // Verify
     let mut query = world.query::<&Outbox>();
     let outbox = query.single(&world);
-    let result_ticket = outbox.queue.front().unwrap();
+    let (_port, result_ticket) = outbox.queue.front().unwrap();
     let data = store.claim(result_ticket).unwrap();
     let result_json: serde_json::Value = serde_json::from_slice(&data).unwrap();
 
@@ -168,6 +168,8 @@ fn test_switch_node_boolean_routing() {
         Edge {
             source: switch,
             target: target_true,
+            source_handle: Some("true".to_string()),
+            target_handle: Some("Exec".to_string()),
         },
         EdgeLabel("true".to_string()),
     ));
@@ -175,6 +177,8 @@ fn test_switch_node_boolean_routing() {
         Edge {
             source: switch,
             target: target_false,
+            source_handle: Some("false".to_string()),
+            target_handle: Some("Exec".to_string()),
         },
         EdgeLabel("false".to_string()),
     ));
@@ -228,6 +232,8 @@ fn test_switch_node_string_routing() {
         Edge {
             source: switch,
             target: target_a,
+            source_handle: Some("A".to_string()),
+            target_handle: Some("Exec".to_string()),
         },
         EdgeLabel("A".to_string()),
     ));
@@ -235,6 +241,8 @@ fn test_switch_node_string_routing() {
         Edge {
             source: switch,
             target: target_b,
+            source_handle: Some("B".to_string()),
+            target_handle: Some("Exec".to_string()),
         },
         EdgeLabel("B".to_string()),
     ));

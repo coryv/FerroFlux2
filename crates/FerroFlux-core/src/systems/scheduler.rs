@@ -28,7 +28,7 @@ pub fn scheduler_worker(
                     metadata.insert("trigger".to_string(), "cron".to_string());
 
                     if let Ok(ticket) = store.check_in_with_metadata(b"CRON_TRIGGER", metadata) {
-                        outbox.queue.push_back(ticket);
+                        outbox.queue.push_back((None, ticket));
                         work_done.0 = true;
                     }
 

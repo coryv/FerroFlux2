@@ -7,19 +7,28 @@
         setTemplates,
     } from "$lib/stores/nodeRegistry.svelte";
 
-    let categories: Record<string, NodeTemplate[]> = $state({});
+    let platforms: Record<string, Record<string, NodeTemplate[]>> = $state({});
+    let openPlatforms: Record<string, boolean> = $state({});
     let openCategories: Record<string, boolean> = $state({});
 
     $effect(() => {
-        const cats: Record<string, NodeTemplate[]> = {};
+        const p: Record<string, Record<string, NodeTemplate[]>> = {};
         Object.values(nodeRegistry.templates).forEach((t) => {
-            if (!cats[t.category]) cats[t.category] = [];
-            cats[t.category].push(t);
+            const platformKey = t.platform || "Other";
+            if (!p[platformKey]) p[platformKey] = {};
+            if (!p[platformKey][t.category]) p[platformKey][t.category] = [];
+            p[platformKey][t.category].push(t);
         });
-        categories = cats;
-        // Default open all if not already set
-        if (Object.keys(openCategories).length === 0) {
-            Object.keys(cats).forEach((k) => (openCategories[k] = true));
+        platforms = p;
+
+        // Default open "core" and its categories
+        if (Object.keys(openPlatforms).length === 0) {
+            Object.keys(p).forEach((pk) => {
+                openPlatforms[pk] = pk === "core" || pk === "integrations";
+                Object.keys(p[pk]).forEach((ck) => {
+                    openCategories[`${pk}:${ck}`] = pk === "core";
+                });
+            });
         }
     });
 
@@ -59,49 +68,104 @@
             e.dataTransfer.effectAllowed = "copy";
         }
     }
+    async function reloadPalette() {
+        try {
+            await invoke("reload_definitions");
+            const temps = await invoke<NodeTemplate[]>("get_node_templates");
+            setTemplates(temps);
+        } catch (e) {
+            console.error("Failed to reload palette", e);
+        }
+    }
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="node-tray" onmousedown={(e) => e.stopPropagation()}>
-    <h3>Palette</h3>
+    <div class="tray-header">
+        <h3>Palette</h3>
+        <button
+            class="btn-refresh"
+            title="Reload Definitions"
+            onclick={reloadPalette}
+        >
+            <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M23 4v6h-6"></path>
+                <path d="M1 20v-6h6"></path>
+                <path
+                    d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
+                ></path>
+            </svg>
+        </button>
+    </div>
     <div class="tray-content">
-        {#each Object.entries(categories) as [category, items]}
-            <div class="category">
+        {#each Object.entries(platforms) as [platform, categories]}
+            <div class="platform">
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                 <div
-                    class="category-header"
-                    onclick={() => toggleCategory(category)}
+                    class="platform-header"
+                    onclick={() =>
+                        (openPlatforms[platform] = !openPlatforms[platform])}
                 >
-                    <span class="arrow" class:open={openCategories[category]}
+                    <span class="arrow" class:open={openPlatforms[platform]}
                         >▶</span
                     >
-                    {category}
+                    {platform}
                 </div>
-                {#if openCategories[category]}
-                    <div class="category-items">
-                        {#each items as template}
-                            <div
-                                class="tray-item"
-                                draggable="true"
-                                role="listitem"
-                                ondragstart={(e) => onDragStart(e, template)}
-                                ondragend={(e) => {
-                                    invoke("log_js", {
-                                        msg:
-                                            "NodeTray: onDragEnd. DropEffect: " +
-                                            (e.dataTransfer?.dropEffect ||
-                                                "none"),
-                                    });
-                                }}
-                            >
-                                <div class="info">
-                                    <span class="name">{template.name}</span>
-                                    {#if template.description}
-                                        <span class="desc"
-                                            >{template.description}</span
-                                        >
-                                    {/if}
+
+                {#if openPlatforms[platform]}
+                    <div class="platform-categories">
+                        {#each Object.entries(categories) as [category, items]}
+                            <div class="category">
+                                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                                <div
+                                    class="category-header"
+                                    onclick={() => {
+                                        const key = `${platform}:${category}`;
+                                        openCategories[key] =
+                                            !openCategories[key];
+                                    }}
+                                >
+                                    <span
+                                        class="arrow"
+                                        class:open={openCategories[
+                                            `${platform}:${category}`
+                                        ]}>▶</span
+                                    >
+                                    {category}
                                 </div>
+                                {#if openCategories[`${platform}:${category}`]}
+                                    <div class="category-items">
+                                        {#each items as template}
+                                            <div
+                                                class="tray-item"
+                                                draggable="true"
+                                                role="listitem"
+                                                ondragstart={(e) =>
+                                                    onDragStart(e, template)}
+                                            >
+                                                <div class="info">
+                                                    <span class="name"
+                                                        >{template.name}</span
+                                                    >
+                                                    {#if template.description}
+                                                        <span class="desc"
+                                                            >{template.description}</span
+                                                        >
+                                                    {/if}
+                                                </div>
+                                            </div>
+                                        {/each}
+                                    </div>
+                                {/if}
                             </div>
                         {/each}
                     </div>
@@ -114,10 +178,11 @@
 <style>
     .node-tray {
         position: absolute;
-        top: 24px;
-        left: 24px;
+        top: 12px;
+        left: 12px;
+        bottom: 12px;
         width: 220px;
-        max-height: 80vh;
+        /* max-height: 90vh; */
         overflow-y: auto;
         background: rgba(30, 30, 35, 0.95);
         backdrop-filter: blur(12px);
@@ -131,15 +196,39 @@
         display: flex;
         flex-direction: column;
     }
+    .tray-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 8px;
+    }
     h3 {
-        margin: 0 0 16px 0;
+        margin: 0;
         font-size: 13px;
         text-transform: uppercase;
         letter-spacing: 0.1em;
         color: #888;
         font-weight: 700;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        padding-bottom: 8px;
+    }
+    .btn-refresh {
+        background: transparent;
+        border: none;
+        color: #888;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        transition:
+            color 0.2s,
+            transform 0.2s;
+    }
+    .btn-refresh:hover {
+        color: #60a5fa;
+    }
+    .btn-refresh:active {
+        transform: rotate(180deg);
     }
     .tray-content {
         display: flex;

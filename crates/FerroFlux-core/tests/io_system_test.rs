@@ -104,7 +104,7 @@ fn test_http_worker_get_success() {
             let ticket = {
                 let mut query = world.query::<&Outbox>();
                 let outbox = query.get_single(&world).ok();
-                outbox.and_then(|o| o.queue.front().cloned())
+                outbox.and_then(|o| o.queue.front().map(|(_port, t)| t.clone()))
             };
 
             if let Some(t) = ticket {
@@ -170,7 +170,7 @@ fn test_http_worker_post_enrichment() {
             let ticket = {
                 let mut query = world.query::<&Outbox>();
                 let outbox = query.get_single(&world).ok();
-                outbox.and_then(|o| o.queue.front().cloned())
+                outbox.and_then(|o| o.queue.front().map(|(_port, t)| t.clone()))
             };
 
             if let Some(t) = ticket {

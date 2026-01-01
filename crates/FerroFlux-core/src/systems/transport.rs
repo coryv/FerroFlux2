@@ -43,7 +43,7 @@ pub fn update_graph_topology(
                 .adjacency
                 .entry(edge.source)
                 .or_default()
-                .push(edge.target);
+                .push((edge.source_handle.clone(), edge.target));
         }
     }
 }
@@ -75,6 +75,18 @@ pub fn transport_worker(
     let node_map: std::collections::HashMap<Entity, uuid::Uuid> =
         node_query.iter().map(|(e, c)| (e, c.id)).collect();
 
+    if !topology.adjacency.is_empty() {
+        println!(
+            "DEBUG: Transport Worker: Topology Size: {}",
+            topology.adjacency.len()
+        );
+    }
+
+    tracing::debug!(
+        "Transport Worker: Topology Size: {}",
+        topology.adjacency.len()
+    );
+
     // 2. Iterate Sources with Active Connections (from cache)
     for (source, targets) in &topology.adjacency {
         if let Ok(mut outbox) = outbox_query.get_mut(*source) {
@@ -82,23 +94,56 @@ pub fn transport_worker(
                 continue;
             }
 
-            // 3. Broadcast Tickets
-            let tickets: Vec<SecureTicket> = outbox.queue.drain(..).collect();
+            // 3. Broadcast Tickets (Filtering by Port)
+            // Outbox queue is now (Option<String>, SecureTicket)
+            let items: Vec<(Option<String>, SecureTicket)> = outbox.queue.drain(..).collect();
 
-            for ticket in tickets {
-                for target in targets {
-                    if let Ok(mut inbox) = inbox_query.get_mut(*target) {
-                        inbox.queue.push_back(ticket.clone());
-                        tracing::debug!(source = ?source, target = ?target, "Moved ticket");
+            for (port, ticket) in items {
+                println!(
+                    "DEBUG: Processing ticket from {:?} on port {:?}",
+                    source, port
+                );
+                for (edge_handle, target_entity) in targets {
+                    println!(
+                        "DEBUG: Checking edge {:?} -> {:?}",
+                        edge_handle, target_entity
+                    );
+                    tracing::debug!(
+                        "Transport: Checking edge {:?} -> {:?}",
+                        edge_handle,
+                        target_entity
+                    );
+                    // Exact match on port name (handle).
+                    // If outbox says "Success", only edges from "Success" fire.
+                    if edge_handle == &port {
+                        match inbox_query.get_mut(*target_entity) {
+                            Ok(mut inbox) => {
+                                inbox.queue.push_back(ticket.clone());
+                                tracing::debug!(source = ?source, target = ?target_entity, port = ?port, "Moved ticket");
+                                println!(
+                                    "DEBUG: Moved ticket from {:?} to {:?}",
+                                    source, target_entity
+                                );
 
-                        // Signal Visualizer
-                        let _ = bus.0.send(SystemEvent::EdgeTraversal {
-                            source_id: node_map.get(source).cloned().unwrap_or_default(),
-                            target_id: node_map.get(target).cloned().unwrap_or_default(),
-                            timestamp: chrono::Utc::now().timestamp_millis(),
-                        });
+                                // Signal Visualizer
+                                let _ = bus.0.send(SystemEvent::EdgeTraversal {
+                                    source_id: node_map.get(source).cloned().unwrap_or_default(),
+                                    target_id: node_map
+                                        .get(target_entity)
+                                        .cloned()
+                                        .unwrap_or_default(),
+                                    timestamp: chrono::Utc::now().timestamp_millis(),
+                                });
 
-                        work_done.0 = true;
+                                work_done.0 = true;
+                            }
+                            Err(e) => {
+                                println!(
+                                    "DEBUG: Failed to get Inbox for {:?}: {:?}",
+                                    target_entity, e
+                                );
+                            }
+                        }
                     }
                 }
             }

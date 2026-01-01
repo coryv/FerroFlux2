@@ -85,16 +85,17 @@ pub fn agent_post(
         metadata.insert("trace_id".to_string(), result.trace_id.clone());
 
         if let Ok(ticket) = store.check_in_with_metadata(output.as_bytes(), metadata)
-            && let Ok(mut outbox) = outbox_query.get_mut(entity) {
-                outbox.queue.push_back(ticket);
-                tracing::info!(
-                    node_id = %result.context.node_id,
-                    trace_id = %result.trace_id,
-                    elapsed_ms = elapsed,
-                    success = success,
-                    "Agent execution finished"
-                );
-            }
+            && let Ok(mut outbox) = outbox_query.get_mut(entity)
+        {
+            outbox.queue.push_back((None, ticket));
+            tracing::info!(
+                node_id = %result.context.node_id,
+                trace_id = %result.trace_id,
+                elapsed_ms = elapsed,
+                success = success,
+                "Agent execution finished"
+            );
+        }
 
         // Cleanup
         commands.entity(entity).remove::<ExecutionResult>();

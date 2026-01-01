@@ -78,7 +78,7 @@ pub fn api_command_worker(world: &mut World) {
                                 if let Some(mut outbox) =
                                     world.get_mut::<crate::components::Outbox>(e)
                                 {
-                                    outbox.queue.push_back(ticket);
+                                    outbox.queue.push_back((None, ticket));
                                     tracing::info!(entity = ?e, "Trigger sent to OUTBOX (Source Node)");
                                     if let Some(mut wd) = world.get_resource_mut::<WorkDone>() {
                                         wd.0 = true;
@@ -141,7 +141,7 @@ pub fn api_command_worker(world: &mut World) {
                                 if let Some(mut outbox) =
                                     world.get_mut::<crate::components::Outbox>(e)
                                 {
-                                    outbox.queue.push_back(ticket);
+                                    outbox.queue.push_back((None, ticket));
                                     tracing::info!(entity = ?e, "Workflow trigger sent to OUTBOX (Source)");
                                     if let Some(mut wd) = world.get_resource_mut::<WorkDone>() {
                                         wd.0 = true;
@@ -223,6 +223,58 @@ pub fn api_command_worker(world: &mut World) {
                     } else {
                         tracing::warn!(node_id = %node_id, "Node not found for pinning");
                     }
+                }
+            }
+            ApiCommand::ReloadDefinitions => {
+                tracing::info!("Processing ReloadDefinitions command");
+
+                let path_opt = world.get_resource::<crate::api::PlatformPath>().cloned();
+
+                if let Some(path_res) = path_opt {
+                    let path = path_res.0;
+                    tracing::info!(path = ?path, "Reloading definitions from path");
+
+                    // 1. Refresh DefinitionRegistry
+                    let def_registry =
+                        world.get_resource_mut::<crate::resources::registry::DefinitionRegistry>();
+                    if let Some(mut registry) = def_registry {
+                        registry.clear();
+                        if let Err(e) = registry.load_from_dir(&path) {
+                            tracing::error!(error = %e, "Failed to reload definitions");
+                        }
+                    }
+
+                    // 2. Re-bridge to NodeRegistry
+                    let def_registry_clone = world
+                        .get_resource::<crate::resources::registry::DefinitionRegistry>()
+                        .cloned();
+
+                    if let Some(defs) = def_registry_clone {
+                        let node_registry =
+                            world.get_resource_mut::<crate::resources::registry::NodeRegistry>();
+                        if let Some(mut registry) = node_registry {
+                            registry.clear();
+
+                            // Re-register core nodes
+                            crate::nodes::register_core_nodes(&mut registry);
+
+                            // Re-register YAML nodes
+                            for (id, def) in &defs.definitions {
+                                registry.register(
+                                    id,
+                                    Box::new(crate::nodes::yaml_factory::YamlNodeFactory::new(
+                                        def.clone(),
+                                    )),
+                                );
+                            }
+                            tracing::info!(
+                                count = defs.definitions.len(),
+                                "Node factories reloaded"
+                            );
+                        }
+                    }
+                } else {
+                    tracing::warn!("PlatformPath resource not found, cannot reload");
                 }
             }
         }

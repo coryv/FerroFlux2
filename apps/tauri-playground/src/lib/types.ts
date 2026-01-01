@@ -6,7 +6,7 @@ export interface SerializableNode {
     size: [number, number];
     inputs: string[];
     outputs: string[];
-    data: { name: string; node_type?: string };
+    data: { name: string; template_id: string; settings: Record<string, any> };
 }
 
 export type WireStyle = "Cubic" | "Linear" | "Orthogonal";
@@ -35,9 +35,11 @@ export interface NodeTemplate {
     id: string;
     name: string;
     category: string;
+    platform?: string;
     description?: string;
     inputs: PortTemplate[];
     outputs: PortTemplate[];
+    settings: any[];
     default_width?: number;
     default_height?: number;
 }

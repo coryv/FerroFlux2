@@ -31,10 +31,11 @@ impl Tool for SwitchTool {
 
                 // Check equality
                 // Avoid to_string allocation for strings
-                let is_match = value
-                    .as_str()
-                    .map(|s| s == condition)
-                    .unwrap_or_else(|| value.to_string() == condition);
+                #[allow(clippy::cmp_owned)]
+                let is_match = match value {
+                    Value::String(s) => s == condition,
+                    _ => value.to_string() == condition,
+                };
 
                 if is_match {
                     return Ok(serde_json::json!({ "branch": output }));
@@ -413,5 +414,47 @@ impl Tool for MathTool {
             _ => 0.0,
         };
         Ok(serde_json::json!({ "result": res }))
+    }
+}
+
+// --- Rhai Tool ---
+pub struct RhaiTool {
+    engine: rhai::Engine,
+}
+
+impl Default for RhaiTool {
+    fn default() -> Self {
+        Self {
+            engine: rhai::Engine::new(),
+        }
+    }
+}
+
+impl Tool for RhaiTool {
+    fn id(&self) -> &'static str {
+        "rhai"
+    }
+
+    fn run(&self, _context: &mut ToolContext, params: Value) -> Result<Value> {
+        let script = params
+            .get("script")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| anyhow!("Missing 'script'"))?;
+
+        // Input binding
+        // Using "input" param if present
+        let input_val = params.get("input").unwrap_or(&Value::Null);
+
+        let mut scope = rhai::Scope::new();
+        let dynamic_input = rhai::serde::to_dynamic(input_val)?;
+        scope.push_dynamic("input", dynamic_input);
+
+        // Eval
+        let result = self
+            .engine
+            .eval_with_scope::<rhai::Dynamic>(&mut scope, script)?;
+
+        let json_result: Value = rhai::serde::from_dynamic(&result)?;
+        Ok(serde_json::json!({ "result": json_result }))
     }
 }

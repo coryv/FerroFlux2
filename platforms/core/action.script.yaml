@@ -1,0 +1,47 @@
+meta:
+  id: core.action.script
+  name: Rhai Script
+  category: Logic
+  type: Action
+  platform: core
+  description: "Runs custom Rhai logic for complex transformations."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: data
+      type: any
+  
+  outputs:
+    - name: Exec
+      type: flow
+    - name: result
+      type: any
+
+  settings:
+    - name: script
+      label: Script
+      type: textarea
+      default: "fn main(data) {\n  return data;\n}"
+
+execution:
+  - id: script_exec
+    tool: rhai
+    params:
+      script: "{{ settings.script }}"
+      input: "{{ inputs.data }}"
+    returns:
+      result: script_result
+
+  - id: emit_res
+    tool: emit
+    params:
+      port: result
+      value: "{{ script_result }}"
+
+  - id: emit_exec
+    tool: emit
+    params:
+      port: Exec

@@ -1,0 +1,65 @@
+meta:
+  id: core.action.agent
+  name: AI Agent
+  category: AI
+  type: Action
+  platform: core
+  description: "LLM Agent that processes prompts and produces responses."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+  
+  outputs:
+    - name: Success
+      type: flow
+
+  settings:
+    - name: provider
+      label: Provider
+      type: select
+      default: openai
+      options: ["openai", "anthropic", "google"]
+    - name: model
+      label: Model
+      type: string
+      default: "gpt-4o"
+    - name: prompt
+      label: Prompt
+      type: textarea
+      default: "Summarize this: {{ body }}"
+      
+    - name: output_var
+      label: Output Variable
+      type: string
+      default: "agent_response"
+
+    - name: system_instruction
+      label: System Instruction
+      type: textarea
+      default: "You are a helpful assistant."
+
+execution:
+  - id: llm
+    tool: agent
+    params:
+      provider: "{{ settings.provider }}"
+      model: "{{ settings.model }}"
+      system: "{{ settings.system_instruction }}"
+      prompt: "{{ settings.prompt }}"
+    returns:
+      result: response_text
+
+  - id: emit_res
+    tool: emit
+    params:
+      port: "{{ settings.output_var }}"
+      value: "{{ steps.llm.response_text }}"
+
+  - id: emit_exec
+    tool: emit
+    params:
+      port: Success
+

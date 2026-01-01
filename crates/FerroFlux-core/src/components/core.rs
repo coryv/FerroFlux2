@@ -43,8 +43,12 @@ pub struct PinnedOutput(pub SecureTicket);
 pub struct Edge {
     /// The entity ID of the source node.
     pub source: Entity,
+    /// The output handle (port name) on the source node.
+    pub source_handle: Option<String>,
     /// The entity ID of the target node.
     pub target: Entity,
+    /// The input handle (port name) on the target node.
+    pub target_handle: Option<String>,
 }
 
 /// Holds incoming data packets waiting to be processed.
@@ -56,7 +60,8 @@ pub struct Inbox {
 /// Holds outgoing data packets waiting to be routed to the next node.
 #[derive(Component, Debug, Clone, Default)]
 pub struct Outbox {
-    pub queue: VecDeque<SecureTicket>,
+    /// Queue of (PortName, Ticket). If PortName is None, it sends to all/default.
+    pub queue: VecDeque<(Option<String>, SecureTicket)>,
 }
 
 /// Helper tag to label edges for logic branching (e.g., "true", "false", "default").

@@ -21,8 +21,9 @@ interface:
   outputs:
     - name: True
       type: flow
-    - name: False
+    - name: default
       type: flow
+      description: "False path"
 
   settings:
     - name: operator
@@ -90,14 +91,4 @@ execution:
       
       # FIX: I will rename "False" to "default" to align with LogicTool's fallback.
 
-execution_patch:
-  # ...
 
-interface:
-  # ...
-  outputs:
-    - name: True
-      type: flow
-    - name: default
-      type: flow
-      description: "False / Fallback"

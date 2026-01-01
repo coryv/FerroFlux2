@@ -103,7 +103,7 @@ pub fn wasm_worker(
                 if let Ok(t) =
                     store.check_in_with_metadata(&err_msg.into_bytes(), ticket.metadata.clone())
                 {
-                    outbox.queue.push_back(t);
+                    outbox.queue.push_back((None, t));
                 }
                 continue;
             };
@@ -326,7 +326,7 @@ pub fn wasm_worker(
             match store.check_in_with_metadata(&final_result_bytes, ticket.metadata.clone()) {
                 Ok(new_ticket) => {
                     tracing::debug!(ticket_id = %new_ticket.id, "Compute result checked in");
-                    outbox.queue.push_back(new_ticket);
+                    outbox.queue.push_back((None, new_ticket));
                 }
                 Err(e) => {
                     tracing::error!(error = %e, "Failed to check in compute result");

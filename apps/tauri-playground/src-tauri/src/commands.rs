@@ -216,17 +216,29 @@ pub async fn add_node(
 
     history.commit(&graph);
 
+    let mut initial_settings = HashMap::new();
+    for s_val in &template.settings {
+        if let Some(name) = s_val.get("name").and_then(|v| v.as_str()) {
+            if let Some(default) = s_val.get("default") {
+                if !default.is_null() {
+                    initial_settings.insert(name.to_string(), default.clone());
+                }
+            }
+        }
+    }
+
     let node_uuid = Uuid::new_v4();
     let node_id = graph.insert_node(Node {
         id: NodeId::default(),
         uuid: node_uuid,
         position: glam::Vec2::new(x, y),
-        size: glam::Vec2::new(160.0, 80.0), // TODO: Use template width/height if added to metadata
+        size: glam::Vec2::new(160.0, 80.0),
         inputs: vec![],
         outputs: vec![],
         data: PlaygroundNodeData {
             name: template.name.clone(),
             template_id: template_id.clone(),
+            settings: initial_settings,
         },
         flags: Default::default(),
         style: None,
@@ -448,6 +460,35 @@ pub async fn deploy(state: tauri::State<'_, AppState>) -> Result<(), String> {
     state
         .engine_tx
         .send(EngineCommand::Deploy(graph, tx))
+        .await
+        .map_err(|e| e.to_string())?;
+    rx.await.map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn update_node_settings(
+    state: tauri::State<'_, AppState>,
+    node_id: NodeId,
+    settings: HashMap<String, serde_json::Value>,
+) -> Result<(), String> {
+    let mut graph = state.graph.lock().await;
+    let mut history = state.history.lock().await;
+    history.commit(&graph);
+
+    if let Some(node) = graph.nodes.get_mut(node_id) {
+        node.data.settings = settings;
+        Ok(())
+    } else {
+        Err(format!("Node {:?} not found", node_id))
+    }
+}
+
+#[tauri::command]
+pub async fn reload_definitions(state: tauri::State<'_, AppState>) -> Result<(), String> {
+    let (tx, rx) = oneshot::channel();
+    state
+        .engine_tx
+        .send(EngineCommand::ReloadDefinitions(tx))
         .await
         .map_err(|e| e.to_string())?;
     rx.await.map_err(|e| e.to_string())?

@@ -62,8 +62,8 @@ impl Default for HttpResultChannel {
 
 #[derive(Resource, Clone, Default)]
 pub struct GraphTopology {
-    // Source -> [Targets]
-    pub adjacency: std::collections::HashMap<Entity, Vec<Entity>>,
+    // Source -> [(SourcePort, TargetEntity)]
+    pub adjacency: std::collections::HashMap<Entity, Vec<(Option<String>, Entity)>>,
 }
 #[derive(Resource, Clone)]
 pub struct PipelineResultChannel {

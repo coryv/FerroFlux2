@@ -117,7 +117,7 @@ async fn test_stats_zscore_outlier() {
     let outbox = query.single(&world);
     assert!(!outbox.queue.is_empty());
 
-    let out_ticket = outbox.queue.front().unwrap();
+    let (_port, out_ticket) = outbox.queue.front().unwrap();
     let out_bytes = store.claim(out_ticket).unwrap();
     let out_json: serde_json::Value = serde_json::from_slice(&out_bytes).unwrap();
 

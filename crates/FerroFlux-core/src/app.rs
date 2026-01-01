@@ -181,13 +181,64 @@ impl AppBuilder {
         world.insert_resource(crate::resources::GraphTopology::default());
         world.insert_resource(crate::resources::templates::TemplateEngine::default());
         world.insert_resource(crate::resources::PipelineResultChannel::default());
+        // Create and register ToolRegistry
+        let mut tool_registry = crate::tools::registry::ToolRegistry::default();
+        crate::tools::register_core_tools(&mut tool_registry);
+        world.insert_resource(tool_registry);
+
         world.insert_resource(crate::resources::registry::NodeRegistry::default());
 
-        // Register Core Nodes
-        let mut system_state =
-            SystemState::<ResMut<crate::resources::registry::NodeRegistry>>::new(&mut world);
-        let registry_res = system_state.get_mut(&mut world);
-        register_core_nodes(registry_res);
+        // 9. YAML Definitions Registry
+        let mut def_registry = crate::resources::registry::DefinitionRegistry::default();
+
+        // Robust discovery of the 'platforms' directory
+        let mut platform_path = std::path::PathBuf::from("platforms");
+        if !platform_path.exists() {
+            // Try searching up for workspace root platforms
+            let mut curr = std::env::current_dir().unwrap_or_default();
+            for _ in 0..5 {
+                let candidate = curr.join("platforms");
+                if candidate.exists() {
+                    platform_path = candidate;
+                    break;
+                }
+                if let Some(parent) = curr.parent() {
+                    curr = parent.to_path_buf();
+                } else {
+                    break;
+                }
+            }
+        }
+
+        if platform_path.exists() {
+            if let Err(e) = def_registry.load_from_dir(&platform_path) {
+                tracing::error!(path = ?platform_path, error = %e, "Failed to load YAML platforms");
+            }
+        } else {
+            tracing::warn!("'platforms' directory not found, skipping YAML definitions");
+        }
+        world.insert_resource(crate::api::PlatformPath(platform_path.clone()));
+        world.insert_resource(def_registry.clone());
+
+        // 10. Bridge YAML to NodeRegistry
+        {
+            let mut system_state =
+                SystemState::<ResMut<crate::resources::registry::NodeRegistry>>::new(&mut world);
+            let mut registry_res = system_state.get_mut(&mut world);
+
+            // Register Core Nodes (Hardcoded)
+            register_core_nodes(&mut registry_res);
+
+            // Register YAML-defined Nodes
+            for (id, def) in &def_registry.definitions {
+                registry_res.register(
+                    id,
+                    Box::new(crate::nodes::yaml_factory::YamlNodeFactory::new(
+                        def.clone(),
+                    )),
+                );
+            }
+        }
 
         // Secrets
         world.insert_resource(crate::secrets::DatabaseSecretStore::new(

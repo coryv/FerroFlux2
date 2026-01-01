@@ -10,6 +10,8 @@ pub struct EdgeBlueprint {
     pub source_id: Uuid,
     pub target_id: Uuid,
     pub label: Option<String>,
+    pub source_handle: Option<String>,
+    pub target_handle: Option<String>,
 }
 
 /// The structure of the YAML file.
@@ -56,9 +58,10 @@ pub fn load_graph_from_str(world: &mut World, tenant: TenantId, yaml: &str) -> a
         let mut query = world.query::<(Entity, &NodeConfig)>();
         for (e, conf) in query.iter(world) {
             if let Some(conf_wf_id) = &conf.workflow_id
-                && conf_wf_id == wf_id {
-                    to_despawn.push(e);
-                }
+                && conf_wf_id == wf_id
+            {
+                to_despawn.push(e);
+            }
         }
 
         // Also need to cleanup edges connected to these nodes?
@@ -142,7 +145,12 @@ pub fn load_graph_from_str(world: &mut World, tenant: TenantId, yaml: &str) -> a
             .get(&edge_bp.target_id)
             .ok_or_else(|| anyhow::anyhow!("Edge target UUID not found: {}", edge_bp.target_id))?;
 
-        let mut edge_cmds = world.spawn(Edge { source, target });
+        let mut edge_cmds = world.spawn(Edge {
+            source,
+            target,
+            source_handle: edge_bp.source_handle.clone(),
+            target_handle: edge_bp.target_handle.clone(),
+        });
 
         if let Some(label) = edge_bp.label {
             edge_cmds.insert(EdgeLabel(label));
@@ -182,9 +190,10 @@ pub fn save_graph(world: &mut World, path: &str) -> anyhow::Result<()> {
         world.resource_scope(
             |world, registry: Mut<crate::resources::registry::NodeRegistry>| {
                 if let Some(factory) = registry.get(&node_config.node_type)
-                    && let Some(c) = factory.serialize(world, e) {
-                        config_json = c;
-                    }
+                    && let Some(c) = factory.serialize(world, e)
+                {
+                    config_json = c;
+                }
             },
         );
 
@@ -208,6 +217,8 @@ pub fn save_graph(world: &mut World, path: &str) -> anyhow::Result<()> {
                 source_id,
                 target_id,
                 label: label.map(|l| l.0.clone()),
+                source_handle: edge.source_handle.clone(),
+                target_handle: edge.target_handle.clone(),
             });
         }
     }

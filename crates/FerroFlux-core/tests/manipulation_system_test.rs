@@ -70,7 +70,7 @@ fn test_splitter_logic() {
     assert_eq!(outbox.queue.len(), 2);
 
     // Verify Content
-    let first_ticket = &outbox.queue[0];
+    let (_, first_ticket) = &outbox.queue[0];
     let first_bytes = store.claim(first_ticket).unwrap();
     let first_val: serde_json::Value = serde_json::from_slice(&first_bytes).unwrap();
     assert_eq!(first_val["val"], "A");
@@ -122,7 +122,7 @@ fn test_aggregator_logic() {
     let outbox = query.single(&world);
     assert_eq!(outbox.queue.len(), 1);
 
-    let batch_ticket = &outbox.queue[0];
+    let (_, batch_ticket) = &outbox.queue[0];
     let batch_bytes = store.claim(batch_ticket).unwrap();
     let batch_val: serde_json::Value = serde_json::from_slice(&batch_bytes).unwrap();
 
@@ -179,7 +179,7 @@ fn test_transform_logic() {
     let outbox = query.single(&world);
     assert_eq!(outbox.queue.len(), 1);
 
-    let out_ticket = &outbox.queue[0];
+    let (_, out_ticket) = &outbox.queue[0];
     let out_bytes = store.claim(out_ticket).unwrap();
     let out_val: serde_json::Value = serde_json::from_slice(&out_bytes).unwrap();
 
