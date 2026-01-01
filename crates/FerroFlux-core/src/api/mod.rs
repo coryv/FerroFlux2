@@ -4,10 +4,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ApiCommand {
-    LoadGraph(crate::domain::TenantId, String),
-    TriggerNode(crate::domain::TenantId, uuid::Uuid, serde_json::Value),
-    TriggerWorkflow(crate::domain::TenantId, String, serde_json::Value),
-    PinNode(crate::domain::TenantId, uuid::Uuid, String),
+    LoadGraph(ferroflux_iam::TenantId, String),
+    TriggerNode(ferroflux_iam::TenantId, uuid::Uuid, serde_json::Value),
+    TriggerWorkflow(ferroflux_iam::TenantId, String, serde_json::Value),
+    PinNode(ferroflux_iam::TenantId, uuid::Uuid, String),
     ReloadDefinitions,
 }
 

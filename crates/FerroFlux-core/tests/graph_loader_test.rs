@@ -4,7 +4,7 @@ use ferroflux_core::components::{
     core::{Edge, EdgeLabel, NodeConfig},
     pipeline::PipelineNode,
 };
-use ferroflux_core::domain::TenantId;
+use ferroflux_iam::TenantId;
 use ferroflux_core::graph_loader::load_graph_from_str;
 use ferroflux_core::nodes::register_core_nodes;
 use ferroflux_core::resources::NodeRouter;

@@ -1,4 +1,4 @@
-use crate::domain::TenantId;
+use ferroflux_iam::TenantId;
 use crate::integrations::IntegrationRegistry;
 use crate::store::database::PersistentStore;
 use handlebars::Handlebars;

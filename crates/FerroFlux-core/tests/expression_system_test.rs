@@ -32,7 +32,7 @@ fn test_expression_evaluation() {
         name: "Test Calc".to_string(),
         node_type: "Expression".to_string(),
         workflow_id: None,
-        tenant_id: Some(ferroflux_core::domain::TenantId::from("default_tenant")),
+        tenant_id: Some(ferroflux_iam::TenantId::from("default_tenant")),
     };
 
     let mut inbox = Inbox::default();
@@ -86,7 +86,7 @@ fn test_expression_functions() {
         name: "Doubler".to_string(),
         node_type: "Expression".to_string(),
         workflow_id: None,
-        tenant_id: Some(ferroflux_core::domain::TenantId::from("default_tenant")),
+        tenant_id: Some(ferroflux_iam::TenantId::from("default_tenant")),
     };
 
     let mut inbox = Inbox::default();

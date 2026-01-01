@@ -95,7 +95,7 @@ fn test_agent_missing_provider_event() {
             name: "Agent".to_string(),
             node_type: "Agent".to_string(),
             workflow_id: None,
-            tenant_id: Some(ferroflux_core::domain::TenantId::from("default_tenant")),
+            tenant_id: Some(ferroflux_iam::TenantId::from("default_tenant")),
         },
         ExpectedOutput {
             aggregated_schema: std::collections::HashSet::new(),

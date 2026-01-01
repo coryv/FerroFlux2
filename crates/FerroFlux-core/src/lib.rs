@@ -6,7 +6,6 @@
 pub mod api;
 pub mod app;
 pub mod components;
-pub mod domain;
 pub mod graph_loader;
 pub mod integrations;
 pub mod nodes;

@@ -105,7 +105,7 @@ impl AppBuilder {
 
         // 3.5 Auto-seeding flows
         if self.import_flows {
-            let default_tenant = crate::domain::TenantId::from("default_tenant");
+            let default_tenant = ferroflux_iam::TenantId::from("default_tenant");
             let workflows = store
                 .load_active_workflows(&default_tenant)
                 .await

@@ -1,8 +1,8 @@
-use crate::domain::TenantId;
 use crate::store::database::PersistentStore;
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use bevy_ecs::system::Resource;
+use ferroflux_iam::TenantId;
 use serde_json::Value;
 use std::env;
 

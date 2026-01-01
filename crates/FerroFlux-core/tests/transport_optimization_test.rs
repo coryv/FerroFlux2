@@ -30,7 +30,7 @@ fn test_transport_optimization_dynamic_edge() {
                 name: "Node A".to_string(),
                 node_type: "Generic".to_string(),
                 workflow_id: None,
-                tenant_id: Some(ferroflux_core::domain::TenantId::from("default_tenant")),
+                tenant_id: Some(ferroflux_iam::TenantId::from("default_tenant")),
             },
             Outbox {
                 queue: VecDeque::new(),
@@ -48,7 +48,7 @@ fn test_transport_optimization_dynamic_edge() {
                 name: "Target Node".to_string(),
                 node_type: "Target".to_string(),
                 workflow_id: None,
-                tenant_id: Some(ferroflux_core::domain::TenantId::from("default_tenant")),
+                tenant_id: Some(ferroflux_iam::TenantId::from("default_tenant")),
             },
             Outbox {
                 queue: VecDeque::new(),

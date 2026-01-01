@@ -46,7 +46,7 @@ edges:
     // 3. Load Graph
     load_graph_from_str(
         &mut app.world,
-        ferroflux_core::domain::TenantId::from("test"),
+        ferroflux_iam::TenantId::from("test"),
         &yaml,
     )
     .expect("Failed to load graph");

@@ -65,7 +65,7 @@ async fn test_stats_zscore_outlier() {
             name: "Test Node".to_string(),
             node_type: "Test".to_string(),
             workflow_id: None,
-            tenant_id: Some(ferroflux_core::domain::TenantId::from("default_tenant")),
+            tenant_id: Some(ferroflux_iam::TenantId::from("default_tenant")),
         },
         config,
         inbox,

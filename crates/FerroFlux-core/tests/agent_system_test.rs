@@ -12,7 +12,7 @@ use ferroflux_core::resources::GlobalHttpClient;
 use ferroflux_core::store::BlobStore;
 use ferroflux_core::systems::{agent_exec::agent_exec, agent_post::agent_post, agent_prep::agent_prep};
 use serde_json::{json, Value};
-use ferroflux_core::domain::TenantId;
+use ferroflux_iam::TenantId;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Duration;

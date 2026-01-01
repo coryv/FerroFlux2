@@ -1,5 +1,5 @@
 use crate::components::{Edge, EdgeLabel, Inbox, NodeConfig, Outbox, SecretConfig};
-use crate::domain::TenantId;
+use ferroflux_iam::TenantId;
 use bevy_ecs::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

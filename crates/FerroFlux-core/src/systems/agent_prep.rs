@@ -2,7 +2,7 @@ use crate::components::pipeline::{ExecutionContext, ReadyToExecute};
 use crate::components::{
     AgentConfig, ExpectedOutput, Inbox, NodeConfig, Outbox, PinnedOutput, WorkDone,
 };
-use crate::domain::TenantId;
+use ferroflux_iam::TenantId;
 use crate::integrations::registry::IntegrationRegistry;
 use crate::resources::templates::TemplateEngine;
 use crate::secrets::{DatabaseSecretStore, SecretStore};
