@@ -7,7 +7,7 @@ use ferroflux_core::components::{
 };
 use ferroflux_core::integrations::IntegrationRegistry;
 use ferroflux_core::store::BlobStore;
-use ferroflux_core::systems::{agent_exec::agent_exec, agent_post::agent_post, agent_prep::agent_prep};
+use ferroflux_core::systems::{agent::agent_exec, agent::agent_post, agent::agent_prep};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 use uuid::Uuid;
@@ -16,7 +16,7 @@ fn setup_world() -> World {
     let mut world = World::new();
 
     // Resources
-    world.insert_resource(BlobStore::new());
+    world.insert_resource(BlobStore::default());
     world.insert_resource(ferroflux_core::resources::WorkDone::default());
     world.insert_resource(ferroflux_core::resources::AgentConcurrency(Arc::new(
         tokio::sync::Semaphore::new(10),
@@ -46,7 +46,7 @@ fn setup_world() -> World {
         ))
         .expect("Failed to init in-memory DB");
 
-    let master_key = ferroflux_core::security::encryption::get_or_create_master_key().unwrap();
+    let master_key = ferroflux_security::encryption::get_or_create_master_key().unwrap();
     world.insert_resource(store.clone()); // Insert the PersistentStore resource
     world.insert_resource(ferroflux_core::secrets::DatabaseSecretStore::new(
         store, master_key,

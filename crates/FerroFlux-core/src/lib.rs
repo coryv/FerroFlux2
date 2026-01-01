@@ -12,7 +12,6 @@ pub mod nodes;
 pub mod resources;
 pub mod schema;
 pub mod secrets;
-pub mod security;
 pub mod store;
 pub mod systems;
 pub mod traits;

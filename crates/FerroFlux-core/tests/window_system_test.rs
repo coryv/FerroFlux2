@@ -15,7 +15,7 @@ fn test_window_rolling_mean() {
     // 1. Setup Resources
     let (tx, _) = tokio::sync::broadcast::channel(10);
     world.insert_resource(SystemEventBus(tx));
-    let store = BlobStore::new();
+    let store = BlobStore::default();
     world.insert_resource(store.clone());
 
     // 2. Setup System
@@ -94,7 +94,7 @@ fn test_window_rolling_variance() {
 
     let (tx, _) = tokio::sync::broadcast::channel(10);
     world.insert_resource(SystemEventBus(tx));
-    let store = BlobStore::new();
+    let store = BlobStore::default();
     world.insert_resource(store.clone());
 
     schedule.add_systems(window_worker);

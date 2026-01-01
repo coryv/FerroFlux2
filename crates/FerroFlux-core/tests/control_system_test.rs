@@ -12,7 +12,7 @@ use uuid::Uuid;
 // Setup helper
 async fn setup_world_async() -> World {
     let mut world = World::new();
-    let blob_store = BlobStore::new();
+    let blob_store = BlobStore::default();
     world.insert_resource(blob_store);
 
     let (tx, _) = broadcast::channel(10);

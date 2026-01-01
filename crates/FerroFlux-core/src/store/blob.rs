@@ -17,24 +17,82 @@ struct BlobEntry {
     created_at: std::time::Instant,
 }
 
+/// Trait for pluggable blob storage backends.
+pub trait BlobProvider: Send + Sync + std::fmt::Debug {
+    fn store(&self, id: Uuid, data: Vec<u8>, metadata: HashMap<String, String>) -> anyhow::Result<()>;
+    fn retrieve(&self, id: &Uuid) -> anyhow::Result<Option<(Vec<u8>, HashMap<String, String>)>>;
+    fn delete(&self, id: &Uuid) -> anyhow::Result<bool>;
+    fn update_metadata(&self, id: &Uuid, metadata: HashMap<String, String>) -> anyhow::Result<()>;
+    fn list_expired(&self, ttl: std::time::Duration) -> Vec<Uuid>;
+}
+
+/// In-memory implementation of BlobProvider.
+#[derive(Debug, Default)]
+pub struct MemoryProvider {
+    storage: RwLock<HashMap<Uuid, BlobEntry>>,
+}
+
+impl BlobProvider for MemoryProvider {
+    fn store(&self, id: Uuid, data: Vec<u8>, metadata: HashMap<String, String>) -> anyhow::Result<()> {
+        let mut guard = self.storage.write().unwrap();
+        guard.insert(
+            id,
+            BlobEntry {
+                data,
+                metadata,
+                created_at: std::time::Instant::now(),
+            },
+        );
+        Ok(())
+    }
+
+    fn retrieve(&self, id: &Uuid) -> anyhow::Result<Option<(Vec<u8>, HashMap<String, String>)>> {
+        let guard = self.storage.read().unwrap();
+        Ok(guard.get(id).map(|e| (e.data.clone(), e.metadata.clone())))
+    }
+
+    fn delete(&self, id: &Uuid) -> anyhow::Result<bool> {
+        let mut guard = self.storage.write().unwrap();
+        Ok(guard.remove(id).is_some())
+    }
+
+    fn update_metadata(&self, id: &Uuid, metadata: HashMap<String, String>) -> anyhow::Result<()> {
+        let mut guard = self.storage.write().unwrap();
+        if let Some(entry) = guard.get_mut(id) {
+            entry.metadata.extend(metadata);
+            Ok(())
+        } else {
+            Err(anyhow::anyhow!("Ticket not found"))
+        }
+    }
+
+    fn list_expired(&self, ttl: std::time::Duration) -> Vec<Uuid> {
+        let guard = self.storage.read().unwrap();
+        let now = std::time::Instant::now();
+        guard
+            .iter()
+            .filter(|(_, entry)| now.duration_since(entry.created_at) >= ttl)
+            .map(|(id, _)| *id)
+            .collect()
+    }
+}
+
 #[derive(Clone, Debug, Resource)]
 pub struct BlobStore {
-    // Simple in-memory store for now.
-    // Map uuid -> BlobEntry
-    storage: Arc<RwLock<HashMap<Uuid, BlobEntry>>>,
+    provider: Arc<dyn BlobProvider>,
 }
 
 impl Default for BlobStore {
     fn default() -> Self {
         Self {
-            storage: Arc::new(RwLock::new(HashMap::new())),
+            provider: Arc::new(MemoryProvider::default()),
         }
     }
 }
 
 impl BlobStore {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(provider: Arc<dyn BlobProvider>) -> Self {
+        Self { provider }
     }
 
     pub fn check_in(&self, data: &[u8]) -> anyhow::Result<SecureTicket> {
@@ -52,31 +110,22 @@ impl BlobStore {
             metadata: metadata.clone(),
         };
 
-        self.storage.write().unwrap().insert(
-            id,
-            BlobEntry {
-                data: data.to_vec(),
-                metadata,
-                created_at: std::time::Instant::now(),
-            },
-        );
+        self.provider.store(id, data.to_vec(), metadata)?;
         Ok(ticket)
     }
 
     pub fn claim(&self, ticket: &SecureTicket) -> anyhow::Result<Vec<u8>> {
-        if let Some(entry) = self.storage.read().unwrap().get(&ticket.id) {
-            Ok(entry.data.clone())
-        } else {
-            Err(anyhow::anyhow!("Ticket not found"))
+        match self.provider.retrieve(&ticket.id)? {
+            Some((data, _)) => Ok(data),
+            None => Err(anyhow::anyhow!("Ticket not found")),
         }
     }
 
     pub fn recover_ticket(&self, id: &Uuid) -> Option<SecureTicket> {
-        let guard = self.storage.read().unwrap();
-        guard.get(id).map(|entry| SecureTicket {
-            id: *id,
-            metadata: entry.metadata.clone(),
-        })
+        match self.provider.retrieve(id).ok()? {
+            Some((_, metadata)) => Some(SecureTicket { id: *id, metadata }),
+            None => None,
+        }
     }
 
     pub fn update_metadata(
@@ -84,23 +133,16 @@ impl BlobStore {
         id: &Uuid,
         new_metadata: HashMap<String, String>,
     ) -> anyhow::Result<()> {
-        let mut guard = self.storage.write().unwrap();
-        if let Some(entry) = guard.get_mut(id) {
-            entry.metadata.extend(new_metadata);
-            Ok(())
-        } else {
-            Err(anyhow::anyhow!("Ticket not found"))
-        }
+        self.provider.update_metadata(id, new_metadata)
     }
 
     pub fn run_garbage_collection(&self) -> usize {
-        let mut guard = self.storage.write().unwrap();
-        let now = std::time::Instant::now();
         let ttl = std::time::Duration::from_secs(60 * 15); // 15 Minutes TTL
-        let initial_len = guard.len();
-
-        guard.retain(|_, entry| now.duration_since(entry.created_at) < ttl);
-
-        initial_len - guard.len()
+        let expired = self.provider.list_expired(ttl);
+        let count = expired.len();
+        for id in expired {
+            let _ = self.provider.delete(&id);
+        }
+        count
     }
 }

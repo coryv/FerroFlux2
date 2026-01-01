@@ -23,7 +23,7 @@ async fn setup_world() -> (World, Schedule) {
     let mut schedule = Schedule::default();
 
     // Resources
-    world.insert_resource(BlobStore::new());
+    world.insert_resource(BlobStore::default());
     world.insert_resource(WorkDone::default());
 
     // Event Bus
@@ -36,7 +36,7 @@ async fn setup_world() -> (World, Schedule) {
     let store = ferroflux_core::store::database::PersistentStore::new("sqlite::memory:")
         .await
         .expect("Failed to init in-memory DB");
-    let master_key = ferroflux_core::security::encryption::get_or_create_master_key()
+    let master_key = ferroflux_security::encryption::get_or_create_master_key()
         .expect("Failed to get master key");
     world.insert_resource(ferroflux_core::secrets::DatabaseSecretStore::new(
         store, master_key,

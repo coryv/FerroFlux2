@@ -10,7 +10,7 @@ use ferroflux_core::integrations::registry::{
 use ferroflux_core::integrations::IntegrationRegistry;
 use ferroflux_core::resources::GlobalHttpClient;
 use ferroflux_core::store::BlobStore;
-use ferroflux_core::systems::{agent_exec::agent_exec, agent_post::agent_post, agent_prep::agent_prep};
+use ferroflux_core::systems::{agent::agent_exec, agent::agent_post, agent::agent_prep};
 use serde_json::{json, Value};
 use ferroflux_iam::TenantId;
 use std::collections::{HashMap, HashSet};
@@ -26,7 +26,7 @@ async fn setup_world(mock_server_url: String) -> (World, Schedule) {
     let mut schedule = Schedule::default();
 
     // Resources
-    world.insert_resource(BlobStore::new());
+    world.insert_resource(BlobStore::default());
     world.insert_resource(ferroflux_core::resources::WorkDone::default());
     world.insert_resource(ferroflux_core::resources::AgentConcurrency(Arc::new(
         tokio::sync::Semaphore::new(10),
@@ -36,7 +36,7 @@ async fn setup_world(mock_server_url: String) -> (World, Schedule) {
     let store = ferroflux_core::store::database::PersistentStore::new("sqlite::memory:")
         .await
         .expect("Failed to init in-memory DB");
-    let master_key = ferroflux_core::security::encryption::get_or_create_master_key()
+    let master_key = ferroflux_security::encryption::get_or_create_master_key()
         .expect("Failed to get master key");
     world.insert_resource(store.clone()); // Insert the PersistentStore resource
     world.insert_resource(ferroflux_core::secrets::DatabaseSecretStore::new(

@@ -42,7 +42,7 @@ fn test_unified_pipeline_execution() {
     let mut world = World::new();
 
     // 1. Setup Resources
-    let store = BlobStore::new();
+    let store = BlobStore::default();
     world.insert_resource(store);
 
     let mut tool_registry = ToolRegistry::default();

@@ -1,6 +1,6 @@
 use ferroflux_iam::TenantId;
 use ferroflux_core::secrets::{DatabaseSecretStore, SecretStore};
-use ferroflux_core::security::encryption::{decrypt, encrypt, get_or_create_master_key};
+use ferroflux_security::encryption::{decrypt, encrypt, get_or_create_master_key};
 use ferroflux_core::store::database::PersistentStore;
 use tokio::runtime::Runtime;
 

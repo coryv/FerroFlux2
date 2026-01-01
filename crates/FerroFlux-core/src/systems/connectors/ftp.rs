@@ -58,7 +58,7 @@ pub fn ftp_worker(
                 let addr = format!("{}:{}", config.host, config.port);
 
                 if let Err(e) =
-                    crate::security::network::validate_host_port(&config.host, config.port)
+                    ferroflux_security::network::validate_host_port(&config.host, config.port)
                 {
                     tracing::error!("FTP Security Validation Failed: {}", e);
                     continue;

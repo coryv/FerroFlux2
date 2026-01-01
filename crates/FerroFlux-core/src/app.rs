@@ -127,7 +127,7 @@ impl AppBuilder {
         let store_server = store.clone();
 
         // 4. BlobStore
-        let blob_store = BlobStore::new();
+        let blob_store = BlobStore::default();
         let blob_store_server = blob_store.clone();
 
         // 5. Integration Registry
@@ -137,7 +137,7 @@ impl AppBuilder {
 
         // 6. Master Key
         let master_key = self.master_key.unwrap_or_else(|| {
-            crate::security::encryption::get_or_create_master_key()
+            ferroflux_security::encryption::get_or_create_master_key()
                 .expect("Failed to get master key")
         });
         let master_key_clone = master_key.clone();

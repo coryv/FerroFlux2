@@ -2,12 +2,12 @@ use crate::components::pipeline::{ExecutionContext, ReadyToExecute};
 use crate::components::{
     AgentConfig, ExpectedOutput, Inbox, NodeConfig, Outbox, PinnedOutput, WorkDone,
 };
-use ferroflux_iam::TenantId;
 use crate::integrations::registry::IntegrationRegistry;
 use crate::resources::templates::TemplateEngine;
 use crate::secrets::{DatabaseSecretStore, SecretStore};
 use crate::store::BlobStore;
 use bevy_ecs::prelude::*;
+use ferroflux_iam::TenantId;
 use serde_json::{Value, json};
 use uuid::Uuid;
 
@@ -286,7 +286,7 @@ mod tests {
         schedule.add_systems(agent_prep);
 
         // Resources
-        let store = BlobStore::new();
+        let store = BlobStore::default();
         world.insert_resource(store.clone());
 
         let mut registry = IntegrationRegistry::default();

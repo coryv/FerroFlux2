@@ -1,4 +1,5 @@
 pub mod events;
+pub mod handlers;
 
 use serde::{Deserialize, Serialize};
 

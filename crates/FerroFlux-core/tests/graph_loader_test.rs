@@ -4,11 +4,11 @@ use ferroflux_core::components::{
     core::{Edge, EdgeLabel, NodeConfig},
     pipeline::PipelineNode,
 };
-use ferroflux_iam::TenantId;
 use ferroflux_core::graph_loader::load_graph_from_str;
 use ferroflux_core::nodes::register_core_nodes;
 use ferroflux_core::resources::NodeRouter;
 use ferroflux_core::resources::registry::{DefinitionRegistry, NodeRegistry};
+use ferroflux_iam::TenantId;
 
 #[test]
 fn test_graph_loading_basic() {
@@ -17,20 +17,23 @@ nodes:
   - id: "11111111-1111-1111-1111-111111111111"
     name: "My Agent"
     type: "core.action.agent"
-    provider: "openai"
-    model: "gpt-4o"
-    system_instruction: "Sys"
+    config:
+      provider: "openai"
+      model: "gpt-4o"
+      system_instruction: "Sys"
 
   - id: "22222222-2222-2222-2222-222222222222"
     name: "My Switch"
     type: "core.action.switch"
-    rules: []
+    config:
+      rules: []
 
   - id: "33333333-3333-3333-3333-333333333333"
     name: "My Http"
     type: "core.action.http"
-    url: "http://example.com"
-    method: "POST"
+    config:
+      url: "http://example.com"
+      method: "POST"
 
 edges:
   - source_id: "11111111-1111-1111-1111-111111111111"

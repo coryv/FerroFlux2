@@ -15,7 +15,7 @@ fn setup_world() -> (World, Schedule) {
     let mut schedule = Schedule::default();
 
     // Resources
-    world.insert_resource(BlobStore::new());
+    world.insert_resource(BlobStore::default());
     world.insert_resource(WorkDone::default());
 
     // Event Bus

@@ -57,7 +57,7 @@ pub fn ssh_worker(
 
             use std::net::TcpStream;
 
-            if let Err(e) = crate::security::network::validate_host_port(&config.host, config.port)
+            if let Err(e) = ferroflux_security::network::validate_host_port(&config.host, config.port)
             {
                 tracing::error!("SSH Security Validation Failed: {}", e);
                 continue;

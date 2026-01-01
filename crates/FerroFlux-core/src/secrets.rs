@@ -67,7 +67,7 @@ impl SecretStore for DatabaseSecretStore {
                 .await?
                 .ok_or_else(|| anyhow::anyhow!("Connection '{}' not found", slug))?;
 
-        let decrypted = crate::security::encryption::decrypt(&enc_data, &self.master_key, &nonce)
+        let decrypted = ferroflux_security::encryption::decrypt(&enc_data, &self.master_key, &nonce)
             .context("Decryption failed")?;
 
         let json: Value =

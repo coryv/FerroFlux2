@@ -1,0 +1,13 @@
+[package]
+name = "ferroflux-security"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aes-gcm = "0.10"
+anyhow = "1.0"
+hex = "0.4"
+rand = "0.8"
+tracing = "0.1"
+url = "2.5"
+uuid = { version = "1.7", features = ["v4"] }

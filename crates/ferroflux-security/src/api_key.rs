@@ -12,11 +12,12 @@ use std::path::Path;
 #[tracing::instrument]
 pub fn get_or_create_api_key() -> Result<String> {
     // 1. Env Var
-    if let Ok(val) = env::var("FERROFLUX_API_KEY")
-        && !val.is_empty() {
+    if let Ok(val) = env::var("FERROFLUX_API_KEY") {
+        if !val.is_empty() {
             tracing::info!("Using API key from environment variable");
             return Ok(val);
         }
+    }
 
     // 2. File
     let key_path = Path::new("ferroflux.api.key");

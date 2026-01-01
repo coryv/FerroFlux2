@@ -1,8 +1,6 @@
 use bevy_ecs::prelude::*;
 
-pub mod agent_exec;
-pub mod agent_post;
-pub mod agent_prep;
+pub mod agent;
 pub mod api_worker;
 pub mod compute;
 pub mod connectors;
@@ -18,9 +16,7 @@ pub mod scheduler;
 pub mod transport;
 pub mod utils;
 
-pub use agent_exec::*;
-pub use agent_post::*;
-pub use agent_prep::*;
+pub use agent::*;
 pub use gateway::*;
 pub use io::*;
 pub use janitor::*;
@@ -35,9 +31,9 @@ pub fn register_core_systems(schedule: &mut Schedule) {
         gateway::ingest_webhooks,
         logic::switch_worker_safe,
         logic::script_worker,
-        agent_prep::agent_prep,
-        agent_exec::agent_exec,
-        agent_post::agent_post,
+        agent::agent_prep,
+        agent::agent_exec,
+        agent::agent_post,
         io::http_worker,
     ));
 

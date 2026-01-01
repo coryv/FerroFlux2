@@ -31,7 +31,7 @@ pub fn rss_worker(
         let event_tx_clone = event_tx.clone();
 
         // 1. Validate
-        if let Err(e) = crate::security::network::validate_url(&url) {
+        if let Err(e) = ferroflux_security::network::validate_url(&url) {
             let _ = event_tx_clone.send(SystemEvent::NodeTelemetry {
                 node_id,
                 node_type: "RSS".into(),

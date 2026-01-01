@@ -15,7 +15,7 @@ fn setup_world() -> World {
     let mut world = World::new();
 
     // Resources
-    world.insert_resource(BlobStore::new());
+    world.insert_resource(BlobStore::default());
     let (tx, _) = broadcast::channel(10);
     world.insert_resource(SystemEventBus(tx));
 

@@ -11,7 +11,7 @@ fn test_wasm_compute_quickjs() {
 
     // 1. Resources
     world.insert_resource(WasmRuntime::default());
-    let store = BlobStore::new();
+    let store = BlobStore::default();
     world.insert_resource(store.clone());
     world.insert_resource(WorkDone::default());
 
@@ -72,7 +72,7 @@ fn test_wasm_timeout() {
 
     // 1. Resources
     world.insert_resource(WasmRuntime::default());
-    let store = BlobStore::new();
+    let store = BlobStore::default();
     world.insert_resource(store.clone());
     world.insert_resource(WorkDone::default());
 

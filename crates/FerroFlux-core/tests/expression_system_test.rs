@@ -14,7 +14,7 @@ fn test_expression_evaluation() {
     // 1. Setup Resources
     let (tx, _) = tokio::sync::broadcast::channel(10);
     world.insert_resource(SystemEventBus(tx));
-    let store = BlobStore::new();
+    let store = BlobStore::default();
     world.insert_resource(store.clone());
 
     // 2. Setup System
@@ -71,7 +71,7 @@ fn test_expression_functions() {
 
     let (tx, _) = tokio::sync::broadcast::channel(10);
     world.insert_resource(SystemEventBus(tx));
-    let store = BlobStore::new();
+    let store = BlobStore::default();
     world.insert_resource(store.clone());
 
     schedule.add_systems(expression_worker);

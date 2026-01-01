@@ -32,7 +32,7 @@ pub async fn execute_integration_action(
     let (provider_type, data, nonce, _, _) = conn;
 
     // 2. Decrypt
-    let plaintext = crate::security::encryption::decrypt(&data, master_key, &nonce)
+    let plaintext = ferroflux_security::encryption::decrypt(&data, master_key, &nonce)
         .map_err(|e| format!("Decryption Failed: {}", e))?;
 
     let connection_fields: Value =
@@ -234,7 +234,7 @@ mod tests {
         let master_key = vec![0u8; 32];
 
         // Save dummy connection
-        let encrypted_data = crate::security::encryption::encrypt(b"{}", &master_key).unwrap();
+        let encrypted_data = ferroflux_security::encryption::encrypt(b"{}", &master_key).unwrap();
         store
             .save_connection(
                 &tenant,
@@ -316,7 +316,7 @@ mod tests {
         let store = PersistentStore::new("sqlite::memory:").await.unwrap();
         let tenant = TenantId::from("default_tenant");
         let master_key = vec![0u8; 32];
-        let encrypted_data = crate::security::encryption::encrypt(b"{}", &master_key).unwrap();
+        let encrypted_data = ferroflux_security::encryption::encrypt(b"{}", &master_key).unwrap();
         store
             .save_connection(
                 &tenant,
