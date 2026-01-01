@@ -25,12 +25,7 @@ pub fn pipeline_execution_system(
     tool_registry: Res<ToolRegistry>,
     store: Res<crate::store::BlobStore>,
 ) {
-    println!("DEBUG: Pipeline System running");
     for (_entity, mut node, mut inbox, mut outbox) in query.iter_mut() {
-        println!("DEBUG: Pipeline System: Found entity {:?}", _entity);
-        if !inbox.queue.is_empty() {
-            println!("DEBUG: Pipeline System: processing inbox for {:?}", _entity);
-        }
         while let Some(ticket) = inbox.queue.pop_front() {
             // 1. Load Data/Context
             if let Ok(data) = store.claim(&ticket) {
@@ -57,7 +52,6 @@ pub fn pipeline_execution_system(
                 ) {
                     Ok(ports) => ports,
                     Err(e) => {
-                        println!("ERROR: Pipeline execution failed: {:?}", e);
                         tracing::error!("Pipeline execution failed: {}", e);
                         // On error, maybe emit "Error" port if it exists?
                         // For now, return empty ports (stop flow)
@@ -67,7 +61,6 @@ pub fn pipeline_execution_system(
 
                 // Serialize State
                 if let Ok(new_bytes) = serde_json::to_vec(&state) {
-                    println!("DEBUG: Active Ports: {:?}", active_ports);
                     for port in active_ports {
                         // Check in for each port? Or reuse?
                         // Reuse same data ticket is fine if immutable.
@@ -77,10 +70,7 @@ pub fn pipeline_execution_system(
                         if let Ok(new_ticket) =
                             store.check_in_with_metadata(&new_bytes, ticket.metadata.clone())
                         {
-                            println!("DEBUG: Pushed ticket to outbox port: {:?}", port);
                             outbox.queue.push_back((Some(port), new_ticket));
-                        } else {
-                            println!("ERROR: Failed to check in ticket!");
                         }
                     }
                 } else {

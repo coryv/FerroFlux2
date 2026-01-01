@@ -435,7 +435,7 @@ impl Tool for RhaiTool {
         "rhai"
     }
 
-    fn run(&self, _context: &mut ToolContext, params: Value) -> Result<Value> {
+    fn run(&self, context: &mut ToolContext, params: Value) -> Result<Value> {
         let script = params
             .get("script")
             .and_then(|v| v.as_str())
@@ -446,8 +446,19 @@ impl Tool for RhaiTool {
         let input_val = params.get("input").unwrap_or(&Value::Null);
 
         let mut scope = rhai::Scope::new();
-        let dynamic_input = rhai::serde::to_dynamic(input_val)?;
-        scope.push_dynamic("input", dynamic_input);
+
+        // Inject entire context as variables
+        for (k, v) in context.local.iter() {
+            if let Ok(val) = rhai::serde::to_dynamic(v) {
+                scope.push_dynamic(k, val);
+            }
+        }
+
+        // Optional specific binding (overrides context if name collision, or explicit input)
+        if !input_val.is_null() {
+            let dynamic_input = rhai::serde::to_dynamic(input_val)?;
+            scope.push_dynamic("input", dynamic_input);
+        }
 
         // Eval
         let result = self

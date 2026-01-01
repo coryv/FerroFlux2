@@ -10,10 +10,8 @@ meta:
 interface:
   inputs: []
   outputs:
-    - name: Exec
+    - name: Success
       type: flow
-    - name: payload
-      type: object
 
   settings: []
 
@@ -28,4 +26,4 @@ execution:
   - id: emit_exec
     tool: emit
     params:
-      port: Exec
+      port: Success

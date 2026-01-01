@@ -29,7 +29,6 @@ pub struct NodeBlueprint {
     pub name: String,
     #[serde(rename = "type")]
     pub node_type: String,
-    #[serde(flatten)]
     pub config: serde_json::Value,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<SecretConfig>,

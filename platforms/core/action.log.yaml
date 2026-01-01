@@ -11,11 +11,10 @@ interface:
   inputs:
     - name: Exec
       type: flow
-    - name: data
-      type: any
+
   
   outputs:
-    - name: Exec
+    - name: Success
       type: flow
 
   settings:
@@ -35,9 +34,9 @@ execution:
     params:
       level: "{{ settings.level }}"
       message: "{{ settings.message }}"
-      data: "{{ inputs.data }}"
+      data: "{{ inputs }}"
 
   - id: passthrough
     tool: emit
     params:
-      port: Exec
+      port: Success

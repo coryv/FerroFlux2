@@ -11,27 +11,25 @@ interface:
   inputs:
     - name: Exec
       type: flow
-    - name: data
-      type: any
+
   
   outputs:
-    - name: Exec
+    - name: Success
       type: flow
-    - name: result
-      type: any
+
 
   settings:
     - name: script
       label: Script
       type: textarea
-      default: "fn main(data) {\n  return data;\n}"
+      default: "/* Access variables directly, e.g. http_response */\nreturn 42;"
 
 execution:
   - id: script_exec
     tool: rhai
     params:
       script: "{{ settings.script }}"
-      input: "{{ inputs.data }}"
+
     returns:
       result: script_result
 
@@ -44,4 +42,4 @@ execution:
   - id: emit_exec
     tool: emit
     params:
-      port: Exec
+      port: Success

@@ -12,7 +12,7 @@ interface:
     - name: Exec
       type: flow
   outputs:
-    - name: Exec
+    - name: Success
       type: flow
 
   settings:
@@ -52,5 +52,5 @@ execution:
   - id: done
     tool: emit
     params:
-      port: Exec
+      port: Success
 

@@ -11,7 +11,7 @@ interface:
   inputs: []
   outputs:
 
-    - name: Exec
+    - name: Success
       type: flow
 
   settings:
@@ -62,4 +62,4 @@ execution:
   - id: emit_exec
     tool: emit
     params:
-      port: Exec
+      port: Success

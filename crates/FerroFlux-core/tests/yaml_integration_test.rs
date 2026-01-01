@@ -33,11 +33,11 @@ nodes:
     name: "Processor"
     config:
       script: |
-        return input + 10;
+        inputs["data"] + 10
 edges:
   - source_id: "{}"
     target_id: "{}"
-    source_handle: "Exec"
+    source_handle: "Success"
     target_handle: "Exec"
 "#,
         source_id, processor_id, source_id, processor_id
@@ -68,8 +68,10 @@ edges:
             .get_mut(&mut app.world, source_entity)
             .expect("Source Outbox missing");
 
-        // Emitting to "Exec" port to match Edge source_handle="Exec"
-        outbox.queue.push_back((Some("Exec".to_string()), ticket));
+        // Emitting to "Success" port to match Edge source_handle="Success"
+        outbox
+            .queue
+            .push_back((Some("Success".to_string()), ticket));
 
         let processor_ent = *app
             .world
@@ -84,10 +86,6 @@ edges:
     }
 
     // 5. Run Systems
-    // Tick 1: Topology update (likely)
-    // Tick 2: Transport moves ticket
-    // Tick 3: Pipeline executes
-    // Tick 4: Transport output
     for _ in 0..5 {
         app.update();
     }

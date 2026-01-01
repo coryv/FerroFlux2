@@ -10,10 +10,8 @@ meta:
 interface:
   inputs: []
   outputs:
-    - name: Exec
+    - name: Success
       type: flow
-    - name: timestamp
-      type: number
 
   settings:
     - name: mode
@@ -66,4 +64,4 @@ execution:
   - id: emit_exec
     tool: emit
     params:
-      port: Exec
+      port: Success

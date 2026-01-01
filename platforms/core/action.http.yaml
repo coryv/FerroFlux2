@@ -11,9 +11,7 @@ interface:
   inputs:
     - name: Exec
       type: flow
-    - name: data
-      type: any
-      hidden: true # Deprecated but kept for compatibility? Or remove? Removing for clean break.
+
   
   outputs:
     - name: Success
@@ -66,3 +64,8 @@ execution:
     params:
       port: "{{ settings.output_var }}"
       value: "{{ steps.request.response_body }}"
+
+  - id: emit_signal
+    tool: emit
+    params:
+      port: "{{ steps.check_status.match }}"
