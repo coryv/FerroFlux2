@@ -19,6 +19,10 @@ pub struct ToolContext<'a> {
     pub trace_id: String,
     /// System event bus for emitting telemetry.
     pub event_bus: Option<crate::api::events::SystemEventBus>,
+    /// Whether the current execution is a safe simulation ("Shadow Mode").
+    pub shadow_mode: bool,
+    /// Mock configurations for specific tools when in Shadow Mode.
+    pub shadow_masks: &'a HashMap<String, crate::components::shadow::MockConfig>,
 }
 
 /// A "Tool" is an atomic unit of logic.

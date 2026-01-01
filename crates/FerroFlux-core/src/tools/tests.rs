@@ -15,6 +15,8 @@ fn test_switch_tool() {
         memory: &mut memory,
         trace_id: "test-trace".to_string(),
         event_bus: None,
+        shadow_mode: false,
+        shadow_masks: &HashMap::new(),
     };
 
     // Case 1: Match
@@ -50,6 +52,8 @@ fn test_json_query_tool() {
         memory: &mut memory,
         trace_id: "test-trace".to_string(),
         event_bus: None,
+        shadow_mode: false,
+        shadow_masks: &HashMap::new(),
     };
 
     let data = json!({
@@ -79,6 +83,8 @@ fn test_emit_tool() {
         memory: &mut memory,
         trace_id: "test-trace".to_string(),
         event_bus: None,
+        shadow_mode: false,
+        shadow_masks: &HashMap::new(),
     };
 
     let params = json!({

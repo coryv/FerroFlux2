@@ -20,13 +20,14 @@ pub fn pipeline_execution_system(
         &mut PipelineNode,
         &mut crate::components::Inbox,
         &mut crate::components::Outbox,
+        Option<&crate::components::shadow::ShadowExecution>,
     )>,
     node_registry: Res<DefinitionRegistry>,
     tool_registry: Res<ToolRegistry>,
     store: Res<crate::store::BlobStore>,
     bus: Res<crate::api::events::SystemEventBus>,
 ) {
-    for (_entity, mut node, mut inbox, mut outbox) in query.iter_mut() {
+    for (_entity, mut node, mut inbox, mut outbox, shadow_exec) in query.iter_mut() {
         while let Some(ticket) = inbox.queue.pop_front() {
             // 1. Load Data/Context
             if let Ok(data) = store.claim(&ticket) {
@@ -52,6 +53,7 @@ pub fn pipeline_execution_system(
                     &mut memory,
                     ticket.metadata.get("trace_id").cloned().unwrap_or_default(),
                     Some(bus.clone()),
+                    shadow_exec,
                 ) {
                     Ok(ports) => ports,
                     Err(e) => {
@@ -91,6 +93,7 @@ pub fn pipeline_execution_system(
 
 /// Helper function to execute a single pipeline node.
 /// This would be called by the main graph traversal loop.
+#[allow(clippy::too_many_arguments)]
 pub fn execute_pipeline_node(
     node: &mut PipelineNode,
     workflow_state: &mut ActiveWorkflowState,
@@ -99,6 +102,7 @@ pub fn execute_pipeline_node(
     global_memory: &mut HashMap<String, Value>,
     trace_id: String,
     event_bus: Option<crate::api::events::SystemEventBus>,
+    shadow_exec: Option<&crate::components::shadow::ShadowExecution>,
 ) -> Result<Vec<String>> {
     let def = definitions
         .definitions
@@ -151,12 +155,20 @@ pub fn execute_pipeline_node(
         // Resolve Params (Templating) & Type Preservation
         let resolved_params = resolve_recursive(&step.params, &ctx_map, &handlebars)?;
 
+        // Resolve default mask reference
+        let default_masks = std::collections::HashMap::new();
+        let masks_ref = shadow_exec
+            .map(|s| &s.mocked_tools)
+            .unwrap_or(&default_masks);
+
         // Run Tool
         let mut tool_ctx = ToolContext {
             local: &mut ctx_map,
             memory: global_memory,
             trace_id: trace_id.clone(),
             event_bus: event_bus.clone(),
+            shadow_mode: shadow_exec.is_some(),
+            shadow_masks: masks_ref,
         };
 
         let result = tool.run(&mut tool_ctx, resolved_params)?;
@@ -191,11 +203,19 @@ pub fn execute_pipeline_node(
 
                 let resolved_params = resolve_recursive(&action.params, &ctx_map, &handlebars)?;
 
+                // Resolve default mask reference
+                let default_masks = std::collections::HashMap::new();
+                let masks_ref = shadow_exec
+                    .map(|s| &s.mocked_tools)
+                    .unwrap_or(&default_masks);
+
                 let mut tool_ctx = ToolContext {
                     local: &mut ctx_map,
                     memory: global_memory,
                     trace_id: trace_id.clone(),
                     event_bus: event_bus.clone(),
+                    shadow_mode: shadow_exec.is_some(),
+                    shadow_masks: masks_ref,
                 };
                 let result = tool.run(&mut tool_ctx, resolved_params)?;
 

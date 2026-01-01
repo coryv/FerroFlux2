@@ -26,6 +26,9 @@ pub use self::logic::*;
 pub use self::observability::*;
 pub use self::schema::*;
 pub use self::security::*;
+pub use self::shadow::*;
+
+pub mod shadow;
 
 // Re-export resources that were moved, to preserve import paths if possible
 // Note: This relies on `crate::resources::*` being accessible if we import it.
