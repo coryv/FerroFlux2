@@ -34,6 +34,20 @@ pub fn api_command_worker(world: &mut World) {
                 handlers::pin::handle_pin_node(world, tenant, node_id, ticket_id)
             }
             ApiCommand::ReloadDefinitions => handlers::registry::handle_reload_definitions(world),
+            ApiCommand::SimulateNode {
+                tenant_id,
+                node_id,
+                input_ticket,
+                trace_id,
+                mock_config,
+            } => handlers::simulation::handle_simulate_node(
+                world,
+                tenant_id,
+                node_id,
+                input_ticket,
+                trace_id,
+                mock_config,
+            ),
         };
 
         if let Err(e) = result {

@@ -277,6 +277,22 @@ pub fn execute_pipeline_node(
         }
     }
 
+    // Emit Node Completion Event
+    // This allows UI/Trace to see the final outputs of this node execution
+    if let Some(bus) = &event_bus {
+        let _ = bus.0.send(crate::api::events::SystemEvent::NodeTelemetry {
+            trace_id: trace_id.clone(),
+            node_id: uuid::Uuid::default(), // TODO: Pass Node UUID or Entity ID?
+            node_type: def.meta.name.clone(),
+            execution_ms: 0, // TODO: timer
+            success: true,
+            details: serde_json::json!({
+                "outputs": outputs,
+                "active_ports": active_ports
+            }),
+        });
+    }
+
     Ok(active_ports)
 }
 

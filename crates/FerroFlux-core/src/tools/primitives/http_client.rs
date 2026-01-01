@@ -9,7 +9,31 @@ impl Tool for HttpClientTool {
         "http_client"
     }
 
-    fn run(&self, _context: &mut ToolContext, params: Value) -> Result<Value> {
+    fn run(&self, context: &mut ToolContext, params: Value) -> Result<Value> {
+        // Shadow Mode Interception
+        if context.shadow_mode {
+            let mock = context.shadow_masks.get(self.id());
+            tracing::info!(
+                tool = self.id(),
+                mock_found = mock.is_some(),
+                "Shadow Mode: Intercepting HTTP request"
+            );
+
+            if let Some(cfg) = mock {
+                if cfg.delay_ms > 0 {
+                    std::thread::sleep(std::time::Duration::from_millis(cfg.delay_ms));
+                }
+                return Ok(cfg.return_value.clone());
+            }
+
+            // Default mock response if none specified
+            return Ok(serde_json::json!({
+                "status": 200,
+                "body": { "message": "Shadow Mode: Request Intercepted" },
+                "headers": {}
+            }));
+        }
+
         let url = params
             .get("url")
             .and_then(|v| v.as_str())
