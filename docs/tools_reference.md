@@ -72,15 +72,6 @@ Extracts a specific value from a JSON Object using a JSON Pointer path.
 **Returns:**
 - `result`: (Value) The extracted value, or `null` if not found.
 
-**Example:**
-```yaml
-- id: get_name
-  tool: json_query
-  params:
-    json: "{{ steps.api.body }}"
-    path: "/data/user/name"
-```
-
 ---
 
 ## `emit`
@@ -94,14 +85,6 @@ Finalizes the node execution by sending data to a specific Output Port.
 
 **Returns:**
 - None. (Effect is immediate emission).
-
-**Example:**
-```yaml
-- tool: emit
-  params:
-    port: Success
-    value: "{{ steps.get_name.result }}"
-```
 
 ---
 
@@ -119,40 +102,75 @@ Evaluates complex boolean logic against a data object. Supports nested AND/OR gr
 - `condition`: (Object) The logical condition to evaluate.
 
 **Condition Object:**
-Can be a *Leaf Condition* or a *Group Condition*.
-
-*Leaf Condition:*
 - `field`: (String) Key or JSON Pointer path to value in `data`.
 - `operator`: (String) `==`, `!=`, `>`, `<`, `>=`, `<=`, `contains`, `starts_with`, `ends_with`.
 - `value`: (Any) Target value to compare against.
-
-*Group Condition:*
-- `operator`: (String) `AND` or `OR`.
-- `rules`: (Array) List of nested Condition objects.
+- `operator` (Group): `AND` or `OR` (if using nested `rules`).
 
 **Returns:**
 - `match`: (String) The `output` name of the matching rule, or `"default"` if none match.
 
-**Example:**
-```yaml
-- id: check_segment
-  tool: logic
-  params:
-    data: "{{ inputs.user }}"
-    rules:
-      - output: "high_value"
-        condition:
-          operator: "AND" 
-          rules:
-            - field: "plan"
-              operator: "=="
-              value: "pro"
-            - field: "ltv"
-              operator: ">"
-              value: 1000
-      - output: "churn_risk"
-        condition:
-          field: "last_login_days"
-          operator: ">"
-          value: 30
-```
+---
+
+## `log`
+Logs a message and optional data to the engine's tracing system.
+
+**Parameters:**
+| Param | Type | Description |
+|-------|------|-------------|
+| `level` | String | INFO, WARN, ERROR, DEBUG (Default: INFO) |
+| `message`| String | Descriptive message |
+| `data`    | Any    | (Optional) Additional data to log |
+
+---
+
+## `math`
+Performs basic arithmetic operations.
+
+**Parameters:**
+| Param | Type | Description |
+|-------|------|-------------|
+| `a` | Number | First operand |
+| `b` | Number | Second operand |
+| `op` | String | `add`, `sub`, `mul`, `div` |
+
+**Returns:**
+- `result`: (Number) The calculation result.
+
+---
+
+## `sleep`
+Pauses execution for a specified duration. Use sparingly!
+
+**Parameters:**
+| Param | Type | Description |
+|-------|------|-------------|
+| `duration_ms` | Number | Delay in milliseconds |
+
+---
+
+## `set_var` / `get_var`
+Reads and writes to the global workflow memory (persists across nodes).
+
+**Parameters (`set_var`):**
+- `name`: (String) Variable name.
+- `value`: (Any) Value to store.
+
+**Parameters (`get_var`):**
+- `name`: (String) Variable name.
+
+**Returns (`get_var`):**
+- `value`: (Any) The retrieved value.
+
+---
+
+## `rhai`
+Executes an embedded Rhai script for complex transformations.
+
+**Parameters:**
+| Param | Type | Description |
+|-------|------|-------------|
+| `script` | String | The Rhai script to execute |
+| `input`  | Any    | (Optional) Data available as `input` variable in script |
+
+**Notes:** All local context variables are also injected into the Rhai scope.

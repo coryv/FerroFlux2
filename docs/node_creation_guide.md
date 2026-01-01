@@ -40,15 +40,33 @@ interface:
   outputs:
     - name: result
       type: string
-    - name: error
+    - name: Success
       type: flow
 
   settings:
-    - name: retry_count
-      label: "Max Retries"
+    - name: mode
+      label: "Recurrence"
+      type: select
+      default: "once"
+      options:
+        - label: "Once"
+          value: "once"
+        - label: "Interval"
+          value: "interval"
+    
+    - name: interval
+      label: "Every (ms)"
       type: number
-      default: 3
+      default: 1000
+      min: 100
+      show_if: "mode == 'interval'"
 ```
+
+#### Advanced Settings Features
+- **`show_if`**: Controls visibility in the Property Inspector. Supports equality (`==`), inequality (`!=`), and logical OR (`||`).
+  - Example: `show_if: "mode == 'daily' || mode == 'weekly'"`
+- **Numeric Constraints**: `min`, `max`, and `step` can be applied to `number` types.
+- **Dynamic Options**: (Coming soon) `options_provider` can link to a backend function.
 
 ### 3. Execution Pipeline (`execution`)
 The core logic. It is a list of steps. Each step executes a primitive **Tool** (see `tools_reference.md`).
@@ -69,9 +87,9 @@ Conditional flow control.
 
 ```yaml
 routing:
-  match: "{{ steps.fetch_data.status }}" # Handlebars template expression
+  match: "{{ steps.fetch_data.status }}" # Template expression
   cases:
-    200:                            # If match == "200" (or 200)
+    "200":                            # If match == "200"
       - tool: emit
         params:
           port: result
@@ -79,30 +97,31 @@ routing:
     default:
       - tool: emit
         params:
-          port: error
+          port: Success
 ```
 
 ---
 
 ## Context & Templating
 
-Variables in your YAML definition are resolved using **Handlebars** syntax `{{ variable }}`.
+Variables in your YAML definition are resolved using **Handlebars-style** syntax `{{ variable }}`.
 
 ### Available Context Namespaces:
-- **`inputs`**: Values passed into the node's input ports. (e.g., `{{ inputs.data_in }}`)
-- **`settings`**: Configuration values set by the user. (e.g., `{{ settings.retry_count }}`)
+- **`settings`**: Configuration values set by the user in the Property Inspector.
+- **`platform`**: Shared configuration from the associated Platform (e.g., `{{ platform.base_url }}`).
 - **`steps`**: Results from previous execution steps. (e.g., `{{ steps.step_id.output_key }}`)
-- **`platform`**: (If applicable) Configuration from the associated Platform (e.g., `{{ platform.api_key }}`).
+- **Root Context**: Values passed into the node from previous nodes are available at the root (e.g., `{{ my_variable }}`).
 
 ### Type Preservation
-If a parameter value is a **single** template expression like `json: "{{ inputs.my_object }}"`, FerroFlux will attempt to preserve the underlying type (Object, Array, Number) instead of casting it to a string. 
-Mixed content like `msg: "Value is {{ inputs.val }}"` will always result in a string.
+FerroFlux is "type-aware" during interpolation. 
+- If a parameter value is a **single** template expression like `json: "{{ steps.api.body }}"`, FerroFlux will preserve the underlying type (Object, Array, Number).
+- Mixed content like `msg: "Status is {{ steps.api.status }}"` will always result in a **string**.
 
 ---
 
 ## Best Practices
 
 1. **Namespace IDs**: Use `platform.feature.action` format for IDs to avoid collisions (e.g., `openai.chat.completions`).
-2. **Atomic Steps**: Break complex logic into multiple small steps.
-3. **Handle Errors**: Always provide a `default` or error case in routing to ensure the node doesn't fail silently.
-4. **Use Platforms**: Don't hardcode API keys. Use `{{ platform.auth }}` and define a Platform Definition.
+2. **Atomic Steps**: Break complex logic into multiple small steps using generic tools like `json_query` or `math`.
+3. **Handle Errors**: Always provide a `Success` or `Error` port to ensure the node doesn't fail silently.
+4. **Use Platforms**: Don't hardcode API keys or base URLs. Use `{{ platform.config_key }}`.

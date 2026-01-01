@@ -59,9 +59,14 @@ pub struct SettingDef {
     pub data_type: String,
     pub default: Option<Value>,
     pub required: Option<bool>,
+    pub options: Option<Value>,
     pub options_provider: Option<String>,
     pub read_only: Option<bool>,
     pub placeholder: Option<String>,
+    pub show_if: Option<String>,
+    pub min: Option<f64>,
+    pub max: Option<f64>,
+    pub step: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

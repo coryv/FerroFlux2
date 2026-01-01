@@ -4,21 +4,23 @@
 
 ## Directory Structure
 Platform definitions live in `platforms/<platform_id>/`.
-The entry point is typically `credentials.yaml`.
+The entry point is a `.yaml` file (commonly named after the platform or `credentials.yaml`).
 
 Example:
 ```
-ferroflux/
-  platforms/
-    openai/
-      credentials.yaml
-      chat.completion.yaml
-      image.generate.yaml
+platforms/
+  core/
+    trigger.scheduler.yaml
+    action.http.yaml
+  openai/
+    openai.yaml      # Platform Definition
+    chat.yaml        # Node Definition
+    image.yaml       # Node Definition
 ```
 
 ---
 
-## Platform Definition (`credentials.yaml`)
+## Platform Definition (`openai.yaml`)
 
 This file defines the shared configuration.
 
@@ -35,11 +37,17 @@ config:                     # Shared configuration variables
   base_url: "https://api.openai.com/v1"
   headers:
     Content-Type: "application/json"
-    Authorization: "Bearer {{ secrets.OPENAI_API_KEY }}"
+    Authorization: "Bearer PASTE_YOUR_KEY_HERE" # See Secrets note below
+
+settings:                   # (Optional) Global settings for the platform
+  - name: organization_id
+    label: "Org ID"
+    type: string
 ```
 
-### Accessing Secrets
-Use `{{ secrets.VAR_NAME }}` to securely access environment variables or secrets stored in the secret manager. These are resolved at runtime.
+### Note on Secrets
+> [!NOTE]
+> The `secrets` namespace (e.g., `{{ secrets.MY_KEY }}`) is currently under active development. For now, sensitive values should be provided either directly in the `config` block or via environment variables handled by the host application.
 
 ---
 
@@ -54,7 +62,7 @@ meta:
   # ...
 ```
 
-When this node executes, the Platform's `config` is injected into the context under the `platform` namespace.
+When this node executes, the Platform's `config` is automatically injected into the context under the `platform` namespace.
 
 **Example Usage:**
 ```yaml

@@ -61,20 +61,31 @@
         rules[index] = { ...rules[index], [key]: value };
         updateSetting("rules", rules);
     }
-    function shouldShow(s: any): boolean {
-        if (!s.show_if) return true;
-        // Simple evaluator: "key == 'val'" or "key != 'val'"
-        // For V1, we only handle equality on settings
-        const parts = s.show_if.split(" ");
+    function evaluateCondition(expr: any): boolean {
+        if (typeof expr !== "string") return true;
+        const parts = expr.trim().split(/\s+/);
         if (parts.length === 3) {
             const [key, op, val] = parts;
             const currentVal = settings[key];
-            const targetVal = val.replace(/['"]/g, ""); // strip quotes
+            const targetVal = (val || "").replace(/['"]/g, "");
 
             if (op === "==") return String(currentVal) === targetVal;
             if (op === "!=") return String(currentVal) !== targetVal;
         }
         return true;
+    }
+
+    function shouldShow(s: any): boolean {
+        if (!s || !s.show_if || typeof s.show_if !== "string") return true;
+        const showIf = s.show_if;
+
+        // Handle logical OR "||"
+        if (showIf.includes("||")) {
+            const conditions = showIf.split("||");
+            return conditions.some((c: string) => evaluateCondition(c.trim()));
+        }
+
+        return evaluateCondition(showIf);
     }
 
     function resolveTemplate(input: any): string {
@@ -219,6 +230,9 @@
                                     <input
                                         id={s.name}
                                         type="number"
+                                        min={s.min}
+                                        max={s.max}
+                                        step={s.step}
                                         value={settings[s.name] || 0}
                                         onchange={(e) =>
                                             updateSetting(
