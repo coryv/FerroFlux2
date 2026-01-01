@@ -18,8 +18,14 @@ struct BlobEntry {
 }
 
 /// Trait for pluggable blob storage backends.
+#[allow(clippy::type_complexity)]
 pub trait BlobProvider: Send + Sync + std::fmt::Debug {
-    fn store(&self, id: Uuid, data: Vec<u8>, metadata: HashMap<String, String>) -> anyhow::Result<()>;
+    fn store(
+        &self,
+        id: Uuid,
+        data: Vec<u8>,
+        metadata: HashMap<String, String>,
+    ) -> anyhow::Result<()>;
     fn retrieve(&self, id: &Uuid) -> anyhow::Result<Option<(Vec<u8>, HashMap<String, String>)>>;
     fn delete(&self, id: &Uuid) -> anyhow::Result<bool>;
     fn update_metadata(&self, id: &Uuid, metadata: HashMap<String, String>) -> anyhow::Result<()>;
@@ -33,7 +39,12 @@ pub struct MemoryProvider {
 }
 
 impl BlobProvider for MemoryProvider {
-    fn store(&self, id: Uuid, data: Vec<u8>, metadata: HashMap<String, String>) -> anyhow::Result<()> {
+    fn store(
+        &self,
+        id: Uuid,
+        data: Vec<u8>,
+        metadata: HashMap<String, String>,
+    ) -> anyhow::Result<()> {
         let mut guard = self.storage.write().unwrap();
         guard.insert(
             id,
@@ -122,10 +133,10 @@ impl BlobStore {
     }
 
     pub fn recover_ticket(&self, id: &Uuid) -> Option<SecureTicket> {
-        match self.provider.retrieve(id).ok()? {
-            Some((_, metadata)) => Some(SecureTicket { id: *id, metadata }),
-            None => None,
-        }
+        self.provider
+            .retrieve(id)
+            .ok()?
+            .map(|(_, metadata)| SecureTicket { id: *id, metadata })
     }
 
     pub fn update_metadata(

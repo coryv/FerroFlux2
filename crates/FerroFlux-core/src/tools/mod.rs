@@ -15,7 +15,10 @@ pub struct ToolContext<'a> {
     pub local: &'a mut HashMap<String, Value>,
     /// global workflow memory (read/write).
     pub memory: &'a mut HashMap<String, Value>,
-    // Future expansion: access to secret store, sensitive credentials, etc.
+    /// Correlation ID for the execution flow.
+    pub trace_id: String,
+    /// System event bus for emitting telemetry.
+    pub event_bus: Option<crate::api::events::SystemEventBus>,
 }
 
 /// A "Tool" is an atomic unit of logic.
@@ -48,4 +51,5 @@ pub fn register_core_tools(registry: &mut registry::ToolRegistry) {
     registry.register(GetVarTool);
     registry.register(MathTool);
     registry.register(RhaiTool::default());
+    registry.register(TraceTool);
 }

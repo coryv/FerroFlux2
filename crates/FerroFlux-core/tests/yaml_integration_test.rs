@@ -44,12 +44,8 @@ edges:
     );
 
     // 3. Load Graph
-    load_graph_from_str(
-        &mut app.world,
-        ferroflux_iam::TenantId::from("test"),
-        &yaml,
-    )
-    .expect("Failed to load graph");
+    load_graph_from_str(&mut app.world, ferroflux_iam::TenantId::from("test"), &yaml)
+        .expect("Failed to load graph");
 
     // 4. Trigger Source
     {
@@ -123,14 +119,13 @@ edges:
             >(&data)
             {
                 // core.action.script defined returns: { result: script_result }
-                if let Some(val) = state.context.get("result") {
-                    if val.as_i64() == Some(15)
+                if let Some(val) = state.context.get("result")
+                    && (val.as_i64() == Some(15)
                         || val.as_u64() == Some(15)
-                        || val.as_f64() == Some(15.0)
-                    {
-                        found_result = true;
-                        break;
-                    }
+                        || val.as_f64() == Some(15.0))
+                {
+                    found_result = true;
+                    break;
                 }
                 // Fallback: check if direct value? No, pipeline serializes ActiveWorkflowState.
             }

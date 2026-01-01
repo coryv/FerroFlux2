@@ -7,3 +7,6 @@ pub mod duckdb;
 pub use clickhouse::ClickHouseStore;
 #[cfg(feature = "duckdb")]
 pub use duckdb::DuckDbStore;
+
+pub mod batcher;
+pub use batcher::AnalyticsBatcher;

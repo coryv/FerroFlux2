@@ -12,6 +12,7 @@ pub mod integration;
 pub mod io;
 pub mod logic;
 pub mod manipulation;
+pub mod observability;
 pub mod pipeline;
 pub mod schema;
 pub mod security;
@@ -22,6 +23,7 @@ pub use self::core::*;
 pub use self::integration::*;
 pub use self::io::*;
 pub use self::logic::*;
+pub use self::observability::*;
 pub use self::schema::*;
 pub use self::security::*;
 

@@ -47,7 +47,15 @@ pub fn update_graph_topology(
 /// System: Transport Worker (The Circulatory System)
 ///
 /// **Role**: Moves Data Tickets from `Outbox` queues to connected `Inbox` queues.
-#[tracing::instrument(skip(inbox_query, outbox_query, node_query, topology, work_done, bus))]
+#[tracing::instrument(skip(
+    inbox_query,
+    outbox_query,
+    node_query,
+    topology,
+    work_done,
+    bus,
+    trace_query
+))]
 pub fn transport_worker(
     mut inbox_query: Query<&mut Inbox>,
     mut outbox_query: Query<&mut Outbox>,
@@ -55,6 +63,10 @@ pub fn transport_worker(
     topology: Res<GraphTopology>,
     mut work_done: ResMut<WorkDone>,
     bus: Res<SystemEventBus>,
+    mut trace_query: Query<(
+        &mut crate::components::observability::TraceNode,
+        &crate::components::observability::Trace,
+    )>,
 ) {
     // 1. Build Entity -> UUID Map (Optimization: Move to resource if slow)
     let node_map: std::collections::HashMap<Entity, uuid::Uuid> =
@@ -74,20 +86,33 @@ pub fn transport_worker(
                 for (edge_handle, target_entity) in targets {
                     // Exact match on port name (handle).
                     // If outbox says "Success", only edges from "Success" fire.
-                    if edge_handle == &port {
-                        if let Ok(mut inbox) = inbox_query.get_mut(*target_entity) {
-                            inbox.queue.push_back(ticket.clone());
-                            tracing::debug!(source = ?source, target = ?target_entity, port = ?port, "Moved ticket");
+                    if edge_handle == &port
+                        && let Ok(mut inbox) = inbox_query.get_mut(*target_entity)
+                    {
+                        inbox.queue.push_back(ticket.clone());
+                        tracing::debug!(source = ?source, target = ?target_entity, port = ?port, "Moved ticket");
 
-                            // Signal Visualizer
-                            let _ = bus.0.send(SystemEvent::EdgeTraversal {
-                                source_id: node_map.get(source).cloned().unwrap_or_default(),
-                                target_id: node_map.get(target_entity).cloned().unwrap_or_default(),
-                                timestamp: chrono::Utc::now().timestamp_millis(),
-                            });
+                        let target_uuid = node_map.get(target_entity).cloned().unwrap_or_default();
 
-                            work_done.0 = true;
+                        // Update Trace Entity if trace_id exists in ticket
+                        if let Some(trace_id_str) = ticket.metadata.get("trace_id")
+                            && let Ok(trace_uuid) = uuid::Uuid::parse_str(trace_id_str)
+                        {
+                            for (mut trace_node, trace) in trace_query.iter_mut() {
+                                if trace.0 == trace_uuid {
+                                    trace_node.0 = target_uuid;
+                                }
+                            }
                         }
+
+                        // Signal Visualizer
+                        let _ = bus.0.send(SystemEvent::EdgeTraversal {
+                            source_id: node_map.get(source).cloned().unwrap_or_default(),
+                            target_id: target_uuid,
+                            timestamp: chrono::Utc::now().timestamp_millis(),
+                        });
+
+                        work_done.0 = true;
                     }
                 }
             }

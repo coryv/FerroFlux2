@@ -174,3 +174,26 @@ Executes an embedded Rhai script for complex transformations.
 | `input`  | Any    | (Optional) Data available as `input` variable in script |
 
 **Notes:** All local context variables are also injected into the Rhai scope.
+
+---
+
+## `trace`
+Captures data and labels for observability/debugging. Emits an event to the `SystemEventBus` and durable analytics store.
+
+**Parameters:**
+| Param | Type | Description |
+|-------|------|-------------|
+| `label` | String | A descriptive name for this trace point. |
+| `data`  | Any    | (Optional) The data payload to record. |
+
+**Returns:**
+- `data`: Returns the input `data` value as-is for pipeline chaining.
+
+**Example:**
+```yaml
+- id: check_state
+  tool: trace
+  params:
+    label: "Before Processing"
+    data: "{{ steps.previous.result }}"
+```

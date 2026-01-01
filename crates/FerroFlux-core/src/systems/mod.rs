@@ -11,6 +11,7 @@ pub mod io;
 pub mod janitor;
 pub mod logic;
 pub mod manipulation;
+pub mod observability;
 pub mod pipeline;
 pub mod scheduler;
 pub mod transport;
@@ -21,6 +22,7 @@ pub use gateway::*;
 pub use io::*;
 pub use janitor::*;
 pub use logic::*;
+pub use observability::*;
 pub use scheduler::*;
 pub use transport::*;
 
@@ -43,6 +45,7 @@ pub fn register_core_systems(schedule: &mut Schedule) {
         janitor::janitor_worker,
         manipulation::splitter_worker,
         compute::wasm_worker,
+        observability::telemetry_worker,
     ));
 
     schedule.add_systems((

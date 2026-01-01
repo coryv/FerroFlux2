@@ -13,6 +13,8 @@ fn test_switch_tool() {
     let mut context = ToolContext {
         local: &mut local,
         memory: &mut memory,
+        trace_id: "test-trace".to_string(),
+        event_bus: None,
     };
 
     // Case 1: Match
@@ -46,6 +48,8 @@ fn test_json_query_tool() {
     let mut context = ToolContext {
         local: &mut local,
         memory: &mut memory,
+        trace_id: "test-trace".to_string(),
+        event_bus: None,
     };
 
     let data = json!({
@@ -73,6 +77,8 @@ fn test_emit_tool() {
     let mut context = ToolContext {
         local: &mut local,
         memory: &mut memory,
+        trace_id: "test-trace".to_string(),
+        event_bus: None,
     };
 
     let params = json!({

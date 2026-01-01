@@ -24,6 +24,7 @@ pub fn pipeline_execution_system(
     node_registry: Res<DefinitionRegistry>,
     tool_registry: Res<ToolRegistry>,
     store: Res<crate::store::BlobStore>,
+    bus: Res<crate::api::events::SystemEventBus>,
 ) {
     for (_entity, mut node, mut inbox, mut outbox) in query.iter_mut() {
         while let Some(ticket) = inbox.queue.pop_front() {
@@ -49,6 +50,8 @@ pub fn pipeline_execution_system(
                     &node_registry,
                     &tool_registry,
                     &mut memory,
+                    ticket.metadata.get("trace_id").cloned().unwrap_or_default(),
+                    Some(bus.clone()),
                 ) {
                     Ok(ports) => ports,
                     Err(e) => {
@@ -94,6 +97,8 @@ pub fn execute_pipeline_node(
     definitions: &DefinitionRegistry,
     tools: &ToolRegistry,
     global_memory: &mut HashMap<String, Value>,
+    trace_id: String,
+    event_bus: Option<crate::api::events::SystemEventBus>,
 ) -> Result<Vec<String>> {
     let def = definitions
         .definitions
@@ -150,6 +155,8 @@ pub fn execute_pipeline_node(
         let mut tool_ctx = ToolContext {
             local: &mut ctx_map,
             memory: global_memory,
+            trace_id: trace_id.clone(),
+            event_bus: event_bus.clone(),
         };
 
         let result = tool.run(&mut tool_ctx, resolved_params)?;
@@ -187,6 +194,8 @@ pub fn execute_pipeline_node(
                 let mut tool_ctx = ToolContext {
                     local: &mut ctx_map,
                     memory: global_memory,
+                    trace_id: trace_id.clone(),
+                    event_bus: event_bus.clone(),
                 };
                 let result = tool.run(&mut tool_ctx, resolved_params)?;
 
@@ -214,11 +223,11 @@ pub fn execute_pipeline_node(
 
         for (out_key, expr_str) in transform_map {
             // Compile and search
-            if let Ok(expr) = jmespath::compile(expr_str) {
-                if let Ok(search_res) = expr.search(&context_json) {
-                    let val: Value = serde_json::to_value(&search_res).unwrap_or(Value::Null);
-                    workflow_state.set(out_key, val);
-                }
+            if let Ok(expr) = jmespath::compile(expr_str)
+                && let Ok(search_res) = expr.search(&context_json)
+            {
+                let val: Value = serde_json::to_value(&search_res).unwrap_or(Value::Null);
+                workflow_state.set(out_key, val);
             }
         }
     }
@@ -261,12 +270,10 @@ fn resolve_recursive(
             let trimmed = s.trim();
             if trimmed.starts_with("{{") && trimmed.ends_with("}}") {
                 let inner = &trimmed[2..trimmed.len() - 2].trim();
-                // If simple variable ref without helpers/logic
-                #[allow(clippy::collapsible_if)]
-                if !inner.contains(' ') {
-                    if let Some(val) = lookup_path(ctx, inner) {
-                        return Ok(val.clone());
-                    }
+                if !inner.contains(' ')
+                    && let Some(val) = lookup_path(ctx, inner)
+                {
+                    return Ok(val.clone());
                 }
             }
             let rendered = reg.render_template(s, ctx)?;

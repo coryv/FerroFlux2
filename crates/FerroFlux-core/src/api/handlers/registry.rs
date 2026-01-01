@@ -22,15 +22,15 @@ pub fn handle_reload_definitions(world: &mut World) -> anyhow::Result<()> {
         // 2. Re-bridge to NodeRegistry
         let def_registry_clone = world.get_resource::<DefinitionRegistry>().cloned();
 
-        if let Some(defs) = def_registry_clone {
-            if let Some(mut registry) = world.get_resource_mut::<NodeRegistry>() {
-                registry.clear();
-                register_core_nodes(&mut registry);
-                for (id, def) in &defs.definitions {
-                    registry.register(id, Box::new(YamlNodeFactory::new(def.clone())));
-                }
-                tracing::info!(count = defs.definitions.len(), "Node factories reloaded");
+        if let Some(defs) = def_registry_clone
+            && let Some(mut registry) = world.get_resource_mut::<NodeRegistry>()
+        {
+            registry.clear();
+            register_core_nodes(&mut registry);
+            for (id, def) in &defs.definitions {
+                registry.register(id, Box::new(YamlNodeFactory::new(def.clone())));
             }
+            tracing::info!(count = defs.definitions.len(), "Node factories reloaded");
         }
         Ok(())
     } else {
