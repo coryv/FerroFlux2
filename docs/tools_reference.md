@@ -197,3 +197,32 @@ Captures data and labels for observability/debugging. Emits an event to the `Sys
     label: "Before Processing"
     data: "{{ steps.previous.result }}"
 ```
+
+---
+
+## `ferroflux:stats`
+Performs statistical analysis on an array of numbers or objects. Can calculate mean, standard deviation, and detect outliers using Z-Score.
+
+**Parameters:**
+| Param | Type | Description |
+|-------|------|-------------|
+| `data` | Array | Input array of numbers or objects. |
+| `target_field` | String | Field name to analyze (if array of objects). Default: `value` |
+| `enrichment_key` | String | Key to inject stats into (for objects). Default: `stats` |
+| `detect_outliers` | Boolean | Whether to flag outliers. Default: `false` |
+| `threshold` | Number | Z-Score threshold for outliers. Default: `2.0` |
+
+**Returns:**
+- `result`: (Array) The original array, enriched with statistical metadata for each item.
+
+**Example:**
+```yaml
+- id: analyze_metrics
+  tool: ferroflux:stats
+  params:
+    data: "{{ inputs.metrics }}"
+    target_field: "latency"
+    detect_outliers: true
+    threshold: 3.0
+```
+

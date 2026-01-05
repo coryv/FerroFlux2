@@ -1,132 +1,158 @@
 use bevy_ecs::prelude::*;
-use ferroflux_core::api::events::{SystemEvent, SystemEventBus};
-use ferroflux_core::components::core::{Inbox, NodeConfig};
-use ferroflux_core::components::manipulation::StatsConfig;
+use ferroflux_core::api::events::SystemEventBus;
+use ferroflux_core::components::execution_state::ActiveWorkflowState;
+use ferroflux_core::components::pipeline::PipelineNode;
+use ferroflux_core::components::{Inbox, Outbox};
+use ferroflux_core::nodes::definition::{Interface, NodeDefinition, NodeMeta, PipelineStep};
+use ferroflux_core::resources::registry::DefinitionRegistry;
 use ferroflux_core::store::BlobStore;
-use ferroflux_core::systems::manipulation::stats_worker;
+use ferroflux_core::systems::pipeline::pipeline_execution_system;
+use ferroflux_core::tools::registry::ToolRegistry;
 use serde_json::json;
+use std::collections::HashMap;
 use tokio::sync::broadcast;
-use uuid::Uuid;
-
-async fn setup_world_async() -> World {
-    let mut world = World::new();
-    let blob_store = BlobStore::default();
-    world.insert_resource(blob_store);
-
-    let (tx, _) = broadcast::channel(100); // Increased buffer
-    world.insert_resource(SystemEventBus(tx));
-
-    world
-}
 
 #[tokio::test]
-async fn test_stats_zscore_outlier() {
-    let mut world = setup_world_async().await;
-    let mut schedule = Schedule::default();
-    schedule.add_systems(stats_worker);
+async fn test_stats_tool_large_dataset() {
+    let mut world = World::new();
 
-    let store = world.resource::<BlobStore>().clone();
-    let mut event_rx = world.resource::<SystemEventBus>().0.subscribe();
+    // 1. Resources Setup
+    // Use Handle::current() since we are in #[tokio::test]
+    world.insert_resource(ferroflux_core::resources::TokioRuntime(
+        tokio::runtime::Handle::current(),
+    ));
 
-    // 1. Create Input Data - Large Dataset (20,000 items)
-    // Baseline: Value = 100.0, with minor noise +/- 5.0
-    // Outliers: 10000.0
+    let store = BlobStore::default();
+    world.insert_resource(store);
+
+    let (tx, _) = broadcast::channel(100);
+    world.insert_resource(SystemEventBus(tx));
+
+    // Add SecretStore (Dummy) using await
+    let p_store = ferroflux_core::store::database::PersistentStore::new("sqlite::memory:")
+        .await
+        .unwrap();
+    let sec_store = ferroflux_core::secrets::DatabaseSecretStore::new(p_store, vec![0u8; 32]);
+    world.insert_resource(sec_store);
+
+    // 2. Registry Setup
+    let mut tool_registry = ToolRegistry::default();
+    tool_registry.register(ferroflux_core::tools::primitives::StatsTool);
+    world.insert_resource(tool_registry);
+
+    let mut def_registry = DefinitionRegistry::default();
+    // Define the Stats Node
+    let def = NodeDefinition {
+        meta: NodeMeta {
+            id: "core.manipulation.stats".to_string(),
+            name: "Statistics".to_string(),
+            node_type: "Action".to_string(),
+            category: "Manipulation".to_string(),
+            version: Some("1.0.0".to_string()),
+            description: None,
+            platform: None,
+            data_strategy: None,
+        },
+        interface: Interface {
+            inputs: vec![],
+            outputs: vec![],
+            settings: vec![],
+        },
+        execution: vec![PipelineStep {
+            id: "analyze".to_string(),
+            tool: "ferroflux:stats".to_string(),
+            params: json!({
+                "data": "{{ inputs }}",
+                "target_field": "{{ settings.target_field }}",
+                "enrichment_key": "{{ settings.enrichment_key }}",
+                "detect_outliers": "{{ settings.detect_outliers }}",
+                "threshold": "{{ settings.threshold }}"
+            }),
+            returns: HashMap::from([("data".to_string(), "_state_out".to_string())]),
+        }],
+        output_transform: Some(HashMap::from([(
+            "result".to_string(),
+            "steps.analyze".to_string(),
+        )])),
+        context: None,
+        routing: None,
+    };
+    def_registry
+        .definitions
+        .insert("core.manipulation.stats".to_string(), def);
+    world.insert_resource(def_registry);
+
+    // 3. Create Input Data - Large Dataset (20,000 items)
     let mut data = Vec::with_capacity(20002);
-
-    // Normal data
     for i in 0..20000 {
-        // Simple deterministic pseudo-random noise
-        let noise = (i % 11) - 5; // -5 to +5
+        let noise = (i % 11) as i64 - 5;
         data.push(json!({ "val": 100 + noise }));
     }
-
     // Add Outliers
-    data.push(json!({ "val": 10000 })); // Huge outlier
-    data.push(json!({ "val": 5000 })); // Large outlier
+    data.push(json!({ "val": 10000 }));
+    data.push(json!({ "val": 5000 }));
 
-    let input_json = serde_json::Value::Array(data);
-    let input_bytes = serde_json::to_vec(&input_json).unwrap();
-    let ticket = store.check_in(&input_bytes).unwrap();
+    // Prepare ActiveWorkflowState
+    let mut start_state = ActiveWorkflowState::new();
+    // Inputs: direct array
+    start_state.set("inputs", json!(data));
+
+    let store_res = world.resource::<BlobStore>();
+    let ticket = store_res
+        .check_in(&serde_json::to_vec(&start_state).unwrap())
+        .unwrap();
 
     let mut inbox = Inbox::default();
     inbox.queue.push_back(ticket);
 
-    let config = StatsConfig {
-        target_field: "val".to_string(),
-        enrichment_key: "stats".to_string(),
-        detect_outliers: true,
-        threshold: 3.0, // Standard deviation will be small (~3.0), so 3 sigma is ~109. 10000 is way out.
-    };
+    // Spawn Node Entity
+    // Configuration simulates user settings
+    let mut config = HashMap::new();
+    config.insert("target_field".to_string(), json!("val"));
+    config.insert("enrichment_key".to_string(), json!("stats"));
+    config.insert("detect_outliers".to_string(), json!(true));
+    config.insert("threshold".to_string(), json!(3.0));
 
-    let node_id = Uuid::new_v4();
     world.spawn((
-        NodeConfig {
-            id: node_id,
-            name: "Test Node".to_string(),
-            node_type: "Test".to_string(),
-            workflow_id: None,
-            tenant_id: Some(ferroflux_iam::TenantId::from("default_tenant")),
+        PipelineNode {
+            definition_id: "core.manipulation.stats".to_string(),
+            config,
+            execution_context: HashMap::new(),
         },
-        config,
         inbox,
-        ferroflux_core::components::core::Outbox::default(),
+        Outbox::default(),
     ));
 
-    // 2. Run System
-    println!("Running Stats System on 20k items...");
+    // 4. Run System
+    println!("Running Pipeline with StatsTool on 20k items...");
     let start_time = std::time::Instant::now();
+    let mut schedule = Schedule::default();
+    schedule.add_systems(pipeline_execution_system);
     schedule.run(&mut world);
     println!("System execution took: {:?}", start_time.elapsed());
 
-    // 3. Verify Telemetry (wait a bit longer for large payload processing if async, though system run is sync)
-    // The telemetry is emitted during execution, so it should be in channel.
-    let mut processed = false;
-    let timeout = tokio::time::timeout(std::time::Duration::from_millis(5000), async {
-        loop {
-            if let Ok(SystemEvent::NodeTelemetry {
-                node_id: nid,
-                node_type,
-                details,
-                ..
-            }) = event_rx.recv().await
-                && nid == node_id
-                && node_type == "Stats"
-            {
-                println!("Telemetry: {}", details);
-                let outliers = details
-                    .get("outliers")
-                    .and_then(|v| v.as_u64())
-                    .unwrap_or(0);
-                // FIX: count is sent as f64 (20002.0)
-                let count = details.get("count").and_then(|v| v.as_f64()).unwrap_or(0.0) as u64;
-
-                assert_eq!(count, 20002, "Should process all items");
-                assert!(outliers >= 2, "Should detect at least 2 outliers");
-                processed = true;
-                break;
-            }
-        }
-    })
-    .await;
-
-    assert!(timeout.is_ok(), "Timed out waiting for telemetry");
-    assert!(processed);
-
-    // 4. Verify Output Data
-    let mut query = world.query::<&ferroflux_core::components::core::Outbox>();
+    // 5. Verify Output
+    let mut query = world.query::<&mut Outbox>();
     let outbox = query.single(&world);
-    assert!(!outbox.queue.is_empty());
+    assert!(!outbox.queue.is_empty(), "Outbox should have a ticket");
 
     let (_port, out_ticket) = outbox.queue.front().unwrap();
-    let out_bytes = store.claim(out_ticket).unwrap();
-    let out_json: serde_json::Value = serde_json::from_slice(&out_bytes).unwrap();
+    let store_res = world.resource::<BlobStore>();
+    let out_data = store_res.claim(out_ticket).unwrap();
+    let final_state: ActiveWorkflowState = serde_json::from_slice(&out_data).unwrap();
 
-    let arr = out_json.as_array().unwrap();
-    assert_eq!(arr.len(), 20002);
+    // Verify Result
+    let result_arr = final_state
+        .get("result")
+        .unwrap()
+        .as_inline()
+        .unwrap()
+        .as_array()
+        .unwrap();
+    assert_eq!(result_arr.len(), 20002);
 
-    // Verify Outlier (Last item is 5000, Second to last is 10000)
-    // Array order is preserved
-    let outlier1 = &arr[20000]; // 10000
+    // Verify Outlier (Last item index 20001 is 5000, 20000 is 10000)
+    let outlier1 = &result_arr[20000];
     let stats1 = outlier1.get("stats").unwrap();
     assert_eq!(
         stats1.get("is_outlier").unwrap(),
@@ -134,8 +160,7 @@ async fn test_stats_zscore_outlier() {
         "10000 should be outlier"
     );
 
-    // Verify Normal Item (First item)
-    let normal = &arr[0];
+    let normal = &result_arr[0];
     let stats_norm = normal.get("stats").unwrap();
     assert_eq!(
         stats_norm.get("is_outlier").unwrap(),

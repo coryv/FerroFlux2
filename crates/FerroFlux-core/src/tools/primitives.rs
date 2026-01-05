@@ -6,10 +6,10 @@ pub mod logic;
 pub mod math;
 pub mod rhai;
 pub mod sleep;
-// pub mod switch;
+pub mod stats;
 pub mod trace;
 pub mod utils;
-pub mod variable;
+pub mod variable; // [NEW]
 
 pub use self::emit::EmitTool;
 pub use self::http_client::HttpClientTool;
@@ -19,5 +19,6 @@ pub use self::logic::LogicTool;
 pub use self::math::MathTool;
 pub use self::rhai::RhaiTool;
 pub use self::sleep::SleepTool;
+pub use self::stats::StatsTool;
 pub use self::trace::TraceTool;
-pub use self::variable::{GetVarTool, SetVarTool};
+pub use self::variable::{GetVarTool, SetVarTool}; // [NEW]

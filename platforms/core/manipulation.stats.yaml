@@ -1,0 +1,47 @@
+context: null
+execution:
+  - id: analyze
+    params:
+      data: "{{ inputs }}"
+      detect_outliers: "{{ settings.detect_outliers }}"
+      enrichment_key: "{{ settings.enrichment_key }}"
+      target_field: "{{ settings.target_field }}"
+      threshold: "{{ settings.threshold }}"
+    returns: {}
+    tool: ferroflux:stats
+interface:
+  inputs:
+    - name: inputs
+      type: array
+  outputs:
+    - name: output
+      type: array
+  settings:
+    - data_type: string
+      default: value
+      label: Target Field
+      name: target_field
+      required: true
+    - data_type: string
+      default: stats
+      label: Enrichment Key
+      name: enrichment_key
+    - data_type: boolean
+      default: false
+      label: Detect Outliers
+      name: detect_outliers
+    - data_type: number
+      default: 2
+      label: Z-Score Threshold
+      name: threshold
+      show_if: detect_outliers
+meta:
+  category: Manipulation
+  data_strategy: enrich
+  description: Calculate statistics (Mean, StdDev, Z-Score) for an array of items.
+  id: core.manipulation.stats
+  name: Statistics
+  type: action
+  version: 1.0.0
+output_transform: null
+routing: null

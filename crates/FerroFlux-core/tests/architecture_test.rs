@@ -273,3 +273,64 @@ async fn test_error_handling() {
     let error_info = final_state.get("_error").unwrap().as_inline().unwrap();
     assert_eq!(error_info.get("message").unwrap(), "Simulated Failure");
 }
+
+#[tokio::test]
+async fn test_memory_spill_strategy() {
+    let mut world = setup_world().await;
+    let store = world.resource::<BlobStore>().clone();
+
+    // 1. Create State with a large inline value
+    let mut state = ActiveWorkflowState::new();
+    let large_string = "a".repeat(1500); // 1.5KB > 1KB threshold
+    state.set("large_var", json!(large_string));
+
+    // Initially it is Inline
+    if let DataRef::Inline(_) = state.get("large_var").unwrap() {
+        // ok
+    } else {
+        panic!("Should start as Inline");
+    }
+
+    // 2. Spawn a dummy node that just passes through
+    // We reuse storage_node (MockTool)
+    let state_bytes = serde_json::to_vec(&state).unwrap();
+    let ticket = store.check_in(&state_bytes).unwrap();
+    let mut inbox = Inbox::default();
+    inbox.queue.push_back(ticket);
+
+    world.spawn((
+        PipelineNode {
+            definition_id: "storage_node".to_string(), // echoes inputs
+            config: HashMap::new(),
+            execution_context: HashMap::new(),
+        },
+        inbox,
+        Outbox::default(),
+    ));
+
+    // 3. Run Pipeline System
+    // This will trigger 'optimize_memory' before serialization
+    let mut schedule = Schedule::default();
+    schedule.add_systems(pipeline_execution_system);
+    schedule.run(&mut world);
+
+    // 4. Verify Output State has converted it to Blob
+    let mut query = world.query::<&Outbox>();
+    let outbox = query.single(&world);
+    let (_, out_ticket) = outbox.queue.front().unwrap();
+
+    let out_data = store.claim(out_ticket).unwrap();
+    let final_state: ActiveWorkflowState = serde_json::from_slice(&out_data).unwrap();
+
+    // 5. Assert it is now a Blob
+    let data_ref = final_state.get("large_var").unwrap();
+    if let DataRef::Blob(ticket) = data_ref {
+        println!("Success: large_var was spilled to Blob: {:?}", ticket);
+        // Verify content
+        let blob = store.claim(&ticket).unwrap();
+        let val: serde_json::Value = serde_json::from_slice(&blob).unwrap();
+        assert_eq!(val, json!(large_string));
+    } else {
+        panic!("large_var should have been optimized to Blob!");
+    }
+}

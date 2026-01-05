@@ -44,7 +44,6 @@ pub fn register_core_systems(schedule: &mut Schedule) {
     ));
 
     schedule.add_systems((
-        manipulation::stats_worker,
         manipulation::window_worker,
         control::checkpoint_worker,
         connectors::rss_worker,

@@ -100,6 +100,12 @@ routing:
           port: Success
 ```
 
+### 5. Explicit Outputs
+If your node logic requires complex output handling beyond simple returns, you can use the `_outputs` convention.
+- Tools like `emit` write directly to `_outputs`.
+- The pipeline logic merges `_outputs` into the final workflow state.
+- If `active_ports` are not explicitly triggered, the system defaults to port `"default"`.
+
 ---
 
 ## Context & Templating

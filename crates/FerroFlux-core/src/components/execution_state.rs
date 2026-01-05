@@ -77,4 +77,30 @@ impl ActiveWorkflowState {
     pub fn get(&self, key: &str) -> Option<&DataRef> {
         self.context.get(key)
     }
+
+    /// Iterates through context. If any Inline value exceeds `threshold_bytes`,
+    /// it moves it to the BlobStore and replaces it with DataRef::Blob.
+    pub fn optimize_memory(&mut self, store: &crate::store::BlobStore, threshold_bytes: usize) {
+        for (key, data_ref) in self.context.iter_mut() {
+            if let DataRef::Inline(val) = data_ref {
+                // Approximate size check (or use serde_json::to_vec(val).len())
+                let estimated_size = match val {
+                    Value::String(s) => s.len(),
+                    Value::Array(arr) => arr.len() * 100, // heuristic
+                    Value::Object(map) => map.len() * 100, // heuristic
+                    _ => 8,
+                };
+
+                if estimated_size > threshold_bytes {
+                    // It's too big! Offload to BlobStore.
+                    if let Ok(json_bytes) = serde_json::to_vec(val) {
+                        if let Ok(ticket) = store.check_in(&json_bytes) {
+                            *data_ref = DataRef::Blob(ticket);
+                            tracing::debug!("Offloaded variable '{}' to blob storage", key);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

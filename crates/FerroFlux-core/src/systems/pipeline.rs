@@ -100,6 +100,9 @@ pub fn pipeline_execution_system(
                     }
                 };
 
+                // OPTIMIZATION: "The Spill Strategy"
+                state.optimize_memory(&store, 1024);
+
                 // Serialize State
                 if let Ok(new_bytes) = serde_json::to_vec(&state) {
                     for port in active_ports {
@@ -332,6 +335,8 @@ pub fn execute_pipeline_node(
         let has_exec = def.interface.outputs.iter().any(|p| p.name == "Exec");
         if has_exec {
             active_ports.push("Exec".to_string());
+        } else {
+            active_ports.push("default".to_string());
         }
     }
 
