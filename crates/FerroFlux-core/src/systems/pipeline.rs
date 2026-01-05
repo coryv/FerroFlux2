@@ -1,4 +1,4 @@
-use crate::components::execution_state::ActiveWorkflowState;
+use crate::components::execution_state::{ActiveWorkflowState, DataRef};
 use crate::components::pipeline::PipelineNode;
 use crate::resources::registry::DefinitionRegistry;
 use crate::tools::ToolContext;
@@ -14,6 +14,7 @@ use std::collections::HashMap;
 ///
 /// NOTE: In a real implementation, this would likely be an async system or spawned task.
 /// For this MVP, we execute synchronously when an "Exec" signal is received (implied).
+#[allow(clippy::type_complexity)]
 pub fn pipeline_execution_system(
     mut query: Query<(
         Entity,
@@ -21,14 +22,24 @@ pub fn pipeline_execution_system(
         &mut crate::components::Inbox,
         &mut crate::components::Outbox,
         Option<&crate::components::shadow::ShadowExecution>,
+        Option<&crate::components::NodeConfig>,
     )>,
     node_registry: Res<DefinitionRegistry>,
     tool_registry: Res<ToolRegistry>,
     store: Res<crate::store::BlobStore>,
     bus: Res<crate::api::events::SystemEventBus>,
+    secret_store: Res<crate::secrets::DatabaseSecretStore>,
+    runtime: Res<crate::resources::TokioRuntime>,
 ) {
-    for (_entity, mut node, mut inbox, mut outbox, shadow_exec) in query.iter_mut() {
-        while let Some(ticket) = inbox.queue.pop_front() {
+    const MAX_ITEMS_PER_TICK: usize = 50;
+    for (_entity, mut node, mut inbox, mut outbox, shadow_exec, node_config) in query.iter_mut() {
+        let mut processed_count = 0;
+        while processed_count < MAX_ITEMS_PER_TICK {
+            let ticket = match inbox.queue.pop_front() {
+                Some(t) => t,
+                None => break,
+            };
+            processed_count += 1;
             // 1. Load Data/Context
             if let Ok(data) = store.claim(&ticket) {
                 let mut state: ActiveWorkflowState = if let Ok(s) = serde_json::from_slice(&data) {
@@ -53,14 +64,39 @@ pub fn pipeline_execution_system(
                     &mut memory,
                     ticket.metadata.get("trace_id").cloned().unwrap_or_default(),
                     Some(bus.clone()),
+                    Some(&store),
                     shadow_exec,
+                    node_config,
+                    Some(&secret_store),
+                    Some(&runtime),
                 ) {
                     Ok(ports) => ports,
                     Err(e) => {
-                        tracing::error!("Pipeline execution failed: {}", e);
-                        // On error, maybe emit "Error" port if it exists?
-                        // For now, return empty ports (stop flow)
-                        Vec::new()
+                        let t_id = ticket.metadata.get("trace_id").cloned().unwrap_or_default();
+                        tracing::error!(trace_id = %t_id, "Pipeline execution failed: {}", e);
+
+                        // Emit NodeError if we have a bus and trace_id
+                        if !t_id.is_empty() {
+                            let _ = bus.0.send(crate::api::events::SystemEvent::NodeError {
+                                trace_id: t_id,
+                                node_id: node_config.map(|c| c.id).unwrap_or_default(),
+                                error: e.to_string(),
+                                timestamp: chrono::Utc::now().timestamp_millis(),
+                            });
+                        }
+
+                        // Implement Formalized Error Handling:
+                        // 1. Inject error into state
+                        state.set(
+                            "_error",
+                            serde_json::json!({
+                                "message": e.to_string(),
+                                "node_id": node_config.map(|c| c.id).unwrap_or_default()
+                            }),
+                        );
+
+                        // 2. Return standard error port to allow flow recovery
+                        vec!["_error".to_string()]
                     }
                 };
 
@@ -102,7 +138,11 @@ pub fn execute_pipeline_node(
     global_memory: &mut HashMap<String, Value>,
     trace_id: String,
     event_bus: Option<crate::api::events::SystemEventBus>,
+    store: Option<&crate::store::BlobStore>,
     shadow_exec: Option<&crate::components::shadow::ShadowExecution>,
+    node_config: Option<&crate::components::NodeConfig>,
+    secret_store: Option<&crate::secrets::DatabaseSecretStore>,
+    runtime: Option<&crate::resources::TokioRuntime>,
 ) -> Result<Vec<String>> {
     let def = definitions
         .definitions
@@ -114,14 +154,17 @@ pub fn execute_pipeline_node(
     let mut ctx_map = workflow_state.context.clone();
 
     // Inject Node Config into "settings"
-    ctx_map.insert("settings".to_string(), serde_json::to_value(&node.config)?);
+    ctx_map.insert(
+        "settings".to_string(),
+        DataRef::Inline(serde_json::to_value(&node.config)?),
+    );
 
     // Inject Platform Config
     if let Some(platform_id) = &def.meta.platform {
         if let Some(platform) = definitions.platforms.get(platform_id) {
             ctx_map.insert(
                 "platform".to_string(),
-                serde_json::to_value(&platform.config)?,
+                DataRef::Inline(serde_json::to_value(&platform.config)?),
             );
         } else {
             // Warn? Or Fail? For now, just log and continue (might use default)
@@ -138,12 +181,12 @@ pub fn execute_pipeline_node(
                 .unwrap_or_else(|_| template.clone());
             // Attempt to parse as JSON if possible, else string
             let val = serde_json::from_str(&rendered).unwrap_or(Value::String(rendered));
-            ctx_map.insert(key.clone(), val);
+            ctx_map.insert(key.clone(), DataRef::Inline(val));
         }
     }
 
     // "steps" namespace for step outputs
-    ctx_map.insert("steps".to_string(), serde_json::json!({}));
+    ctx_map.insert("steps".to_string(), DataRef::Inline(serde_json::json!({})));
 
     // 2. Execute Steps
     for step in &def.execution {
@@ -153,7 +196,7 @@ pub fn execute_pipeline_node(
 
         // Resolve Params (Templating)
         // Resolve Params (Templating) & Type Preservation
-        let resolved_params = resolve_recursive(&step.params, &ctx_map, &handlebars)?;
+        let resolved_params = resolve_recursive(&step.params, &ctx_map, &handlebars, store)?;
 
         // Resolve default mask reference
         let default_masks = std::collections::HashMap::new();
@@ -169,21 +212,25 @@ pub fn execute_pipeline_node(
             event_bus: event_bus.clone(),
             shadow_mode: shadow_exec.is_some(),
             shadow_masks: masks_ref,
+            secret_store,
+            runtime,
         };
 
         let result = tool.run(&mut tool_ctx, resolved_params)?;
 
         // Map Returns
         // "returns": { "status": "status_code" } -> context["status_code"] = result["status"]
-        if let Some(steps_obj) = ctx_map.get_mut("steps").and_then(|v| v.as_object_mut()) {
-            // Store raw result under step ID for easy access: steps.my_step.status
+        if let Some(steps_data) = ctx_map.get_mut("steps")
+            && let DataRef::Inline(steps_val) = steps_data
+            && let Some(steps_obj) = steps_val.as_object_mut()
+        {
             steps_obj.insert(step.id.clone(), result.clone());
         }
 
         // Returns Mapping
         for (key, var_name) in &step.returns {
             if let Some(val) = result.as_object().and_then(|obj| obj.get(key)) {
-                ctx_map.insert(var_name.clone(), val.clone());
+                ctx_map.insert(var_name.clone(), DataRef::Inline(val.clone()));
             }
         }
     }
@@ -201,7 +248,8 @@ pub fn execute_pipeline_node(
                     .get(&action.tool)
                     .ok_or_else(|| anyhow::anyhow!("Tool not found: {}", action.tool))?;
 
-                let resolved_params = resolve_recursive(&action.params, &ctx_map, &handlebars)?;
+                let resolved_params =
+                    resolve_recursive(&action.params, &ctx_map, &handlebars, store)?;
 
                 // Resolve default mask reference
                 let default_masks = std::collections::HashMap::new();
@@ -216,13 +264,15 @@ pub fn execute_pipeline_node(
                     event_bus: event_bus.clone(),
                     shadow_mode: shadow_exec.is_some(),
                     shadow_masks: masks_ref,
+                    secret_store,
+                    runtime,
                 };
                 let result = tool.run(&mut tool_ctx, resolved_params)?;
 
                 // Returns Mapping (Routing)
                 for (key, var_name) in &action.returns {
                     if let Some(val) = result.as_object().and_then(|obj| obj.get(key)) {
-                        ctx_map.insert(var_name.clone(), val.clone());
+                        ctx_map.insert(var_name.clone(), DataRef::Inline(val.clone()));
                     }
                 }
             }
@@ -239,7 +289,14 @@ pub fn execute_pipeline_node(
     // 5. Output Transform
     if let Some(transform_map) = &def.output_transform {
         // Run JMESPath against current context (including step outputs)
-        let context_json = serde_json::to_value(&ctx_map).unwrap_or(Value::Null);
+        // Materialize full context for JMESPath (expensive but necessary if using transforms)
+        let mut materialized = serde_json::Map::new();
+        for (k, v) in &ctx_map {
+            if let Some(val) = resolve_dataref_to_value(v, store) {
+                materialized.insert(k.clone(), val);
+            }
+        }
+        let context_json = Value::Object(materialized);
 
         for (out_key, expr_str) in transform_map {
             // Compile and search
@@ -255,6 +312,7 @@ pub fn execute_pipeline_node(
     // Merge `_outputs` (from explicit Emit tools)
     let outputs = ctx_map
         .get("_outputs")
+        .and_then(|d| d.as_inline())
         .cloned()
         .unwrap_or(serde_json::json!({}));
     workflow_state.merge(outputs.clone());
@@ -282,7 +340,7 @@ pub fn execute_pipeline_node(
     if let Some(bus) = &event_bus {
         let _ = bus.0.send(crate::api::events::SystemEvent::NodeTelemetry {
             trace_id: trace_id.clone(),
-            node_id: uuid::Uuid::default(), // TODO: Pass Node UUID or Entity ID?
+            node_id: node_config.map(|c| c.id).unwrap_or_default(),
             node_type: def.meta.name.clone(),
             execution_ms: 0, // TODO: timer
             success: true,
@@ -298,8 +356,9 @@ pub fn execute_pipeline_node(
 
 fn resolve_recursive(
     value: &Value,
-    ctx: &HashMap<String, Value>,
+    ctx: &HashMap<String, DataRef>,
     reg: &Handlebars,
+    store: Option<&crate::store::BlobStore>,
 ) -> Result<Value> {
     match value {
         Value::String(s) => {
@@ -307,25 +366,28 @@ fn resolve_recursive(
             if trimmed.starts_with("{{") && trimmed.ends_with("}}") {
                 let inner = &trimmed[2..trimmed.len() - 2].trim();
                 if !inner.contains(' ')
-                    && let Some(val) = lookup_path(ctx, inner)
+                    && let Some(val) = lookup_path(ctx, inner, store)
                 {
-                    return Ok(val.clone());
+                    return Ok(val);
                 }
             }
-            let rendered = reg.render_template(s, ctx)?;
+            // Materialize context for handlebars rendering
+            // This is potentially expensive but necessary for full template support with Manifest Pattern
+            let materialized = materialize_context(ctx, store);
+            let rendered = reg.render_template(s, &materialized)?;
             Ok(Value::String(rendered))
         }
         Value::Array(arr) => {
             let mut new_arr = Vec::new();
             for v in arr {
-                new_arr.push(resolve_recursive(v, ctx, reg)?);
+                new_arr.push(resolve_recursive(v, ctx, reg, store)?);
             }
             Ok(Value::Array(new_arr))
         }
         Value::Object(obj) => {
             let mut new_obj = serde_json::Map::new();
             for (k, v) in obj {
-                new_obj.insert(k.clone(), resolve_recursive(v, ctx, reg)?);
+                new_obj.insert(k.clone(), resolve_recursive(v, ctx, reg, store)?);
             }
             Ok(Value::Object(new_obj))
         }
@@ -333,21 +395,28 @@ fn resolve_recursive(
     }
 }
 
-fn lookup_path<'a>(ctx: &'a HashMap<String, Value>, path: &str) -> Option<&'a Value> {
+fn lookup_path(
+    ctx: &HashMap<String, DataRef>,
+    path: &str,
+    store: Option<&crate::store::BlobStore>,
+) -> Option<Value> {
     let parts: Vec<&str> = path.split('.').collect();
     if parts.is_empty() {
         return None;
     }
 
-    let mut current = ctx.get(parts[0])?;
+    // Resolve first part from manifest
+    let root_ref = ctx.get(parts[0])?;
+    let mut current = resolve_dataref_to_value(root_ref, store)?;
+
     for part in &parts[1..] {
         match current {
             Value::Object(map) => {
-                current = map.get(*part)?;
+                current = map.get(*part)?.clone();
             }
             Value::Array(arr) => {
                 if let Ok(idx) = part.parse::<usize>() {
-                    current = arr.get(idx)?;
+                    current = arr.get(idx)?.clone();
                 } else {
                     return None;
                 }
@@ -356,4 +425,37 @@ fn lookup_path<'a>(ctx: &'a HashMap<String, Value>, path: &str) -> Option<&'a Va
         }
     }
     Some(current)
+}
+
+fn resolve_dataref_to_value(
+    data: &DataRef,
+    store: Option<&crate::store::BlobStore>,
+) -> Option<Value> {
+    match data {
+        DataRef::Inline(v) => Some(v.clone()),
+        DataRef::Blob(ticket) => {
+            if let Some(store) = store {
+                if let Ok(bytes) = store.claim(ticket) {
+                    serde_json::from_slice(&bytes).ok()
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        }
+    }
+}
+
+fn materialize_context(
+    ctx: &HashMap<String, DataRef>,
+    store: Option<&crate::store::BlobStore>,
+) -> HashMap<String, Value> {
+    let mut map = HashMap::new();
+    for (k, v) in ctx {
+        if let Some(val) = resolve_dataref_to_value(v, store) {
+            map.insert(k.clone(), val);
+        }
+    }
+    map
 }

@@ -552,6 +552,7 @@
             ? graph.nodes[Array.from(selectedNodeIds)[0]]
             : null}
         {onRefresh}
+        nodes={graph ? Object.values(graph.nodes) : []}
     />
 </div>
 
@@ -564,10 +565,13 @@
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: #111;
+        background: var(--canvas-bg);
         overflow: hidden;
         cursor: grab;
-        background-image: radial-gradient(#333 1px, transparent 1px);
+        background-image: radial-gradient(
+            var(--grid-color) 1px,
+            transparent 1px
+        );
         z-index: 1; /* Ensure it's in a known stacking context */
     }
     .canvas:active {

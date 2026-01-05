@@ -7,29 +7,16 @@
         setTemplates,
     } from "$lib/stores/nodeRegistry.svelte";
 
-    let platforms: Record<string, Record<string, NodeTemplate[]>> = $state({});
-    let openPlatforms: Record<string, boolean> = $state({});
-    let openCategories: Record<string, boolean> = $state({});
+    let categories: Record<string, NodeTemplate[]> = $state({});
+    let selectedCategory = $state<string | null>(null);
 
     $effect(() => {
-        const p: Record<string, Record<string, NodeTemplate[]>> = {};
+        const c: Record<string, NodeTemplate[]> = {};
         Object.values(nodeRegistry.templates).forEach((t) => {
-            const platformKey = t.platform || "Other";
-            if (!p[platformKey]) p[platformKey] = {};
-            if (!p[platformKey][t.category]) p[platformKey][t.category] = [];
-            p[platformKey][t.category].push(t);
+            if (!c[t.category]) c[t.category] = [];
+            c[t.category].push(t);
         });
-        platforms = p;
-
-        // Default open "core" and its categories
-        if (Object.keys(openPlatforms).length === 0) {
-            Object.keys(p).forEach((pk) => {
-                openPlatforms[pk] = pk === "core" || pk === "integrations";
-                Object.keys(p[pk]).forEach((ck) => {
-                    openCategories[`${pk}:${ck}`] = pk === "core";
-                });
-            });
-        }
+        categories = c;
     });
 
     onMount(async () => {
@@ -54,10 +41,6 @@
         }
     });
 
-    function toggleCategory(cat: string) {
-        openCategories[cat] = !openCategories[cat];
-    }
-
     function onDragStart(e: DragEvent, template: NodeTemplate) {
         invoke("log_js", { msg: "NodeTray: onDragStart " + template.name });
         if (e.dataTransfer) {
@@ -77,16 +60,47 @@
             console.error("Failed to reload palette", e);
         }
     }
+    let isCollapsed = $state(false);
+
+    function toggleTray() {
+        isCollapsed = !isCollapsed;
+    }
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="node-tray" onmousedown={(e) => e.stopPropagation()}>
+<div
+    class="node-tray"
+    class:collapsed={isCollapsed}
+    onmousedown={(e) => e.stopPropagation()}
+>
     <div class="tray-header">
-        <h3>Palette</h3>
+        <div class="header-left">
+            <button
+                class="btn-toggle"
+                onclick={toggleTray}
+                title="Toggle Palette"
+            >
+                <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                >
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+            <h3 class:hidden={isCollapsed}>Palette</h3>
+        </div>
+
         <button
             class="btn-refresh"
             title="Reload Definitions"
             onclick={reloadPalette}
+            class:hidden={isCollapsed}
         >
             <svg
                 width="14"
@@ -106,112 +120,129 @@
             </svg>
         </button>
     </div>
-    <div class="tray-content">
-        {#each Object.entries(platforms) as [platform, categories]}
-            <div class="platform">
-                <!-- svelte-ignore a11y_click_events_have_key_events -->
-                <div
-                    class="platform-header"
-                    onclick={() =>
-                        (openPlatforms[platform] = !openPlatforms[platform])}
-                >
-                    <span class="arrow" class:open={openPlatforms[platform]}
-                        >▶</span
-                    >
-                    {platform}
-                </div>
 
-                {#if openPlatforms[platform]}
-                    <div class="platform-categories">
-                        {#each Object.entries(categories) as [category, items]}
-                            <div class="category">
-                                <!-- svelte-ignore a11y_click_events_have_key_events -->
-                                <div
-                                    class="category-header"
-                                    onclick={() => {
-                                        const key = `${platform}:${category}`;
-                                        openCategories[key] =
-                                            !openCategories[key];
-                                    }}
-                                >
-                                    <span
-                                        class="arrow"
-                                        class:open={openCategories[
-                                            `${platform}:${category}`
-                                        ]}>▶</span
-                                    >
-                                    {category}
+    <!-- Content only visible when expanded -->
+    {#if !isCollapsed}
+        <div class="tray-content">
+            {#if !selectedCategory}
+                <!-- Top Level: Category List -->
+                <div class="view categories-view">
+                    {#each Object.keys(categories) as category}
+                        <button
+                            class="nav-item"
+                            onclick={() => (selectedCategory = category)}
+                        >
+                            <span class="label">{category}</span>
+                            <span class="count"
+                                >{categories[category].length}</span
+                            >
+                            <span class="chevron">›</span>
+                        </button>
+                    {/each}
+                </div>
+            {:else}
+                <!-- Detail Level: Node List -->
+                <div class="view nodes-view">
+                    <button
+                        class="btn-back"
+                        onclick={() => (selectedCategory = null)}
+                    >
+                        <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="3"
+                        >
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                        <span>{selectedCategory}</span>
+                    </button>
+
+                    <div class="node-list">
+                        {#each categories[selectedCategory] as template}
+                            <div
+                                class="tray-item"
+                                draggable="true"
+                                role="listitem"
+                                ondragstart={(e) => onDragStart(e, template)}
+                            >
+                                <div class="info">
+                                    <span class="name">{template.name}</span>
+                                    {#if template.description}
+                                        <span class="desc"
+                                            >{template.description}</span
+                                        >
+                                    {/if}
                                 </div>
-                                {#if openCategories[`${platform}:${category}`]}
-                                    <div class="category-items">
-                                        {#each items as template}
-                                            <div
-                                                class="tray-item"
-                                                draggable="true"
-                                                role="listitem"
-                                                ondragstart={(e) =>
-                                                    onDragStart(e, template)}
-                                            >
-                                                <div class="info">
-                                                    <span class="name"
-                                                        >{template.name}</span
-                                                    >
-                                                    {#if template.description}
-                                                        <span class="desc"
-                                                            >{template.description}</span
-                                                        >
-                                                    {/if}
-                                                </div>
-                                            </div>
-                                        {/each}
-                                    </div>
-                                {/if}
                             </div>
                         {/each}
                     </div>
-                {/if}
-            </div>
-        {/each}
-    </div>
+                </div>
+            {/if}
+        </div>
+    {/if}
 </div>
 
 <style>
     .node-tray {
         position: absolute;
-        top: 12px;
+        top: 68px;
         left: 12px;
         bottom: 12px;
-        width: 220px;
-        /* max-height: 90vh; */
-        overflow-y: auto;
+        width: 240px;
         background: rgba(30, 30, 35, 0.95);
         backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
-        padding: 16px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         z-index: 1000;
         user-select: none;
         color: #eee;
         display: flex;
         flex-direction: column;
+        transition:
+            width 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+            padding 0.3s ease;
+        overflow: hidden; /* Hide overflow for sliding views */
     }
+
+    .node-tray.collapsed {
+        width: 48px;
+        padding: 16px 8px;
+    }
+
     .tray-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 16px;
         padding-bottom: 8px;
     }
+
+    .node-tray.collapsed .tray-header {
+        justify-content: center;
+        padding: 16px 0;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
     h3 {
         margin: 0;
-        font-size: 13px;
+        font-size: 11px;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: #888;
+        letter-spacing: 0.15em;
+        color: #666;
         font-weight: 700;
     }
+
+    .btn-toggle,
     .btn-refresh {
         background: transparent;
         border: none;
@@ -219,86 +250,141 @@
         cursor: pointer;
         padding: 4px;
         display: flex;
-        align-items: center;
-        transition:
-            color 0.2s,
-            transform 0.2s;
+        border-radius: 4px;
     }
+
+    .btn-toggle:hover,
     .btn-refresh:hover {
         color: #60a5fa;
+        background: rgba(255, 255, 255, 0.05);
     }
-    .btn-refresh:active {
-        transform: rotate(180deg);
-    }
+
     .tray-content {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .view {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 0 12px 12px 12px;
+        overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 4px;
+        animation: slideIn 0.25s cubic-bezier(0.2, 0, 0.2, 1);
     }
-    .category-header {
-        font-size: 11px;
-        font-weight: 700;
-        color: #aaa;
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* Categories View Styles */
+    .nav-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid transparent;
+        border-radius: 8px;
+        color: #eee;
+        font-size: 13px;
         cursor: pointer;
+        text-align: left;
+        transition: all 0.2s ease;
+    }
+
+    .nav-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-item .label {
+        flex: 1;
+        font-weight: 500;
+    }
+
+    .nav-item .count {
+        font-size: 10px;
+        color: #555;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 2px 6px;
+        border-radius: 10px;
+        margin-right: 8px;
+    }
+
+    .nav-item .chevron {
+        color: #444;
+        font-size: 16px;
+    }
+
+    /* Nodes View Styles */
+    .btn-back {
         display: flex;
         align-items: center;
-        gap: 6px;
-        margin-bottom: 6px;
-        text-transform: uppercase;
+        gap: 8px;
+        background: transparent;
+        border: none;
+        color: #60a5fa;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 8px 0;
+        margin-bottom: 8px;
     }
-    .category-header:hover {
-        color: #fff;
+
+    .btn-back:hover {
+        opacity: 0.8;
     }
-    .arrow {
-        font-size: 8px;
-        transition: transform 0.2s;
-    }
-    .arrow.open {
-        transform: rotate(90deg);
-    }
-    .category-items {
+
+    .node-list {
         display: flex;
         flex-direction: column;
-        gap: 6px;
-        margin-left: 8px;
-        padding-left: 8px;
-        border-left: 1px solid rgba(255, 255, 255, 0.05);
+        gap: 8px;
     }
+
     .tray-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 8px 10px;
+        padding: 10px 12px;
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 6px;
+        border-radius: 8px;
         cursor: grab;
         transition: all 0.2s ease;
     }
+
     .tray-item:hover {
-        background: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.07);
         border-color: rgba(96, 165, 250, 0.3);
-        transform: translateX(4px);
+        transform: scale(1.02);
     }
-    .tray-item:active {
-        cursor: grabbing;
-    }
+
     .info {
         display: flex;
         flex-direction: column;
     }
     .name {
-        font-size: 12px;
-        font-weight: 500;
+        font-size: 13px;
+        font-weight: 600;
         color: #eee;
     }
     .desc {
-        font-size: 10px;
+        font-size: 11px;
         color: #666;
         margin-top: 2px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 140px;
+    }
+
+    .hidden {
+        display: none !important;
     }
 </style>

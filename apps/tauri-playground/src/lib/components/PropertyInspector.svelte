@@ -1,12 +1,20 @@
 <script lang="ts">
     import { invoke } from "@tauri-apps/api/core";
+    import VariablesTray from "./VariablesTray.svelte";
+    import OutputMapper from "./OutputMapper.svelte";
+    import ShadowModePanel from "./ShadowModePanel.svelte";
     import type { NodeTemplate, SerializableNode } from "$lib/types";
     import { nodeRegistry } from "$lib/stores/nodeRegistry.svelte";
     import { workflowContext } from "$lib/stores/workflow.svelte";
 
-    let { selectedNode, onRefresh } = $props<{
+    let {
+        selectedNode,
+        onRefresh,
+        nodes = [],
+    } = $props<{
         selectedNode: SerializableNode | null;
         onRefresh: () => Promise<void>;
+        nodes?: SerializableNode[];
     }>();
 
     let template = $derived.by(() => {
@@ -15,6 +23,8 @@
     });
 
     let settings = $state<Record<string, any>>({});
+    let showVariables = $state(false);
+    let showOutputs = $state(false);
 
     // When selection changes, sync local settings
     $effect(() => {
@@ -61,6 +71,7 @@
         rules[index] = { ...rules[index], [key]: value };
         updateSetting("rules", rules);
     }
+
     function evaluateCondition(expr: any): boolean {
         if (typeof expr !== "string") return true;
         const parts = expr.trim().split(/\s+/);
@@ -126,28 +137,127 @@
         }
         updateSetting(name, [...current]);
     }
+
     async function copyToClipboard(text: string) {
         try {
             await navigator.clipboard.writeText(text);
-            // Optional: Show a brief "Copied!" toast or feedback
         } catch (err) {
             console.error("Failed to copy!", err);
         }
     }
+
+    let isDragging = $state(false);
+    let position = $state<{ x: number; y: number } | null>(null);
+    let dragOffset = { x: 0, y: 0 };
+    let inspectorEl: HTMLDivElement;
+
+    function onHeaderMouseDown(e: MouseEvent) {
+        if (!inspectorEl) return;
+        isDragging = true;
+        const rect = inspectorEl.getBoundingClientRect();
+        dragOffset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+
+        // If first drag, set initial position to current calculated position
+        if (!position) {
+            position = { x: rect.left, y: rect.top };
+        }
+    }
+
+    function onWindowMouseMove(e: MouseEvent) {
+        if (!isDragging) return;
+        e.preventDefault();
+        position = {
+            x: e.clientX - dragOffset.x,
+            y: e.clientY - dragOffset.y,
+        };
+    }
+
+    function onWindowMouseUp() {
+        isDragging = false;
+    }
 </script>
 
+<svelte:window onmousemove={onWindowMouseMove} onmouseup={onWindowMouseUp} />
+
 <div
+    bind:this={inspectorEl}
     class="property-inspector"
     class:visible={!!selectedNode}
+    class:floating={!!position}
     role="presentation"
+    style={position
+        ? `left: ${position.x}px; top: ${position.y}px; bottom: auto; transform: none;`
+        : ""}
     onmousedown={(e) => e.stopPropagation()}
 >
     {#if selectedNode}
+        <VariablesTray {nodes} visible={showVariables} />
         {#if template}
-            <div class="header">
-                <h3>{template.name}</h3>
-                <span class="type-id">{template.id}</span>
+            <OutputMapper
+                {selectedNode}
+                {template}
+                {settings}
+                onUpdate={updateSetting}
+                visible={showOutputs}
+            />
+
+            <!-- Side Toggles -->
+            <button
+                class="side-toggle left"
+                onclick={() => (showVariables = !showVariables)}
+                title="Toggle Variables"
+            >
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    {#if showVariables}
+                        <path
+                            fill="currentColor"
+                            d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
+                        />
+                        <!-- Right Chevron (Close) -->
+                    {:else}
+                        <path
+                            fill="currentColor"
+                            d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"
+                        />
+                        <!-- Left Chevron (Open) -->
+                    {/if}
+                </svg>
+            </button>
+            <button
+                class="side-toggle right"
+                onclick={() => (showOutputs = !showOutputs)}
+                title="Toggle Outputs"
+            >
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    {#if showOutputs}
+                        <path
+                            fill="currentColor"
+                            d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"
+                        />
+                        <!-- Left Chevron (Close) -->
+                    {:else}
+                        <path
+                            fill="currentColor"
+                            d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
+                        />
+                        <!-- Right Chevron (Open) -->
+                    {/if}
+                </svg>
+            </button>
+
+            <div
+                class="header"
+                onmousedown={onHeaderMouseDown}
+                style="cursor: grab;"
+            >
+                <div>
+                    <h3>{template.name}</h3>
+                    <span class="type-id">{template.id}</span>
+                </div>
+                <div class="toolbar-actions"></div>
             </div>
+
+            <ShadowModePanel nodeId={selectedNode.id} />
 
             <div class="scroll-area">
                 {#if template.description}
@@ -424,19 +534,21 @@
 <style>
     .property-inspector {
         position: absolute;
-        top: 12px;
-        right: 12px;
+        top: auto;
+        right: auto;
+        left: 50%;
         bottom: 12px;
-        width: 280px;
-        /* max-height: 80vh; */
-        background: rgba(30, 30, 35, 0.95);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        width: 360px;
+        max-height: 60vh;
+        background: var(--panel-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
         border-radius: 12px;
         padding: 0;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 8px 32px var(--shadow-color);
         z-index: 1000;
-        color: #eee;
+        color: var(--text-primary);
         display: flex;
         flex-direction: column;
 
@@ -444,27 +556,84 @@
         transition:
             transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
             opacity 0.2s ease;
-        transform: translateX(320px);
+        transform: translateX(-50%) translateY(120%);
         opacity: 0;
         pointer-events: none;
     }
     .property-inspector.visible {
-        transform: translateX(0);
+        transform: translateX(-50%) translateY(0);
         opacity: 1;
         pointer-events: auto;
     }
+
+    /* Floating state (dragged) */
+    .property-inspector.floating {
+        position: absolute;
+        /* Position controlled by inline style */
+        left: 0;
+        top: 0;
+        bottom: auto;
+        right: auto;
+        transform: none !important; /* Override anchored transform */
+        transition: opacity 0.2s ease; /* No transform transition when dragging */
+        margin: 0;
+    }
+
+    .side-toggle {
+        position: absolute;
+        bottom: 50%;
+        width: 24px;
+        height: 60px;
+        background: var(--panel-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 1001;
+        transition:
+            background 0.2s,
+            color 0.2s;
+    }
+    .side-toggle:hover {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+    .side-toggle.left {
+        left: 0;
+        transform: translate(
+            -100%,
+            50%
+        ); /* Stick out left, centered vertically relative to bottom 50%? No bottom 50% is midpoint. */
+        border-right: none;
+        border-radius: 8px 0 0 8px;
+    }
+    .side-toggle.right {
+        right: 0;
+        transform: translate(100%, 50%); /* Stick out right */
+        border-left: none;
+        border-radius: 0 8px 8px 0;
+    }
     .header {
         padding: 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .toolbar-actions {
+        display: flex;
+        gap: 8px;
     }
     h3 {
         margin: 0;
         font-size: 16px;
-        color: #fff;
+        color: var(--text-primary);
     }
     .type-id {
         font-size: 10px;
-        color: #666;
+        color: var(--text-secondary);
         font-family: monospace;
     }
     .scroll-area {
@@ -476,14 +645,14 @@
     }
     .description {
         font-size: 11px;
-        color: #aaa;
+        color: var(--text-secondary);
         line-height: 1.4;
     }
     h4 {
         margin: 0 0 12px 0;
         font-size: 12px;
         text-transform: uppercase;
-        color: #888;
+        color: var(--text-secondary);
         letter-spacing: 0.05em;
     }
     .setting-item {
@@ -495,18 +664,18 @@
     label {
         font-size: 11px;
         font-weight: 600;
-        color: #bbb;
+        color: var(--text-secondary);
     }
     input[type="text"],
     input[type="number"],
     input[type="time"],
     select,
     textarea {
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
         border-radius: 4px;
         padding: 6px 8px;
-        color: #fff;
+        color: var(--text-primary);
         font-size: 12px;
         width: 100%;
         box-sizing: border-box;
@@ -519,23 +688,23 @@
     textarea:focus,
     select:focus {
         outline: none;
-        border-color: #60a5fa;
+        border-color: var(--accent-color);
     }
     .multi-select-group {
         display: flex;
         flex-direction: column;
         gap: 6px;
-        background: rgba(0, 0, 0, 0.2);
+        background: var(--bg-primary);
         padding: 8px;
         border-radius: 6px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-color);
     }
     .checkbox-label {
         display: flex;
         align-items: center;
         gap: 8px;
         font-size: 12px;
-        color: #eee;
+        color: var(--text-primary);
         cursor: pointer;
     }
     .checkbox-label input {
@@ -551,7 +720,7 @@
     }
     .read-only-val {
         font-size: 11px;
-        color: #60a5fa;
+        color: var(--accent-color);
         word-break: break-all;
         font-family: monospace;
         flex: 1;
@@ -560,7 +729,7 @@
     .btn-copy {
         background: transparent;
         border: none;
-        color: #60a5fa;
+        color: var(--accent-color);
         cursor: pointer;
         padding: 4px;
         display: flex;
@@ -577,8 +746,8 @@
         gap: 12px;
     }
     .rule-item {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
         border-radius: 6px;
         padding: 8px;
         display: flex;
@@ -601,7 +770,7 @@
     .btn-add {
         background: rgba(96, 165, 250, 0.1);
         border: 1px solid rgba(96, 165, 250, 0.2);
-        color: #60a5fa;
+        color: var(--accent-color);
         padding: 6px;
         border-radius: 4px;
         cursor: pointer;
@@ -614,7 +783,7 @@
     .loading {
         padding: 40px 20px;
         text-align: center;
-        color: #666;
+        color: var(--text-secondary);
         font-size: 12px;
     }
 </style>

@@ -493,3 +493,32 @@ pub async fn reload_definitions(state: tauri::State<'_, AppState>) -> Result<(),
         .map_err(|e| e.to_string())?;
     rx.await.map_err(|e| e.to_string())?
 }
+#[tauri::command]
+pub async fn simulate_node(
+    state: tauri::State<'_, AppState>,
+    node_id: NodeId,
+    payload: serde_json::Value,
+    mocks: HashMap<String, ferroflux_core::components::shadow::MockConfig>,
+) -> Result<serde_json::Value, String> {
+    let graph = state.graph.lock().await;
+    let (uuid, def_id, config) = if let Some(node) = graph.nodes.get(node_id) {
+        (
+            node.uuid,
+            node.data.template_id.clone(),
+            node.data.settings.clone(),
+        )
+    } else {
+        return Err(format!("Node {:?} not found in graph", node_id));
+    };
+    drop(graph);
+
+    let (tx, rx) = oneshot::channel();
+    state
+        .engine_tx
+        .send(EngineCommand::SimulateNode(
+            uuid, def_id, config, payload, mocks, tx,
+        ))
+        .await
+        .map_err(|e| e.to_string())?;
+    rx.await.map_err(|e| e.to_string())?
+}

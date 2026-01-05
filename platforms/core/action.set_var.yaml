@@ -11,8 +11,6 @@ interface:
   inputs:
     - name: Exec
       type: flow
-    - name: value
-      type: any
   outputs:
     - name: Exec
       type: flow

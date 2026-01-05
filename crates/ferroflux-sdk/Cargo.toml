@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 ferroflux_core = { path = "../FerroFlux-core" }
 flow_canvas = { path = "../FlowCanvas" }
+ferroflux-iam = { path = "../ferroflux-iam" }
 bevy_ecs = "0.13"
 tokio = { version = "1.0", features = ["full"] }
 uuid = { version = "1.0", features = ["serde", "v4"] }

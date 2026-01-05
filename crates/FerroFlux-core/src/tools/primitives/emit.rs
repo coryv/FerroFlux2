@@ -1,3 +1,4 @@
+use crate::components::execution_state::DataRef;
 use crate::tools::{Tool, ToolContext};
 use anyhow::{Result, anyhow};
 use serde_json::Value;
@@ -21,9 +22,11 @@ impl Tool for EmitTool {
         let outputs = context
             .local
             .entry("_outputs".to_string())
-            .or_insert_with(|| serde_json::json!({}));
+            .or_insert_with(|| DataRef::Inline(serde_json::json!({})));
 
-        if let Some(out_obj) = outputs.as_object_mut() {
+        if let DataRef::Inline(val) = outputs
+            && let Some(out_obj) = val.as_object_mut()
+        {
             out_obj.insert(port.to_string(), value.clone());
         }
 

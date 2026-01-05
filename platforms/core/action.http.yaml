@@ -29,6 +29,10 @@ interface:
       type: select
       default: GET
       options: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    - name: connection
+      label: Connection (Optional)
+      type: connection_select
+      description: "Select a stored connection for authentication."
     - name: body
       label: Body (JSON)
       type: textarea
@@ -45,6 +49,7 @@ execution:
       url: "{{ settings.url }}"
       method: "{{ settings.method }}"
       body: "{{ settings.body }}"
+      connection: "{{ settings.connection }}"
     returns:
       body: response_body
       status: response_status

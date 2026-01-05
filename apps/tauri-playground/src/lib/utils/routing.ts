@@ -12,22 +12,28 @@ export interface Obstacle {
 
 export function findPortPosition(nodes: SerializableNode[], portId: string): Vec2 | null {
     for (const node of nodes) {
+        // CSS Layout constants matching Node.svelte
+        const headerHeight = 35;
+        const bodyPadding = 8;
+        const rowHeight = 20;
+        const rowGap = 8;
+        const rowTotal = rowHeight + rowGap; // 28
+
         const inIdx = node.inputs.indexOf(portId);
         if (inIdx !== -1) {
-            const count = node.inputs.length;
-            const availableHeight = node.size[1] - 40; // 20px padding top/bottom
             return {
-                x: node.position[0] - 1,
-                y: node.position[1] + 20 + (inIdx + 0.5) * (availableHeight / count),
+                x: node.position[0], // On the left border
+                y: node.position[1] + headerHeight + bodyPadding + (inIdx * rowTotal) + (rowHeight / 2),
             };
         }
         const outIdx = node.outputs.indexOf(portId);
         if (outIdx !== -1) {
-            const count = node.outputs.length;
-            const availableHeight = node.size[1] - 40; // 20px padding top/bottom
+            // Note: node.size[0] currently stores the width.
+            // If the node width is dynamic, this might be slightly off if size isn't updated.
+            // But usually width is fixed or set by template.
             return {
-                x: node.position[0] + node.size[0] + 1,
-                y: node.position[1] + 20 + (outIdx + 0.5) * (availableHeight / count),
+                x: node.position[0] + node.size[0], // On the right border
+                y: node.position[1] + headerHeight + bodyPadding + (outIdx * rowTotal) + (rowHeight / 2),
             };
         }
     }

@@ -10,12 +10,15 @@
     "frontendDist": "../build"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
         "title": "FerroFlux Playground",
         "width": 800,
         "height": 600,
-        "dragDropEnabled": false
+        "dragDropEnabled": false,
+        "transparent": true,
+        "decorations": false
       }
     ],
     "security": {

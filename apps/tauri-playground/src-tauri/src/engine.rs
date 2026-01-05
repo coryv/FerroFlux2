@@ -11,6 +11,14 @@ pub enum EngineCommand {
     ),
     GetTemplates(oneshot::Sender<Result<Vec<crate::types::NodeTemplate>, String>>),
     ReloadDefinitions(oneshot::Sender<Result<(), String>>),
+    SimulateNode(
+        flow_canvas::model::Uuid,
+        String,                                               // definition_id
+        std::collections::HashMap<String, serde_json::Value>, // config
+        serde_json::Value,
+        std::collections::HashMap<String, ferroflux_core::components::shadow::MockConfig>,
+        oneshot::Sender<Result<serde_json::Value, String>>,
+    ),
 }
 
 pub fn spawn_engine_thread(mut engine_rx: mpsc::Receiver<EngineCommand>) {
@@ -24,6 +32,7 @@ pub fn spawn_engine_thread(mut engine_rx: mpsc::Receiver<EngineCommand>) {
             let mut client: Option<FerroFluxClient<PlaygroundNodeData>> = None;
             while let Some(cmd) = engine_rx.recv().await {
                 match cmd {
+                    // ... (other commands same)
                     EngineCommand::Init(tx) => {
                         if client.is_none() {
                             match FerroFluxClient::init().await {
@@ -67,6 +76,16 @@ pub fn spawn_engine_thread(mut engine_rx: mpsc::Receiver<EngineCommand>) {
                     EngineCommand::ReloadDefinitions(tx) => {
                         if let Some(c) = client.as_ref() {
                             let res = c.reload_definitions().await;
+                            let _ = tx.send(res.map_err(|e| e.to_string()));
+                        } else {
+                            let _ = tx.send(Err("Client not initialized".to_string()));
+                        }
+                    }
+                    EngineCommand::SimulateNode(node_id, def_id, config, payload, mocks, tx) => {
+                        if let Some(c) = client.as_mut() {
+                            let res = c
+                                .simulate_and_wait(node_id, def_id, config, payload, mocks)
+                                .await;
                             let _ = tx.send(res.map_err(|e| e.to_string()));
                         } else {
                             let _ = tx.send(Err("Client not initialized".to_string()));

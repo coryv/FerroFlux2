@@ -160,6 +160,70 @@ impl<T: NodeData> FerroFluxClient<T> {
         Ok(())
     }
 
+    /// Simulates a node execution in Shadow Mode and waits for the result.
+    pub async fn simulate_and_wait(
+        &mut self,
+        node_id: uuid::Uuid,
+        definition_id: String,
+        config: HashMap<String, serde_json::Value>,
+        input_payload: serde_json::Value,
+        mock_config: HashMap<String, ferroflux_core::components::shadow::MockConfig>,
+    ) -> Result<serde_json::Value> {
+        let trace_id = format!("sim-{}", uuid::Uuid::new_v4());
+        let tenant_id = ferroflux_iam::TenantId::from("default");
+
+        // Subscribe to events *before* sending command to avoid race
+        let mut rx = self.event_rx.resubscribe();
+
+        self.api_tx
+            .send(ferroflux_core::api::ApiCommand::SimulateNode {
+                tenant_id,
+                node_id,
+                definition_id,
+                config,
+                input_payload,
+                trace_id: trace_id.clone(),
+                mock_config,
+            })
+            .await?;
+
+        // Loop engine until result or timeout
+        let start = std::time::Instant::now();
+        loop {
+            // Tick engine to process command and pipeline
+            self.tick().await?;
+
+            // Check for events
+            while let Ok(event) = rx.try_recv() {
+                match event {
+                    SystemEvent::NodeTelemetry {
+                        trace_id: t_id,
+                        details,
+                        ..
+                    } if t_id == trace_id => {
+                        return Ok(details);
+                    }
+                    SystemEvent::NodeError {
+                        trace_id: t_id,
+                        error,
+                        ..
+                    } if t_id == trace_id => {
+                        return Err(anyhow::anyhow!("Simulation failed: {}", error));
+                    }
+                    _ => {}
+                }
+            }
+
+            if start.elapsed().as_secs() > 5 {
+                return Err(anyhow::anyhow!("Simulation timed out"));
+            }
+            // Yield slightly to avoid hot loop?
+            // `tick` locks engine. We should sleep a bit if valid?
+            // Actually, `tick` is fast.
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        }
+    }
+
     /// Fetches all available node templates from the engine registry.
     pub async fn get_node_templates(
         &self,

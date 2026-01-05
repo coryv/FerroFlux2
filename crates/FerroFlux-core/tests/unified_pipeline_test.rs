@@ -31,7 +31,10 @@ impl Tool for MockTool {
 
         // We have to mutate the context map directly to simulate "emit" behavior
         // In reality, `emit` tool writes to `_outputs` key.
-        ctx.local.insert("_outputs".to_string(), outputs);
+        ctx.local.insert(
+            "_outputs".to_string(),
+            ferroflux_core::components::execution_state::DataRef::Inline(outputs),
+        );
 
         Ok(json!({"status": "ok"}))
     }
@@ -92,9 +95,7 @@ fn test_unified_pipeline_execution() {
 
     // 2. Prepare Workflow State
     let mut initial_state = ActiveWorkflowState::new();
-    initial_state
-        .context
-        .insert("initial_data".to_string(), json!("hello"));
+    initial_state.set("initial_data", json!("hello"));
 
     let state_bytes = serde_json::to_vec(&initial_state).unwrap();
     let store_res = world.resource::<BlobStore>();
@@ -132,17 +133,29 @@ fn test_unified_pipeline_execution() {
     let final_state: ActiveWorkflowState = serde_json::from_slice(&new_data).unwrap();
 
     assert_eq!(
-        final_state.context.get("initial_data").unwrap(),
+        final_state
+            .get("initial_data")
+            .unwrap()
+            .as_inline()
+            .unwrap(),
         &json!("hello"),
         "Should preserve initial context"
     );
     assert_eq!(
-        final_state.context.get("enriched_key").unwrap(),
+        final_state
+            .get("enriched_key")
+            .unwrap()
+            .as_inline()
+            .unwrap(),
         &json!("enriched_value"),
         "Should contain enriched value from mock tool"
     );
     assert_eq!(
-        final_state.context.get("my_transformed_key").unwrap(),
+        final_state
+            .get("my_transformed_key")
+            .unwrap()
+            .as_inline()
+            .unwrap(),
         &json!("enriched_value"),
         "Should contain transformed key via output_transform"
     );

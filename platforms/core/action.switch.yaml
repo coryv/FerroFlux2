@@ -11,9 +11,6 @@ interface:
   inputs:
     - name: Exec
       type: flow
-    - name: data
-      type: object
-      description: "The object to evaluate conditions against."
   
   outputs:
     - name: Exec

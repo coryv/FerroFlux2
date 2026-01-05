@@ -6,8 +6,9 @@ pub mod logic;
 pub mod math;
 pub mod rhai;
 pub mod sleep;
-pub mod switch;
+// pub mod switch;
 pub mod trace;
+pub mod utils;
 pub mod variable;
 
 pub use self::emit::EmitTool;
@@ -18,6 +19,5 @@ pub use self::logic::LogicTool;
 pub use self::math::MathTool;
 pub use self::rhai::RhaiTool;
 pub use self::sleep::SleepTool;
-pub use self::switch::SwitchTool;
 pub use self::trace::TraceTool;
 pub use self::variable::{GetVarTool, SetVarTool};

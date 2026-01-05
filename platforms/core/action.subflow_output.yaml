@@ -11,8 +11,6 @@ interface:
   inputs:
     - name: Exec
       type: flow
-    - name: result
-      type: object
   outputs: [] # No outputs, terminates flow
 
   settings: []

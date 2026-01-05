@@ -49,6 +49,21 @@ pub struct PortDef {
     pub data_type: String,
     #[serde(default)]
     pub default_hidden: bool,
+    #[serde(default)]
+    pub generator: Option<PortGeneratorDef>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PortGeneratorDef {
+    pub source: String,
+    pub template: PortTemplateDef,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PortTemplateDef {
+    pub name: String,
+    #[serde(rename = "type")]
+    pub data_type: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -4,6 +4,7 @@
     import type { GraphState } from "$lib/types";
     import Toolbar from "$lib/components/Toolbar.svelte";
     import Canvas from "$lib/components/Canvas.svelte";
+    import TitleBar from "$lib/components/TitleBar.svelte";
     import NodeTray from "$lib/components/NodeTray.svelte";
 
     // State
@@ -35,16 +36,7 @@
         }
     }
 
-    async function addNode() {
-        try {
-            const x = 100 + Math.random() * 400;
-            const y = 100 + Math.random() * 400;
-            await invoke("add_node", { name: "New Node", x, y });
-            await refreshGraph();
-        } catch (e) {
-            status = "Add Node Error: " + e;
-        }
-    }
+
 
     async function deploy() {
         status = "Deploying...";
@@ -62,8 +54,11 @@
 <svelte:window />
 
 <main>
-    <Canvas {graph} {status} onDeploy={deploy} onRefresh={refreshGraph} />
-    <NodeTray />
+    <TitleBar />
+    <div class="app-content">
+        <Canvas {graph} {status} onDeploy={deploy} onRefresh={refreshGraph} />
+        <NodeTray />
+    </div>
 </main>
 
 <style>
@@ -73,7 +68,27 @@
         font-family: sans-serif;
         overflow: hidden;
         user-select: none;
-        background: #111;
+        background: transparent; /* Allow window transparency */
         color: #eee;
+    }
+
+    /* Main Container (Visible Window) */
+    main {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        background: #111; /* Actual window background */
+        border-radius: 12px; /* Rounded corners */
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1); /* Subtle border */
+    }
+
+    .app-content {
+        position: absolute;
+        top: 0; /* Full height since header is floating */
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow: hidden;
     }
 </style>

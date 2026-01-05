@@ -32,4 +32,11 @@ pub trait NodeFactory: Send + Sync {
 
     /// Returns metadata about the node for UI/docs.
     fn metadata(&self) -> NodeMetadata;
+
+    /// Resolves the actual ports for a specific configuration instance.
+    /// Default implementation returns the static metadata ports.
+    fn resolve_interface(&self, _config: &Value) -> (Vec<PortMetadata>, Vec<PortMetadata>) {
+        let meta = self.metadata();
+        (meta.inputs, meta.outputs)
+    }
 }

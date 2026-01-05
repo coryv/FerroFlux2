@@ -11,10 +11,6 @@ interface:
   inputs:
     - name: Exec
       type: flow
-    - name: a
-      type: number
-    - name: b
-      type: number
   outputs:
     - name: Exec
       type: flow
@@ -22,6 +18,12 @@ interface:
       type: number
 
   settings:
+    - name: a
+      label: "Left Value"
+      type: any
+    - name: b
+      label: "Right Value"
+      type: any
     - name: operation
       label: Operation
       type: select

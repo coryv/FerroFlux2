@@ -1,97 +1,82 @@
 use crate::components::pipeline::PipelineNode;
-use anyhow::{Context, Result};
+use anyhow::Result;
 use bevy_ecs::prelude::*;
 use std::collections::HashMap;
 
+#[allow(clippy::too_many_arguments)]
 pub fn handle_simulate_node(
     world: &mut World,
     _tenant: ferroflux_iam::TenantId,
     node_id: uuid::Uuid,
-    input_ticket: uuid::Uuid,
+    definition_id: String,
+    config: HashMap<String, serde_json::Value>,
+    input_payload: serde_json::Value,
     trace_id: String,
     mock_config: HashMap<String, crate::components::shadow::MockConfig>,
 ) -> Result<()> {
-    // 1. Resolve Node Definition and Config
-    // This is tricky: Do we simulate a node *definition* or an *instance*?
-    // Usually instance. We need its config settings.
-    // However, existing nodes are entities.
-    // To Simulate, we can clone an existing node's config.
-    // BUT we don't have a direct "Map<Uuid, NodeConfig>" easily accessible without query.
+    // Wrap inner logic to capture errors
+    let result = (|| -> Result<()> {
+        // Use the definition and config provided directly in the command (Draft Mode support)
 
-    // Assumption: The user provides the node_id of a deployed node entity.
-    // We need to find that entity to get its configuration.
-    // But direct Entity lookup by UUID requires iteration or a lookup resource.
-    // "ferroflux_iam::TenantId" implies multi-tenancy.
+        // Store Input Payload
+        let ticket = if let Some(store) = world.get_resource::<crate::store::BlobStore>().cloned() {
+            let payload_bytes =
+                serde_json::to_vec(&input_payload).unwrap_or_else(|_| b"{}".to_vec());
+            let mut metadata = HashMap::new();
+            metadata.insert("trace_id".to_string(), trace_id.clone());
+            metadata.insert("shadow".to_string(), "true".to_string());
 
-    // For MVP, let's scan components::core::NodeMap if it exists, or just query.
-    // Actually, `crate::components::core::NodeMap` is `HashMap<Entity, Uuid>`.
-    // We need `Uuid -> Entity`.
+            store.check_in_with_metadata(&payload_bytes, metadata)?
+        } else {
+            return Err(anyhow::anyhow!("BlobStore resource not found"));
+        };
 
-    // Let's iterate all PipelineNodes to find the matching config.
-    // This is O(N) but acceptable for MVP simulation trigger.
+        // Spawn Ephemeral Mutation
+        let shadow_node = PipelineNode {
+            definition_id: definition_id.clone(),
+            config: config.clone(),
+            execution_context: Default::default(),
+        };
 
-    // DIFFERENTIATION: SimulateNode creates a NEW ephemeral entity to avoid state corruption.
-    // So we *must* find the config of the source node.
+        // Prepare Input
+        let mut inbox = crate::components::Inbox::default();
+        inbox.queue.push_back(ticket);
 
-    let source_entity = find_entity_by_uuid(world, node_id).context("Node not found")?;
+        // Spawn
+        world.spawn((
+            shadow_node,
+            inbox,
+            crate::components::Outbox::default(),
+            crate::components::shadow::ShadowExecution {
+                mocked_tools: mock_config,
+            },
+            crate::components::NodeConfig {
+                id: node_id,
+                name: "Shadow Node".to_string(),
+                node_type: "Shadow".to_string(),
+                workflow_id: None,
+                tenant_id: None,
+            },
+            // We might want a cleanup component or TTL so these don't pile up?
+            // For now, rely on "Janitor"? Janitor cleans traces, not entities.
+            // We should add `Ephemeral` component.
+        ));
 
-    // Extract config
-    let (definition_id, config) = {
-        let node = world.entity(source_entity);
-        let p_node = node.get::<PipelineNode>().context("Not a pipeline node")?;
-        (p_node.definition_id.clone(), p_node.config.clone())
-    };
+        tracing::info!(%node_id, "Spawned ephemeral shadow node");
+        Ok(())
+    })();
 
-    // 2. Spawn Ephemeral Mutation
-    // "Shadow Entity"
-    let shadow_node = PipelineNode {
-        definition_id,
-        config,
-        execution_context: Default::default(),
-    };
-
-    // 3. Prepare Input
-    // We need to fetch the ticket to ensure it exists?
-    // Or just queue it. The pipeline system loads it.
-    let ticket = crate::store::SecureTicket {
-        id: input_ticket,
-        metadata: {
-            let mut m = HashMap::new();
-            m.insert("trace_id".to_string(), trace_id);
-            m.insert("shadow".to_string(), "true".to_string());
-            m
-        },
-    };
-
-    let mut inbox = crate::components::Inbox::default();
-    inbox.queue.push_back(ticket);
-
-    // 4. Spawn
-    world.spawn((
-        shadow_node,
-        inbox,
-        crate::components::Outbox::default(),
-        crate::components::shadow::ShadowExecution {
-            mocked_tools: mock_config,
-        },
-        // We might want a cleanup component or TTL so these don't pile up?
-        // For now, rely on "Janitor"? Janitor cleans traces, not entities.
-        // We should add `Ephemeral` component.
-    ));
-
-    tracing::info!(%node_id, "Spawned ephemeral shadow node");
-
-    Ok(())
-}
-
-fn find_entity_by_uuid(world: &mut World, target: uuid::Uuid) -> Option<Entity> {
-    let mut target_entity = None;
-    let mut query = world.query::<(Entity, &crate::components::NodeConfig)>();
-    for (e, conf) in query.iter(world) {
-        if conf.id == target {
-            target_entity = Some(e);
-            break;
+    if let Err(ref e) = result {
+        // Emit error event so client doesn't time out
+        if let Some(bus) = world.get_resource::<crate::api::events::SystemEventBus>() {
+            let _ = bus.0.send(crate::api::events::SystemEvent::NodeError {
+                trace_id: trace_id.clone(),
+                node_id,
+                error: e.to_string(),
+                timestamp: chrono::Utc::now().timestamp_millis(),
+            });
         }
     }
-    target_entity
+
+    result
 }

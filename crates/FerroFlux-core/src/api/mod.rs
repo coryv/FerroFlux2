@@ -13,7 +13,9 @@ pub enum ApiCommand {
     SimulateNode {
         tenant_id: ferroflux_iam::TenantId,
         node_id: uuid::Uuid,
-        input_ticket: uuid::Uuid,
+        definition_id: String,
+        config: std::collections::HashMap<String, serde_json::Value>,
+        input_payload: serde_json::Value,
         trace_id: String,
         mock_config: std::collections::HashMap<String, crate::components::shadow::MockConfig>,
     },

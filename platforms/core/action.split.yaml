@@ -11,8 +11,6 @@ interface:
   inputs:
     - name: Exec
       type: flow
-    - name: array
-      type: array
   
   outputs:
     - name: item

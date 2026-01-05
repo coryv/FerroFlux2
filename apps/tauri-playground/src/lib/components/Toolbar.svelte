@@ -116,18 +116,20 @@
 <style>
     .toolbar {
         position: absolute;
-        bottom: 24px;
+        top: 12px;
+        /* bottom: 24px; */
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(30, 30, 35, 0.85);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--panel-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
         border-radius: 12px;
         padding: 6px;
         display: flex;
         align-items: center;
         gap: 8px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 8px 32px var(--shadow-color);
         z-index: 1000;
         user-select: none;
     }
@@ -138,12 +140,12 @@
     .divider {
         width: 1px;
         height: 24px;
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--border-color);
     }
     button {
         background: transparent;
         border: none;
-        color: #aaa;
+        color: var(--text-secondary);
         padding: 8px;
         border-radius: 8px;
         cursor: pointer;
@@ -153,31 +155,31 @@
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     button:hover:not(:disabled) {
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
     }
     button:active:not(:disabled) {
         transform: scale(0.92);
-        background: rgba(255, 255, 255, 0.15);
+        background: var(--bg-secondary);
     }
     button:disabled {
         opacity: 0.3;
         cursor: not-allowed;
     }
     button.active {
-        background: var(--edge-selected, #60a5fa);
+        background: var(--accent-color);
         color: #fff;
-        box-shadow: 0 0 12px rgba(96, 165, 250, 0.4);
+        box-shadow: 0 0 12px var(--shadow-color); /* Colored shadow? or generic */
     }
     button.primary {
-        color: #60a5fa;
+        color: var(--accent-color);
     }
     button.primary:hover {
-        background: rgba(96, 165, 250, 0.15);
+        background: var(--bg-secondary);
     }
     .status {
         font-size: 11px;
-        color: #888;
+        color: var(--text-secondary);
         padding: 0 8px;
         white-space: nowrap;
         max-width: 200px;

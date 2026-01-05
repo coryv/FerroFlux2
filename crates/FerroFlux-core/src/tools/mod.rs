@@ -10,9 +10,15 @@ mod tests;
 ///
 /// This context holds the ephemeral state of the current node execution,
 /// allowing tools to read inputs and write outputs.
+use crate::components::execution_state::DataRef;
+
+/// Context provided to a Tool during execution.
+///
+/// This context holds the ephemeral state of the current node execution,
+/// allowing tools to read inputs and write outputs.
 pub struct ToolContext<'a> {
     /// Variables local to the current node execution pipeline.
-    pub local: &'a mut HashMap<String, Value>,
+    pub local: &'a mut HashMap<String, DataRef>,
     /// global workflow memory (read/write).
     pub memory: &'a mut HashMap<String, Value>,
     /// Correlation ID for the execution flow.
@@ -23,6 +29,10 @@ pub struct ToolContext<'a> {
     pub shadow_mode: bool,
     /// Mock configurations for specific tools when in Shadow Mode.
     pub shadow_masks: &'a HashMap<String, crate::components::shadow::MockConfig>,
+    /// Access to secret store for resolving connections (optional).
+    pub secret_store: Option<&'a crate::secrets::DatabaseSecretStore>,
+    /// Handle to the Tokio runtime for bridging sync tools to async operations (optional).
+    pub runtime: Option<&'a crate::resources::TokioRuntime>,
 }
 
 /// A "Tool" is an atomic unit of logic.
@@ -45,7 +55,7 @@ pub trait Tool: Send + Sync {
 pub fn register_core_tools(registry: &mut registry::ToolRegistry) {
     use primitives::*;
     registry.register(HttpClientTool);
-    registry.register(SwitchTool);
+    // registry.register(SwitchTool);
     registry.register(JsonQueryTool);
     registry.register(EmitTool);
     registry.register(LogicTool);
