@@ -123,11 +123,23 @@ FerroFlux is "type-aware" during interpolation.
 - If a parameter value is a **single** template expression like `json: "{{ steps.api.body }}"`, FerroFlux will preserve the underlying type (Object, Array, Number).
 - Mixed content like `msg: "Status is {{ steps.api.status }}"` will always result in a **string**.
 
+### 5. Efficient Variable Access (`{{ get }}`)
+
+For reliability and performance, it is recommended to use the `{{ get }}` helper for all variable access, especially within strings or when accessing deep object paths.
+
+- **Standard Access**: `{{ get 'variable_name' }}`
+- **Deep Path Access**: `{{ get 'steps.my_step.body.user.id' }}`
+- **Mixing with Strings**: `"Hello {{ get 'user.name' }}"`
+
+> [!IMPORTANT]
+> Always use `{{ get }}` when mixing variables with text. Using raw `{{ my_var }}` in a mixed string may render the internal representation (e.g., `{"Inline": "value"}`) instead of the clean value.
+
 ---
 
 ## Best Practices
 
 1. **Namespace IDs**: Use `platform.feature.action` format for IDs to avoid collisions (e.g., `openai.chat.completions`).
 2. **Atomic Steps**: Break complex logic into multiple small steps using generic tools like `json_query` or `math`.
-3. **Handle Errors**: Always provide a `Success` or `Error` port to ensure the node doesn't fail silently.
-4. **Use Platforms**: Don't hardcode API keys or base URLs. Use `{{ platform.config_key }}`.
+3. **Use the `{{ get }}` Helper**: Use `{{ get }}` for all variable access to ensure consistent rendering and support for large data (blobs).
+4. **Handle Errors**: Always provide a `Success` or `Error` port to ensure the node doesn't fail silently.
+5. **Use Platforms**: Don't hardcode API keys or base URLs. Use `{{ platform.config_key }}`.

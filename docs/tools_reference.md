@@ -226,3 +226,21 @@ Performs statistical analysis on an array of numbers or objects. Can calculate m
     threshold: 3.0
 ```
 
+---
+
+## Templating Helpers
+
+These helpers enhance the Handlebars rendering engine and provide efficient access to the workflow's "Hybrid Manifest" data structure.
+
+### `{{ get }}`
+The primary way to access variables. It handles both direct lookups and lazy-loading of large data (blobs).
+
+**Always use `get` when:**
+1. Accessing a variable inside a mixed string (e.g., `"Hello {{ get 'name' }}"`).
+2. Accessing deep object paths (e.g., `{{ get 'steps.api.body.user.email' }}`).
+3. Accessing variables that might be large (stored as Blobs).
+
+**Examples:**
+- **Simple**: `{{ get 'name' }}`
+- **Deep**: `{{ get 'settings.api_key' }}`
+- **String Interpolation**: `"The status code is {{ get 'steps.call_api.status' }}"`
