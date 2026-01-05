@@ -12,10 +12,10 @@ execution:
 interface:
   inputs:
     - name: inputs
-      type: array
+      type: flow
   outputs:
     - name: output
-      type: array
+      type: flow
   settings:
     - data_type: string
       default: value

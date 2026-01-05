@@ -176,8 +176,7 @@ async fn test_manifest_pattern_blob_resolution() {
     let resolved_val = final_state.get("output_data").unwrap().as_inline().unwrap();
 
     // Check if it matches heavy payload
-    // Note: echoing `{"data": ...}`
-    assert_eq!(resolved_val.get("data").unwrap(), &heavy_payload);
+    assert_eq!(resolved_val, &heavy_payload);
 }
 
 #[tokio::test]
@@ -333,4 +332,74 @@ async fn test_memory_spill_strategy() {
     } else {
         panic!("large_var should have been optimized to Blob!");
     }
+}
+
+#[tokio::test]
+async fn test_lazy_loading_get_helper() {
+    let mut world = setup_world().await;
+    let store = world.resource::<BlobStore>().clone();
+
+    // 1. Create a large object and store as Blob
+    let heavy_payload = json!({ "user": { "name": "Alice", "id": 123 } });
+    let ticket = store
+        .check_in(&serde_json::to_vec(&heavy_payload).unwrap())
+        .unwrap();
+
+    // 2. Create state with Blob reference
+    let mut state = ActiveWorkflowState::new();
+    state.set_ref("heavy_data", DataRef::Blob(ticket));
+
+    let state_bytes = serde_json::to_vec(&state).unwrap();
+    let state_ticket = store.check_in(&state_bytes).unwrap();
+
+    // 3. Define a node that uses the {{ get }} helper to pull deep data from the Blob
+    let mut def_registry = world.resource_mut::<DefinitionRegistry>();
+    def_registry.definitions.insert(
+        "lazy_node".to_string(),
+        NodeDefinition {
+            meta: default_node_meta("lazy_node"),
+            interface: default_interface(),
+            execution: vec![PipelineStep {
+                id: "step1".to_string(),
+                tool: "mock_tool".to_string(),
+                // Template uses 'get' to pull name out of the blobified 'heavy_data'
+                params: json!({"resolved_name": "{{ get 'heavy_data.user.name' }}"}),
+                returns: HashMap::from([("resolved_name".to_string(), "output_name".to_string())]),
+            }],
+            output_transform: None,
+            context: None,
+            routing: None,
+        },
+    );
+
+    // 4. Spawn Node
+    let mut inbox = Inbox::default();
+    inbox.queue.push_back(state_ticket);
+
+    world.spawn((
+        PipelineNode {
+            definition_id: "lazy_node".to_string(),
+            config: HashMap::new(),
+            execution_context: HashMap::new(),
+        },
+        inbox,
+        Outbox::default(),
+    ));
+
+    // 5. Run Tick
+    let mut schedule = Schedule::default();
+    schedule.add_systems(pipeline_execution_system);
+    schedule.run(&mut world);
+
+    // 6. Verify Output
+    let mut query = world.query::<&Outbox>();
+    let outbox = query.single(&world);
+    let (_, out_ticket) = outbox.queue.front().unwrap();
+
+    let out_data = store.claim(out_ticket).unwrap();
+    let final_state: ActiveWorkflowState = serde_json::from_slice(&out_data).unwrap();
+
+    // The output_name should be "Alice"
+    let resolved_val = final_state.get("output_name").unwrap().as_inline().unwrap();
+    assert_eq!(resolved_val, "Alice");
 }

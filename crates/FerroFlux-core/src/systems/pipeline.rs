@@ -5,7 +5,7 @@ use crate::tools::ToolContext;
 use crate::tools::registry::ToolRegistry;
 use anyhow::Result;
 use bevy_ecs::prelude::*;
-use handlebars::Handlebars;
+use handlebars::{Context, Handlebars, Helper, HelperResult, Output, RenderContext};
 use jmespath;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -175,8 +175,103 @@ pub fn execute_pipeline_node(
         }
     }
 
+    // --- NEW: SETUP HANDLEBARS WITH LAZY HELPER ---
+    let mut handlebars = Handlebars::new();
+    handlebars.register_escape_fn(handlebars::no_escape);
+
+    // Clone store for the closure
+    let store_ref = store.cloned();
+
+    handlebars.register_helper(
+        "get",
+        Box::new(
+            move |h: &Helper,
+                  _: &Handlebars,
+                  ctx: &Context,
+                  _: &mut RenderContext,
+                  out: &mut dyn Output|
+                  -> HelperResult {
+                // 1. Get the path string: {{ get "steps.webhook.body.id" }}
+                let path = h
+                    .param(0)
+                    .ok_or(handlebars::RenderErrorReason::Other(
+                        "Missing variable path".to_string(),
+                    ))?
+                    .value()
+                    .as_str()
+                    .ok_or(handlebars::RenderErrorReason::Other(
+                        "Path must be a string".to_string(),
+                    ))?;
+
+                // 2. Resolve the root variable from the lightweight context
+                let root = ctx.data();
+                let parts: Vec<&str> = path.split('.').collect();
+                if parts.is_empty() {
+                    return Ok(());
+                }
+
+                // Find the root DataRef
+                let first = parts[0];
+                let raw_ref = root.get(first);
+
+                if let Some(data_ref_val) = raw_ref {
+                    // Resolve the DataRef (Inline or Blob)
+                    let resolved_root = if let Some(obj) = data_ref_val.as_object() {
+                        if let Some(blob_ticket_val) = obj.get("Blob") {
+                            if let Some(store) = &store_ref {
+                                let ticket: crate::store::blob::SecureTicket =
+                                    serde_json::from_value(blob_ticket_val.clone()).map_err(
+                                        |e| {
+                                            handlebars::RenderErrorReason::Other(format!(
+                                                "Invalid ticket: {}",
+                                                e
+                                            ))
+                                        },
+                                    )?;
+
+                                if let Ok(bytes) = store.claim(&ticket) {
+                                    // Attempt to parse as JSON Value
+                                    serde_json::from_slice(&bytes).ok()
+                                } else {
+                                    None
+                                }
+                            } else {
+                                None
+                            }
+                        } else if let Some(inline) = obj.get("Inline") {
+                            Some(inline.clone())
+                        } else {
+                            Some(data_ref_val.clone())
+                        }
+                    } else {
+                        Some(data_ref_val.clone())
+                    };
+
+                    if let Some(mut current) = resolved_root {
+                        // 3. Traverse remaining parts in the resolved Value
+                        for part in &parts[1..] {
+                            if let Some(next) = current.get(part) {
+                                current = next.clone();
+                            } else {
+                                // Path not found
+                                return Ok(());
+                            }
+                        }
+
+                        // 4. Render the final value
+                        if let Some(s) = current.as_str() {
+                            out.write(s)?;
+                        } else {
+                            out.write(&current.to_string())?;
+                        }
+                    }
+                }
+                Ok(())
+            },
+        ),
+    );
+
     // Also support the explicit `context` variables from definition
-    let handlebars = Handlebars::new();
     if let Some(ctx_defs) = &def.context {
         for (key, template) in ctx_defs {
             let rendered = handlebars
@@ -320,6 +415,13 @@ pub fn execute_pipeline_node(
         .unwrap_or(serde_json::json!({}));
     workflow_state.merge(outputs.clone());
 
+    // 4b. Sync Context back to persistent state
+    // We remove node-local settings/platform/steps before persisting to avoid bloat
+    ctx_map.remove("settings");
+    ctx_map.remove("platform");
+    ctx_map.remove("steps");
+    workflow_state.context = ctx_map;
+
     // Determine Active Ports
     let mut active_ports = Vec::new();
     if let Some(out_obj) = outputs.as_object() {
@@ -371,15 +473,14 @@ fn resolve_recursive(
             if trimmed.starts_with("{{") && trimmed.ends_with("}}") {
                 let inner = &trimmed[2..trimmed.len() - 2].trim();
                 if !inner.contains(' ')
+                    && !inner.starts_with("get ")
                     && let Some(val) = lookup_path(ctx, inner, store)
                 {
                     return Ok(val);
                 }
             }
-            // Materialize context for handlebars rendering
-            // This is potentially expensive but necessary for full template support with Manifest Pattern
-            let materialized = materialize_context(ctx, store);
-            let rendered = reg.render_template(s, &materialized)?;
+            // Render template using lightweight context
+            let rendered = reg.render_template(s, ctx)?;
             Ok(Value::String(rendered))
         }
         Value::Array(arr) => {
@@ -450,17 +551,4 @@ fn resolve_dataref_to_value(
             }
         }
     }
-}
-
-fn materialize_context(
-    ctx: &HashMap<String, DataRef>,
-    store: Option<&crate::store::BlobStore>,
-) -> HashMap<String, Value> {
-    let mut map = HashMap::new();
-    for (k, v) in ctx {
-        if let Some(val) = resolve_dataref_to_value(v, store) {
-            map.insert(k.clone(), val);
-        }
-    }
-    map
 }
