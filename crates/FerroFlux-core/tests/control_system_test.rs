@@ -2,10 +2,10 @@ use bevy_ecs::prelude::*;
 use ferroflux_core::api::events::{SystemEvent, SystemEventBus};
 use ferroflux_core::components::control::CheckpointConfig;
 use ferroflux_core::components::core::{Inbox, NodeConfig};
-use ferroflux_iam::TenantId;
 use ferroflux_core::store::BlobStore;
 use ferroflux_core::store::database::PersistentStore;
 use ferroflux_core::systems::control::checkpoint_worker;
+use ferroflux_iam::TenantId;
 use tokio::sync::broadcast;
 use uuid::Uuid;
 

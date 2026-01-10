@@ -1,6 +1,6 @@
-use ferroflux_iam::TenantId;
 use crate::integrations::IntegrationRegistry;
 use crate::store::database::PersistentStore;
+use ferroflux_iam::TenantId;
 use handlebars::Handlebars;
 use serde_json::Value;
 

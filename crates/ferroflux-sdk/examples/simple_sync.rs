@@ -15,12 +15,12 @@ impl flow_canvas::model::NodeData for MyData {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
-    println!("=== FerroFlux SDK Integration Demo ===");
+    println!("=== FerroFlux SDK Integration Demo (Actor Mode) ===");
 
-    // 1. Initialize the SDK (which manages the Engine internally)
-    let mut client = FerroFluxClient::<MyData>::init().await?;
+    // 1. Initialize the SDK (which starts the background Actor)
+    let (client, actor_handle) = FerroFluxClient::<MyData>::start().await?;
 
-    // 3. Create a Visual Graph in FlowCanvas
+    // 2. Create a Visual Graph in FlowCanvas
     let mut graph = GraphState::<MyData>::default();
 
     // Add Node A
@@ -36,10 +36,21 @@ async fn main() -> anyhow::Result<()> {
         style: None,
     });
 
-    // Add Node B
+    println!("Canvas created with 1 node.");
+
+    // 4. Deploy to Engine (Incremental Sync)
+    println!("Deploying canvas to engine...");
+    client.sync_graph(&graph).await?;
+
+    // 5. Let it run for a bit
+    println!("Engine is running in background...");
+    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+
+    // 6. Live Edit: Add a new node
+    println!("Live Edit: Adding Node B...");
     let _node_b_id = graph.insert_node(flow_canvas::model::Node {
         id: flow_canvas::model::NodeId::default(),
-        uuid: Uuid::new_v4(),
+        uuid: Uuid::new_v4(), // New UUID
         position: Vec2::new(400.0, 100.0),
         size: Vec2::new(150.0, 100.0),
         inputs: Vec::new(),
@@ -49,19 +60,23 @@ async fn main() -> anyhow::Result<()> {
         style: None,
     });
 
-    println!("Canvas created with 2 nodes.");
+    client.sync_graph(&graph).await?;
+    println!("Synced new graph state.");
 
-    // 4. Deploy to Engine
-    println!("Deploying canvas to engine...");
-    client.compile_and_deploy(&graph).await?;
+    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
 
-    // 5. Run a few ticks of the engine
-    println!("Running engine ticks...");
-    for i in 0..5 {
-        client.tick().await?;
-        client.sync_events(&mut graph);
-        println!("Tick {} complete", i);
-    }
+    // 7. Pause/Resume
+    println!("Pausing engine...");
+    client.pause().await?;
+    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    println!("Resuming engine...");
+    client.resume().await?;
+
+    // Cleanup
+    // In a real app we might want a Shutdown command, but dropping the client closes the channel
+    // and the Actor loop will exit.
+    drop(client);
+    let _ = actor_handle.await;
 
     println!("\nIntegration Demo Succeeded!");
     Ok(())

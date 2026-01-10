@@ -67,8 +67,9 @@ impl SecretStore for DatabaseSecretStore {
                 .await?
                 .ok_or_else(|| anyhow::anyhow!("Connection '{}' not found", slug))?;
 
-        let decrypted = ferroflux_security::encryption::decrypt(&enc_data, &self.master_key, &nonce)
-            .context("Decryption failed")?;
+        let decrypted =
+            ferroflux_security::encryption::decrypt(&enc_data, &self.master_key, &nonce)
+                .context("Decryption failed")?;
 
         let json: Value =
             serde_json::from_slice(&decrypted).context("Invalid JSON in connection data")?;

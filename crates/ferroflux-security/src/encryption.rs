@@ -1,6 +1,6 @@
 use aes_gcm::{
-    Aes256Gcm, Key, Nonce,
     aead::{Aead, KeyInit},
+    Aes256Gcm, Key, Nonce,
 };
 use anyhow::{Context, Result};
 use rand::RngCore;

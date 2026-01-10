@@ -13,7 +13,7 @@ use crate::systems::janitor::JanitorTimer;
 use crate::systems::register_core_systems;
 use bevy_ecs::prelude::*;
 use bevy_ecs::system::SystemState;
-use rhai::Engine;
+
 use std::sync::Arc;
 
 pub struct AppBuilder {
@@ -162,10 +162,6 @@ impl AppBuilder {
         world.insert_resource(crate::resources::HttpResultChannel::default());
         world.insert_resource(crate::api::events::SystemEventBus(event_tx.clone()));
         world.insert_resource(store.clone());
-
-        // Heavy resources
-        let engine = Engine::new();
-        world.insert_non_send_resource(engine);
 
         // Use current runtime handle
         let runtime_handle = tokio::runtime::Handle::current();

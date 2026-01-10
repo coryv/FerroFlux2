@@ -1,34 +1,33 @@
+use crate::actor::{EngineActor, EngineCommand};
 use anyhow::Result;
-use bevy_ecs::prelude::*;
 use ferroflux_core::api::events::SystemEvent;
-use ferroflux_core::app::App;
 use ferroflux_core::app::AppBuilder;
-use ferroflux_core::components::core::{Edge, NodeConfig};
 use flow_canvas::model::{GraphState, NodeData};
 use std::collections::HashMap;
-use std::sync::Arc;
-use tokio::sync::{Mutex, broadcast};
+use tokio::sync::{broadcast, mpsc, oneshot};
+
+pub mod actor;
+pub mod reconciler;
 
 /// The SDK Client for interacting with the FerroFlux Engine.
 ///
 /// This client manages the lifecycle of the engine, graph deployment,
 /// and event synchronization, serving as the primary interface for
 /// Desktop, Web, and CLI applications.
-pub struct FerroFluxClient<T: NodeData> {
-    /// Handle to the underlying FerroFlux engine.
-    pub engine: Arc<Mutex<App>>,
-    /// Channel for sending commands to the engine.
-    api_tx: async_channel::Sender<ferroflux_core::api::ApiCommand>,
+pub struct FerroFluxClient<T: NodeData + Send + 'static> {
+    /// Channel for sending commands to the Engine Actor.
+    command_tx: mpsc::Sender<EngineCommand<T>>,
     /// Subscriber to the engine's event bus.
-    event_rx: broadcast::Receiver<SystemEvent>,
+    pub event_rx: broadcast::Receiver<SystemEvent>,
+
     _marker: std::marker::PhantomData<T>,
 }
 
-impl<T: NodeData> FerroFluxClient<T> {
-    /// Initializes a new SDK client with default engine settings.
+impl<T: NodeData + Send + 'static> FerroFluxClient<T> {
+    /// Initializes a new SDK client and starts the background Engine Actor.
     ///
-    /// This is the standard entry point for most applications.
-    pub async fn init() -> Result<Self> {
+    /// Returns the Client and the JoinHandle for the background task.
+    pub async fn start() -> Result<(Self, tokio::task::JoinHandle<()>)> {
         let (mut engine, api_tx, event_tx, ..) = AppBuilder::new().build().await?;
 
         // Register Core Tools
@@ -39,78 +38,57 @@ impl<T: NodeData> FerroFluxClient<T> {
             ferroflux_core::tools::register_core_tools(&mut registry);
         }
 
-        Ok(Self::new(engine, api_tx, event_tx))
-    }
+        let (cmd_tx, cmd_rx) = mpsc::channel(32);
+        let actor = EngineActor::new(engine, api_tx.clone(), cmd_rx, event_tx.clone());
 
-    /// Creates a new SDK client for a given engine instance.
-    pub fn new(
-        engine: App,
-        api_tx: async_channel::Sender<ferroflux_core::api::ApiCommand>,
-        event_bus: broadcast::Sender<SystemEvent>,
-    ) -> Self {
-        Self {
-            engine: Arc::new(Mutex::new(engine)),
-            api_tx,
-            event_rx: event_bus.subscribe(),
+        let handle = tokio::spawn(actor.run());
+
+        let client = Self {
+            command_tx: cmd_tx,
+            event_rx: event_tx.subscribe(),
             _marker: std::marker::PhantomData,
-        }
+        };
+
+        Ok((client, handle))
     }
 
-    /// Compiles and deploys the current Canvas state to the Engine.
+    /// Synchronizes the visual graph state with the running engine.
     ///
-    /// This process "lowers" the high-level visual graph into a set of optimized
-    /// ECS entities and components ready for execution. It strips away layout
-    /// information (position, size) as the engine operates purely on logic.
-    pub async fn compile_and_deploy(&mut self, graph: &GraphState<T>) -> Result<()> {
-        let mut engine = self.engine.lock().await;
-        let world = &mut engine.world;
+    /// This uses incremental reconciliation to preserve runtime state of existing nodes.
+    pub async fn sync_graph(&self, graph: &GraphState<T>) -> Result<()> {
+        // Clone the graph to send to the actor
+        let graph_clone = Box::new(graph.clone());
+        self.command_tx
+            .send(EngineCommand::SyncGraph(graph_clone))
+            .await
+            .map_err(|_| anyhow::anyhow!("Engine Actor closed"))?;
+        Ok(())
+    }
 
-        // 1. Clear existing nodes/edges from the engine (simplified for V1)
-        // In a real app, we might want incremental updates.
-        let mut query = world.query_filtered::<Entity, With<NodeConfig>>();
-        let entities: Vec<Entity> = query.iter(world).collect();
-        for entity in entities {
-            world.despawn(entity);
-        }
+    /// Pauses engine execution.
+    pub async fn pause(&self) -> Result<()> {
+        self.command_tx
+            .send(EngineCommand::Pause)
+            .await
+            .map_err(|_| anyhow::anyhow!("Engine Actor closed"))?;
+        Ok(())
+    }
 
-        let mut canvas_to_entity = HashMap::new();
+    /// Resumes engine execution.
+    pub async fn resume(&self) -> Result<()> {
+        self.command_tx
+            .send(EngineCommand::Resume)
+            .await
+            .map_err(|_| anyhow::anyhow!("Engine Actor closed"))?;
+        Ok(())
+    }
 
-        // 2. Spawn Nodes
-        for (id, node) in &graph.nodes {
-            let entity = world
-                .spawn(NodeConfig {
-                    id: node.uuid,
-                    name: format!("{:?}", node.id), // Placeholder name
-                    node_type: node.data.node_type(), // This now comes from node.data
-                    workflow_id: None,
-                    tenant_id: None,
-                })
-                .id();
-
-            canvas_to_entity.insert(id, entity);
-        }
-
-        // 3. Spawn Edges
-        for (_, conn) in &graph.connections {
-            let from_node_id = graph.ports.get(conn.from).map(|p| p.node);
-            let to_node_id = graph.ports.get(conn.to).map(|p| p.node);
-
-            #[allow(clippy::collapsible_if)]
-            if let (Some(from_id), Some(to_id)) = (from_node_id, to_node_id) {
-                if let (Some(&src_entity), Some(&target_entity)) =
-                    (canvas_to_entity.get(&from_id), canvas_to_entity.get(&to_id))
-                {
-                    world.spawn(Edge {
-                        source: src_entity,
-                        target: target_entity,
-                        // TODO: Map actual port names from FlowCanvas once Port struct supports names
-                        source_handle: Some("Exec".to_string()),
-                        target_handle: Some("Exec".to_string()),
-                    });
-                }
-            }
-        }
-
+    /// Executes a single tick (if paused).
+    pub async fn step(&self, count: usize) -> Result<()> {
+        self.command_tx
+            .send(EngineCommand::Step(count))
+            .await
+            .map_err(|_| anyhow::anyhow!("Engine Actor closed"))?;
         Ok(())
     }
 
@@ -122,12 +100,11 @@ impl<T: NodeData> FerroFluxClient<T> {
             match event {
                 SystemEvent::NodeTelemetry {
                     node_id, success, ..
-                } => {
+                } =>
+                {
                     #[allow(clippy::collapsible_if)]
                     if let Some(&canvas_id) = graph.uuid_index.get(&node_id) {
                         if let Some(_node) = graph.nodes.get_mut(canvas_id) {
-                            // Here we could trigger a "Pulse" animation or change style
-                            // For now, let's just log it.
                             tracing::info!(node_id = ?canvas_id, success, "Node execution visualization triggered");
                         }
                     }
@@ -137,27 +114,11 @@ impl<T: NodeData> FerroFluxClient<T> {
                     target_id,
                     ..
                 } => {
-                    // We could find the connection between these nodes and animate the transition
                     tracing::info!(from = ?source_id, to = ?target_id, "Edge traversal visualization triggered");
                 }
                 _ => {}
             }
         }
-    }
-
-    /// Runs one tick of the backend engine.
-    pub async fn tick(&mut self) -> Result<()> {
-        let mut engine = self.engine.lock().await;
-        engine.update();
-        Ok(())
-    }
-
-    /// Triggers a reload of all YAML node definitions.
-    pub async fn reload_definitions(&self) -> Result<()> {
-        self.api_tx
-            .send(ferroflux_core::api::ApiCommand::ReloadDefinitions)
-            .await?;
-        Ok(())
     }
 
     /// Simulates a node execution in Shadow Mode and waits for the result.
@@ -175,25 +136,27 @@ impl<T: NodeData> FerroFluxClient<T> {
         // Subscribe to events *before* sending command to avoid race
         let mut rx = self.event_rx.resubscribe();
 
-        self.api_tx
-            .send(ferroflux_core::api::ApiCommand::SimulateNode {
-                tenant_id,
-                node_id,
-                definition_id,
-                config,
-                input_payload,
-                trace_id: trace_id.clone(),
-                mock_config,
-            })
-            .await?;
+        self.command_tx
+            .send(EngineCommand::Api(
+                ferroflux_core::api::ApiCommand::SimulateNode {
+                    tenant_id,
+                    node_id,
+                    definition_id,
+                    config,
+                    input_payload,
+                    trace_id: trace_id.clone(),
+                    mock_config,
+                },
+            ))
+            .await
+            .map_err(|_| anyhow::anyhow!("Engine Actor closed"))?;
 
-        // Loop engine until result or timeout
+        // Wait for result
+        // TODO: Add timeout
         let start = std::time::Instant::now();
         loop {
-            // Tick engine to process command and pipeline
-            self.tick().await?;
+            // We do NOT tick here anymore. The actor ticks.
 
-            // Check for events
             while let Ok(event) = rx.try_recv() {
                 match event {
                     SystemEvent::NodeTelemetry {
@@ -217,91 +180,44 @@ impl<T: NodeData> FerroFluxClient<T> {
             if start.elapsed().as_secs() > 5 {
                 return Err(anyhow::anyhow!("Simulation timed out"));
             }
-            // Yield slightly to avoid hot loop?
-            // `tick` locks engine. We should sleep a bit if valid?
-            // Actually, `tick` is fast.
             tokio::time::sleep(std::time::Duration::from_millis(10)).await;
         }
     }
 
-    /// Fetches all available node templates from the engine registry.
+    /// Fetches all available node templates.
+    ///
+    /// NOTE: This now requires a request-response pattern because we don't own the App Mutex.
+    /// For V1, we simply can't access templates directly if the Actor owns the App.
+    ///
+    /// SOLUTION: Implementation Phase 2 should add a `GetTemplates` command + Response channel.
+    /// For now, keeping as TODO or removing.
+    /// If the Playground needs this, it won't work with this refactor immediately unless we add it to EngineCommand.
+    ///
+    /// Let's add a placeholder comment.
+    /// Triggers a reload of all YAML node definitions.
+    pub async fn reload_definitions(&self) -> Result<()> {
+        self.command_tx
+            .send(EngineCommand::Api(
+                ferroflux_core::api::ApiCommand::ReloadDefinitions,
+            ))
+            .await
+            .map_err(|_| anyhow::anyhow!("Engine Actor closed"))?;
+        Ok(())
+    }
+
+    /// Fetches all available node templates.
     pub async fn get_node_templates(
         &self,
     ) -> Result<Vec<ferroflux_core::traits::node_factory::NodeMetadata>> {
-        let engine = self.engine.lock().await;
-        // Access NodeRegistry
-        let mut templates = Vec::new();
+        let (tx, rx) = oneshot::channel();
+        self.command_tx
+            .send(EngineCommand::GetTemplates(tx))
+            .await
+            .map_err(|_| anyhow::anyhow!("Engine Actor closed"))?;
 
-        if let Some(registry) = engine
-            .world
-            .get_resource::<ferroflux_core::resources::registry::NodeRegistry>()
-        {
-            let core_temps = registry.list_templates();
-            println!("DEBUG: SDK found {} core templates", core_temps.len());
-            templates.extend(core_temps);
-        } else {
-            println!("DEBUG: SDK: NodeRegistry resource not found!");
+        match rx.await {
+            Ok(res) => res.map_err(|e| anyhow::anyhow!("Failed to list templates: {}", e)),
+            Err(_) => Err(anyhow::anyhow!("Response channel closed")),
         }
-
-        // Access IntegrationRegistry if available
-        if let Some(registry) = engine
-            .world
-            .get_resource::<ferroflux_core::integrations::IntegrationRegistry>()
-        {
-            for (key, def) in &registry.definitions {
-                for (action_key, action) in &def.actions {
-                    let id = format!("integration/{}/{}", key, action_key);
-
-                    let mut inputs = action
-                        .inputs
-                        .iter()
-                        .map(|f| ferroflux_core::traits::node_factory::PortMetadata {
-                            name: f.name.clone(),
-                            data_type: "any".to_string(), // Schema types are complex, using any for now
-                        })
-                        .collect::<Vec<_>>();
-
-                    // Always add Exec input
-                    inputs.insert(
-                        0,
-                        ferroflux_core::traits::node_factory::PortMetadata {
-                            name: "Exec".to_string(),
-                            data_type: "flow".to_string(),
-                        },
-                    );
-
-                    let mut outputs = action
-                        .outputs
-                        .iter()
-                        .map(|f| ferroflux_core::traits::node_factory::PortMetadata {
-                            name: f.name.clone(),
-                            data_type: "any".to_string(),
-                        })
-                        .collect::<Vec<_>>();
-
-                    // Always add Exec output
-                    outputs.insert(
-                        0,
-                        ferroflux_core::traits::node_factory::PortMetadata {
-                            name: "Success".to_string(),
-                            data_type: "flow".to_string(),
-                        },
-                    );
-
-                    templates.push(ferroflux_core::traits::node_factory::NodeMetadata {
-                        id,
-                        name: format!("{} {}", def.name, action_key),
-                        category: "Integrations".to_string(),
-                        platform: Some(key.clone()),
-                        description: action.documentation.clone(),
-                        inputs,
-                        outputs,
-                        settings: vec![], // For now
-                    });
-                }
-            }
-        }
-
-        Ok(templates)
     }
 }

@@ -1,3 +1,3 @@
 pub mod wasm;
 
-pub use wasm::{wasm_worker, WasmRuntime};
+pub use wasm::{WasmRuntime, wasm_worker};

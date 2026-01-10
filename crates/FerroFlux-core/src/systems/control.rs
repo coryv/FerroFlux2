@@ -1,10 +1,10 @@
 use crate::api::events::{SystemEvent, SystemEventBus};
 use crate::components::control::CheckpointConfig;
 use crate::components::core::{Inbox, NodeConfig};
-use ferroflux_iam::TenantId;
 use crate::store::BlobStore;
 use crate::store::database::PersistentStore;
 use bevy_ecs::prelude::*;
+use ferroflux_iam::TenantId;
 use serde_json::json;
 use uuid::Uuid;
 

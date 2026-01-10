@@ -4,15 +4,15 @@ use ferroflux_core::components::{
     core::{Inbox, Outbox},
     schema::ExpectedOutput,
 };
+use ferroflux_core::integrations::IntegrationRegistry;
 use ferroflux_core::integrations::registry::{
     ActionImplementation, IntegrationAction, IntegrationConfig, IntegrationDef, OutputTransform,
 };
-use ferroflux_core::integrations::IntegrationRegistry;
 use ferroflux_core::resources::GlobalHttpClient;
 use ferroflux_core::store::BlobStore;
 use ferroflux_core::systems::{agent::agent_exec, agent::agent_post, agent::agent_prep};
-use serde_json::{json, Value};
 use ferroflux_iam::TenantId;
+use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Duration;
@@ -59,7 +59,10 @@ async fn setup_world(mock_server_url: String) -> (World, Schedule) {
     let mut actions = HashMap::new();
     let mut headers = HashMap::new();
     headers.insert("Content-Type".to_string(), "application/json".to_string());
-    headers.insert("Authorization".to_string(), "Bearer {{api_key}}".to_string()); // Mock auth
+    headers.insert(
+        "Authorization".to_string(),
+        "Bearer {{api_key}}".to_string(),
+    ); // Mock auth
 
     actions.insert(
         "chat_completion".to_string(),
@@ -316,7 +319,7 @@ fn test_agent_retry_logic() {
             .up_to_n_times(2)
             .mount(&mock_server)
             .await;
-        
+
         Mock::given(method("POST"))
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
                  "choices": [{
@@ -339,7 +342,11 @@ fn test_agent_retry_logic() {
                 user_prompt_template: "User".to_string(),
                 generation_settings: GenerationSettings::default(),
                 output_mode: OutputMode::Text,
-                history_config: ferroflux_core::components::agent::HistoryConfig { enabled: false, window_size: 0, session_id_key: "".to_string() },
+                history_config: ferroflux_core::components::agent::HistoryConfig {
+                    enabled: false,
+                    window_size: 0,
+                    session_id_key: "".to_string(),
+                },
                 tools: vec![],
                 tool_choice: ToolChoice::Auto,
                 result_key: None,
@@ -352,7 +359,6 @@ fn test_agent_retry_logic() {
                 workflow_id: None,
                 tenant_id: Some(TenantId::from("default_tenant")),
             },
-
             ExpectedOutput::default(),
             inbox,
             Outbox::default(),
@@ -476,14 +482,14 @@ fn test_tracing_propagation() {
             .await;
 
         let store = world.resource::<BlobStore>().clone();
-        
+
         // Inject with Trace ID
         let trace_id = "trace-12345".to_string();
         let mut meta = std::collections::HashMap::new();
         meta.insert("trace_id".to_string(), trace_id.clone());
-        
+
         let ticket = store.check_in_with_metadata(b"{}", meta).unwrap();
-        
+
         let mut inbox = Inbox::default();
         inbox.queue.push_back(ticket);
 
@@ -495,7 +501,11 @@ fn test_tracing_propagation() {
                 user_prompt_template: "User".to_string(),
                 generation_settings: GenerationSettings::default(),
                 output_mode: OutputMode::Text,
-                history_config: ferroflux_core::components::agent::HistoryConfig { enabled: false, window_size: 0, session_id_key: "".to_string() },
+                history_config: ferroflux_core::components::agent::HistoryConfig {
+                    enabled: false,
+                    window_size: 0,
+                    session_id_key: "".to_string(),
+                },
                 tools: vec![],
                 tool_choice: ToolChoice::Auto,
                 result_key: None,
@@ -518,26 +528,35 @@ fn test_tracing_propagation() {
         let mut rx = event_bus.0.subscribe();
 
         let mut found_telemetry = false;
-        
+
         for _ in 0..50 {
             schedule.run(&mut world);
-            
+
             // Check events (non-blocking)
             while let Ok(event) = rx.try_recv() {
-                if let ferroflux_core::api::events::SystemEvent::NodeTelemetry { trace_id: t_id, node_type, .. } = event 
-                    && t_id == trace_id && node_type == "Agent" {
+                if let ferroflux_core::api::events::SystemEvent::NodeTelemetry {
+                    trace_id: t_id,
+                    node_type,
+                    ..
+                } = event
+                    && t_id == trace_id
+                    && node_type == "Agent"
+                {
                     found_telemetry = true;
                     break;
                 }
             }
-            
+
             if found_telemetry {
                 break;
             }
             tokio::time::sleep(Duration::from_millis(50)).await;
         }
 
-        assert!(found_telemetry, "Did not receive NodeTelemetry event with correct trace_id");
+        assert!(
+            found_telemetry,
+            "Did not receive NodeTelemetry event with correct trace_id"
+        );
         // world.remove_non_send_resource::<Runtime>().unwrap()
     });
 }

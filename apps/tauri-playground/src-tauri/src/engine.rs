@@ -23,7 +23,7 @@ pub enum EngineCommand {
 
 pub fn spawn_engine_thread(mut engine_rx: mpsc::Receiver<EngineCommand>) {
     std::thread::spawn(move || {
-        let rt = tokio::runtime::Builder::new_current_thread()
+        let rt = tokio::runtime::Builder::new_multi_thread()
             .enable_all()
             .build()
             .unwrap();
@@ -35,8 +35,8 @@ pub fn spawn_engine_thread(mut engine_rx: mpsc::Receiver<EngineCommand>) {
                     // ... (other commands same)
                     EngineCommand::Init(tx) => {
                         if client.is_none() {
-                            match FerroFluxClient::init().await {
-                                Ok(c) => {
+                            match FerroFluxClient::start().await {
+                                Ok((c, _handle)) => {
                                     client = Some(c);
                                     let _ = tx.send(Ok(()));
                                 }
@@ -50,10 +50,7 @@ pub fn spawn_engine_thread(mut engine_rx: mpsc::Receiver<EngineCommand>) {
                     }
                     EngineCommand::Deploy(graph, tx) => {
                         if let Some(c) = client.as_mut() {
-                            let res = c.compile_and_deploy(&graph).await;
-                            if res.is_ok() {
-                                let _ = c.tick().await;
-                            }
+                            let res = c.sync_graph(&graph).await;
                             let _ = tx.send(res.map_err(|e| e.to_string()));
                         } else {
                             let _ = tx.send(Err("Client not initialized".to_string()));
