@@ -24,7 +24,7 @@
     let zoom = $state(1);
     let isDraggingCanvas = $state(false);
     let draggingNodeId = $state<string | null>(null);
-    let selectedNodeIds = $state(new SvelteSet<string>());
+    let selectedNodeIds = new SvelteSet<string>();
     let canvasElement = $state<HTMLDivElement | null>(null);
     let globalEdgeStyle = $state<"Cubic" | "Linear" | "Orthogonal">("Cubic");
     let lastMousePos = $state({ x: 0, y: 0 }); // World space
@@ -345,6 +345,7 @@
     }
 
     let selectedNodePorts = $derived.by(() => {
+        // eslint-disable-next-line svelte/prefer-svelte-reactivity
         const ports = new Set<string>();
         for (const id of selectedNodeIds) {
             const node = graph.nodes[id];

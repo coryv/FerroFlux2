@@ -3,7 +3,9 @@ use flow_canvas::model::GraphState;
 use glam::Vec2;
 use uuid::Uuid;
 
-#[derive(Clone, Debug)]
+use futures::StreamExt;
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 struct MyData;
 
 impl flow_canvas::model::NodeData for MyData {
@@ -20,7 +22,16 @@ async fn main() -> anyhow::Result<()> {
     // 1. Initialize the SDK (which starts the background Actor)
     let (client, actor_handle) = FerroFluxClient::<MyData>::start().await?;
 
-    // 2. Create a Visual Graph in FlowCanvas
+    // 2. Spawn a log listener
+    let log_stream = client.logs();
+    tokio::spawn(async move {
+        tokio::pin!(log_stream);
+        while let Some((level, msg)) = log_stream.next().await {
+            println!("[LOG] [{}] {}", level, msg);
+        }
+    });
+
+    // 3. Create a Visual Graph in FlowCanvas
     let mut graph = GraphState::<MyData>::default();
 
     // Add Node A
@@ -68,6 +79,9 @@ async fn main() -> anyhow::Result<()> {
     // 7. Pause/Resume
     println!("Pausing engine...");
     client.pause().await?;
+
+    println!("Stepping 1 frame...");
+    client.step(1).await?;
     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
     println!("Resuming engine...");
     client.resume().await?;

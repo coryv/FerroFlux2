@@ -3,10 +3,14 @@ use anyhow::Result;
 use ferroflux_core::api::events::SystemEvent;
 use ferroflux_core::app::AppBuilder;
 use flow_canvas::model::{GraphState, NodeData};
+use futures::StreamExt;
 use std::collections::HashMap;
 use tokio::sync::{broadcast, mpsc, oneshot};
+use tokio_stream::wrappers::BroadcastStream;
 
 pub mod actor;
+pub mod persistence;
+pub mod protocol;
 pub mod reconciler;
 
 /// The SDK Client for interacting with the FerroFlux Engine.
@@ -23,7 +27,10 @@ pub struct FerroFluxClient<T: NodeData + Send + 'static> {
     _marker: std::marker::PhantomData<T>,
 }
 
-impl<T: NodeData + Send + 'static> FerroFluxClient<T> {
+use serde::Serialize;
+use serde::de::DeserializeOwned;
+
+impl<T: NodeData + Serialize + DeserializeOwned + Send + 'static> FerroFluxClient<T> {
     /// Initializes a new SDK client and starts the background Engine Actor.
     ///
     /// Returns the Client and the JoinHandle for the background task.
@@ -219,5 +226,127 @@ impl<T: NodeData + Send + 'static> FerroFluxClient<T> {
             Ok(res) => res.map_err(|e| anyhow::anyhow!("Failed to list templates: {}", e)),
             Err(_) => Err(anyhow::anyhow!("Response channel closed")),
         }
+    }
+
+    /// Subscribes to a stream of application logs.
+    pub fn logs(&self) -> impl futures::Stream<Item = (String, String)> + Send + 'static {
+        BroadcastStream::new(self.event_rx.resubscribe()).filter_map(|res| async move {
+            if let Ok(SystemEvent::Log { level, message, .. }) = res {
+                Some((level, message))
+            } else {
+                None
+            }
+        })
+    }
+
+    /// Subscribes to a stream of node telemetry events (execution results).
+    pub fn telemetry(
+        &self,
+    ) -> impl futures::Stream<Item = (uuid::Uuid, bool, u64, String)> + Send + 'static {
+        BroadcastStream::new(self.event_rx.resubscribe()).filter_map(|res| async move {
+            if let Ok(SystemEvent::NodeTelemetry {
+                node_id,
+                success,
+                execution_ms,
+                trace_id,
+                ..
+            }) = res
+            {
+                Some((node_id, success, execution_ms, trace_id))
+            } else {
+                None
+            }
+        })
+    }
+
+    /// Captures the full state of the engine (Structure + Runtime Data) into a JSON string.
+    pub async fn save_snapshot(&self, graph: &GraphState<T>) -> Result<String> {
+        let (tx, rx) = oneshot::channel();
+        self.command_tx
+            .send(EngineCommand::SaveSnapshot(tx))
+            .await
+            .map_err(|_| anyhow::anyhow!("Engine Actor closed"))?;
+
+        let runtime = rx
+            .await
+            .map_err(|_| anyhow::anyhow!("Response channel closed"))?
+            .map_err(|e| anyhow::anyhow!("Snapshot failed: {}", e))?;
+
+        let save_file = crate::persistence::SaveFile {
+            graph: graph.clone(),
+            runtime,
+        };
+
+        Ok(serde_json::to_string(&save_file)?)
+    }
+
+    /// Restores the engine state from a JSON snapshot.
+    ///
+    /// This will sync the graph structure and then restore the runtime queues/memory.
+    pub async fn load_snapshot(&self, json: &str) -> Result<()> {
+        let save_file: crate::persistence::SaveFile<T> = serde_json::from_str(json)?;
+
+        // 1. Restore Structure
+        self.sync_graph(&save_file.graph).await?;
+
+        // 2. Restore Runtime State
+        self.command_tx
+            .send(EngineCommand::RestoreSnapshot(save_file.runtime))
+            .await
+            .map_err(|_| anyhow::anyhow!("Engine Actor closed"))?;
+
+        Ok(())
+    }
+
+    /// Inspects the runtime state (Inbox, Outbox) of a specific node.
+    pub async fn inspect_node(
+        &self,
+        node_id: uuid::Uuid,
+    ) -> Result<Option<crate::persistence::NodeRuntimeState>> {
+        let (tx, rx) = oneshot::channel();
+        self.command_tx
+            .send(EngineCommand::InspectNode(node_id, tx))
+            .await
+            .map_err(|_| anyhow::anyhow!("Engine Actor closed"))?;
+
+        let state = rx
+            .await
+            .map_err(|_| anyhow::anyhow!("Response channel closed"))?;
+        Ok(state)
+    }
+
+    /// Injects a message into a node's input.
+    pub async fn inject_message(
+        &self,
+        node_id: uuid::Uuid,
+        port: impl Into<String>,
+        payload: serde_json::Value,
+    ) -> Result<()> {
+        self.command_tx
+            .send(EngineCommand::InjectMessage {
+                node_id,
+                port: port.into(),
+                payload,
+            })
+            .await
+            .map_err(|_| anyhow::anyhow!("Engine Actor closed"))?;
+        Ok(())
+    }
+
+    /// Reads a blob from the store given a ticket.
+    pub async fn read_blob(
+        &self,
+        ticket: ferroflux_core::store::SecureTicket,
+    ) -> Result<Option<serde_json::Value>> {
+        let (tx, rx) = oneshot::channel();
+        self.command_tx
+            .send(EngineCommand::ReadBlob(ticket, tx))
+            .await
+            .map_err(|_| anyhow::anyhow!("Engine Actor closed"))?;
+
+        let val = rx
+            .await
+            .map_err(|_| anyhow::anyhow!("Response channel closed"))?;
+        Ok(val)
     }
 }

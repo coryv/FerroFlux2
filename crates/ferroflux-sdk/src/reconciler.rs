@@ -1,6 +1,6 @@
 use anyhow::Result;
 use bevy_ecs::prelude::*;
-use ferroflux_core::components::core::{Edge, NodeConfig};
+use ferroflux_core::components::core::{Edge, Inbox, NodeConfig, Outbox};
 use flow_canvas::model::{GraphState, NodeData};
 use std::collections::{HashMap, HashSet};
 
@@ -42,14 +42,13 @@ pub fn reconcile_graph<T: NodeData>(world: &mut World, graph: &GraphState<T>) ->
     // For V1, we just update the NodeConfig component.
     // Ideally, we'd check if specific fields changed to avoid spurious change detection.
     for node in graph.nodes.values() {
-        if let Some(entity) = existing_entities.get(&node.uuid) {
-            if let Some(mut config) = world.get_mut::<NodeConfig>(*entity) {
+        if let Some(entity) = existing_entities.get(&node.uuid)
+            && let Some(mut config) = world.get_mut::<NodeConfig>(*entity) {
                 // Update Name / Type if changed?
                 // Type change usually implies full respawn, but for now we assume same type.
                 config.name = format!("{:?}", node.id);
                 // We DON'T change execution state here.
             }
-        }
     }
 
     // 5. Spawn New Nodes
@@ -66,13 +65,21 @@ pub fn reconcile_graph<T: NodeData>(world: &mut World, graph: &GraphState<T>) ->
         // Find the node data in the graph (reverse lookup needed or iterate)
         if let Some(node) = graph.nodes.values().find(|n| n.uuid == *uuid) {
             let entity = world
-                .spawn(NodeConfig {
-                    id: node.uuid,
-                    name: format!("{:?}", node.id),
-                    node_type: node.data.node_type(),
-                    workflow_id: None,
-                    tenant_id: None,
-                })
+                .spawn((
+                    NodeConfig {
+                        id: node.uuid,
+                        name: format!("{:?}", node.id),
+                        node_type: node.data.node_type(),
+                        workflow_id: None,
+                        tenant_id: None,
+                    },
+                    Inbox::default(),
+                    Outbox::default(),
+                    ferroflux_core::components::pipeline::PipelineNode::new(
+                        node.data.node_type(),
+                        std::collections::HashMap::new(),
+                    ),
+                ))
                 .id();
 
             canvas_to_entity.insert(*uuid, entity);
@@ -99,16 +106,14 @@ pub fn reconcile_graph<T: NodeData>(world: &mut World, graph: &GraphState<T>) ->
         let from_node_uuid = graph
             .ports
             .get(conn.from)
-            .map(|p| graph.nodes.get(p.node).map(|n| n.uuid))
-            .flatten();
+            .and_then(|p| graph.nodes.get(p.node).map(|n| n.uuid));
         let to_node_uuid = graph
             .ports
             .get(conn.to)
-            .map(|p| graph.nodes.get(p.node).map(|n| n.uuid))
-            .flatten();
+            .and_then(|p| graph.nodes.get(p.node).map(|n| n.uuid));
 
-        if let (Some(from_uuid), Some(to_uuid)) = (from_node_uuid, to_node_uuid) {
-            if let (Some(&src_entity), Some(&target_entity)) = (
+        if let (Some(from_uuid), Some(to_uuid)) = (from_node_uuid, to_node_uuid)
+            && let (Some(&src_entity), Some(&target_entity)) = (
                 canvas_to_entity.get(&from_uuid),
                 canvas_to_entity.get(&to_uuid),
             ) {
@@ -120,7 +125,6 @@ pub fn reconcile_graph<T: NodeData>(world: &mut World, graph: &GraphState<T>) ->
                     target_handle: Some("Exec".to_string()),
                 });
             }
-        }
     }
 
     Ok(())

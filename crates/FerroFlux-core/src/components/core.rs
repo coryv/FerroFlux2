@@ -52,13 +52,13 @@ pub struct Edge {
 }
 
 /// Holds incoming data packets waiting to be processed.
-#[derive(Component, Debug, Clone, Default)]
+#[derive(Component, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Inbox {
     pub queue: VecDeque<SecureTicket>,
 }
 
 /// Holds outgoing data packets waiting to be routed to the next node.
-#[derive(Component, Debug, Clone, Default)]
+#[derive(Component, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Outbox {
     /// Queue of (PortName, Ticket). If PortName is None, it sends to all/default.
     pub queue: VecDeque<(Option<String>, SecureTicket)>,
@@ -68,5 +68,5 @@ pub struct Outbox {
 ///
 /// Logic nodes (like Switch) use this to determine which edge(s) to traverse
 /// based on their evaluation result.
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, Serialize, Deserialize)]
 pub struct EdgeLabel(pub String);

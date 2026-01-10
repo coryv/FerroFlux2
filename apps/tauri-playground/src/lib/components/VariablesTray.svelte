@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { workflowContext } from "$lib/stores/workflow.svelte";
     import type { SerializableNode } from "$lib/types";
 
     let { nodes = [], visible = false } = $props<{
@@ -18,7 +17,7 @@
         for (const node of nodes) {
             // Check mappings
             const mappings = node.data.settings?.output_mappings || {};
-            for (const [port, varName] of Object.entries(mappings)) {
+            for (const varName of Object.values(mappings)) {
                 if (typeof varName === "string" && varName) {
                     vars.push({ label: varName, value: `{{${varName}}}` });
                 }

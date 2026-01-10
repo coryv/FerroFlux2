@@ -16,7 +16,7 @@
             let mocks = {};
             try {
                 mocks = JSON.parse(mockConfigJson);
-            } catch (e) {
+            } catch {
                 console.error("Invalid mock JSON");
             }
 

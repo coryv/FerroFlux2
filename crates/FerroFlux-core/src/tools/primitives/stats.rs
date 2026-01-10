@@ -47,11 +47,10 @@ impl Tool for StatsTool {
         for item in &data_array {
             if let Some(val) = item.get(target_field).and_then(|v| v.as_f64()) {
                 values.push(val);
-            } else if let Some(obj) = item.as_object() {
-                if let Some(val) = obj.get(target_field).and_then(|v| v.as_f64()) {
+            } else if let Some(obj) = item.as_object()
+                && let Some(val) = obj.get(target_field).and_then(|v| v.as_f64()) {
                     values.push(val);
                 }
-            }
         }
 
         let count = values.len() as f64;

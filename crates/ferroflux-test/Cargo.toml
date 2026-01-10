@@ -1,0 +1,17 @@
+[package]
+name = "ferroflux-test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ferroflux-sdk = { path = "../ferroflux-sdk" }
+ferroflux_core = { path = "../FerroFlux-core" }
+flow_canvas = { path = "../FlowCanvas" }
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+anyhow = "1.0"
+uuid = { version = "1.0", features = ["v4"] }
+glam = "0.30" # For positions
+tracing = "0.1"

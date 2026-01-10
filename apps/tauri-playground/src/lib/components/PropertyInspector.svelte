@@ -3,7 +3,7 @@
     import VariablesTray from "./VariablesTray.svelte";
     import OutputMapper from "./OutputMapper.svelte";
     import ShadowModePanel from "./ShadowModePanel.svelte";
-    import type { NodeTemplate, SerializableNode } from "$lib/types";
+    import type { SerializableNode } from "$lib/types";
     import { nodeRegistry } from "$lib/stores/nodeRegistry.svelte";
     import { workflowContext } from "$lib/stores/workflow.svelte";
 
@@ -194,7 +194,6 @@
         <VariablesTray {nodes} visible={showVariables} />
         {#if template}
             <OutputMapper
-                {selectedNode}
                 {template}
                 {settings}
                 onUpdate={updateSetting}
@@ -245,8 +244,10 @@
                 </svg>
             </button>
 
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <div
                 class="header"
+                role="group"
                 onmousedown={onHeaderMouseDown}
                 style="cursor: grab;"
             >

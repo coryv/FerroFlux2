@@ -10,6 +10,13 @@ pub struct SecureTicket {
     pub metadata: HashMap<String, String>,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BlobSnapshot {
+    pub id: Uuid,
+    pub data: Vec<u8>,
+    pub metadata: HashMap<String, String>,
+}
+
 #[derive(Debug)]
 struct BlobEntry {
     data: Vec<u8>,
@@ -30,6 +37,8 @@ pub trait BlobProvider: Send + Sync + std::fmt::Debug {
     fn delete(&self, id: &Uuid) -> anyhow::Result<bool>;
     fn update_metadata(&self, id: &Uuid, metadata: HashMap<String, String>) -> anyhow::Result<()>;
     fn list_expired(&self, ttl: std::time::Duration) -> Vec<Uuid>;
+    fn snapshot(&self) -> Vec<BlobSnapshot>;
+    fn restore(&self, snapshots: Vec<BlobSnapshot>) -> anyhow::Result<()>;
 }
 
 /// In-memory implementation of BlobProvider.
@@ -85,6 +94,33 @@ impl BlobProvider for MemoryProvider {
             .filter(|(_, entry)| now.duration_since(entry.created_at) >= ttl)
             .map(|(id, _)| *id)
             .collect()
+    }
+
+    fn snapshot(&self) -> Vec<BlobSnapshot> {
+        let guard = self.storage.read().unwrap();
+        guard
+            .iter()
+            .map(|(id, entry)| BlobSnapshot {
+                id: *id,
+                data: entry.data.clone(),
+                metadata: entry.metadata.clone(),
+            })
+            .collect()
+    }
+
+    fn restore(&self, snapshots: Vec<BlobSnapshot>) -> anyhow::Result<()> {
+        let mut guard = self.storage.write().unwrap();
+        for snap in snapshots {
+            guard.insert(
+                snap.id,
+                BlobEntry {
+                    data: snap.data,
+                    metadata: snap.metadata,
+                    created_at: std::time::Instant::now(), // Reset timestamp on restore
+                },
+            );
+        }
+        Ok(())
     }
 }
 
@@ -155,5 +191,13 @@ impl BlobStore {
             let _ = self.provider.delete(&id);
         }
         count
+    }
+
+    pub fn snapshot(&self) -> Vec<BlobSnapshot> {
+        self.provider.snapshot()
+    }
+
+    pub fn restore(&self, snapshots: Vec<BlobSnapshot>) -> anyhow::Result<()> {
+        self.provider.restore(snapshots)
     }
 }

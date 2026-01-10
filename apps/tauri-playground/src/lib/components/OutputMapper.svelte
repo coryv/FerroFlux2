@@ -1,14 +1,12 @@
 <script lang="ts">
-    import type { NodeTemplate, SerializableNode } from "$lib/types";
+    import type { NodeTemplate } from "$lib/types";
 
     let {
-        selectedNode,
         template,
         settings,
         onUpdate,
         visible = false,
     } = $props<{
-        selectedNode: SerializableNode;
         template: NodeTemplate | null;
         settings: Record<string, any>;
         onUpdate: (key: string, value: any) => void;

@@ -2,7 +2,6 @@
     import { invoke } from "@tauri-apps/api/core";
     import { onMount } from "svelte";
     import type { GraphState } from "$lib/types";
-    import Toolbar from "$lib/components/Toolbar.svelte";
     import Canvas from "$lib/components/Canvas.svelte";
     import TitleBar from "$lib/components/TitleBar.svelte";
     import NodeTray from "$lib/components/NodeTray.svelte";
@@ -35,8 +34,6 @@
             console.error(e);
         }
     }
-
-
 
     async function deploy() {
         status = "Deploying...";

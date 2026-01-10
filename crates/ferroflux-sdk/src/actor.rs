@@ -1,4 +1,7 @@
+use crate::persistence::{NodeRuntimeState, RuntimeSnapshot};
 use crate::reconciler::reconcile_graph;
+use bevy_ecs::prelude::*;
+use ferroflux_core::components::core::{Inbox, NodeConfig, Outbox};
 
 use ferroflux_core::api::ApiCommand;
 use ferroflux_core::app::App;
@@ -21,6 +24,23 @@ pub enum EngineCommand<T: NodeData + Send + 'static> {
     GetTemplates(
         oneshot::Sender<Result<Vec<ferroflux_core::traits::node_factory::NodeMetadata>, String>>,
     ),
+    /// Save a snapshot of the runtime state.
+    SaveSnapshot(oneshot::Sender<Result<RuntimeSnapshot, String>>),
+    /// Restore a snapshot of the runtime state.
+    RestoreSnapshot(RuntimeSnapshot),
+    /// Inspect the internal state of a specific node.
+    InspectNode(uuid::Uuid, oneshot::Sender<Option<NodeRuntimeState>>),
+    /// Inject a message into a node's inbox.
+    InjectMessage {
+        node_id: uuid::Uuid,
+        port: String,
+        payload: serde_json::Value,
+    },
+    /// Read a blob from the store.
+    ReadBlob(
+        ferroflux_core::store::SecureTicket,
+        oneshot::Sender<Option<serde_json::Value>>,
+    ),
 }
 
 /// The Actor that owns the App and runs the main loop.
@@ -38,11 +58,17 @@ pub struct EngineActor<T: NodeData + Send + 'static> {
 
 impl<T: NodeData + Send + 'static> EngineActor<T> {
     pub fn new(
-        app: App,
+        mut app: App,
         api_tx: async_channel::Sender<ApiCommand>,
         command_rx: mpsc::Receiver<EngineCommand<T>>,
         event_tx: broadcast::Sender<ferroflux_core::api::events::SystemEvent>,
     ) -> Self {
+        // Inject Event Bus so Core systems can publish events
+        app.world
+            .insert_resource(ferroflux_core::api::events::SystemEventBus(
+                event_tx.clone(),
+            ));
+
         Self {
             app,
             api_tx,
@@ -115,7 +141,141 @@ impl<T: NodeData + Send + 'static> EngineActor<T> {
                 let templates = self.get_node_templates();
                 let _ = tx.send(templates);
             }
+            EngineCommand::SaveSnapshot(tx) => {
+                let snapshot = self.save_runtime_snapshot();
+                let _ = tx.send(snapshot);
+            }
+            EngineCommand::RestoreSnapshot(snapshot) => {
+                if let Err(e) = self.restore_runtime_snapshot(snapshot) {
+                    tracing::error!("EngineActor: Failed to restore snapshot: {}", e);
+                }
+            }
+            EngineCommand::InspectNode(node_id, tx) => {
+                let state = self.inspect_node(node_id);
+                let _ = tx.send(state);
+            }
+            EngineCommand::InjectMessage {
+                node_id,
+                port,
+                payload,
+            } => {
+                if let Err(e) = self.inject_message(node_id, port, payload) {
+                    tracing::error!("EngineActor: Failed to inject message: {}", e);
+                }
+            }
+            EngineCommand::ReadBlob(ticket, tx) => {
+                let value = self.read_blob(ticket);
+                let _ = tx.send(value);
+            }
         }
+    }
+
+    fn read_blob(
+        &mut self,
+        ticket: ferroflux_core::store::SecureTicket,
+    ) -> Option<serde_json::Value> {
+        let world = &mut self.app.world;
+        if let Some(store) = world.get_resource::<ferroflux_core::store::BlobStore>() {
+            return store
+                .claim(&ticket)
+                .ok()
+                .and_then(|bytes| serde_json::from_slice(&bytes).ok());
+        }
+        None
+    }
+
+    fn inject_message(
+        &mut self,
+        node_id: uuid::Uuid,
+        _port: String,
+        payload: serde_json::Value,
+    ) -> Result<(), String> {
+        let world = &mut self.app.world;
+
+        // 1. Store Payload in BlobStore
+        let ticket = if let Some(store) = world.get_resource::<ferroflux_core::store::BlobStore>() {
+            let bytes = serde_json::to_vec(&payload).map_err(|e| e.to_string())?;
+            store.check_in(&bytes).map_err(|e| e.to_string())?
+        } else {
+            return Err("BlobStore not found".to_string());
+        };
+
+        // 2. Find Node and Update Inbox
+        let mut query = world.query::<(&NodeConfig, &mut Inbox)>();
+        for (config, mut inbox) in query.iter_mut(world) {
+            if config.id == node_id {
+                inbox.queue.push_back(ticket);
+                return Ok(());
+            }
+        }
+        Err(format!("Node {} not found", node_id))
+    }
+
+    fn inspect_node(&mut self, node_id: uuid::Uuid) -> Option<NodeRuntimeState> {
+        let world = &mut self.app.world;
+        let mut query = world.query::<(&NodeConfig, &Inbox, &Outbox)>();
+
+        for (config, inbox, outbox) in query.iter(world) {
+            if config.id == node_id {
+                return Some(NodeRuntimeState {
+                    inbox: inbox.clone(),
+                    outbox: outbox.clone(),
+                });
+            }
+        }
+        None
+    }
+
+    fn save_runtime_snapshot(&mut self) -> Result<RuntimeSnapshot, String> {
+        let world = &mut self.app.world;
+        let mut node_states = std::collections::HashMap::new();
+
+        let mut query = world.query::<(&NodeConfig, &Inbox, &Outbox)>();
+        for (config, inbox, outbox) in query.iter(world) {
+            node_states.insert(
+                config.id,
+                NodeRuntimeState {
+                    inbox: inbox.clone(),
+                    outbox: outbox.clone(),
+                },
+            );
+        }
+
+        // Snapshot BlobStore
+        let blobs = if let Some(store) = world.get_resource::<ferroflux_core::store::BlobStore>() {
+            store.snapshot()
+        } else {
+            Vec::new()
+        };
+
+        Ok(RuntimeSnapshot { node_states, blobs })
+    }
+
+    fn restore_runtime_snapshot(&mut self, snapshot: RuntimeSnapshot) -> Result<(), String> {
+        let world = &mut self.app.world;
+
+        // Restore Blobs
+        if let Some(store) = world.get_resource::<ferroflux_core::store::BlobStore>() {
+            store.restore(snapshot.blobs).map_err(|e| e.to_string())?;
+        }
+
+        // Restore Node States
+        // We have to iterate all entities with NodeConfig, match ID, and update components.
+        let mut query = world.query::<(Entity, &NodeConfig)>();
+        let mut target_entities = Vec::new();
+
+        for (entity, config) in query.iter(world) {
+            if let Some(state) = snapshot.node_states.get(&config.id) {
+                target_entities.push((entity, state.clone()));
+            }
+        }
+
+        for (entity, state) in target_entities {
+            // We use insert to overwrite or add components
+            world.entity_mut(entity).insert((state.inbox, state.outbox));
+        }
+
+        Ok(())
     }
 
     // Internal helper to fetch templates from the owned World

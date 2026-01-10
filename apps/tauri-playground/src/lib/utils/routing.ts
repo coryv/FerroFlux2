@@ -138,7 +138,7 @@ export function getSmartOrthogonalPath(
     let found = false;
     while (openSet.length > 0) {
         openSet.sort((a, b) => a[2] - b[2]);
-        const [cx, cy, _f, cDir] = openSet.shift()!;
+        const [cx, cy, , cDir] = openSet.shift()!;
 
         if (cx === endX && cy === endY) {
             found = true;
@@ -230,7 +230,7 @@ export function getSmartOrthogonalPath(
 
         // Simplify path
         if (path.length > 2) {
-            let simplified = [path[0]];
+            const simplified = [path[0]];
             for (let i = 1; i < path.length - 1; i++) {
                 const pPrev = simplified[simplified.length - 1];
                 const pCurr = path[i];

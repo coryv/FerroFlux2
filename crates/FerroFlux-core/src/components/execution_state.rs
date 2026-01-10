@@ -93,12 +93,11 @@ impl ActiveWorkflowState {
 
                 if estimated_size > threshold_bytes {
                     // It's too big! Offload to BlobStore.
-                    if let Ok(json_bytes) = serde_json::to_vec(val) {
-                        if let Ok(ticket) = store.check_in(&json_bytes) {
+                    if let Ok(json_bytes) = serde_json::to_vec(val)
+                        && let Ok(ticket) = store.check_in(&json_bytes) {
                             *data_ref = DataRef::Blob(ticket);
                             tracing::debug!("Offloaded variable '{}' to blob storage", key);
                         }
-                    }
                 }
             }
         }
