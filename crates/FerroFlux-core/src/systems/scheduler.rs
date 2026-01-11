@@ -1,4 +1,4 @@
-use crate::components::{CronConfig, Frequency, Outbox, WorkDone};
+use crate::components::{CronConfig, Frequency};
 use crate::store::BlobStore;
 use bevy_ecs::prelude::*;
 use chrono::{DateTime, Duration, Utc};
@@ -8,28 +8,38 @@ use std::collections::HashMap;
 #[derive(Component)]
 pub struct NextRun(pub DateTime<Utc>);
 
-#[tracing::instrument(skip(commands, query, store, work_done))]
+#[tracing::instrument(skip(commands, query, store, trigger_sender))]
 pub fn scheduler_worker(
     mut commands: Commands,
-    mut query: Query<(Entity, &CronConfig, Option<&mut NextRun>, &mut Outbox)>,
+    mut query: Query<(
+        Entity,
+        &CronConfig,
+        Option<&mut NextRun>,
+        &crate::components::NodeConfig,
+    )>,
     store: Res<BlobStore>,
-    mut work_done: ResMut<WorkDone>,
+    trigger_sender: Res<crate::traits::trigger::TriggerSender>,
 ) {
     let now = Utc::now();
 
-    for (entity, config, mut next_run_opt, mut outbox) in query.iter_mut() {
+    for (entity, config, mut next_run_opt, node_config) in query.iter_mut() {
         match next_run_opt {
             Some(ref mut next_run) => {
                 if now >= next_run.0 {
                     tracing::info!(entity = ?entity, "Triggering Cron Node");
 
-                    // Trigger: Push generic ticket
+                    // Trigger: Push generic ticket via Unified Trigger Protocol
                     let mut metadata = HashMap::new();
                     metadata.insert("trigger".to_string(), "cron".to_string());
 
                     if let Ok(ticket) = store.check_in_with_metadata(b"CRON_TRIGGER", metadata) {
-                        outbox.queue.push_back((None, ticket));
-                        work_done.0 = true;
+                        let event = crate::traits::trigger::TriggerEvent {
+                            trigger_id: node_config.id,
+                            payload: ticket,
+                        };
+
+                        // Fire and forget (best effort)
+                        let _ = trigger_sender.0.try_send(event);
                     }
 
                     // Calculate next run
