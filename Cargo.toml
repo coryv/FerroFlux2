@@ -2,5 +2,5 @@
 resolver = "2"
 members = [
     "crates/*",
-    "apps/tauri-playground/src-tauri",
+    "apps/frontend/src-tauri",
 ]
