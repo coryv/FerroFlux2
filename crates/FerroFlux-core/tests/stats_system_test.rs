@@ -142,13 +142,22 @@ async fn test_stats_tool_large_dataset() {
     let final_state: ActiveWorkflowState = serde_json::from_slice(&out_data).unwrap();
 
     // Verify Result
-    let result_arr = final_state
+    let result_val = final_state
         .get("result")
-        .unwrap()
-        .as_inline()
-        .unwrap()
+        .expect("Result missing from final state");
+
+    let resolved_result = match result_val {
+        ferroflux_core::components::execution_state::DataRef::Inline(v) => v.clone(),
+        ferroflux_core::components::execution_state::DataRef::Blob(ticket) => world
+            .resource::<BlobStore>()
+            .claim(ticket)
+            .and_then(|bytes| serde_json::from_slice(&bytes).map_err(|e| e.into()))
+            .expect("Failed to claim/parse result blob"),
+    };
+
+    let result_arr = resolved_result
         .as_array()
-        .unwrap();
+        .expect("Result should be an array");
     assert_eq!(result_arr.len(), 20002);
 
     // Verify Outlier (Last item index 20001 is 5000, 20000 is 10000)

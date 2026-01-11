@@ -1,4 +1,5 @@
-use crate::components::pipeline::{ExecutionContext, ReadyToExecute};
+use crate::components::pipeline::ExecutionContext;
+use crate::components::pipeline::ReadyToExecute;
 use crate::components::{
     AgentConfig, ExpectedOutput, Inbox, NodeConfig, Outbox, PinnedOutput, WorkDone,
 };
@@ -7,23 +8,26 @@ use crate::resources::templates::TemplateEngine;
 use crate::secrets::{DatabaseSecretStore, SecretStore};
 use crate::store::BlobStore;
 use bevy_ecs::prelude::*;
+use bevy_ecs::system::SystemParam;
 use ferroflux_iam::TenantId;
 use serde_json::{Value, json};
 use uuid::Uuid;
 
-#[tracing::instrument(skip(
-    commands,
-    query,
-    store,
-    registry,
-    template_engine,
-    secret_store,
-    work_done,
-    event_bus
-))]
+#[derive(SystemParam)]
+pub struct AgentContext<'w> {
+    store: Res<'w, BlobStore>,
+    registry: Res<'w, IntegrationRegistry>,
+    template_engine: Res<'w, TemplateEngine>,
+    secret_store: Res<'w, DatabaseSecretStore>,
+    work_done: ResMut<'w, WorkDone>,
+    event_bus: Res<'w, crate::api::events::SystemEventBus>,
+    runtime: Res<'w, crate::resources::TokioRuntime>,
+    backend: Res<'w, crate::traits::execution::BackendResource>,
+}
+
+#[tracing::instrument(skip(query, ctx))]
 #[allow(clippy::too_many_arguments, clippy::type_complexity)]
 pub fn agent_prep(
-    mut commands: Commands,
     mut query: Query<
         (
             Entity,
@@ -36,13 +40,7 @@ pub fn agent_prep(
         ),
         Without<ReadyToExecute>,
     >,
-    store: Res<BlobStore>,
-    registry: Res<IntegrationRegistry>,
-    template_engine: Res<TemplateEngine>,
-    secret_store: Res<DatabaseSecretStore>,
-    mut work_done: ResMut<WorkDone>,
-    event_bus: Res<crate::api::events::SystemEventBus>,
-    runtime: Res<crate::resources::TokioRuntime>,
+    mut ctx: AgentContext,
 ) {
     for (entity, config, node_config, pinned_opt, expected_opt, mut inbox, mut outbox) in
         query.iter_mut()
@@ -56,13 +54,13 @@ pub fn agent_prep(
             while let Some(_ticket) = inbox.queue.pop_front() {
                 tracing::info!(entity = ?entity, "Node is PINNED. Skipping execution.");
                 outbox.queue.push_back((None, pinned.0.clone()));
-                work_done.0 = true;
+                ctx.work_done.0 = true;
             }
             continue;
         }
 
         if let Some(ticket) = inbox.queue.pop_front() {
-            work_done.0 = true;
+            ctx.work_done.0 = true;
 
             let trace_id = ticket
                 .metadata
@@ -71,7 +69,7 @@ pub fn agent_prep(
                 .unwrap_or_else(|| Uuid::new_v4().to_string());
 
             // Retrieve Input
-            let payload_bytes = match store.claim(&ticket) {
+            let payload_bytes = match ctx.store.claim(&ticket) {
                 Ok(bytes) => bytes,
                 Err(e) => {
                     tracing::error!(error = %e, "Error claiming ticket");
@@ -82,10 +80,11 @@ pub fn agent_prep(
             let input_json: Value = serde_json::from_slice(&payload_bytes).unwrap_or(json!({}));
 
             // Lookup Integration
-            let integration_def = match registry.definitions.get(&config.provider) {
+            let integration_def = match ctx.registry.definitions.get(&config.provider) {
                 Some(p) => p,
                 None => {
-                    let _ = event_bus
+                    let _ = ctx
+                        .event_bus
                         .0
                         .send(crate::api::events::SystemEvent::NodeError {
                             trace_id: trace_id.clone(),
@@ -110,8 +109,8 @@ pub fn agent_prep(
 
             // Resolve Secret (Async -> Sync block)
             // Resolve Secret (Async -> Sync block)
-            let rt = runtime.clone();
-            let ss = secret_store.clone();
+            let rt = ctx.runtime.clone();
+            let ss = ctx.secret_store.clone();
             let t_clone = tenant.clone();
             // We need to clone capture data that is moved into async block if convenient,
             // but references should work with block_on if we dont use async move?
@@ -149,7 +148,8 @@ pub fn agent_prep(
                 .get("user_prompt")
                 .and_then(|v| v.as_str())
                 .unwrap_or(&config.user_prompt_template);
-            let user_prompt = template_engine
+            let user_prompt = ctx
+                .template_engine
                 .render(user_prompt_template, &input_json)
                 .unwrap_or_else(|_| user_prompt_template.to_string());
 
@@ -166,7 +166,8 @@ pub fn agent_prep(
                 obj.insert("model".to_string(), json!(config.model));
 
                 // Render system instruction
-                let mut system_instruction = template_engine
+                let mut system_instruction = ctx
+                    .template_engine
                     .render(&config.system_instruction, &input_json)
                     .unwrap_or_else(|_| config.system_instruction.clone());
 
@@ -209,7 +210,7 @@ pub fn agent_prep(
 
             // Message Transform
             let history_string = if let Some(transform_template) = &action_def.message_transform {
-                template_engine
+                ctx.template_engine
                     .render(transform_template, &context_json)
                     .unwrap_or_else(|_| json!(messages).to_string())
             } else {
@@ -221,28 +222,30 @@ pub fn agent_prep(
 
             // Render Body, Path, Headers
             let body = if let Some(tpl) = &action_def.implementation.config.body_template {
-                template_engine
+                ctx.template_engine
                     .render(tpl, &context_json)
                     .unwrap_or_else(|_| "{}".to_string())
             } else {
                 "{}".to_string()
             };
 
-            let path = template_engine
+            let path = ctx
+                .template_engine
                 .render(&action_def.implementation.config.path, &context_json)
                 .unwrap_or_else(|_| action_def.implementation.config.path.clone());
             let url = format!("{}{}", integration_def.base_url, path);
 
             let mut headers = std::collections::HashMap::new();
             for (k, v) in &action_def.implementation.config.headers {
-                if let Ok(val) = template_engine.render(v, &context_json) {
+                if let Ok(val) = ctx.template_engine.render(v, &context_json) {
                     headers.insert(k.clone(), val);
                 }
             }
 
             let method = action_def.implementation.config.method.clone();
 
-            commands.entity(entity).insert(ReadyToExecute {
+            let job = crate::traits::execution::ExecutionJob {
+                entity,
                 method,
                 url,
                 headers,
@@ -257,9 +260,13 @@ pub fn agent_prep(
                     input_json: input_json.clone(),
                     start_time: chrono::Utc::now().timestamp_millis() as u64,
                 },
-            });
+            };
 
-            tracing::info!(node_id = %node_config.id, trace_id = %trace_id, model = %config.model, "Agent prep complete");
+            if let Err(e) = ctx.backend.0.dispatch(job) {
+                tracing::error!(error = %e, "Failed to dispatch agent execution job");
+            } else {
+                tracing::info!(node_id = %node_config.id, trace_id = %trace_id, model = %config.model, "Agent prep dispatched");
+            }
         }
     }
 }
@@ -277,13 +284,23 @@ mod tests {
     use crate::secrets::DatabaseSecretStore;
     use crate::store::BlobStore;
     use crate::store::database::PersistentStore;
+    use crate::traits::execution::{
+        BackendResource, LocalExecutionBackend, LocalExecutionReceiver, flush_local_execution_jobs,
+    };
     use std::collections::HashMap;
+    use std::sync::Arc;
 
     #[test]
     fn test_agent_prep_rendering() {
         let mut world = World::new();
         let mut schedule = Schedule::default();
-        schedule.add_systems(agent_prep);
+        schedule.add_systems((agent_prep, flush_local_execution_jobs).chain());
+
+        // Execution Backend
+        let (tx, rx) = async_channel::unbounded();
+        let backend = Arc::new(LocalExecutionBackend::new(tx));
+        world.insert_resource(BackendResource(backend));
+        world.insert_resource(LocalExecutionReceiver(rx));
 
         // Resources
         let store = BlobStore::default();

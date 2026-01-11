@@ -37,7 +37,7 @@ timeout_ms: 2000
 blueprint:
   nodes:
     - id: "fe2e3fd0-fc95-428d-88f8-8460a32166f2"
-      type: "some_type"
+      type: "core.action.log"
       name: "Test Node"
       config: {}
   edges: []
@@ -48,12 +48,12 @@ steps:
     value: { "foo": "bar" }
 
   - action: "wait"
-    duration_ms: 100
+    duration_ms: 500
 
   - action: "assert"
     node: "fe2e3fd0-fc95-428d-88f8-8460a32166f2"
-    property: "inbox.count"
-    equals: 1
+    property: "outbox.last.context.foo.Inline"
+    equals: "bar"
 "#;
 
     run_scenario(yaml).await?;

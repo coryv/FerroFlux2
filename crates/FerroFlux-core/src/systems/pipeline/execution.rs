@@ -193,6 +193,7 @@ pub fn execute_pipeline_node(
             shadow_masks: masks_ref,
             secret_store,
             runtime,
+            store,
         };
 
         let result = tool.run(&mut tool_ctx, resolved_params)?;
@@ -245,6 +246,7 @@ pub fn execute_pipeline_node(
                     shadow_masks: masks_ref,
                     secret_store,
                     runtime,
+                    store,
                 };
                 let result = tool.run(&mut tool_ctx, resolved_params)?;
 
@@ -283,18 +285,23 @@ pub fn execute_pipeline_node(
                 && let Ok(search_res) = expr.search(&context_json)
             {
                 let val: Value = serde_json::to_value(&search_res).unwrap_or(Value::Null);
-                workflow_state.set(out_key, val);
+                ctx_map.insert(out_key.clone(), DataRef::Inline(val));
             }
         }
     }
 
-    // Merge `_outputs` (from explicit Emit tools)
     let outputs = ctx_map
         .get("_outputs")
         .and_then(|d| d.as_inline())
         .cloned()
         .unwrap_or(serde_json::json!({}));
-    workflow_state.merge(outputs.clone());
+
+    // Merge outputs into ctx_map
+    if let Some(obj) = outputs.as_object() {
+        for (k, v) in obj {
+            ctx_map.insert(k.clone(), DataRef::Inline(v.clone()));
+        }
+    }
 
     // 4b. Sync Context back to persistent state
     // We remove node-local settings/platform/steps before persisting to avoid bloat

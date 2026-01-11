@@ -1,3 +1,4 @@
+use crate::components::execution_state::DataRef;
 use crate::tools::{Tool, ToolContext};
 use anyhow::{Result, anyhow};
 use serde_json::Value;
@@ -31,10 +32,27 @@ impl Tool for RhaiTool {
 
         let mut scope = rhai::Scope::new();
 
-        // Inject entire context as variables
+        // Inject entire context as variables (resolving DataRefs)
         for (k, v) in context.local.iter() {
-            if let Ok(val) = rhai::serde::to_dynamic(v) {
-                scope.push_dynamic(k, val);
+            let val_opt = match v {
+                DataRef::Inline(val) => Some(val.clone()),
+                DataRef::Blob(ticket) => {
+                    if let Some(store) = context.store {
+                        if let Ok(bytes) = store.claim(ticket) {
+                            serde_json::from_slice(&bytes).ok()
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                }
+            };
+
+            if let Some(val) = val_opt {
+                if let Ok(dynamic) = rhai::serde::to_dynamic(&val) {
+                    scope.push_dynamic(k, dynamic);
+                }
             }
         }
 

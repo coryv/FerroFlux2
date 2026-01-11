@@ -93,6 +93,24 @@ fn test_unified_pipeline_execution() {
         .insert("mock_node".to_string(), def);
     world.insert_resource(def_registry);
 
+    // Add Missing Resources (Bus, Runtime, SecretStore)
+    let runtime = tokio::runtime::Runtime::new().unwrap();
+    world.insert_resource(ferroflux_core::resources::TokioRuntime(
+        runtime.handle().clone(),
+    ));
+
+    world.insert_resource(ferroflux_core::api::events::SystemEventBus(
+        tokio::sync::broadcast::channel(10).0,
+    ));
+
+    let p_store = runtime
+        .block_on(ferroflux_core::store::database::PersistentStore::new(
+            "sqlite::memory:",
+        ))
+        .unwrap();
+    let sec_store = ferroflux_core::secrets::DatabaseSecretStore::new(p_store, vec![0u8; 32]);
+    world.insert_resource(sec_store);
+
     // 2. Prepare Workflow State
     let mut initial_state = ActiveWorkflowState::new();
     initial_state.set("initial_data", json!("hello"));

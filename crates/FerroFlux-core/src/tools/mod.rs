@@ -33,6 +33,8 @@ pub struct ToolContext<'a> {
     pub secret_store: Option<&'a crate::secrets::DatabaseSecretStore>,
     /// Handle to the Tokio runtime for bridging sync tools to async operations (optional).
     pub runtime: Option<&'a crate::resources::TokioRuntime>,
+    /// Access to BlobStore for resolving DataRefs (optional).
+    pub store: Option<&'a crate::store::BlobStore>,
 }
 
 /// A "Tool" is an atomic unit of logic.

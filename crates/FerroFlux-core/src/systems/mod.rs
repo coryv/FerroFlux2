@@ -28,7 +28,8 @@ pub use transport::*;
 pub fn register_core_systems(schedule: &mut Schedule) {
     schedule.add_systems((
         scheduler::scheduler_worker,
-        gateway::ingest_webhooks,
+        gateway::bridge_webhook_queue,
+        gateway::ingest_triggers,
         agent::agent_prep,
         agent::agent_exec,
         agent::agent_post,

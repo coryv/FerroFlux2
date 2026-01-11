@@ -24,13 +24,13 @@ async fn main() -> anyhow::Result<()> {
     // 1. Build a Graph: 100 Parallel Chains of 10 Nodes (1000 nodes total)
     let chains = 100;
     let depth = 10;
-    let mut total_nodes = 0;
+    let mut _total_nodes = 0;
 
     let mut start_nodes = Vec::new();
     let mut end_nodes = Vec::new();
 
     println!("Building graph ({} chains x {} depth)...", chains, depth);
-    for c in 0..chains {
+    for _c in 0..chains {
         let mut prev_port = None;
         let mut first_node_uuid = None;
 
@@ -48,7 +48,7 @@ async fn main() -> anyhow::Result<()> {
                 style: None,
             };
             let node_id = graph.insert_node(node);
-            total_nodes += 1;
+            _total_nodes += 1;
 
             if d == 0 {
                 first_node_uuid = Some(uuid);
@@ -100,7 +100,7 @@ async fn main() -> anyhow::Result<()> {
     tokio::pin!(stream);
 
     let monitor_start = Instant::now();
-    while let Some(event) = stream.next().await {
+    while let Some(_event) = stream.next().await {
         // Count successes
         completed_executions += 1;
         if completed_executions % 100 == 0 {

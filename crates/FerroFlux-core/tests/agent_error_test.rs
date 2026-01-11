@@ -8,6 +8,7 @@ use ferroflux_core::components::{
 use ferroflux_core::integrations::IntegrationRegistry;
 use ferroflux_core::store::BlobStore;
 use ferroflux_core::systems::{agent::agent_exec, agent::agent_post, agent::agent_prep};
+use ferroflux_core::traits::execution::{BackendResource, LocalExecutionBackend};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 use uuid::Uuid;
@@ -24,8 +25,15 @@ fn setup_world() -> World {
     world.insert_resource(ferroflux_core::resources::GlobalHttpClient::default());
     world.insert_resource(ferroflux_core::resources::templates::TemplateEngine::default());
     world.insert_resource(ferroflux_core::resources::PipelineResultChannel::default());
+    world.insert_resource(ferroflux_core::resources::PipelineResultChannel::default());
     let (tx, _) = tokio::sync::broadcast::channel(100);
     world.insert_resource(SystemEventBus(tx));
+
+    // Backend (Dummy)
+    let (backend_tx, _backend_rx) = async_channel::unbounded();
+    world.insert_resource(BackendResource(Arc::new(LocalExecutionBackend::new(
+        backend_tx,
+    ))));
 
     // Runtime
     let runtime = Runtime::new().unwrap();

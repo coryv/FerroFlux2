@@ -19,6 +19,7 @@ fn test_logic_tool_basic_switch() {
         shadow_masks: &HashMap::new(),
         secret_store: None,
         runtime: None,
+        store: None,
     };
 
     // Simulate "Switch" behavior: strict equality check on a field
@@ -60,6 +61,7 @@ fn test_logic_tool_complex_operators() {
         shadow_masks: &HashMap::new(),
         secret_store: None,
         runtime: None,
+        store: None,
     };
 
     let data = json!({
@@ -102,6 +104,7 @@ fn test_json_query_tool() {
         shadow_masks: &HashMap::new(),
         secret_store: None,
         runtime: None,
+        store: None,
     };
 
     let data = json!({
@@ -135,6 +138,7 @@ fn test_emit_tool() {
         shadow_masks: &HashMap::new(),
         secret_store: None,
         runtime: None,
+        store: None,
     };
 
     let params = json!({

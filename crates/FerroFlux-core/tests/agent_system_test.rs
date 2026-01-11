@@ -46,6 +46,7 @@ async fn setup_world(mock_server_url: String) -> (World, Schedule) {
     world.insert_resource(GlobalHttpClient::default());
     world.insert_resource(ferroflux_core::resources::templates::TemplateEngine::default());
     world.insert_resource(ferroflux_core::resources::PipelineResultChannel::default());
+    world.insert_resource(ferroflux_core::resources::NodeRouter::default());
     let (tx, _) = tokio::sync::broadcast::channel(100);
     world.insert_resource(ferroflux_core::api::events::SystemEventBus(tx));
 
@@ -114,8 +115,26 @@ async fn setup_world(mock_server_url: String) -> (World, Schedule) {
 
     world.insert_resource(registry);
 
+    // Setup Execution Backend (Local)
+    let (tx, rx) = async_channel::unbounded();
+    let backend = Arc::new(ferroflux_core::traits::execution::LocalExecutionBackend::new(tx));
+    world.insert_resource(ferroflux_core::traits::execution::BackendResource(backend));
+    world.insert_resource(ferroflux_core::traits::execution::LocalExecutionReceiver(rx));
+
+    // Setup Trigger Protocol
+    let (trigger_tx, trigger_rx) = async_channel::unbounded();
+    world.insert_resource(ferroflux_core::traits::trigger::TriggerSender(trigger_tx));
+    world.insert_resource(ferroflux_core::traits::trigger::TriggerReceiver(trigger_rx));
+
     // Systems
-    schedule.add_systems((agent_prep, agent_exec, agent_post));
+    schedule.add_systems((
+        ferroflux_core::systems::gateway::bridge_webhook_queue,
+        ferroflux_core::systems::gateway::ingest_triggers,
+        agent_prep,
+        ferroflux_core::traits::execution::flush_local_execution_jobs, // Added flush
+        agent_exec, 
+        agent_post
+    ));
 
     // Env var for auth (DatabaseSecretStore falls back to this for single keys)
     unsafe {

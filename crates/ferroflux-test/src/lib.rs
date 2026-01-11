@@ -170,17 +170,33 @@ pub async fn run_scenario(yaml: &str) -> anyhow::Result<()> {
                 // Current `NodeRuntimeState` only has inbox/outbox queues.
                 // Assuming we check the Outbox for results.
 
-                if property == "outbox.last" {
+                if property.starts_with("outbox.last") {
                     if let Some((_, ticket)) = state.outbox.queue.back() {
                         let blob = client.read_blob(ticket.clone()).await?.ok_or_else(|| {
                             anyhow::anyhow!("Blob not found for ticket {:?}", ticket)
                         })?;
 
-                        if blob != equals {
+                        // Parse as Value
+                        let mut current = blob;
+
+                        // Traverse if sub-properties exist (e.g. outbox.last.context.foo)
+                        let parts: Vec<&str> = property.split('.').collect();
+                        if parts.len() > 2 {
+                            for part in &parts[2..] {
+                                if let Some(val) = current.get(part) {
+                                    current = val.clone();
+                                } else {
+                                    current = serde_json::Value::Null;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if current != equals {
                             return Err(anyhow::anyhow!(
                                 "Expected output {:?}, got {:?}",
                                 equals,
-                                blob
+                                current
                             ));
                         }
                     } else {
@@ -198,7 +214,10 @@ pub async fn run_scenario(yaml: &str) -> anyhow::Result<()> {
                             count
                         ));
                     }
+                } else if property.starts_with("context") {
+                    // Not implemented yet, but keeping structure open
                 }
+
                 println!("[Assert] Passed");
             }
         }

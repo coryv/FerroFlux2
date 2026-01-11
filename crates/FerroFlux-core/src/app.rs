@@ -22,6 +22,8 @@ pub struct AppBuilder {
     master_key: Option<Vec<u8>>,
     import_flows: bool,
     analytics_backend: Option<Arc<dyn AnalyticsBackend>>,
+    execution_backend: Option<Arc<dyn crate::traits::execution::ExecutionBackend>>,
+    trigger_providers: Vec<Box<dyn crate::traits::trigger::TriggerProvider>>,
 }
 
 impl Default for AppBuilder {
@@ -38,6 +40,8 @@ impl AppBuilder {
             master_key: None,
             import_flows: true,
             analytics_backend: None,
+            execution_backend: None,
+            trigger_providers: Vec::new(),
         }
     }
 
@@ -72,6 +76,22 @@ impl AppBuilder {
 
     pub fn with_analytics_backend(mut self, backend: Arc<dyn AnalyticsBackend>) -> Self {
         self.analytics_backend = Some(backend);
+        self
+    }
+
+    pub fn with_execution_backend(
+        mut self,
+        backend: Arc<dyn crate::traits::execution::ExecutionBackend>,
+    ) -> Self {
+        self.execution_backend = Some(backend);
+        self
+    }
+
+    pub fn with_trigger_provider(
+        mut self,
+        provider: Box<dyn crate::traits::trigger::TriggerProvider>,
+    ) -> Self {
+        self.trigger_providers.push(provider);
         self
     }
 
@@ -161,11 +181,36 @@ impl AppBuilder {
         world.insert_resource(crate::resources::AgentResultChannel::default());
         world.insert_resource(crate::resources::HttpResultChannel::default());
         world.insert_resource(crate::api::events::SystemEventBus(event_tx.clone()));
+
+        // Trigger Protocol Setup
+        let (trigger_tx, trigger_rx) = async_channel::unbounded();
+        world.insert_resource(crate::traits::trigger::TriggerSender(trigger_tx.clone()));
+        world.insert_resource(crate::traits::trigger::TriggerReceiver(trigger_rx));
+
+        // Initialize Trigger Providers
+        for provider in self.trigger_providers {
+            tracing::info!("Initializing trigger provider: {}", provider.name());
+            provider.on_enable(crate::traits::trigger::TriggerSender(trigger_tx.clone()));
+            // We could store them in specific resource if needed, but for now just init is enough logic.
+        }
+
         world.insert_resource(store.clone());
 
         // Use current runtime handle
         let runtime_handle = tokio::runtime::Handle::current();
         world.insert_resource(crate::resources::TokioRuntime(runtime_handle));
+
+        // Execution Backend Setup
+        if let Some(backend) = self.execution_backend {
+            world.insert_resource(crate::traits::execution::BackendResource(backend));
+        } else {
+            // Default Local Backend
+            let (tx, rx) = async_channel::unbounded();
+            let backend =
+                std::sync::Arc::new(crate::traits::execution::LocalExecutionBackend::new(tx));
+            world.insert_resource(crate::traits::execution::BackendResource(backend));
+            world.insert_resource(crate::traits::execution::LocalExecutionReceiver(rx));
+        }
 
         // Registry
         world.insert_resource(int_registry.clone());
@@ -261,6 +306,10 @@ impl AppBuilder {
 
         // Register Core Systems
         register_core_systems(&mut schedule);
+        // Add flush_local_execution_jobs if local receiver exists
+        if world.contains_resource::<crate::traits::execution::LocalExecutionReceiver>() {
+            schedule.add_systems(crate::traits::execution::flush_local_execution_jobs);
+        }
         schedule.add_systems(api_command_worker);
 
         Ok((
