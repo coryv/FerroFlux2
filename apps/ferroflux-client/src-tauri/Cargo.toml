@@ -1,0 +1,23 @@
+[package]
+name = "ferroflux-client"
+version = "0.0.1"
+description = "FerroFlux Client"
+authors = ["you"]
+edition = "2021"
+
+[lib]
+name = "ferroflux_client_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.0.0-rc", features = [] }
+
+[dependencies]
+tauri = { version = "2.0.0-rc", features = [] }
+tauri-plugin-shell = "2.0.0-rc"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
+ferroflux_core = { path = "../../../crates/FerroFlux-core" }
+flow_canvas = { path = "../../../crates/FlowCanvas" }
+glam = { version = "0.30.10", features = ["serde"] }

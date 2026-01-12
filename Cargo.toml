@@ -2,5 +2,5 @@
 resolver = "2"
 members = [
     "crates/*",
-    "apps/frontend/src-tauri",
+    "apps/ferroflux-client/src-tauri",
 ]

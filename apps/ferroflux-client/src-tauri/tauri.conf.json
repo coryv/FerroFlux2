@@ -1,0 +1,30 @@
+{
+    "build": {
+        "beforeDevCommand": "npm run dev",
+        "beforeBuildCommand": "npm run build",
+        "devUrl": "http://localhost:5173",
+        "frontendDist": "../build"
+    },
+    "productName": "ferroflux-client",
+    "version": "0.0.1",
+    "identifier": "com.ferroflux.client",
+    "bundle": {
+        "active": true,
+        "targets": "all",
+        "icon": []
+    },
+    "app": {
+        "security": {
+            "csp": null
+        },
+        "windows": [
+            {
+                "title": "FerroFlux Client",
+                "width": 1200,
+                "height": 800,
+                "resizable": true,
+                "fullscreen": false
+            }
+        ]
+    }
+}
