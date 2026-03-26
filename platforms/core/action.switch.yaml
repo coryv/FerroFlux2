@@ -3,6 +3,7 @@ meta:
   name: Logic Switch
   category: Logic
   type: Action
+  node_subtype: Router
   platform: core
   description: "Routes data based on complex conditional rules (Segment-like)."
   version: "1.0.0"
@@ -14,6 +15,8 @@ interface:
   
   outputs:
     - name: Exec
+      type: flow
+    - name: Error
       type: flow
     - name: default
       type: flow

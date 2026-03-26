@@ -16,6 +16,8 @@ interface:
   outputs:
     - name: Exec
       type: flow
+    - name: Error
+      type: flow
     - name: result
       type: any
 

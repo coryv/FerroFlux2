@@ -67,6 +67,7 @@ fn test_unified_pipeline_execution() {
             description: None,
             platform: None,
             data_strategy: None,
+            node_subtype: None,
         },
         interface: Interface {
             inputs: vec![],
@@ -201,6 +202,7 @@ fn test_stats_tool() {
             description: None,
             platform: None,
             data_strategy: None,
+            node_subtype: None,
         },
         interface: Interface {
             inputs: vec![],

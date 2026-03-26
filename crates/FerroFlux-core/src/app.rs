@@ -252,8 +252,18 @@ impl AppBuilder {
         }
 
         if platform_path.exists() {
-            if let Err(e) = def_registry.load_from_dir(&platform_path) {
-                tracing::error!(path = ?platform_path, error = %e, "Failed to load YAML platforms");
+            match def_registry.load_from_dir(&platform_path) {
+                Err(e) => {
+                    tracing::error!(path = ?platform_path, error = %e, "Failed to load YAML platforms");
+                }
+                Ok(validation) if validation.has_errors() => {
+                    for diag in &validation.diagnostics {
+                        if diag.severity == ferroflux_integration::Severity::Error {
+                            tracing::warn!(rule = diag.rule, message = %diag.message, "Integration validation error");
+                        }
+                    }
+                }
+                Ok(_) => {}
             }
         } else {
             tracing::warn!("'platforms' directory not found, skipping YAML definitions");

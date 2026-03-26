@@ -3,6 +3,7 @@ meta:
   name: Sub-workflow Output
   category: Actions
   type: Action
+  node_subtype: Terminus
   platform: core
   description: "Returns data to the parent workflow and ends the sub-workflow."
   version: "1.0.0"

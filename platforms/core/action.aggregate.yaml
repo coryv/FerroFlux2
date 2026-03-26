@@ -3,6 +3,7 @@ meta:
   name: Aggregate
   category: Transform
   type: Action
+  node_subtype: Accumulator
   platform: core
   description: "Collects items into a batch (array)."
   version: "1.0.0"
@@ -18,11 +19,11 @@ interface:
     - name: Exec
       type: flow
 
-settings:
-  - name: batch_size
-    label: Batch Size
-    type: number
-    default: 10
+  settings:
+    - name: batch_size
+      label: Batch Size
+      type: number
+      default: 10
 
 execution:
   - id: agg

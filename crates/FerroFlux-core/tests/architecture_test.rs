@@ -44,6 +44,7 @@ fn default_node_meta(id: &str) -> NodeMeta {
         version: None,
         platform: None,
         data_strategy: None,
+        node_subtype: None,
     }
 }
 fn default_interface() -> Interface {

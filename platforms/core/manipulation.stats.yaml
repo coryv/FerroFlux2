@@ -7,30 +7,33 @@ execution:
       enrichment_key: "{{ settings.enrichment_key }}"
       target_field: "{{ settings.target_field }}"
       threshold: "{{ settings.threshold }}"
-    returns: {}
+    returns:
+      stats: stats_result
     tool: ferroflux:stats
 interface:
   inputs:
-    - name: inputs
+    - name: Exec
       type: flow
   outputs:
-    - name: output
+    - name: Success
+      type: flow
+    - name: Error
       type: flow
   settings:
-    - data_type: string
+    - type: string
       default: value
       label: Target Field
       name: target_field
       required: true
-    - data_type: string
+    - type: string
       default: stats
       label: Enrichment Key
       name: enrichment_key
-    - data_type: boolean
+    - type: boolean
       default: false
       label: Detect Outliers
       name: detect_outliers
-    - data_type: number
+    - type: number
       default: 2
       label: Z-Score Threshold
       name: threshold
@@ -41,7 +44,8 @@ meta:
   description: Calculate statistics (Mean, StdDev, Z-Score) for an array of items.
   id: core.manipulation.stats
   name: Statistics
-  type: action
+  type: Action
+  platform: core
   version: 1.0.0
 output_transform: null
 routing: null

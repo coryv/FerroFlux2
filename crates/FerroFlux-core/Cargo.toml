@@ -29,6 +29,7 @@ base64 = "0.22.1"
 futures = "0.3.31"
 async-stream = "0.3.6"
 sqlx = { version = "0.8.6", features = ["runtime-tokio", "sqlite", "chrono"] }
+ferroflux-integration = { path = "../ferroflux-integration" }
 ferroflux-iam = { path = "../ferroflux-iam" }
 ferroflux-security = { path = "../ferroflux-security" }
 jmespath = "0.4.0"

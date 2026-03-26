@@ -3,6 +3,7 @@ meta:
   name: Split Array
   category: Transform
   type: Action
+  node_subtype: Iterator
   platform: core
   description: "Splits an array into individual items for stream processing."
   version: "1.0.0"

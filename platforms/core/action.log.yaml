@@ -16,6 +16,8 @@ interface:
   outputs:
     - name: Success
       type: flow
+    - name: Error
+      type: flow
 
   settings:
     - name: level

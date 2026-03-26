@@ -3,6 +3,7 @@ meta:
   name: If / Else
   category: Logic
   type: Action
+  node_subtype: Router
   platform: core
   description: "Simple binary condition check."
   version: "1.0.0"

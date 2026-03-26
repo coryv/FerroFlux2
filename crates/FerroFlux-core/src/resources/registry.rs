@@ -1,18 +1,25 @@
-use crate::nodes::definition::{NodeDefinition, PlatformDefinition};
 use crate::traits::node_factory::NodeFactory;
 use bevy_ecs::prelude::*;
+use ferroflux_integration::DefinitionRegistry as IntegrationRegistry;
 use std::collections::HashMap;
 
+/// Bevy `Resource` wrapper around `ferroflux_integration::DefinitionRegistry`.
+///
+/// All loading, parsing, and validation live in the `ferroflux-integration` crate.
+/// This wrapper exists solely to satisfy the Bevy ECS resource system.
 #[derive(Resource, Default, Clone)]
-pub struct DefinitionRegistry {
-    pub definitions: HashMap<String, NodeDefinition>,
-    pub platforms: HashMap<String, PlatformDefinition>,
+pub struct DefinitionRegistry(pub IntegrationRegistry);
+
+impl std::ops::Deref for DefinitionRegistry {
+    type Target = IntegrationRegistry;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
-impl DefinitionRegistry {
-    pub fn clear(&mut self) {
-        self.definitions.clear();
-        self.platforms.clear();
+impl std::ops::DerefMut for DefinitionRegistry {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
@@ -42,57 +49,5 @@ impl NodeRegistry {
 
     pub fn list_templates(&self) -> Vec<crate::traits::node_factory::NodeMetadata> {
         self.factories.values().map(|f| f.metadata()).collect()
-    }
-}
-
-impl DefinitionRegistry {
-    /// Recursively loads all .yaml node definitions from a directory.
-    pub fn load_from_dir(&mut self, path: &std::path::Path) -> anyhow::Result<()> {
-        if path.is_dir() {
-            for entry in std::fs::read_dir(path)? {
-                let entry = entry?;
-                let path = entry.path();
-                if path.is_dir() {
-                    self.load_from_dir(&path)?;
-                } else if path
-                    .extension()
-                    .is_some_and(|ext| ext == "yaml" || ext == "yml")
-                {
-                    self.load_file(&path)?;
-                }
-            }
-        }
-        Ok(())
-    }
-
-    fn load_file(&mut self, path: &std::path::Path) -> anyhow::Result<()> {
-        let content = std::fs::read_to_string(path)?;
-
-        // Try parsing as Platform first (simple structure)
-        if let Ok(plat) = serde_yaml::from_str::<PlatformDefinition>(&content) {
-            // Check if it's actually a platform (has config, no execution)
-            // But NodeDefinition also has meta? Node doesn't have `config` field at top level usually?
-            // Node has `execution`. Platform does not.
-            // If it has `execution`, treat as Node.
-            if content.contains("execution:") {
-                let def: NodeDefinition = serde_yaml::from_str(&content)?;
-                println!("DEBUG: Loading YAML Node: {}", def.meta.id);
-                self.definitions.insert(def.meta.id.clone(), def);
-                return Ok(());
-            } else {
-                println!("DEBUG: Loading YAML Platform: {}", plat.meta.id);
-                self.platforms.insert(plat.meta.id.clone(), plat);
-                return Ok(());
-            }
-        }
-
-        // If strict parsing fails, try NodeDefinition specifically
-        if let Ok(def) = serde_yaml::from_str::<NodeDefinition>(&content) {
-            println!("DEBUG: Loading YAML Node: {}", def.meta.id);
-            self.definitions.insert(def.meta.id.clone(), def);
-            return Ok(());
-        }
-
-        Ok(())
     }
 }
