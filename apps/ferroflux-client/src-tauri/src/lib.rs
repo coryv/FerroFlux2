@@ -9,6 +9,7 @@ type Graph = GraphState<String>;
 struct AppState {
     graph: Mutex<Graph>,
     registry: Mutex<DefinitionRegistry>,
+    node_configs: Mutex<std::collections::HashMap<String, std::collections::HashMap<String, serde_json::Value>>>,
 }
 
 #[derive(serde::Serialize)]
@@ -32,6 +33,7 @@ struct NodeDto {
     inputs: Vec<String>,
     outputs: Vec<String>,
     data: String,
+    config: std::collections::HashMap<String, serde_json::Value>,
 }
 
 #[derive(serde::Serialize)]
@@ -97,6 +99,7 @@ fn get_graph(state: tauri::State<AppState>) -> String {
                 })
                 .collect(),
             data: node.data.clone(),
+            config: state.node_configs.lock().unwrap().get(&id_str).cloned().unwrap_or_default(),
         };
         nodes_map.insert(id_str, n);
     }
@@ -382,6 +385,20 @@ fn delete_connection(state: tauri::State<AppState>, id: String) -> Result<String
     }
 }
 
+#[tauri::command]
+fn update_node_config(state: tauri::State<AppState>, node_id: String, key: String, value: serde_json::Value) -> Result<(), String> {
+    let mut configs = state.node_configs.lock().unwrap();
+    let node_config = configs.entry(node_id).or_insert_with(std::collections::HashMap::new);
+    node_config.insert(key, value);
+    Ok(())
+}
+
+#[tauri::command]
+fn get_node_config(state: tauri::State<AppState>, node_id: String) -> std::collections::HashMap<String, serde_json::Value> {
+    let configs = state.node_configs.lock().unwrap();
+    configs.get(&node_id).cloned().unwrap_or_default()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -405,6 +422,7 @@ pub fn run() {
                 }
                 registry
             }),
+            node_configs: Mutex::new(std::collections::HashMap::new()),
         })
         .invoke_handler(tauri::generate_handler![
             get_graph,
@@ -413,7 +431,9 @@ pub fn run() {
             connect_ports,
             update_node_position,
             delete_node,
-            delete_connection
+            delete_connection,
+            update_node_config,
+            get_node_config
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

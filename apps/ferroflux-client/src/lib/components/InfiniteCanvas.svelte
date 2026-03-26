@@ -5,6 +5,8 @@
     import NodeLayer from "$lib/components/canvas/NodeLayer.svelte";
     import SelectionOverlay from "$lib/components/canvas/SelectionOverlay.svelte";
     import NodeInspector from "$lib/components/inspector/NodeInspector.svelte";
+    import CanvasToolbar from "$lib/components/canvas/CanvasToolbar.svelte";
+    import Minimap from "$lib/components/canvas/Minimap.svelte";
 
     // Initialize State
     const canvasState = new CanvasState();
@@ -243,6 +245,9 @@
     </div>
 
     <SelectionOverlay state={canvasState} />
+    
+    <CanvasToolbar state={canvasState} />
+    <Minimap state={canvasState} />
     
     <NodeInspector state={canvasState} />
 </div>

@@ -34,4 +34,12 @@ export class TauriAdapter implements IBackend {
     async deleteNode(id: string): Promise<string> {
         return await invoke("delete_node", { id });
     }
+
+    async updateNodeConfig(nodeId: string, key: string, value: any): Promise<void> {
+        return await invoke("update_node_config", { nodeId, key, value });
+    }
+
+    async getNodeConfig(nodeId: string): Promise<Record<string, any>> {
+        return await invoke("get_node_config", { nodeId });
+    }
 }

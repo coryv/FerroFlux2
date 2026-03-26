@@ -7,10 +7,14 @@ export interface NodeMetadata {
     id: string;
     name: string;
     category: string;
+    node_type?: string;
     description?: string;
     inputs: PortMetadata[];
     outputs: PortMetadata[];
     settings?: any[];
+    type?: string;
+    meta?: any;
+    interface?: any;
 }
 
 // Runtime Types (Mirroring flow_canvas/ferroflux_core)

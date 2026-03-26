@@ -1,5 +1,12 @@
 <script lang="ts">
-    let { definition, value = $bindable() } = $props();
+    let { definition, value = $bindable(), onValueChange }: { definition: any, value?: any, onValueChange?: (v: any) => void } = $props();
+
+    function triggerChange() {
+        if (onValueChange) {
+            // Give Svelte binding a microtick to update value before calling
+            setTimeout(() => onValueChange(value), 0);
+        }
+    }
 
     function onDrop(e: DragEvent) {
         const text = e.dataTransfer?.getData('text/plain');
@@ -36,12 +43,14 @@
         max={definition.max}
         ondrop={onDrop}
         ondragover={(e) => e.preventDefault()}
+        oninput={triggerChange}
     />
 
 {:else if definition.type === 'select' || definition.type === 'connection_select'}
     <div class="relative">
         <select 
             bind:value 
+            onchange={triggerChange}
             class="w-full bg-bg-input border border-border rounded px-2 py-1.5 text-xs text-text focus:outline-none focus:border-brand transition-colors appearance-none"
         >
             {#if definition.options}
@@ -69,6 +78,7 @@
         class="w-full bg-bg-input border border-border rounded px-2 py-1.5 text-xs text-text focus:outline-none focus:border-brand transition-colors font-mono resize-y"
         ondrop={onDrop}
         ondragover={(e) => e.preventDefault()}
+        oninput={triggerChange}
     ></textarea>
 
 {:else if definition.type === 'multi-select'}

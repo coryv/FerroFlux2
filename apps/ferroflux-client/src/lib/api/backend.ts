@@ -7,4 +7,6 @@ export interface IBackend {
     deleteConnection(id: string): Promise<string>;
     updateNodePosition(id: string, x: number, y: number): Promise<string>;
     deleteNode(id: string): Promise<string>;
+    updateNodeConfig(nodeId: string, key: string, value: any): Promise<void>;
+    getNodeConfig(nodeId: string): Promise<Record<string, any>>;
 }
