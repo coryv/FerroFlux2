@@ -2,8 +2,15 @@
   import { isSidebarOpen } from '$lib/stores';
   import { ChevronsLeft, Settings, Network, Activity, Key, LayoutTemplate, User } from 'lucide-svelte';
   
+  let { onOpenWorkflows }: { onOpenWorkflows?: () => void } = $props();
+
   function toggle() {
     isSidebarOpen.update(v => !v);
+  }
+
+  function handleOpenWorkflows() {
+    if (onOpenWorkflows) onOpenWorkflows();
+    else window.dispatchEvent(new CustomEvent('ferroflux:open-workflow-manager'));
   }
 </script>
 
@@ -23,7 +30,10 @@
 
     <!-- Primary Navigation -->
     <div class="flex flex-col p-3 space-y-1">
-        <button class="flex items-center px-3 py-2 bg-bg-active rounded-md text-sm group text-left text-text font-medium shadow-sm border border-border">
+        <button 
+            onclick={handleOpenWorkflows} 
+            class="flex items-center px-3 py-2 bg-bg-active hover:bg-bg-hover rounded-md text-sm group text-left text-text font-medium shadow-sm border border-border transition-colors"
+        >
             <Network size={16} class="mr-3 text-brand" />
             <span class="flex-1">Workflows</span>
         </button>

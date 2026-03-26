@@ -1,7 +1,12 @@
 <script lang="ts">
     import { isSidebarOpen } from '$lib/stores';
     import { Menu, Play, Square, Save, Undo, Redo, ZoomIn, ZoomOut, Expand } from 'lucide-svelte';
+    import { executionStore } from '$lib/logic/executionStore.svelte';
+    import { getContext } from 'svelte';
+    import type { CanvasState } from '$lib/logic/canvasState.svelte';
     
+    const canvasState: CanvasState = getContext('canvas_state');
+
     function toggle() {
         isSidebarOpen.update(v => !v);
     }
@@ -20,20 +25,27 @@
         <div class="flex items-center text-sm font-medium">
             <span class="text-text-muted hover:text-text cursor-pointer transition-colors">Workflows</span>
             <span class="mx-2 text-border-active">/</span>
-            <input type="text" value="Untitled Workflow" class="bg-transparent text-text border-none focus:outline-none focus:ring-1 focus:ring-brand rounded px-1 w-48 transition-all" />
+            <input 
+                type="text" 
+                bind:value={canvasState.currentWorkflowName} 
+                class="bg-transparent text-text border-none focus:outline-none focus:ring-1 focus:ring-brand rounded px-1 w-48 transition-all" 
+            />
         </div>
     </div>
 
     <!-- Center: Execution Controls -->
     <div class="absolute left-1/2 -translate-x-1/2 flex items-center bg-bg-sidebar border border-border rounded-full p-1 shadow-sm">
-        <button class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand/10 text-brand hover:bg-brand/20 transition-colors">
+        {#if !executionStore.isRunning}
+        <button onclick={() => executionStore.runWorkflow()} class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand/10 text-brand hover:bg-brand/20 transition-colors">
             <Play size={14} fill="currentColor" />
             Execute
         </button>
-        <button class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-text-muted hover:text-text hover:bg-bg-hover transition-colors hidden">
+        {:else}
+        <button onclick={() => executionStore.stop()} class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-400/10 transition-colors">
             <Square size={14} fill="currentColor" />
             Stop
         </button>
+        {/if}
     </div>
 
     <!-- Right: Actions & View Controls -->
@@ -60,7 +72,17 @@
             </button>
         </div>
         
-        <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-white/5 text-text hover:bg-white/10 transition-colors border border-white/10 active:scale-95">
+        <button 
+            onclick={async () => {
+                try {
+                    await canvasState.backend.saveWorkflow(canvasState.currentWorkflowName);
+                    // could show a toast here
+                } catch (e) {
+                    console.error("Save failed:", e);
+                }
+            }}
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-white/5 text-text hover:bg-white/10 transition-colors border border-white/10 active:scale-95"
+        >
             <Save size={14} />
             Save
         </button>

@@ -2,10 +2,10 @@
     import FieldRenderer from './FieldRenderer.svelte';
     import { CanvasState } from '$lib/logic/canvasState.svelte';
 
-    let { template, node, state: canvasState }: { template: any, node: any, state: CanvasState } = $props();
+    let { template, node, state: canvasState, config = $bindable() }: { template: any, node: any, state: CanvasState, config?: Record<string, any> } = $props();
 
-    // Use state for the local form values
-    let config = $state<Record<string, any>>({});
+    // The parent provides the config object
+    if (!config) config = {};
     let loading = $state(true);
 
     // Sync from backend when node changes
@@ -26,7 +26,11 @@
                     }
                 });
                 
-                config = newConfig;
+                // Copy properties over to preserve reference for bindable
+                for (const k in newConfig) {
+                    config![k] = newConfig[k];
+                }
+                
                 loading = false;
             }).catch(e => {
                 console.error("Failed to fetch node config", e);
@@ -37,7 +41,9 @@
 
     // Handle field updates
     function handleFieldChange(key: string, value: any) {
-        config[key] = value;
+        if(config) {
+            config[key] = value;
+        }
         // Debounce backend update
         saveToBackend(key, value);
     }
@@ -91,7 +97,7 @@
                                 </span>
                                 <FieldRenderer 
                                     definition={setting} 
-                                    value={config[setting.name]} 
+                                    value={config ? config[setting.name] : undefined} 
                                     onValueChange={(v: any) => handleFieldChange(setting.name, v)}
                                 />
                             </label>

@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import type { IBackend } from '../backend';
 
 export class TauriAdapter implements IBackend {
@@ -41,5 +42,40 @@ export class TauriAdapter implements IBackend {
 
     async getNodeConfig(nodeId: string): Promise<Record<string, any>> {
         return await invoke("get_node_config", { nodeId });
+    }
+
+    async executeWorkflow(): Promise<string> {
+        return await invoke("execute_workflow");
+    }
+
+    async simulateNode(nodeId: string, input: any): Promise<string> {
+        return await invoke("simulate_node", { nodeId, input });
+    }
+
+    async stopExecution(traceId: string): Promise<void> {
+        return await invoke("stop_execution", { traceId });
+    }
+
+    async onEvent(callback: (event: any) => void): Promise<() => void> {
+        const unlisten = await listen('system-event', (event) => {
+            callback(event.payload);
+        });
+        return unlisten;
+    }
+
+    async saveWorkflow(name: string): Promise<string> {
+        return await invoke("save_workflow", { name });
+    }
+
+    async loadWorkflow(id: string): Promise<string> {
+        return await invoke("load_workflow", { id });
+    }
+
+    async listWorkflows(): Promise<Array<{ id: string, name: string, last_modified: number, node_count: number }>> {
+        return await invoke("list_workflows");
+    }
+
+    async newWorkflow(): Promise<void> {
+        return await invoke("new_workflow");
     }
 }

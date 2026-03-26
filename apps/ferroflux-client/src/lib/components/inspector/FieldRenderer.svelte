@@ -87,6 +87,29 @@
         Multi-select not yet implemented
     </div>
 
+{:else if definition.type === 'boolean'}
+    <label class="relative inline-flex items-center cursor-pointer">
+        <input type="checkbox" bind:checked={value} class="sr-only peer" onchange={triggerChange}>
+        <div class="w-9 h-5 bg-bg-sidebar peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-text after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
+    </label>
+
+{:else if definition.type === 'json' || definition.type === 'code' || definition.type === 'expression'}
+    <div class="relative group">
+        <textarea 
+            bind:value
+            rows={definition.type === 'expression' ? 2 : 6}
+            class="w-full bg-[#1e1e1e] border border-[#333] rounded px-3 py-2 text-xs focus:outline-none focus:border-brand transition-colors font-mono resize-y leading-relaxed"
+            placeholder={definition.type === 'json' ? '{\n  "key": "value"\n}' : definition.type === 'expression' ? '{{ $json.body }}' : '// Write your script here'}
+            ondrop={onDrop}
+            ondragover={(e) => e.preventDefault()}
+            oninput={triggerChange}
+            style="color: #d4d4d4;"
+        ></textarea>
+        <div class="absolute right-2 bottom-2 text-[9px] text-[#888] pointer-events-none uppercase bg-black/80 px-1.5 py-0.5 rounded shadow-sm opacity-50 group-hover:opacity-100 transition-opacity">
+            {definition.type}
+        </div>
+    </div>
+
 {:else}
     <div class="text-xs text-status-warning">Unknown field type: {definition.type}</div>
 {/if}

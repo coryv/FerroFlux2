@@ -6,6 +6,7 @@
     import ConfigurationPanel from './ConfigurationPanel.svelte';
     import InputsPanel from './InputsPanel.svelte';
     import OutputsPanel from './OutputsPanel.svelte';
+    import ExecutionPanel from './ExecutionPanel.svelte';
 
     let { state: canvasState }: { state: CanvasState } = $props();
 
@@ -15,6 +16,9 @@
     let template = $derived(selectedNode && canvasState.templates[selectedNode.data] ? canvasState.templates[selectedNode.data] : null);
     
     let isTrigger = $derived(template && (template.type === 'Trigger' || template.meta?.type === 'Trigger' || template.category === 'Triggers'));
+    
+    // Config state lifted for renaming
+    let nodeConfig = $state<Record<string, any>>({});
     
     // Tab state
     let activeTab = $state<'config'|'inputs'|'outputs'|'execution'>('config');
@@ -58,9 +62,18 @@
                     <div class="w-6 h-6 rounded bg-brand flex items-center justify-center text-white">
                         <Settings size={14} />
                     </div>
-                    <div class="flex flex-col">
-                        <h3 class="font-bold text-sm text-text">{template.name || template.meta?.name}</h3>
-                        <p class="text-[10px] text-text-muted font-mono truncate w-32">{selectedNodeId}</p>
+                    <div class="flex flex-col w-48">
+                        <input 
+                            type="text" 
+                            class="font-bold text-sm text-text bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-brand/50 rounded px-1 -ml-1 transition-shadow w-full placeholder:text-text-subtle"
+                            placeholder={template.name || template.meta?.name}
+                            value={nodeConfig._node_name || template.name || template.meta?.name}
+                            oninput={(e) => {
+                                nodeConfig._node_name = e.currentTarget.value;
+                                canvasState.backend.updateNodeConfig(selectedNodeId, '_node_name', e.currentTarget.value);
+                            }}
+                        />
+                        <p class="text-[10px] text-text-muted font-mono truncate w-full px-1 -ml-1 mt-0.5">{selectedNodeId}</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-1">
@@ -107,16 +120,13 @@
         <!-- Content Area -->
         <div class="flex-1 overflow-y-auto bg-bg p-4 custom-scrollbar">
             {#if activeTab === 'config'}
-                <ConfigurationPanel template={template} node={selectedNode} state={canvasState} />
+                <ConfigurationPanel template={template} node={selectedNode} state={canvasState} bind:config={nodeConfig} />
             {:else if activeTab === 'inputs'}
-                <InputsPanel />
+                <InputsPanel state={canvasState} node={selectedNode} />
             {:else if activeTab === 'outputs'}
-                <OutputsPanel />
+                <OutputsPanel state={canvasState} node={selectedNode} />
             {:else if activeTab === 'execution'}
-                <div class="flex flex-col items-center justify-center h-full text-text-muted gap-2 opacity-50">
-                    <Play size={32} />
-                    <p class="text-sm">Execution Engine Disabled</p>
-                </div>
+                <ExecutionPanel state={canvasState} node={selectedNode} />
             {/if}
         </div>
     </div>

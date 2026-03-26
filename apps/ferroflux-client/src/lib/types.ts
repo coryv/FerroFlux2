@@ -39,6 +39,7 @@ export interface NodeData {
     inputs: string[]; // List of PortIds
     outputs: string[]; // List of PortIds
     data: string; // Template ID (e.g. "core.action.log")
+    config?: Record<string, any>;
     // styles, flags, etc.
 }
 

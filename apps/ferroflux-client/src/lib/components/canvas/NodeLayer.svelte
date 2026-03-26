@@ -1,5 +1,7 @@
 <script lang="ts">
     import Node from "$lib/components/Node.svelte";
+    import CommentNode from "./CommentNode.svelte";
+    import GroupBox from "./GroupBox.svelte";
     import { CanvasState } from "$lib/logic/canvasState.svelte";
 
     let { state }: { state: CanvasState } = $props();
@@ -47,6 +49,14 @@
                         e.stopPropagation();
                     }}
                 />
+            </div>
+        {:else if node.data === 'core.comment'}
+            <div class="pointer-events-auto contents">
+                <CommentNode {node} {state} />
+            </div>
+        {:else if node.data === 'core.group'}
+            <div class="pointer-events-auto contents">
+                <GroupBox {node} {state} />
             </div>
         {:else}
             <!-- Fallback for unknown nodes -->

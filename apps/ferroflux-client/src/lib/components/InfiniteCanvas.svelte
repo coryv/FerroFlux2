@@ -1,15 +1,23 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { CanvasState } from "$lib/logic/canvasState.svelte";
+    import { onMount, getContext } from "svelte";
+    import type { CanvasState } from "$lib/logic/canvasState.svelte";
     import ConnectionLayer from "$lib/components/canvas/ConnectionLayer.svelte";
     import NodeLayer from "$lib/components/canvas/NodeLayer.svelte";
     import SelectionOverlay from "$lib/components/canvas/SelectionOverlay.svelte";
     import NodeInspector from "$lib/components/inspector/NodeInspector.svelte";
     import CanvasToolbar from "$lib/components/canvas/CanvasToolbar.svelte";
     import Minimap from "$lib/components/canvas/Minimap.svelte";
+    import ContextMenu from "$lib/components/canvas/ContextMenu.svelte";
+    import ExecutionOverlay from "$lib/components/canvas/ExecutionOverlay.svelte";
+    import { UndoManager } from "$lib/logic/undoManager.svelte";
 
     // Initialize State
-    const canvasState = new CanvasState();
+    const canvasState: CanvasState = getContext('canvas_state');
+    const undoManager = new UndoManager();
+    
+    // Context Menu State
+    let contextMenuOpen = $state(false);
+    let contextMenuPos = $state({ x: 0, y: 0 });
 
     onMount(() => {
         canvasState.refreshGraph();
@@ -79,11 +87,56 @@
             canvasState.selectedNodes = new Set(Object.keys(canvasState.graph.nodes));
         }
 
-        // Copy/Paste Logic could be moved to State class but ok here for now
-        // TODO: Implement Copy/Paste using State access
+        // COPY
+        if (isCmd && e.key === "c") {
+            e.preventDefault();
+            await canvasState.copy();
+        }
+
+        // PASTE
+        if (isCmd && e.key === "v") {
+            e.preventDefault();
+            await canvasState.paste();
+        }
+
+        // DUPLICATE
+        if (isCmd && e.key === "d") {
+            e.preventDefault();
+            await canvasState.duplicate();
+        }
+        
+        // UNDO/REDO (Partial implementation)
+        if (isCmd && e.key === "z") {
+            e.preventDefault();
+            if (e.shiftKey) await undoManager.redo();
+            else await undoManager.undo();
+        }
+
+        // FIT TO VIEW
+        if (isCmd && e.key === "1") {
+            e.preventDefault();
+            canvasState.scale = 1;
+            canvasState.offset = { x: 0, y: 0 };
+        }
+
+        // ZOOM TO SELECTION / CENTER
+        if (isCmd && e.key === "2") {
+            e.preventDefault();
+            if (canvasState.selectedNodes.size > 0) {
+                const firstId = Array.from(canvasState.selectedNodes)[0];
+                const node = canvasState.graph.nodes[firstId];
+                if (node) {
+                    canvasState.offset.x = window.innerWidth / 2 - node.position.x * canvasState.scale;
+                    canvasState.offset.y = window.innerHeight / 2 - node.position.y * canvasState.scale;
+                }
+            }
+        }
     }
 
     function onCanvasMouseDown(event: MouseEvent) {
+        // Close context menu on any click
+        contextMenuOpen = false;
+
         if (event.button === 0 && !canvasState.draggingNode && !canvasState.dragEdgeStart) {
             const container = event.currentTarget as HTMLElement;
             const rect = container.getBoundingClientRect();
@@ -109,10 +162,15 @@
         canvasState.mouseWorldPos = canvasState.screenToWorld(mouseX, mouseY);
 
         if (canvasState.draggingNode) {
-            const node = canvasState.graph.nodes[canvasState.draggingNode];
-            if (node) {
-                node.position.x += event.movementX / canvasState.scale;
-                node.position.y += event.movementY / canvasState.scale;
+            const dx = event.movementX / canvasState.scale;
+            const dy = event.movementY / canvasState.scale;
+            // Move all selected nodes
+            for (const id of canvasState.selectedNodes) {
+                const n = canvasState.graph.nodes[id];
+                if (n) {
+                    n.position.x += dx;
+                    n.position.y += dy;
+                }
             }
         }
 
@@ -128,13 +186,16 @@
     async function onCanvasMouseUp(event: MouseEvent) {
         // 1. End Node Drag
         if (canvasState.draggingNode) {
-            const node = canvasState.graph.nodes[canvasState.draggingNode];
-            if (node) {
-                await canvasState.backend.updateNodePosition(
-                    canvasState.draggingNode,
-                    node.position.x,
-                    node.position.y,
-                );
+            // Save positions for all selected nodes
+            for (const id of canvasState.selectedNodes) {
+                const node = canvasState.graph.nodes[id];
+                if (node) {
+                    await canvasState.backend.updateNodePosition(
+                        id,
+                        node.position.x,
+                        node.position.y,
+                    );
+                }
             }
             canvasState.draggingNode = null;
         }
@@ -203,6 +264,12 @@
             window.dispatchEvent(new CustomEvent("ferroflux:graph-change"));
         }
     }
+    
+    function onContextMenu(e: MouseEvent) {
+        e.preventDefault();
+        contextMenuPos = { x: e.clientX, y: e.clientY };
+        contextMenuOpen = true;
+    }
 </script>
 
 <svelte:window onkeydown={onKeyDown} />
@@ -219,6 +286,7 @@
     onmousemove={onCanvasMouseMove}
     onmouseup={onCanvasMouseUp}
     onwheel={onWheel}
+    oncontextmenu={onContextMenu}
 >
     <!-- Background Grid -->
     <div
@@ -245,11 +313,21 @@
     </div>
 
     <SelectionOverlay state={canvasState} />
+    <ExecutionOverlay />
     
     <CanvasToolbar state={canvasState} />
     <Minimap state={canvasState} />
     
     <NodeInspector state={canvasState} />
+    
+    {#if contextMenuOpen}
+        <ContextMenu 
+            x={contextMenuPos.x} 
+            y={contextMenuPos.y} 
+            state={canvasState} 
+            onClose={() => contextMenuOpen = false} 
+        />
+    {/if}
 </div>
 
 <style>

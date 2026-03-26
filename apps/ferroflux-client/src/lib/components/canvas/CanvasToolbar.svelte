@@ -18,10 +18,22 @@
     
     <div class="w-px h-6 bg-border mx-1"></div>
     
-    <button class="p-2 rounded-full transition-colors {activeTool === 'comment' ? 'bg-brand/20 text-brand' : 'text-text-muted hover:text-text hover:bg-white/5'}" onclick={() => activeTool = 'comment'} title="Add Comment (C)">
+    <button class="p-2 rounded-full transition-colors text-text-muted hover:text-text hover:bg-white/5" onclick={async () => {
+        const centerPos = canvasState.screenToWorld(window.innerWidth / 2, window.innerHeight / 2);
+        const newId = await canvasState.backend.addNode('core.comment', centerPos.x - 100, centerPos.y - 100);
+        await canvasState.refreshGraph();
+        canvasState.selectedNodes = new Set([newId]);
+        window.dispatchEvent(new CustomEvent("ferroflux:graph-change"));
+    }} title="Add Comment">
         <MessageSquare size={18} />
     </button>
-    <button class="p-2 rounded-full transition-colors {activeTool === 'group' ? 'bg-brand/20 text-brand' : 'text-text-muted hover:text-text hover:bg-white/5'}" onclick={() => activeTool = 'group'} title="Add Group (G)">
+    <button class="p-2 rounded-full transition-colors text-text-muted hover:text-text hover:bg-white/5" onclick={async () => {
+        const centerPos = canvasState.screenToWorld(window.innerWidth / 2, window.innerHeight / 2);
+        const newId = await canvasState.backend.addNode('core.group', centerPos.x - 250, centerPos.y - 200);
+        await canvasState.refreshGraph();
+        canvasState.selectedNodes = new Set([newId]);
+        window.dispatchEvent(new CustomEvent("ferroflux:graph-change"));
+    }} title="Add Group">
         <SquareDashed size={18} />
     </button>
     
