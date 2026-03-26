@@ -1,0 +1,90 @@
+meta:
+  id: open-meteo.historical.get
+  name: Get Historical Weather
+  category: Historical
+  type: Action
+  platform: open-meteo
+  description: "Fetch historical weather data for a location and date range using the Open-Meteo archive API."
+  version: "1.0.0"
+  data_strategy: enrich
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: latitude
+      type: number
+    - name: longitude
+      type: number
+    - name: start_date
+      type: string
+    - name: end_date
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: historical
+      type: object
+  settings:
+    - name: hourly_variables
+      label: "Hourly Variables (comma-separated)"
+      type: string
+      required: false
+      default: "temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m"
+      placeholder: "temperature_2m,precipitation,wind_speed_10m,..."
+    - name: temperature_unit
+      label: "Temperature Unit"
+      type: select
+      required: false
+      default: "celsius"
+      options:
+        - label: "Celsius"
+          value: "celsius"
+        - label: "Fahrenheit"
+          value: "fahrenheit"
+    - name: timezone
+      label: "Timezone"
+      type: string
+      required: false
+      default: "auto"
+      placeholder: "e.g. America/New_York, Europe/London, auto"
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: GET
+      url: "https://archive-api.open-meteo.com/v1/archive?latitude={{ get 'inputs.latitude' }}&longitude={{ get 'inputs.longitude' }}&start_date={{ get 'inputs.start_date' }}&end_date={{ get 'inputs.end_date' }}&hourly={{ get 'settings.hourly_variables' }}&temperature_unit={{ get 'settings.temperature_unit' }}&timezone={{ get 'settings.timezone' }}"
+      headers: "{{ platform.headers }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "{{ steps.request.status_code }}"
+      cases:
+        - condition: "200"
+          output: success
+        - condition: default
+          output: error
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: historical
+          value: "{{ steps.request.response_body }}"
+    error:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

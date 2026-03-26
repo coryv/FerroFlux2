@@ -7,6 +7,14 @@
 }
 
 body {
-    @apply bg-[#0F0F0F] text-white m-0 p-0 overflow-hidden;
-    font-family: 'Inter', system-ui, sans-serif;
+    @apply bg-bg text-text m-0 p-0 overflow-hidden font-sans;
+}
+
+/* Scrollbar hiding utility */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }

@@ -18,4 +18,20 @@ export class TauriAdapter implements IBackend {
     async addNode(templateId: string, x: number, y: number): Promise<string> {
         return await invoke('add_node', { templateId, x, y });
     }
+
+    async connectPorts(from: string, to: string): Promise<string> {
+        return await invoke('connect_ports', { from, to });
+    }
+
+    async deleteConnection(id: string): Promise<string> {
+        return await invoke("delete_connection", { id });
+    }
+
+    async updateNodePosition(id: string, x: number, y: number): Promise<string> {
+        return await invoke("update_node_position", { id, x, y });
+    }
+
+    async deleteNode(id: string): Promise<string> {
+        return await invoke("delete_node", { id });
+    }
 }

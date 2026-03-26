@@ -1,8 +1,9 @@
 <script lang="ts">
-    import { getBackend } from "../context/backend.svelte";
+    import { getBackend } from "$lib/context/backend.svelte";
     import { onMount } from "svelte";
 
-    // Type definition for NodeMetadata (should mirror Rust)
+    // Get backend instance during initialization
+    const backend = getBackend();
     interface PortMetadata {
         name: string;
         data_type: string;
@@ -20,8 +21,6 @@
     let templates: NodeMetadata[] = $state([]);
     let loading = $state(true);
     let error = $state<string | null>(null);
-
-    const backend = getBackend();
 
     onMount(async () => {
         try {
@@ -59,9 +58,42 @@
     {:else}
         <div class="flex-1 overflow-y-auto pr-2 space-y-1">
             {#each templates as node}
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                 <div
                     class="group flex flex-col bg-white/5 hover:bg-white/10 p-2 rounded border border-transparent hover:border-white/20 cursor-move transition-all active:scale-95"
                     draggable="true"
+                    role="listitem"
+                    style="-webkit-user-drag: element;"
+                    ondblclick={async () => {
+                        // Fallback: Add to center of screen
+                        console.log("DEBUG: Double Click Add", node.id);
+                        // Use initialized backend instance
+                        // Randomize position slightly to avoid perfect overlap
+                        const randX = 400 + (Math.random() * 50 - 25);
+                        const randY = 300 + (Math.random() * 50 - 25);
+                        await backend.addNode(node.id, randX, randY);
+                        window.dispatchEvent(
+                            new CustomEvent("ferroflux:graph-change"),
+                        );
+                    }}
+                    ondragstart={(e) => {
+                        console.log("DEBUG: Drag Start", node.id);
+                        e.dataTransfer?.setData("text/plain", node.id);
+                        if (e.dataTransfer) {
+                            e.dataTransfer.effectAllowed = "copy";
+                        }
+                        // Notify app that dragging started
+                        window.dispatchEvent(
+                            new CustomEvent("ferroflux:drag-start"),
+                        );
+                    }}
+                    ondragend={(e) => {
+                        console.log("DEBUG: Drag End");
+                        window.dispatchEvent(
+                            new CustomEvent("ferroflux:drag-end"),
+                        );
+                    }}
                 >
                     <div class="flex justify-between items-center">
                         <span class="text-sm font-medium text-neutral-200"

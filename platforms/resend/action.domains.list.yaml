@@ -1,0 +1,64 @@
+meta:
+  id: resend.domains.list
+  name: List Domains
+  category: Domains
+  type: Action
+  platform: resend
+  description: "Retrieve a list of all domains associated with your Resend account."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: domains
+      type: array
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/domains"
+      headers: "{{ platform.headers }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "{{ steps.request.status_code }}"
+      cases:
+        - condition: "200"
+          output: success
+        - condition: default
+          output: error
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: json_query
+        params:
+          json: "{{ steps.request.response_body }}"
+          path: "/data"
+        returns:
+          result: domain_list
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: domains
+          value: "{{ steps.request.domain_list }}"
+    error:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

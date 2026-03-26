@@ -7,6 +7,17 @@ ferroflux.key
 ferroflux.db
 *.key
 
+# JS/Frontend
+**/node_modules
+**/.svelte-kit
+**/build
+**/.env
+**/.env.*
+!**/.env.example
+
+# AI tool configs
+.gemini/
+
 # Documentation Artifacts
 implementation_plan.md
 task.md

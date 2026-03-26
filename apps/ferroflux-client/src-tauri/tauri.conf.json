@@ -17,13 +17,15 @@
         "security": {
             "csp": null
         },
+        "withGlobalTauri": true,
         "windows": [
             {
                 "title": "FerroFlux Client",
                 "width": 1200,
                 "height": 800,
                 "resizable": true,
-                "fullscreen": false
+                "fullscreen": false,
+                "dragDropEnabled": false
             }
         ]
     }

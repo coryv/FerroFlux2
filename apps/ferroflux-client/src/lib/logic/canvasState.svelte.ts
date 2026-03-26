@@ -1,0 +1,126 @@
+import { getBackend } from "$lib/context/backend.svelte";
+import type { GraphState, NodeMetadata, Vec2 } from "$lib/types";
+
+export class CanvasState {
+    // State
+    graph = $state<GraphState>({
+        nodes: {},
+        ports: {},
+        connections: [],
+        draw_order: [],
+    });
+
+    templates = $state<Record<string, NodeMetadata>>({});
+
+    // Transform
+    offset = $state<Vec2>({ x: 0, y: 0 });
+    scale = $state(1);
+
+    // Interaction
+    selectedNodes = $state<Set<string>>(new Set());
+    selectedEdges = $state<Set<string>>(new Set());
+
+    dragEdgeStart = $state<string | null>(null);
+    dragEdgeCurrent = $state<Vec2 | null>(null);
+    draggingNode = $state<string | null>(null);
+    isDraggingOver = $state(false);
+
+    selectionStart = $state<Vec2 | null>(null);
+    selectionCurrent = $state<Vec2 | null>(null);
+
+    mouseWorldPos = $state<Vec2>({ x: 0, y: 0 });
+
+    backend = getBackend();
+
+    constructor() {
+        // any init
+    }
+
+    screenToWorld(x: number, y: number): Vec2 {
+        return {
+            x: (x - this.offset.x) / this.scale,
+            y: (y - this.offset.y) / this.scale,
+        };
+    }
+
+    getPortPosition(portId: string): Vec2 {
+        const port = this.graph.ports[portId];
+        if (!port) return { x: 0, y: 0 };
+        const node = this.graph.nodes[port.node_id];
+        if (!node) return { x: 0, y: 0 };
+
+        let index = node.inputs.indexOf(portId);
+        let isInput = index !== -1;
+        if (!isInput) {
+            index = node.outputs.indexOf(portId);
+        }
+        if (index === -1) return { x: 0, y: 0 };
+
+        const headerHeight = 33;
+        const bodyPadding = 8;
+        const portHeight = 20;
+        const portGap = 4;
+        const portStride = portHeight + portGap;
+
+        let yOffset =
+            headerHeight + bodyPadding + index * portStride + portHeight / 2;
+
+        if (!isInput) {
+            const inputCount = node.inputs.length;
+            const inputBlockHeight =
+                inputCount > 0 ? inputCount * portStride + 4 : 0;
+            yOffset += inputBlockHeight;
+        }
+
+        const y = node.position.y + yOffset;
+        const x = isInput
+            ? node.position.x
+            : node.position.x + node.size.x;
+        return { x, y };
+    }
+
+    async refreshGraph() {
+        const [g_json, t] = await Promise.all([
+            this.backend.getGraph(),
+            this.backend.getTemplates(),
+        ]);
+        const g = (
+            typeof g_json === "string" ? JSON.parse(g_json) : g_json
+        ) as GraphState;
+        this.graph = g;
+        this.templates = t.reduce((acc: any, curr: any) => ({ ...acc, [curr.id]: curr }), {});
+    }
+
+    handleSelection(x1: number, y1: number, x2: number, y2: number) {
+        // Check intersection (simple AABB)
+        const newSelection = new Set(this.selectedNodes);
+
+        const minX = Math.min(x1, x2);
+        const minY = Math.min(y1, y2);
+        const maxX = Math.max(x1, x2);
+        const maxY = Math.max(y1, y2);
+
+        for (const node of Object.values(this.graph.nodes)) {
+            const nx = node.position.x;
+            const ny = node.position.y;
+            const nw = node.size?.x || 200;
+            const nh = node.size?.y || 100;
+
+            if (nx < maxX && nx + nw > minX && ny < maxY && ny + nh > minY) {
+                newSelection.add(node.id);
+            }
+        }
+        this.selectedNodes = newSelection;
+
+        // ... selection logic ... 
+    }
+
+    getObstacles(): any[] {
+        return Object.values(this.graph.nodes).map(n => ({
+            x: n.position.x,
+            y: n.position.y,
+            w: n.size?.x || 200,
+            h: n.size?.y || 100 // Estimate
+        }));
+    }
+}

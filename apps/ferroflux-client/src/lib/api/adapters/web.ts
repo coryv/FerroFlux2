@@ -17,6 +17,21 @@ export class WebAdapter implements IBackend {
         ];
     }
 
+    async updateNodePosition(id: string, x: number, y: number): Promise<string> {
+        console.log("WebAdapter: updateNodePosition", id, x, y);
+        return "ok";
+    }
+
+    async deleteConnection(id: string): Promise<string> {
+        console.log("WebAdapter: deleteConnection", id);
+        return "ok";
+    }
+
+    async deleteNode(id: string): Promise<string> {
+        console.log("WebAdapter: deleteNode", id);
+        return "ok";
+    }
+
     async addNode(templateId: string, x: number, y: number): Promise<string> {
         console.log(`[Web] Adding node ${templateId} at ${x},${y}`);
         return 'mock-node-id-' + Date.now();
