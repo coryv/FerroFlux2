@@ -1,7 +1,7 @@
 use crate::components::execution_state::ActiveWorkflowState;
 use crate::components::pipeline::PipelineNode;
 use crate::resources::registry::DefinitionRegistry;
-use crate::tools::registry::ToolRegistry;
+use crate::tools::ToolRegistry;
 use bevy_ecs::prelude::*;
 use std::collections::HashMap;
 

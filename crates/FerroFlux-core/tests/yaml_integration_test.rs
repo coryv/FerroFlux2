@@ -7,11 +7,12 @@ use uuid::Uuid;
 #[tokio::test]
 async fn test_yaml_pipeline_flow() {
     // 1. Setup App
-    let (mut app, _api_tx, _event_tx, _store, _blob_store, _, _, _) = AppBuilder::new()
+    let mut ctx = AppBuilder::new()
         .build()
         .await
         .expect("Failed to build app");
 
+    let app = &mut ctx.app;
     app.schedule
         .add_systems(ferroflux_core::systems::pipeline::pipeline_execution_system);
 

@@ -102,12 +102,12 @@ async fn test_custom_trigger_provider_init() {
         .await;
 
     assert!(build_res.is_ok());
-    let (mut app, _, _, _, _, _, _, _) = build_res.unwrap();
+    let mut ctx = build_res.unwrap();
 
-    app.world.spawn(Outbox::default());
+    ctx.app.world.spawn(Outbox::default());
 
     for _ in 0..5 {
-        app.update();
+        ctx.app.update();
         tokio::time::sleep(std::time::Duration::from_millis(20)).await;
     }
 }

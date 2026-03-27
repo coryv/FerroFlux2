@@ -283,6 +283,7 @@ mod tests {
     use crate::traits::execution::{
         BackendResource, LocalExecutionBackend, LocalExecutionReceiver, flush_local_execution_jobs,
     };
+    use ferroflux_iam::TenantId;
     use std::collections::HashMap;
     use std::sync::Arc;
 

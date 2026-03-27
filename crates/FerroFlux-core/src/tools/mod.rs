@@ -1,62 +1,79 @@
-use anyhow::Result;
-use serde_json::Value;
-use std::collections::HashMap;
 
 pub mod primitives;
-pub mod registry;
 mod tests;
 
-/// Context provided to a Tool during execution.
-///
-/// This context holds the ephemeral state of the current node execution,
-/// allowing tools to read inputs and write outputs.
-use crate::components::execution_state::DataRef;
+pub use ferroflux_types::tool::{SecretResolver, Tool, ToolRegistry};
 
-/// Context provided to a Tool during execution.
+/// Re-export DataRef from types for convenience within tools.
+pub use ferroflux_types::data_ref::DataRef;
+
+/// Re-export the portable ToolContext.
+pub use ferroflux_types::tool::ToolContext;
+
+use ferroflux_db::SecretStore;
+
+/// A wrapper that implements `SecretResolver` for the core runtime.
 ///
-/// This context holds the ephemeral state of the current node execution,
-/// allowing tools to read inputs and write outputs.
-pub struct ToolContext<'a> {
-    /// Variables local to the current node execution pipeline.
-    pub local: &'a mut HashMap<String, DataRef>,
-    /// global workflow memory (read/write).
-    pub memory: &'a mut HashMap<String, Value>,
-    /// Correlation ID for the execution flow.
-    pub trace_id: String,
-    /// System event bus for emitting telemetry.
-    pub event_bus: Option<crate::api::events::SystemEventBus>,
-    /// Whether the current execution is a safe simulation ("Shadow Mode").
-    pub shadow_mode: bool,
-    /// Mock configurations for specific tools when in Shadow Mode.
-    pub shadow_masks: &'a HashMap<String, crate::components::shadow::MockConfig>,
-    /// Access to secret store for resolving connections (optional).
-    pub secret_store: Option<&'a crate::secrets::DatabaseSecretStore>,
-    /// Handle to the Tokio runtime for bridging sync tools to async operations (optional).
-    pub runtime: Option<&'a crate::resources::TokioRuntime>,
-    /// Access to BlobStore for resolving DataRefs (optional).
-    pub store: Option<&'a crate::store::BlobStore>,
-    /// Per-connection locks to prevent concurrent OAuth2 token refreshes (optional).
+/// It bridges the synchronous `resolve_connection` call required by tools
+/// to the asynchronous `DatabaseSecretStore` using the provided Tokio runtime.
+pub struct CoreSecretResolver<'a> {
+    pub tenant_id: ferroflux_types::tenant::TenantId,
+    pub store: &'a crate::secrets::DatabaseSecretStore,
+    pub runtime: &'a crate::resources::TokioRuntime,
     pub refresh_locks: Option<&'a crate::oauth2::TokenRefreshLocks>,
 }
 
-/// A "Tool" is an atomic unit of logic.
-///
-/// Tools are stateless and re-entrant. They take a configuration (params)
-/// and a context, perform an action, and return a result.
-pub trait Tool: Send + Sync {
-    /// The unique identifier for this tool (e.g., "http_client", "switch").
-    fn id(&self) -> &'static str;
+impl<'a> SecretResolver for CoreSecretResolver<'a> {
+    fn resolve_connection(
+        &self,
+        tenant: &ferroflux_types::tenant::TenantId,
+        slug: &str,
+    ) -> anyhow::Result<serde_json::Value> {
+        let conn_data = self
+            .runtime
+            .0
+            .block_on(async { self.store.resolve_connection(tenant, slug).await })?;
 
-    /// Executes the tool's logic.
-    ///
-    /// # Arguments
-    /// * `context` - Mutable access to the node's execution context.
-    /// * `params` - The resolved configuration for this step (variables already interpolated).
-    fn run(&self, context: &mut ToolContext, params: Value) -> Result<Value>;
+        // Handle OAuth2 Refresh if needed
+        if let Some(auth_type) = conn_data.get("auth_type").and_then(|v| v.as_str())
+            && auth_type == "OAuth2"
+        {
+            let refreshed_token = crate::oauth2::resolve_oauth2_token(
+                tenant,
+                slug,
+                &conn_data,
+                self.store,
+                self.runtime,
+                self.refresh_locks,
+            )?;
+
+            // Patch the conn_data with the fresh token so the tool sees it
+            let mut patched = conn_data.clone();
+            if let Some(obj) = patched.as_object_mut() {
+                obj.insert(
+                    "access_token".to_string(),
+                    serde_json::Value::String(refreshed_token),
+                );
+            }
+            return Ok(patched);
+        }
+
+        Ok(conn_data)
+    }
+
+    fn get_secret(
+        &self,
+        tenant: &ferroflux_types::tenant::TenantId,
+        key: &str,
+    ) -> anyhow::Result<String> {
+        self.runtime
+            .0
+            .block_on(async { self.store.get_secret(tenant, key).await })
+    }
 }
 
-/// Helper to register all core primitive tools.
-pub fn register_core_tools(registry: &mut registry::ToolRegistry) {
+/// Helper to register all core primitive tools into the given registry.
+pub fn register_core_tools(registry: &mut ToolRegistry) {
     use primitives::*;
     registry.register(HttpClientTool);
     registry.register(PaginateTool);

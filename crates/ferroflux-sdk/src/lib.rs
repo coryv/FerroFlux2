@@ -36,24 +36,21 @@ impl<T: NodeData + Serialize + DeserializeOwned + Send + 'static> FerroFluxClien
     ///
     /// Returns the Client and the JoinHandle for the background task.
     pub async fn start() -> Result<(Self, tokio::task::JoinHandle<()>)> {
-        let (mut engine, api_tx, event_tx, ..) = AppBuilder::new().build().await?;
-
-        // Register Core Tools
-        if let Some(mut registry) = engine
-            .world
-            .get_resource_mut::<ferroflux_core::tools::registry::ToolRegistry>()
-        {
-            ferroflux_core::tools::register_core_tools(&mut registry);
-        }
+        let ctx = AppBuilder::new().build().await?;
 
         let (cmd_tx, cmd_rx) = mpsc::channel(32);
-        let actor = EngineActor::new(engine, api_tx.clone(), cmd_rx, event_tx.clone());
+        let actor = EngineActor::new(
+            ctx.app,
+            ctx.api_tx.clone(),
+            cmd_rx,
+            ctx.event_tx.clone(),
+        );
 
         let handle = tokio::spawn(actor.run());
 
         let client = Self {
             command_tx: cmd_tx,
-            event_rx: event_tx.subscribe(),
+            event_rx: ctx.event_tx.subscribe(),
             _marker: std::marker::PhantomData,
         };
 

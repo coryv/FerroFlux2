@@ -2,7 +2,7 @@ use crate::components::execution_state::{ActiveWorkflowState, DataRef};
 use crate::components::pipeline::PipelineNode;
 use crate::resources::registry::DefinitionRegistry;
 use crate::tools::ToolContext;
-use crate::tools::registry::ToolRegistry;
+use crate::tools::ToolRegistry;
 use anyhow::Result;
 use handlebars::{Context, Handlebars, Helper, HelperResult, Output, RenderContext};
 use jmespath;
@@ -185,6 +185,19 @@ pub fn execute_pipeline_node(
             .unwrap_or(&default_masks);
 
         // Run Tool
+        let secrets_resolver = if let Some(ss) = secret_store
+            && let Some(rt) = runtime
+        {
+            Some(crate::tools::CoreSecretResolver {
+                tenant_id: ferroflux_types::tenant::TenantId::from("default_tenant"),
+                store: ss,
+                runtime: rt,
+                refresh_locks,
+            })
+        } else {
+            None
+        };
+
         let mut tool_ctx = ToolContext {
             local: &mut ctx_map,
             memory: global_memory,
@@ -192,10 +205,8 @@ pub fn execute_pipeline_node(
             event_bus: event_bus.clone(),
             shadow_mode: shadow_exec.is_some(),
             shadow_masks: masks_ref,
-            secret_store,
-            runtime,
             store,
-            refresh_locks,
+            secrets: secrets_resolver.as_ref().map(|r| r as &dyn crate::tools::SecretResolver),
         };
 
         let result = tool.run(&mut tool_ctx, resolved_params)?;
@@ -239,6 +250,19 @@ pub fn execute_pipeline_node(
                     .map(|s| &s.mocked_tools)
                     .unwrap_or(&default_masks);
 
+                let secrets_resolver = if let Some(ss) = secret_store
+                    && let Some(rt) = runtime
+                {
+                    Some(crate::tools::CoreSecretResolver {
+                        tenant_id: ferroflux_types::tenant::TenantId::from("default_tenant"),
+                        store: ss,
+                        runtime: rt,
+                        refresh_locks,
+                    })
+                } else {
+                    None
+                };
+
                 let mut tool_ctx = ToolContext {
                     local: &mut ctx_map,
                     memory: global_memory,
@@ -246,10 +270,8 @@ pub fn execute_pipeline_node(
                     event_bus: event_bus.clone(),
                     shadow_mode: shadow_exec.is_some(),
                     shadow_masks: masks_ref,
-                    secret_store,
-                    runtime,
                     store,
-                    refresh_locks,
+                    secrets: secrets_resolver.as_ref().map(|r| r as &dyn crate::tools::SecretResolver),
                 };
                 let result = tool.run(&mut tool_ctx, resolved_params)?;
 

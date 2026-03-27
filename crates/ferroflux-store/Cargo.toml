@@ -1,7 +1,0 @@
-[package]
-name = "ferroflux-store"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-sqlx = { version = "0.8.6", features = ["runtime-tokio", "sqlite"] }

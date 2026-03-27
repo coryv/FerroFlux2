@@ -5,10 +5,9 @@
 
 use crate::api::events::{SystemEvent, SystemEventBus};
 use crate::components::execution_state::DataRef;
-use crate::secrets::SecretStore;
-use crate::tools::ToolContext;
-use anyhow::{Context, Result, anyhow};
-use base64::{Engine as _, engine::general_purpose};
+use ferroflux_types::tool::ToolContext;
+use anyhow::{anyhow, Context, Result};
+use base64::{engine::general_purpose, Engine as _};
 use ferroflux_iam::TenantId;
 use ipnet::IpNet;
 use serde_json::Value;
@@ -31,14 +30,12 @@ pub fn resolve_connection_auth(
     let mut dynamic_headers: Vec<(String, String)> = Vec::new();
 
     if let Some(slug) = connection_slug {
-        if let Some(store) = context.secret_store
-            && let Some(rt) = context.runtime
-        {
-            let tenant = TenantId::from("default_tenant");
+        if let Some(resolver) = context.secrets {
+            let tenant = tenant_id_from_context(context);
 
-            let conn_data =
-                rt.0.block_on(async { store.resolve_connection(&tenant, slug).await })
-                    .context("Failed to resolve connection")?;
+            let conn_data = resolver
+                .resolve_connection(&tenant, slug)
+                .context("Failed to resolve connection")?;
 
             // Apply Base URL
             if let Some(base) = conn_data.get("base_url").and_then(|v| v.as_str()) {
@@ -90,18 +87,11 @@ pub fn resolve_connection_auth(
                         }
                     }
                     "OAuth2" => {
-                        let access_token = crate::oauth2::resolve_oauth2_token(
-                            &tenant,
-                            slug,
-                            &conn_data,
-                            store,
-                            rt,
-                            context.refresh_locks,
-                        )
-                        .context("OAuth2 token resolution failed")?;
+                        // For core, the SecretResolver implementation handles refresh locks internally
+                        // if it's the CoreSecretResolver. Portable tools don't need to know.
                         dynamic_headers.push((
                             "Authorization".to_string(),
-                            format!("Bearer {}", access_token),
+                            format!("Bearer {}", access_token_from_conn(&conn_data)?),
                         ));
                     }
                     _ => {}
@@ -265,7 +255,19 @@ pub fn set_query_param(url: &str, key: &str, value: &str) -> Result<String> {
         }
         pairs.append_pair(key, value);
     }
-    Ok(parsed.to_string())
+        Ok(parsed.to_string())
+}
+
+fn tenant_id_from_context(_context: &ToolContext) -> TenantId {
+    TenantId::from("default_tenant")
+}
+
+fn access_token_from_conn(conn_data: &Value) -> Result<String> {
+    conn_data
+        .get("access_token")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string())
+        .ok_or_else(|| anyhow!("OAuth2 access_token missing in connection data"))
 }
 
 /// Parses the `Link: <url>; rel="next"` header and returns the next URL if present.

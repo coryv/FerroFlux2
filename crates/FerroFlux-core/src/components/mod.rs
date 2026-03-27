@@ -16,24 +16,31 @@ pub mod observability;
 pub mod pipeline;
 pub mod schema;
 pub mod security;
-
-// Re-export everything for backward compatibility
-pub use self::agent::*;
-pub use self::core::*;
-pub use self::integration::*;
-pub use self::io::*;
-pub use self::logic::*;
-pub use self::observability::*;
-pub use self::schema::*;
-pub use self::security::*;
-pub use self::shadow::*;
-
 pub mod shadow;
+// Explicit re-exports for better maintainability and discovery
+pub use self::agent::{
+    AgentConfig, GenerationSettings, HistoryConfig, OutputMode, ToolChoice, ToolDefinition,
+};
+pub use self::compute::ComputeConfig;
+pub use self::connectors::{
+    FtpConfig, FtpOperation, FtpProtocol, RssConfig, RssState, SseTriggerConfig, SshConfig,
+    XmlConfig,
+};
+pub use self::control::CheckpointConfig;
+pub use self::core::{Edge, EdgeLabel, Inbox, NodeConfig, Outbox, PinnedOutput};
+pub use self::execution_state::{ActiveWorkflowState, DataRef};
+pub use self::integration::{IntegrationConfig, PayloadMapper};
+pub use self::io::{CronConfig, Frequency, HttpConfig, WebhookConfig};
+pub use self::logic::{ScriptConfig, SwitchConfig};
+pub use self::manipulation::{
+    AggregateConfig, BatchState, ExpressionConfig, SplitConfig, StatsConfig, TransformConfig,
+    WindowConfig, WindowOp, WindowState,
+};
+pub use self::observability::{Sensitive, Trace, TraceInput, TraceNode, TraceStart};
+pub use self::pipeline::{ExecutionContext, ExecutionResult, PipelineNode, ReadyToExecute};
+pub use self::schema::{ExpectedOutput, Requirements};
+pub use self::security::{AuthConfig, OAuth2Credentials, OAuth2TokenResponse, SecretConfig};
+pub use self::shadow::{MockConfig, ShadowExecution};
 
-// Re-export resources that were moved, to preserve import paths if possible
-// Note: This relies on `crate::resources::*` being accessible if we import it.
-// However, circular deps might be issue if resources imports components!
-// Let's see. resources.rs imports bevy_ecs. It typically doesn't depend on components.
-// But components might depend on resources? No.
-// Let's re-export them from crate root resources if the user wants `crate::components::WorkDone`.
+// Re-export common resources
 pub use crate::resources::{AgentConcurrency, WorkDone};

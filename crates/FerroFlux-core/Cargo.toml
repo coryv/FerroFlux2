@@ -32,7 +32,8 @@ sqlx = { version = "0.8.6", features = ["runtime-tokio", "sqlite", "chrono"] }
 ferroflux-integration = { path = "../ferroflux-integration" }
 ferroflux-iam = { path = "../ferroflux-iam" }
 ferroflux-security = { path = "../ferroflux-security" }
-ferroflux-store = { path = "../ferroflux-store" }
+ferroflux-types = { path = "../ferroflux-types" }
+ferroflux-db = { path = "../ferroflux-db" }
 jmespath = "0.4.0"
 aes-gcm = "0.10"
 hmac = "0.12"

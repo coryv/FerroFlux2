@@ -1,35 +1,9 @@
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
 use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::{Pool, Row, Sqlite};
 use uuid::Uuid;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct TenantId(pub String);
-
-impl std::fmt::Display for TenantId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl AsRef<str> for TenantId {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-
-impl From<&str> for TenantId {
-    fn from(s: &str) -> Self {
-        Self(s.to_string())
-    }
-}
-
-impl From<String> for TenantId {
-    fn from(s: String) -> Self {
-        Self(s)
-    }
-}
+pub use ferroflux_types::tenant::TenantId;
 
 #[derive(Clone, Debug)]
 pub struct IamStore {
@@ -38,7 +12,7 @@ pub struct IamStore {
 
 impl IamStore {
     pub async fn new(db_url: &str) -> Result<Self> {
-        let connection_options = ferroflux_store::sqlite_options_from_url(db_url)?;
+        let connection_options = ferroflux_db::sqlite_options_from_url(db_url)?;
 
         let pool = SqlitePoolOptions::new()
             .max_connections(5)

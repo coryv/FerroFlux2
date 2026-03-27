@@ -14,6 +14,29 @@ use bevy_ecs::system::SystemState;
 
 use std::sync::Arc;
 
+/// Output of [`AppBuilder::build`] — all resources the caller needs to drive the runtime.
+///
+/// Named fields replace the opaque 8-element tuple that was previously returned, making
+/// call sites self-documenting and immune to positional argument confusion.
+pub struct AppContext {
+    /// The ECS runtime (world + schedule). Call `.run().await` to start, or `.update()` to tick.
+    pub app: App,
+    /// Channel for sending API commands to the ECS loop.
+    pub api_tx: async_channel::Sender<ApiCommand>,
+    /// Broadcast sender for system events. Clone/subscribe to receive telemetry or SSE feeds.
+    pub event_tx: tokio::sync::broadcast::Sender<crate::api::events::SystemEvent>,
+    /// Handle to the SQLite persistent store (passed to the API server for workflow CRUD).
+    pub store: PersistentStore,
+    /// In-memory blob store (returned so the API server can share the same instance).
+    pub blob_store: BlobStore,
+    /// The AES-GCM master encryption key (needed by the API to decrypt connections).
+    pub master_key: Vec<u8>,
+    /// Loaded integration definitions.
+    pub integration_registry: crate::integrations::IntegrationRegistry,
+    /// Per-request integration response cache.
+    pub action_cache: crate::store::cache::IntegrationCache,
+}
+
 pub struct AppBuilder {
     db_url: Option<String>,
     store: Option<PersistentStore>,
@@ -93,19 +116,8 @@ impl AppBuilder {
         self
     }
 
-    /// Builds the App and returns the App instance along with channels for external communication.
-    pub async fn build(
-        self,
-    ) -> anyhow::Result<(
-        App,
-        async_channel::Sender<ApiCommand>,
-        tokio::sync::broadcast::Sender<crate::api::events::SystemEvent>,
-        PersistentStore,
-        BlobStore,
-        Vec<u8>,
-        crate::integrations::IntegrationRegistry,
-        crate::store::cache::IntegrationCache,
-    )> {
+    /// Builds the App and returns a structured [`AppContext`] with all runtime handles.
+    pub async fn build(self) -> anyhow::Result<AppContext> {
         // 1. Channel for API -> ECS
         let (api_tx, api_rx) = async_channel::unbounded::<ApiCommand>();
 
@@ -215,7 +227,7 @@ impl AppBuilder {
         world.insert_resource(crate::resources::templates::TemplateEngine::default());
         world.insert_resource(crate::resources::PipelineResultChannel::default());
         // Create and register ToolRegistry
-        let mut tool_registry = crate::tools::registry::ToolRegistry::default();
+        let mut tool_registry = crate::tools::ToolRegistry::default();
         crate::tools::register_core_tools(&mut tool_registry);
         world.insert_resource(tool_registry);
 
@@ -300,16 +312,16 @@ impl AppBuilder {
         }
         schedule.add_systems(api_command_worker);
 
-        Ok((
-            App { world, schedule },
+        Ok(AppContext {
+            app: App { world, schedule },
             api_tx,
             event_tx,
-            store_server,
-            blob_store_server,
-            master_key_clone,
-            int_registry,
+            store: store_server,
+            blob_store: blob_store_server,
+            master_key: master_key_clone,
+            integration_registry: int_registry,
             action_cache,
-        ))
+        })
     }
 }
 

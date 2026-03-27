@@ -644,21 +644,21 @@ pub fn run() {
             let state = app.state::<AppState>();
             
             tauri::async_runtime::block_on(async {
-                let (engine_app, api_tx, event_tx, _, _, _, _, _) = ferroflux_core::app::AppBuilder::new()
+                let ctx = ferroflux_core::app::AppBuilder::new()
                     .with_db_url("sqlite::memory:")
                     .build()
                     .await
                     .expect("Failed to build engine app");
 
-                state.api_tx.set(api_tx).map_err(|_| "api_tx already set").unwrap();
+                state.api_tx.set(ctx.api_tx).map_err(|_| "api_tx already set").unwrap();
 
                 // Start engine
                 tauri::async_runtime::spawn(async move {
-                    engine_app.run().await;
+                    ctx.app.run().await;
                 });
 
                 // Start event listener
-                let mut rx = event_tx.subscribe();
+                let mut rx = ctx.event_tx.subscribe();
                 tauri::async_runtime::spawn(async move {
                     while let Ok(event) = rx.recv().await {
                         if let Ok(value) = serde_json::to_value(&event) {
