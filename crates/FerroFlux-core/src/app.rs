@@ -297,6 +297,9 @@ impl AppBuilder {
             master_key_clone.clone(),
         ));
 
+        // OAuth2 Token Refresh Locks
+        world.insert_resource(crate::oauth2::TokenRefreshLocks::default());
+
         // Webhook Queue Initialization (Manual for now, since server is external)
         // But the ingest_worker is registered below.
         // We need to ensure the channel is set up.

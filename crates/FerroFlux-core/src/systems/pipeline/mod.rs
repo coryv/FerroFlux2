@@ -30,6 +30,7 @@ pub fn pipeline_execution_system(
     bus: Res<crate::api::events::SystemEventBus>,
     secret_store: Res<crate::secrets::DatabaseSecretStore>,
     runtime: Res<crate::resources::TokioRuntime>,
+    refresh_locks: Res<crate::oauth2::TokenRefreshLocks>,
 ) {
     const MAX_ITEMS_PER_TICK: usize = 50;
     for (_entity, mut node, mut inbox, mut outbox, shadow_exec, node_config) in query.iter_mut() {
@@ -69,6 +70,7 @@ pub fn pipeline_execution_system(
                     node_config,
                     Some(&secret_store),
                     Some(&runtime),
+                    Some(&refresh_locks),
                 ) {
                     Ok(ports) => ports,
                     Err(e) => {

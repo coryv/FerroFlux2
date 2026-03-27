@@ -51,6 +51,25 @@ impl DatabaseSecretStore {
     }
 }
 
+impl DatabaseSecretStore {
+    /// Encrypt and persist updated connection data (e.g., after an OAuth2 token refresh).
+    ///
+    /// Keeps the master key encapsulated — callers provide plaintext JSON bytes.
+    pub async fn update_connection_data(
+        &self,
+        tenant: &TenantId,
+        slug: &str,
+        updated_json: &[u8],
+    ) -> Result<()> {
+        let (enc_data, nonce) =
+            ferroflux_security::encryption::encrypt(updated_json, &self.master_key)
+                .context("Encryption failed during connection data update")?;
+        self.store
+            .update_connection_encrypted_data(tenant, slug, &enc_data, &nonce)
+            .await
+    }
+}
+
 #[async_trait]
 impl SecretStore for DatabaseSecretStore {
     async fn get_secret(&self, _tenant: &TenantId, key: &str) -> Result<String> {

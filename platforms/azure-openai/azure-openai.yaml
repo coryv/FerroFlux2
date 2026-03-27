@@ -1,0 +1,32 @@
+meta:
+  id: azure-openai
+  name: Azure OpenAI
+  type: Platform
+  category: AI/ML
+  description: "Connects to Azure OpenAI Service — the enterprise-grade OpenAI deployment on Microsoft Azure with data residency, VNet support, and compliance controls."
+  version: "1.0.0"
+
+config:
+  base_url: "https://RESOURCE_NAME.openai.azure.com/openai"
+  headers:
+    Content-Type: "application/json"
+    api-key: "PASTE_YOUR_API_KEY_HERE"
+
+settings:
+  - name: resource_name
+    label: "Azure Resource Name"
+    type: string
+    required: true
+    placeholder: "my-openai-resource"
+    description: "The name of your Azure OpenAI resource (from the Azure portal)."
+  - name: api_key
+    label: "API Key"
+    type: string
+    required: true
+    description: "Found under Keys & Endpoint in your Azure OpenAI resource."
+  - name: api_version
+    label: "API Version"
+    type: string
+    default: "2024-08-01-preview"
+    required: true
+    description: "Azure OpenAI API version. See Azure docs for latest stable version."

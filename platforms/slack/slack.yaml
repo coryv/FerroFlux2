@@ -1,0 +1,19 @@
+meta:
+  id: slack
+  name: Slack
+  type: Platform
+  category: Communication
+  description: "Connects to the Slack API for messaging, channels, users, and files."
+  version: "1.0.0"
+
+config:
+  base_url: "https://slack.com/api"
+  headers:
+    Content-Type: "application/json"
+    Authorization: "Bearer PASTE_YOUR_BOT_TOKEN_HERE"
+
+settings:
+  - name: api_key
+    label: "Bot Token (xoxb-...)"
+    type: string
+    required: true

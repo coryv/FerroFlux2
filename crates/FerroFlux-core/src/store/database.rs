@@ -411,6 +411,29 @@ impl PersistentStore {
         Ok(connections)
     }
 
+    /// Update only the encrypted credential data for a connection.
+    ///
+    /// Used by the OAuth2 token refresh flow to persist new tokens without
+    /// requiring the full connection metadata (name, provider_type, etc.).
+    pub async fn update_connection_encrypted_data(
+        &self,
+        tenant: &TenantId,
+        slug: &str,
+        encrypted_data: &[u8],
+        nonce: &[u8],
+    ) -> Result<()> {
+        sqlx::query(
+            "UPDATE connections SET encrypted_data = ?, nonce = ?, status = 'active', updated_at = CURRENT_TIMESTAMP WHERE tenant_id = ? AND slug = ?",
+        )
+        .bind(encrypted_data)
+        .bind(nonce)
+        .bind(tenant.as_ref())
+        .bind(slug)
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
     pub async fn delete_connection(&self, tenant: &TenantId, slug: &str) -> Result<()> {
         sqlx::query("DELETE FROM connections WHERE tenant_id = ? AND slug = ?")
             .bind(tenant.as_ref())

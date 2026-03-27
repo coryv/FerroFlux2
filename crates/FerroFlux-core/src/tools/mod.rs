@@ -35,6 +35,8 @@ pub struct ToolContext<'a> {
     pub runtime: Option<&'a crate::resources::TokioRuntime>,
     /// Access to BlobStore for resolving DataRefs (optional).
     pub store: Option<&'a crate::store::BlobStore>,
+    /// Per-connection locks to prevent concurrent OAuth2 token refreshes (optional).
+    pub refresh_locks: Option<&'a crate::oauth2::TokenRefreshLocks>,
 }
 
 /// A "Tool" is an atomic unit of logic.

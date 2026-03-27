@@ -22,10 +22,12 @@ Every integration consists of two types of files saved under `platforms/<platfor
 
 If the user gave you a docs URL, fetch it. You need:
 - The API's base URL
-- Authentication method (usually Bearer token or API key header)
+- Authentication method — Bearer token, API key header, or **none** (some APIs like Open-Meteo are completely open)
 - Which endpoints to create nodes for
 
 Ask the user if you're unsure which endpoints they want.
+
+**Cloud vs. local/self-hosted variants:** If the integration is a cloud or hosted version of a tool that also has a local or self-hosted version (e.g., Ollama Cloud vs. Ollama local, Supabase Cloud vs. self-hosted Supabase), explicitly verify which endpoints are available in the specific variant being integrated. Do not assume all local endpoints exist in the cloud API — they often don't. Always check the cloud-specific documentation, not just the general API reference.
 
 ### Step 2 — Choose the platform ID
 
@@ -48,7 +50,7 @@ config:
   base_url: "https://api.example.com"   # No trailing slash
   headers:
     Content-Type: "application/json"
-    Authorization: "Bearer PASTE_YOUR_KEY_HERE"   # MUST be in config.headers, not under auth:
+    Authorization: "Bearer PASTE_YOUR_KEY_HERE"   # Only include if the API requires auth
 
 settings:
   - name: api_key
@@ -57,7 +59,9 @@ settings:
     required: true
 ```
 
-**Critical:** Auth MUST go in `config.headers.Authorization`. Do not use an `auth:` key — it won't be picked up by nodes.
+**Auth-required APIs:** Put auth in `config.headers.Authorization` (Bearer token or API key). Do not use an `auth:` key — it won't be picked up by nodes. Add an `api_key` setting so the user knows what to configure.
+
+**Auth-free APIs** (e.g., Open-Meteo, public data APIs): Omit `Authorization` from `config.headers` entirely and omit the `api_key` setting. Don't add a placeholder — an empty header just adds noise.
 
 ### Step 4 — Write node files
 
@@ -140,6 +144,42 @@ routing:
           value: "{{ steps.request.response_body }}"
 ```
 
+**No stubs:** If an endpoint cannot be fully implemented with the available tools (e.g., multipart file upload requiring custom binary framing that `http_client` doesn't support), omit it entirely. Never commit a broken or incomplete node — no placeholder comments, no half-wired bodies. A missing node is better than one that silently fails or misleads users.
+
+**Document gaps in `GAPS.md`:** Whenever you omit a node due to a system limitation, add an entry to `platforms/<platform_id>/GAPS.md`. Cross-reference `SYSTEM_GAPS.md` at the repo root — if the limitation is already tracked there (e.g., GAP-002 for multipart upload), reference the gap ID in the entry rather than re-explaining it. This file is reviewed by the FerroFlux team to prioritize system improvements — a single gap that blocks 10 integrations is worth fixing at the platform level. Use this format:
+
+```markdown
+# <Platform Name> — Integration Gaps
+
+## <Node Name> (`<endpoint>`)
+
+- **Why omitted:** <What system capability is missing — e.g., "`http_client` does not support multipart/form-data bodies required for binary file upload">
+- **API endpoint:** `<METHOD> <full endpoint URL>`
+- **Docs:** <link to relevant API docs section>
+- **Value:** <High / Medium / Low> — <one sentence on how commonly users would need this>
+- **Unblocked by:** <What system change would enable this — e.g., "Adding `multipart` body support to `http_client`">
+```
+
+If there are no omissions, do not create `GAPS.md`.
+
+### Step 5 — Validate your work
+
+After writing the files, run the FerroFlux validator to catch structural errors before the user hits them at runtime:
+
+```bash
+cargo run --bin ferroflux-validate -- platforms/<platform_id>/
+```
+
+Fix any **errors** before finishing. **Warnings** (e.g., hardcoded URLs for APIs with multiple subdomains) are informational — use your judgment. A clean run looks like:
+
+```
+platforms/resend/resend.yaml               OK
+platforms/resend/action.emails.send.yaml   OK
+platforms/resend/action.domains.list.yaml  OK
+
+3 files checked, 0 errors, 0 warnings
+```
+
 ---
 
 ## Inputs vs Settings — When to Use Each
@@ -162,15 +202,59 @@ routing:
   headers: "{{ platform.headers }}"
   value: "{{ steps.request.response_body }}"
   ```
-- Settings access: `{{ get 'settings.field_name' }}` or `{{ settings.field_name }}`
+- Settings access: always use `{{ get 'settings.field_name' }}` — the shorthand `{{ settings.x }}` is NOT supported
 - Input access: `{{ get 'inputs.field_name' }}`
+
+---
+
+## Platform Object Reference
+
+The `platform` object exposes **exactly two properties** in node execution:
+
+- `{{ platform.base_url }}` — the configured base URL from the platform file
+- `{{ platform.headers }}` — the full merged headers object, including auth credentials
+
+**Never** reference `platform.api_key`, `platform.token`, `platform.secret`, or any other property — they do not exist. Auth credentials are baked into `platform.headers` at runtime; accessing them individually is not possible.
+
+---
+
+## Data Outputs
+
+Don't emit the raw response object when users only need a specific field. Use `json_query` to extract exactly what's useful and declare the correct type on the output port.
+
+**Pattern:**
+```yaml
+outputs:
+  - name: embedding
+    type: array          # matches what's actually emitted — not "object"
+
+routing:
+  cases:
+    success:
+      - tool: json_query
+        params:
+          json: "{{ steps.request.response_body }}"
+          path: "/embedding/values"      # extract the array, not the whole response
+        returns:
+          result: embedding_values
+      - tool: emit
+        params:
+          port: embedding
+          value: "{{ embedding_values }}"
+```
+
+**Rules:**
+- Match the output `type` to what is actually emitted: `array` for arrays, `string` for strings, `object` only when the whole object is genuinely useful.
+- A raw `response: object` output is acceptable as a secondary "escape hatch" port, but primary data ports should emit extracted values.
+- **If a node accepts `tools` as an input**, it must include a `tool_calls` output port (`type: array`) with a `json_query` step extracting the tool call results. This lets users wire tool responses directly without manually parsing the response object.
 
 ---
 
 ## Checklist Before Finishing
 
 - [ ] Platform `meta.type` is exactly `Platform`
-- [ ] `config.headers` has `Authorization` entry (not under `auth:`)
+- [ ] If API requires auth: `config.headers.Authorization` is set (not under `auth:`)
+- [ ] If API is auth-free: no `Authorization` header in `config.headers`
 - [ ] `config.base_url` has no trailing slash
 - [ ] Every node has `Exec` as first input (type: flow)
 - [ ] Every node has both `Success` and `Error` outputs (type: flow)
@@ -179,6 +263,12 @@ routing:
 - [ ] Node `meta.platform` matches the platform's `meta.id`
 - [ ] Node IDs follow `platform.category.verb` naming
 - [ ] File saved to `platforms/<platform_id>/action.<category>.<verb>.yaml`
+- [ ] Every setting declared in `interface.settings` is referenced in the `execution` block
+- [ ] Every data output port type matches what is actually emitted (`array` → `array`, `string` → `string` — not everything as `object`)
+- [ ] Every node that accepts a `tools` input has a `tool_calls` output port (`type: array`) with a `json_query` extraction step
+- [ ] No broken stubs — if an endpoint can't be implemented cleanly, it is omitted entirely
+- [ ] If any nodes were omitted, `platforms/<platform_id>/GAPS.md` exists and documents each omission with why, the endpoint, value, and what system change would unblock it
+- [ ] `cargo run --bin ferroflux-validate -- platforms/<platform_id>/` passes with 0 errors
 
 ---
 

@@ -1,0 +1,71 @@
+meta:
+  id: slack.trigger.messages.mention
+  name: App Mention
+  category: Messages
+  type: Trigger
+  platform: slack
+  description: "Polls a channel for new messages that mention the bot."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: message
+      type: object
+
+  settings:
+    - name: channel
+      label: "Channel ID"
+      type: string
+      required: true
+      placeholder: "C1234567890"
+    - name: bot_user_id
+      label: "Bot User ID"
+      type: string
+      required: true
+      placeholder: "U1234567890"
+    - name: poll_interval
+      label: "Poll Interval (minutes)"
+      type: number
+      default: 1
+      min: 1
+
+execution:
+  - id: fetch
+    tool: http_client
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/conversations.history?channel={{ get 'settings.channel' }}&oldest={{ get 'event.cursor' }}&limit=20"
+      headers: "{{ platform.headers }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "{{ steps.fetch.status_code }}"
+      cases:
+        - condition: "200"
+          output: success
+        - condition: default
+          output: error
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: message
+          value: "{{ steps.fetch.response_body }}"
+    error:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.fetch.response_body }}"

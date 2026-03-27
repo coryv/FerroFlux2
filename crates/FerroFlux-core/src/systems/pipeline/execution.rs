@@ -27,6 +27,7 @@ pub fn execute_pipeline_node(
     node_config: Option<&crate::components::NodeConfig>,
     secret_store: Option<&crate::secrets::DatabaseSecretStore>,
     runtime: Option<&crate::resources::TokioRuntime>,
+    refresh_locks: Option<&crate::oauth2::TokenRefreshLocks>,
 ) -> Result<Vec<String>> {
     let def = definitions
         .definitions
@@ -194,6 +195,7 @@ pub fn execute_pipeline_node(
             secret_store,
             runtime,
             store,
+            refresh_locks,
         };
 
         let result = tool.run(&mut tool_ctx, resolved_params)?;
@@ -247,6 +249,7 @@ pub fn execute_pipeline_node(
                     secret_store,
                     runtime,
                     store,
+                    refresh_locks,
                 };
                 let result = tool.run(&mut tool_ctx, resolved_params)?;
 

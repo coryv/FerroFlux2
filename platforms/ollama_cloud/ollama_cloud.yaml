@@ -1,0 +1,19 @@
+meta:
+  id: ollama_cloud
+  name: Ollama Cloud
+  type: Platform
+  category: AI/ML
+  description: "Connects to the Ollama Cloud API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://ollama.com/api"
+  headers:
+    Content-Type: "application/json"
+    Authorization: "Bearer PASTE_YOUR_KEY_HERE"
+
+settings:
+  - name: api_key
+    label: "API Key"
+    type: string
+    required: true

@@ -44,6 +44,7 @@ fn test_dataref_blob_templating() {
         .unwrap();
     let sec_store = ferroflux_core::secrets::DatabaseSecretStore::new(p_store, vec![0u8; 32]);
     world.insert_resource(sec_store);
+    world.insert_resource(ferroflux_core::oauth2::TokenRefreshLocks::default());
 
     let mut tool_registry = ToolRegistry::default();
     tool_registry.register(EchoTool);

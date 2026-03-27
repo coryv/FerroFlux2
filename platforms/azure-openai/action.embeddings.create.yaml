@@ -1,0 +1,98 @@
+meta:
+  id: azure-openai.embeddings.create
+  name: Create Embeddings
+  category: Embeddings
+  type: Action
+  platform: azure-openai
+  description: "Generate vector embeddings for text using an Azure OpenAI embeddings deployment."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: input
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: embedding
+      type: array
+    - name: response
+      type: object
+
+  settings:
+    - name: resource_name
+      label: "Azure Resource Name"
+      type: string
+      required: true
+      placeholder: "my-openai-resource"
+    - name: deployment
+      label: "Deployment Name"
+      type: string
+      required: true
+      placeholder: "text-embedding-3-large"
+      description: "Your embeddings model deployment (e.g., text-embedding-3-large, text-embedding-ada-002)."
+    - name: api_version
+      label: "API Version"
+      type: string
+      default: "2024-08-01-preview"
+      required: true
+    - name: dimensions
+      label: "Output Dimensions (optional)"
+      type: number
+      required: false
+      description: "Shorten the output embedding vector (supported by text-embedding-3 models only)."
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: POST
+      url: "https://{{ get 'settings.resource_name' }}.openai.azure.com/openai/deployments/{{ get 'settings.deployment' }}/embeddings?api-version={{ get 'settings.api_version' }}"
+      headers: "{{ platform.headers }}"
+      body:
+        input: "{{ get 'inputs.input' }}"
+        dimensions: "{{ get 'settings.dimensions' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "{{ steps.request.status_code }}"
+      cases:
+        - condition: "200"
+          output: success
+        - condition: default
+          output: error
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: json_query
+        params:
+          json: "{{ steps.request.response_body }}"
+          path: "/data/0/embedding"
+        returns:
+          result: embedding_result
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: embedding
+          value: "{{ embedding_result }}"
+      - tool: emit
+        params:
+          port: response
+          value: "{{ steps.request.response_body }}"
+    error:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

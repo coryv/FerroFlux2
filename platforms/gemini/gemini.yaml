@@ -1,0 +1,19 @@
+meta:
+  id: gemini
+  name: Google Gemini
+  type: Platform
+  category: AI/ML
+  description: "Connects to the Google Gemini AI API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://generativelanguage.googleapis.com"
+  headers:
+    Content-Type: "application/json"
+    x-goog-api-key: "PASTE_YOUR_KEY_HERE"
+
+settings:
+  - name: api_key
+    label: "API Key"
+    type: string
+    required: true

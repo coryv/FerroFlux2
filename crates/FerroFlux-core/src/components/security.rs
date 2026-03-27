@@ -1,6 +1,35 @@
 use bevy_ecs::prelude::*;
 use serde::{Deserialize, Serialize};
 
+/// OAuth2 credential data stored in encrypted connection JSON.
+///
+/// Parsed from the `encrypted_data` blob when `auth_type == "OAuth2"`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OAuth2Credentials {
+    pub access_token: String,
+    pub refresh_token: String,
+    /// Unix epoch seconds when the access token expires.
+    pub expires_at: i64,
+    /// The token endpoint for refreshing (e.g., "https://oauth2.googleapis.com/token").
+    pub token_url: String,
+    pub client_id: String,
+    pub client_secret: String,
+    #[serde(default)]
+    pub scopes: Option<String>,
+}
+
+/// Response from an OAuth2 token refresh request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OAuth2TokenResponse {
+    pub access_token: String,
+    /// Seconds until the new token expires.
+    pub expires_in: Option<u64>,
+    /// Some providers rotate refresh tokens on each use.
+    pub refresh_token: Option<String>,
+    pub token_type: Option<String>,
+    pub scope: Option<String>,
+}
+
 /// Configuration for Secrets Injection (Security).
 ///
 /// Defines how to look up a sensitive value from the environment and inject it

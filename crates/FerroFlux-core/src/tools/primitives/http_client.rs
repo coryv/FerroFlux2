@@ -121,6 +121,21 @@ impl Tool for HttpClientTool {
                                 ));
                             }
                         }
+                        "OAuth2" => {
+                            let access_token = crate::oauth2::resolve_oauth2_token(
+                                &tenant,
+                                slug,
+                                &conn_data,
+                                store,
+                                rt,
+                                context.refresh_locks,
+                            )
+                            .context("OAuth2 token resolution failed")?;
+                            dynamic_headers.push((
+                                "Authorization".to_string(),
+                                format!("Bearer {}", access_token),
+                            ));
+                        }
                         _ => {}
                     }
                 }

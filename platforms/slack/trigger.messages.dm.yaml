@@ -1,0 +1,78 @@
+meta:
+  id: slack.trigger.messages.dm
+  name: New Direct Message
+  category: Messages
+  type: Trigger
+  platform: slack
+  description: "Polls a Slack DM conversation for new messages."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: message
+      type: object
+
+  settings:
+    - name: user_id
+      label: "User ID (conversation partner)"
+      type: string
+      required: true
+      placeholder: "U1234567890"
+    - name: poll_interval
+      label: "Poll Interval (minutes)"
+      type: number
+      default: 1
+      min: 1
+
+execution:
+  - id: open_dm
+    tool: http_client
+    params:
+      method: POST
+      url: "{{ platform.base_url }}/conversations.open"
+      headers: "{{ platform.headers }}"
+      body:
+        users: "{{ get 'settings.user_id' }}"
+    returns:
+      status: status_code
+      body: open_body
+
+  - id: fetch
+    tool: http_client
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/conversations.history?channel={{ get 'steps.open_dm.open_body.channel.id' }}&oldest={{ get 'event.cursor' }}&limit=10"
+      headers: "{{ platform.headers }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "{{ steps.fetch.status_code }}"
+      cases:
+        - condition: "200"
+          output: success
+        - condition: default
+          output: error
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: message
+          value: "{{ steps.fetch.response_body }}"
+    error:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.fetch.response_body }}"

@@ -122,6 +122,9 @@ async fn setup_world() -> World {
         world.insert_resource(ferroflux_core::resources::TokioRuntime(handle));
     }
 
+    // OAuth2 Token Refresh Locks
+    world.insert_resource(ferroflux_core::oauth2::TokenRefreshLocks::default());
+
     return world;
 }
 

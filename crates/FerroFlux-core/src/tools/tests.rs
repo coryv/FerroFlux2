@@ -20,6 +20,7 @@ fn test_logic_tool_basic_switch() {
         secret_store: None,
         runtime: None,
         store: None,
+        refresh_locks: None,
     };
 
     // Simulate "Switch" behavior: strict equality check on a field
@@ -62,6 +63,7 @@ fn test_logic_tool_complex_operators() {
         secret_store: None,
         runtime: None,
         store: None,
+        refresh_locks: None,
     };
 
     let data = json!({
@@ -105,6 +107,7 @@ fn test_json_query_tool() {
         secret_store: None,
         runtime: None,
         store: None,
+        refresh_locks: None,
     };
 
     let data = json!({
@@ -139,6 +142,7 @@ fn test_emit_tool() {
         secret_store: None,
         runtime: None,
         store: None,
+        refresh_locks: None,
     };
 
     let params = json!({

@@ -16,4 +16,5 @@ pub mod store;
 pub mod systems;
 pub mod traits;
 
+pub mod oauth2;
 pub mod tools;

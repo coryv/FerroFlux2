@@ -111,6 +111,7 @@ fn test_unified_pipeline_execution() {
         .unwrap();
     let sec_store = ferroflux_core::secrets::DatabaseSecretStore::new(p_store, vec![0u8; 32]);
     world.insert_resource(sec_store);
+    world.insert_resource(ferroflux_core::oauth2::TokenRefreshLocks::default());
 
     // 2. Prepare Workflow State
     let mut initial_state = ActiveWorkflowState::new();
@@ -289,6 +290,7 @@ fn test_stats_tool() {
         .unwrap();
     let sec_store = ferroflux_core::secrets::DatabaseSecretStore::new(p_store, vec![0u8; 32]);
     world.insert_resource(sec_store);
+    world.insert_resource(ferroflux_core::oauth2::TokenRefreshLocks::default());
 
     // Wait, pipeline_execution_system might consume TokioRuntime? No, Res<>.
     // But duplicate add_systems call above.
