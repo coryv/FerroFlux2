@@ -7,7 +7,7 @@ use uuid::Uuid;
 #[tokio::test]
 async fn test_yaml_pipeline_flow() {
     // 1. Setup App
-    let (mut app, _api_tx, _event_tx, _store, _blob_store, _, _, _, _) = AppBuilder::new()
+    let (mut app, _api_tx, _event_tx, _store, _blob_store, _, _, _) = AppBuilder::new()
         .build()
         .await
         .expect("Failed to build app");

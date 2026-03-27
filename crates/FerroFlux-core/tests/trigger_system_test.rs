@@ -1,18 +1,18 @@
 use bevy_ecs::prelude::*;
 use ferroflux_core::components::{Outbox, WorkDone};
 use ferroflux_core::store::SecureTicket;
-use ferroflux_core::systems::gateway::{WEBHOOK_QUEUE, bridge_webhook_queue, ingest_triggers};
-use ferroflux_core::traits::trigger::{TriggerReceiver, TriggerSender};
+use ferroflux_core::systems::gateway::ingest_triggers;
+use ferroflux_core::traits::trigger::{TriggerEvent, TriggerReceiver, TriggerSender};
 use uuid::Uuid;
 
 #[test]
-fn test_trigger_bridge_and_ingestion() {
+fn test_trigger_ingestion() {
     let mut world = World::new();
     let mut schedule = Schedule::default();
 
     // Setup Resources
     let (tx, rx) = async_channel::unbounded();
-    world.insert_resource(TriggerSender(tx));
+    world.insert_resource(TriggerSender(tx.clone()));
     world.insert_resource(TriggerReceiver(rx));
     world.insert_resource(ferroflux_core::resources::NodeRouter::default());
     world.insert_resource(WorkDone::default());
@@ -26,61 +26,31 @@ fn test_trigger_bridge_and_ingestion() {
     router.0.insert(node_id, entity);
 
     // Add Systems
-    schedule.add_systems((bridge_webhook_queue, ingest_triggers));
+    schedule.add_systems(ingest_triggers);
 
-    // 1. Simulate Legacy Webhook Push
-    let (wh_tx, wh_rx) = async_channel::unbounded();
-    WEBHOOK_QUEUE.set((wh_tx.clone(), wh_rx)).ok(); // Initialize static queue if not set
-
-    // If it was already set, we might need to use the existing one, but for unit tests running in parallel
-    // or sequentially, modifying a static is tricky.
-    // Ideally we assume tests run in isolation or we use the one present.
-    // For this test, let's just push to the one we have access to via getter if set failed.
-
-    let queue_tx = if let Some((tx, _)) = WEBHOOK_QUEUE.get() {
-        tx.clone()
-    } else {
-        wh_tx
-    };
-
+    // Send trigger directly via TriggerSender
     let ticket = SecureTicket {
         id: Uuid::new_v4(),
         metadata: std::collections::HashMap::new(),
     };
+    tx.try_send(TriggerEvent {
+        trigger_id: node_id,
+        payload: ticket.clone(),
+    })
+    .unwrap();
 
-    queue_tx.try_send((node_id, ticket.clone())).unwrap();
-
-    // 2. Run Schedule (Bridge -> TriggerSender -> TriggerReceiver -> Ingest -> Outbox)
-    // We might need multiple runs if channels are async?
-    // Bridge and Ingest are in same schedule.
-    // Bridge reads WebhookQueue, sends to TriggerSender.
-    // Ingest reads TriggerReceiver.
-    // Since it's async_channel, it's available immediately?
-    // Yes, Send is non-blocking usually, but receiving might need polling.
-    // Let's run twice to be safe or check if one tick is enough.
-
-    schedule.run(&mut world);
-
-    // If bridge sends to channel, ingest might pick it up in same frame if it runs AFTER bridge?
-    // Bevy schedule order is non-deterministic unless chained.
-    // But async_channel is outside ECS.
-    // If Ingest runs before Bridge, it sees empty. Next tick it sees it.
-    // Let's run loop.
-
+    // Run schedule until the trigger reaches the node outbox
     let mut success = false;
     for _ in 0..10 {
+        schedule.run(&mut world);
         if world.get::<Outbox>(entity).unwrap().queue.len() > 0 {
             success = true;
             break;
         }
-        schedule.run(&mut world);
         std::thread::sleep(std::time::Duration::from_millis(10));
     }
 
-    assert!(
-        success,
-        "Ticket failed to traverse from WebhookQueue to Node Outbox"
-    );
+    assert!(success, "Ticket failed to reach Node Outbox via TriggerSender");
 
     let outbox = world.get::<Outbox>(entity).unwrap();
     let (_, received_ticket) = outbox.queue.front().unwrap();
@@ -108,7 +78,7 @@ impl ferroflux_core::traits::trigger::TriggerProvider for MockTriggerProvider {
             };
             sender
                 .0
-                .try_send(ferroflux_core::traits::trigger::TriggerEvent {
+                .try_send(TriggerEvent {
                     trigger_id: node_id,
                     payload: ticket,
                 })
@@ -121,7 +91,6 @@ impl ferroflux_core::traits::trigger::TriggerProvider for MockTriggerProvider {
 async fn test_custom_trigger_provider_init() {
     let base_app = ferroflux_core::app::AppBuilder::new();
 
-    // We need to build the app to trigger "on_enable"
     let node_id = Uuid::new_v4();
     let provider = MockTriggerProvider {
         target_node_id: node_id,
@@ -133,15 +102,9 @@ async fn test_custom_trigger_provider_init() {
         .await;
 
     assert!(build_res.is_ok());
-    let (mut app, _, _, _, _, _, _, _, _) = build_res.unwrap();
+    let (mut app, _, _, _, _, _, _, _) = build_res.unwrap();
 
-    // Setup routing manually to verify ingestion working
-    app.world.spawn(Outbox::default()); // Just spawning unrelated entitiy to ensure world is active
-
-    // We need to register a node to receive the event to verify full flow,
-    // but here we primarily check if provider init didn't crash and channel is open.
-    // The previous test verified ingestion logic.
-    // Let's just run update a few times and ensure no panic.
+    app.world.spawn(Outbox::default());
 
     for _ in 0..5 {
         app.update();

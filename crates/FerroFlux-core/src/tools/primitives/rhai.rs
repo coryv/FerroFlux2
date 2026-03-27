@@ -49,10 +49,10 @@ impl Tool for RhaiTool {
                 }
             };
 
-            if let Some(val) = val_opt {
-                if let Ok(dynamic) = rhai::serde::to_dynamic(&val) {
-                    scope.push_dynamic(k, dynamic);
-                }
+            if let Some(val) = val_opt
+                && let Ok(dynamic) = rhai::serde::to_dynamic(&val)
+            {
+                scope.push_dynamic(k, dynamic);
             }
         }
 

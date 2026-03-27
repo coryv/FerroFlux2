@@ -209,34 +209,33 @@ pub fn validate_node(def: &NodeDefinition) -> ValidationResult {
 
     // Rule 6 (warning): http_client URL should use {{ platform.base_url }}, not a hardcoded domain
     for step in &def.execution {
-        if step.tool == "http_client" {
-            if let Some(url) = step.params.get("url").and_then(|v| v.as_str()) {
-                if (url.starts_with("http://") || url.starts_with("https://"))
-                    && !url.contains("platform.base_url")
-                {
-                    result.diagnostics.push(ValidationDiagnostic::warning(
-                        "hardcoded-url",
-                        format!(
-                            "step '{}' uses a hardcoded URL '{url}'; use '{{{{ platform.base_url }}}}' instead",
-                            step.id
-                        ),
-                    ));
-                }
-            }
+        if step.tool == "http_client"
+            && let Some(url) = step.params.get("url").and_then(|v| v.as_str())
+            && (url.starts_with("http://") || url.starts_with("https://"))
+            && !url.contains("platform.base_url")
+        {
+            result.diagnostics.push(ValidationDiagnostic::warning(
+                "hardcoded-url",
+                format!(
+                    "step '{}' uses a hardcoded URL '{url}'; use '{{{{ platform.base_url }}}}' instead",
+                    step.id
+                ),
+            ));
         }
     }
 
     // Rule 7 (warning): meta.id should follow platform.category.verb namespacing
-    if let Some(platform) = &def.meta.platform {
-        if normalized_type == "Action" && !def.meta.id.starts_with(&format!("{platform}.")) {
-            result.diagnostics.push(ValidationDiagnostic::warning(
-                "id-not-namespaced",
-                format!(
-                    "meta.id '{}' should start with '{platform}.' to follow the namespacing convention",
-                    def.meta.id
-                ),
-            ));
-        }
+    if let Some(platform) = &def.meta.platform
+        && normalized_type == "Action"
+        && !def.meta.id.starts_with(&format!("{platform}."))
+    {
+        result.diagnostics.push(ValidationDiagnostic::warning(
+            "id-not-namespaced",
+            format!(
+                "meta.id '{}' should start with '{platform}.' to follow the namespacing convention",
+                def.meta.id
+            ),
+        ));
     }
 
     result
@@ -254,20 +253,20 @@ pub fn validate_cross(
 
     for (def, file) in nodes {
         // Rule 8: node's meta.platform must reference a loaded platform
-        if let Some(platform) = &def.meta.platform {
-            if !platform_ids.contains(platform.as_str()) {
-                let mut diag = ValidationDiagnostic::error(
-                    "unknown-platform-ref",
-                    format!(
-                        "meta.platform '{}' does not match any loaded platform",
-                        platform
-                    ),
-                );
-                if let Some(p) = file {
-                    diag = diag.with_file(*p);
-                }
-                result.diagnostics.push(diag);
+        if let Some(platform) = &def.meta.platform
+            && !platform_ids.contains(platform.as_str())
+        {
+            let mut diag = ValidationDiagnostic::error(
+                "unknown-platform-ref",
+                format!(
+                    "meta.platform '{}' does not match any loaded platform",
+                    platform
+                ),
+            );
+            if let Some(p) = file {
+                diag = diag.with_file(*p);
             }
+            result.diagnostics.push(diag);
         }
 
         // Rule 9: duplicate meta.id across node files

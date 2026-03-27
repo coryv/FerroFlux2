@@ -128,7 +128,6 @@ async fn setup_world(mock_server_url: String) -> (World, Schedule) {
 
     // Systems
     schedule.add_systems((
-        ferroflux_core::systems::gateway::bridge_webhook_queue,
         ferroflux_core::systems::gateway::ingest_triggers,
         agent_prep,
         ferroflux_core::traits::execution::flush_local_execution_jobs, // Added flush
@@ -208,8 +207,8 @@ fn test_agent_templating_and_generation() {
                 id: uuid::Uuid::new_v4(),
                 name: "Test Agent".to_string(),
                 node_type: "agent".to_string(),
-                workflow_id: None,
-                tenant_id: Some(TenantId::from("default_tenant")),
+                workflow_id: "global".to_string(),
+                tenant_id: TenantId::from("default_tenant"),
             },
             ExpectedOutput {
                 aggregated_schema: schema,
@@ -298,8 +297,8 @@ fn test_agent_tools_payload() {
                 id: uuid::Uuid::new_v4(),
                 name: "Test Agent Tool".to_string(),
                 node_type: "agent".to_string(),
-                workflow_id: None,
-                tenant_id: Some(TenantId::from("default_tenant")),
+                workflow_id: "global".to_string(),
+                tenant_id: TenantId::from("default_tenant"),
             },
 
             ExpectedOutput::default(),
@@ -375,8 +374,8 @@ fn test_agent_retry_logic() {
                 id: uuid::Uuid::new_v4(),
                 name: "Test Agent Retry".to_string(),
                 node_type: "agent".to_string(),
-                workflow_id: None,
-                tenant_id: Some(TenantId::from("default_tenant")),
+                workflow_id: "global".to_string(),
+                tenant_id: TenantId::from("default_tenant"),
             },
             ExpectedOutput::default(),
             inbox,
@@ -454,8 +453,8 @@ fn test_agent_structured_output() {
                 id: uuid::Uuid::new_v4(),
                 name: "Test Agent Structured".to_string(),
                 node_type: "agent".to_string(),
-                workflow_id: None,
-                tenant_id: Some(TenantId::from("default_tenant")),
+                workflow_id: "global".to_string(),
+                tenant_id: TenantId::from("default_tenant"),
             },
             ExpectedOutput { aggregated_schema: schema },
             inbox,
@@ -534,8 +533,8 @@ fn test_tracing_propagation() {
                 id: uuid::Uuid::new_v4(),
                 name: "Traced Agent".to_string(),
                 node_type: "agent".to_string(),
-                workflow_id: None,
-                tenant_id: Some(TenantId::from("default_tenant")),
+                workflow_id: "global".to_string(),
+                tenant_id: TenantId::from("default_tenant"),
             },
             ExpectedOutput::default(),
             inbox,

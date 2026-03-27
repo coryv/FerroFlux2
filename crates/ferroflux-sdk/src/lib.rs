@@ -12,6 +12,7 @@ pub mod actor;
 pub mod persistence;
 pub mod protocol;
 pub mod reconciler;
+pub mod testing;
 
 /// The SDK Client for interacting with the FerroFlux Engine.
 ///
@@ -158,8 +159,7 @@ impl<T: NodeData + Serialize + DeserializeOwned + Send + 'static> FerroFluxClien
             .await
             .map_err(|_| anyhow::anyhow!("Engine Actor closed"))?;
 
-        // Wait for result
-        // TODO: Add timeout
+        // Wait for result (5-second timeout)
         let start = std::time::Instant::now();
         loop {
             // We do NOT tick here anymore. The actor ticks.
@@ -191,16 +191,6 @@ impl<T: NodeData + Serialize + DeserializeOwned + Send + 'static> FerroFluxClien
         }
     }
 
-    /// Fetches all available node templates.
-    ///
-    /// NOTE: This now requires a request-response pattern because we don't own the App Mutex.
-    /// For V1, we simply can't access templates directly if the Actor owns the App.
-    ///
-    /// SOLUTION: Implementation Phase 2 should add a `GetTemplates` command + Response channel.
-    /// For now, keeping as TODO or removing.
-    /// If the Playground needs this, it won't work with this refactor immediately unless we add it to EngineCommand.
-    ///
-    /// Let's add a placeholder comment.
     /// Triggers a reload of all YAML node definitions.
     pub async fn reload_definitions(&self) -> Result<()> {
         self.command_tx

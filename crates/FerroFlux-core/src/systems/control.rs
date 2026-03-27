@@ -4,7 +4,6 @@ use crate::components::core::{Inbox, NodeConfig};
 use crate::store::BlobStore;
 use crate::store::database::PersistentStore;
 use bevy_ecs::prelude::*;
-use ferroflux_iam::TenantId;
 use serde_json::json;
 use uuid::Uuid;
 
@@ -47,10 +46,7 @@ pub fn checkpoint_worker(
             let metadata_clone = ticket.metadata; // Move
             let data_clone = payload_bytes.to_vec(); // Convert Arc to Vec for DB (or fix DB)
 
-            let tenant = node_config
-                .tenant_id
-                .clone()
-                .unwrap_or_else(|| TenantId::from("default_tenant"));
+            let tenant = node_config.tenant_id.clone();
 
             tokio::spawn(async move {
                 let span = tracing::info_span!("checkpoint_save", node_id = %node_id_clone, trace_id = %trace_id_clone_1);

@@ -1,9 +1,8 @@
 use anyhow::Result;
 use bevy_ecs::prelude::*;
 use ferroflux_iam::TenantId;
-use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous};
+use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::{Pool, Row, Sqlite};
-use std::str::FromStr;
 
 #[derive(Clone, Debug, Resource)]
 /// SQLite/Postgres Persistence Layer
@@ -18,13 +17,7 @@ pub struct PersistentStore {
 
 impl PersistentStore {
     pub async fn new(db_url: &str) -> Result<Self> {
-        // Optimization for Raspberry Pi / SD Cards:
-        // 1. WAL Mode: Reduces write amplification (friendly to flash storage).
-        // 2. Synchronous Normal: Reduces fsync frequency while maintaining safety.
-        let connection_options = SqliteConnectOptions::from_str(db_url)?
-            .create_if_missing(true)
-            .journal_mode(SqliteJournalMode::Wal)
-            .synchronous(SqliteSynchronous::Normal);
+        let connection_options = ferroflux_store::sqlite_options_from_url(db_url)?;
 
         let pool = SqlitePoolOptions::new()
             .max_connections(5)

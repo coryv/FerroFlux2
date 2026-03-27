@@ -1,5 +1,4 @@
 pub mod analytics;
-pub mod batcher;
 pub mod cache;
 pub mod database;
 

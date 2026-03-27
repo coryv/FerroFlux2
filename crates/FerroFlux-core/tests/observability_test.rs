@@ -7,6 +7,7 @@ use ferroflux_core::resources::{GraphTopology, WorkDone};
 use ferroflux_core::store::BlobStore;
 use ferroflux_core::systems::janitor::janitor_worker;
 use ferroflux_core::systems::transport::transport_worker;
+use ferroflux_iam::TenantId;
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -32,8 +33,8 @@ fn test_trace_propagation_via_transport() {
                 id: node_a_id,
                 name: "Node A".to_string(),
                 node_type: "test".to_string(),
-                workflow_id: None,
-                tenant_id: None,
+                workflow_id: "global".to_string(),
+                tenant_id: TenantId::from("default"),
             },
             Inbox::default(),
             Outbox::default(),
@@ -46,8 +47,8 @@ fn test_trace_propagation_via_transport() {
                 id: node_b_id,
                 name: "Node B".to_string(),
                 node_type: "test".to_string(),
-                workflow_id: None,
-                tenant_id: None,
+                workflow_id: "global".to_string(),
+                tenant_id: TenantId::from("default"),
             },
             Inbox::default(),
             Outbox::default(),

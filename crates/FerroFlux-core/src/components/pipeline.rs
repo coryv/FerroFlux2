@@ -37,11 +37,6 @@ pub struct ExecutionContext {
     pub output_transform: Option<String>,
     pub input_json: Value,
     pub start_time: u64,
-    // Legacy fields I thought were there but actually arent used or are handled differently?
-    // workflow_id and tenant_id were in my previous truncated version.
-    // Let's keep them if they are useful or remove them if they break compilation initialization?
-    // agent_prep.rs DOES NOT initialize workflow_id, so I must remove it or make it Option/Default.
-    // Same for tenant_id.
 }
 
 #[derive(Component, Debug, Clone, Serialize, Deserialize)]

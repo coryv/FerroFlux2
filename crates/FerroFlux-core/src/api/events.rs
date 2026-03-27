@@ -81,6 +81,20 @@ pub enum SystemEvent {
         /// Unix timestamp in milliseconds
         timestamp: i64,
     },
+    /// An incremental token/chunk from a streaming HTTP response (e.g. LLM token stream).
+    ///
+    /// Emitted by `http_client` when `stream: true`. SDK clients can subscribe to these
+    /// events to display tokens as they arrive. `done: true` marks the final event.
+    StreamChunk {
+        /// Correlation ID for the execution flow
+        trace_id: String,
+        /// The step ID within the node (from `step_id` param, or "http_client" default)
+        step_id: String,
+        /// Text content of this chunk (empty string on the final done event)
+        chunk: String,
+        /// True when the stream is complete (`data: [DONE]` received)
+        done: bool,
+    },
 }
 
 /// A Bevy Resource wrapper around a broadcast sender for system events.

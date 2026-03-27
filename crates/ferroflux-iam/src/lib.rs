@@ -1,8 +1,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous};
+use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::{Pool, Row, Sqlite};
-use std::str::FromStr;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -39,10 +38,7 @@ pub struct IamStore {
 
 impl IamStore {
     pub async fn new(db_url: &str) -> Result<Self> {
-        let connection_options = SqliteConnectOptions::from_str(db_url)?
-            .create_if_missing(true)
-            .journal_mode(SqliteJournalMode::Wal)
-            .synchronous(SqliteSynchronous::Normal);
+        let connection_options = ferroflux_store::sqlite_options_from_url(db_url)?;
 
         let pool = SqlitePoolOptions::new()
             .max_connections(5)

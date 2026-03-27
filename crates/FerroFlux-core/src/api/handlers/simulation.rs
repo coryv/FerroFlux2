@@ -6,7 +6,7 @@ use std::collections::HashMap;
 #[allow(clippy::too_many_arguments)]
 pub fn handle_simulate_node(
     world: &mut World,
-    _tenant: ferroflux_iam::TenantId,
+    tenant: ferroflux_iam::TenantId,
     node_id: uuid::Uuid,
     definition_id: String,
     config: HashMap<String, serde_json::Value>,
@@ -54,8 +54,8 @@ pub fn handle_simulate_node(
                 id: node_id,
                 name: "Shadow Node".to_string(),
                 node_type: "Shadow".to_string(),
-                workflow_id: None,
-                tenant_id: None,
+                workflow_id: "shadow".to_string(),
+                tenant_id: tenant.clone(),
             },
             // We might want a cleanup component or TTL so these don't pile up?
             // For now, rely on "Janitor"? Janitor cleans traces, not entities.

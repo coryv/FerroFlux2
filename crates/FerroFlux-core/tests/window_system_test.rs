@@ -34,8 +34,8 @@ fn test_window_rolling_mean() {
         id: node_id,
         name: "Test Window".to_string(),
         node_type: "Window".to_string(),
-        workflow_id: None,
-        tenant_id: Some(ferroflux_iam::TenantId::from("default_tenant")),
+        workflow_id: "global".to_string(),
+        tenant_id: ferroflux_iam::TenantId::from("default_tenant"),
     };
 
     let mut inbox = Inbox::default();
@@ -111,8 +111,8 @@ fn test_window_rolling_variance() {
         id: node_id,
         name: "Test Window Var".to_string(),
         node_type: "Window".to_string(),
-        workflow_id: None,
-        tenant_id: Some(ferroflux_iam::TenantId::from("default_tenant")),
+        workflow_id: "global".to_string(),
+        tenant_id: ferroflux_iam::TenantId::from("default_tenant"),
     };
 
     let mut inbox = Inbox::default();

@@ -3,12 +3,10 @@ use crate::components::{AgentConcurrency, WorkDone};
 use crate::nodes::register_core_nodes;
 use crate::resources::GlobalHttpClient;
 use crate::store::BlobStore;
-use crate::store::analytics::{AnalyticsBackend, NoopStore};
-use crate::store::batcher::AnalyticsBatcher;
+use crate::store::analytics::AnalyticsBackend;
 use crate::store::database::PersistentStore;
 use crate::systems::api_worker::api_command_worker;
 use crate::systems::compute::WasmRuntime;
-use crate::systems::gateway;
 use crate::systems::janitor::JanitorTimer;
 use crate::systems::register_core_systems;
 use bevy_ecs::prelude::*;
@@ -107,7 +105,6 @@ impl AppBuilder {
         Vec<u8>,
         crate::integrations::IntegrationRegistry,
         crate::store::cache::IntegrationCache,
-        Arc<AnalyticsBatcher>,
     )> {
         // 1. Channel for API -> ECS
         let (api_tx, api_rx) = async_channel::unbounded::<ApiCommand>();
@@ -162,12 +159,6 @@ impl AppBuilder {
         });
         let master_key_clone = master_key.clone();
 
-        // 6.5 Analytics Setup
-        let backend = self
-            .analytics_backend
-            .unwrap_or_else(|| Arc::new(NoopStore));
-        let analytics = Arc::new(AnalyticsBatcher::new(backend));
-
         // 7. API Server components (returned, not spawned)
         let action_cache = crate::store::cache::IntegrationCache::default();
 
@@ -180,6 +171,7 @@ impl AppBuilder {
         world.insert_resource(GlobalHttpClient::default());
         world.insert_resource(crate::resources::AgentResultChannel::default());
         world.insert_resource(crate::resources::HttpResultChannel::default());
+        world.insert_resource(crate::resources::sse_registry::SseTriggerRegistry::default());
         world.insert_resource(crate::api::events::SystemEventBus(event_tx.clone()));
 
         // Trigger Protocol Setup
@@ -300,23 +292,6 @@ impl AppBuilder {
         // OAuth2 Token Refresh Locks
         world.insert_resource(crate::oauth2::TokenRefreshLocks::default());
 
-        // Webhook Queue Initialization (Manual for now, since server is external)
-        // But the ingest_worker is registered below.
-        // We need to ensure the channel is set up.
-        // In gateway.rs we have a lazy static. We should initialize it here?
-        // But gateway.rs in core is static.
-        // We can expose a function in gateway to init the queue?
-        // Or we can just let the external server call init?
-        // Actually, gateway::run_webhook_server used to init it.
-        // We need a way to initialize the queue channel.
-        let (wh_tx, wh_rx) = async_channel::unbounded();
-        gateway::WEBHOOK_QUEUE.set((wh_tx.clone(), wh_rx)).ok();
-        // Return the webhook tx to Caller?
-        // Or caller can send to gateway system?
-        // The external server needs `wh_tx` (or ability to get it).
-        // Since it's a static in generic lib, if the external app links to this lib, it can access the static?
-        // Yes.
-
         // Register Core Systems
         register_core_systems(&mut schedule);
         // Add flush_local_execution_jobs if local receiver exists
@@ -334,7 +309,6 @@ impl AppBuilder {
             master_key_clone,
             int_registry,
             action_cache,
-            analytics,
         ))
     }
 }
@@ -348,6 +322,15 @@ impl App {
     pub fn update(&mut self) {
         self.world.resource_mut::<WorkDone>().0 = false;
         self.schedule.run(&mut self.world);
+    }
+
+    pub fn shutdown(&mut self) {
+        if let Some(mut registry) = self
+            .world
+            .get_resource_mut::<crate::resources::sse_registry::SseTriggerRegistry>()
+        {
+            registry.abort_all();
+        }
     }
 
     pub async fn run(mut self) {

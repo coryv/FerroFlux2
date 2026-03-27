@@ -644,7 +644,7 @@ pub fn run() {
             let state = app.state::<AppState>();
             
             tauri::async_runtime::block_on(async {
-                let (engine_app, api_tx, event_tx, _, _, _, _, _, _) = ferroflux_core::app::AppBuilder::new()
+                let (engine_app, api_tx, event_tx, _, _, _, _, _) = ferroflux_core::app::AppBuilder::new()
                     .with_db_url("sqlite::memory:")
                     .build()
                     .await

@@ -56,9 +56,7 @@ pub fn load_graph_from_str(world: &mut World, tenant: TenantId, yaml: &str) -> a
         let mut to_despawn = Vec::new();
         let mut query = world.query::<(Entity, &NodeConfig)>();
         for (e, conf) in query.iter(world) {
-            if let Some(conf_wf_id) = &conf.workflow_id
-                && conf_wf_id == wf_id
-            {
+            if conf.workflow_id == *wf_id {
                 to_despawn.push(e);
             }
         }
@@ -96,7 +94,6 @@ pub fn load_graph_from_str(world: &mut World, tenant: TenantId, yaml: &str) -> a
         let node_id = node_bp.id;
         let node_name = node_bp.name.clone();
         let node_type = node_bp.node_type.clone();
-        let workflow_id = workflow_id_ref.clone();
 
         let entity = world
             .spawn((
@@ -104,8 +101,10 @@ pub fn load_graph_from_str(world: &mut World, tenant: TenantId, yaml: &str) -> a
                     id: node_id,
                     name: node_name.clone(),
                     node_type: node_type.clone(),
-                    workflow_id,
-                    tenant_id: Some(tenant.clone()),
+                    workflow_id: workflow_id_ref
+                        .clone()
+                        .unwrap_or_else(|| "global".to_string()),
+                    tenant_id: tenant.clone(),
                 },
                 Inbox::default(),
                 Outbox::default(),

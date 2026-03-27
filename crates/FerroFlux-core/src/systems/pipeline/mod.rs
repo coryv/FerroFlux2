@@ -15,6 +15,7 @@ use execution::execute_pipeline_node;
 /// NOTE: In a real implementation, this would likely be an async system or spawned task.
 /// For this MVP, we execute synchronously when an "Exec" signal is received (implied).
 #[allow(clippy::type_complexity)]
+#[allow(clippy::too_many_arguments)]
 pub fn pipeline_execution_system(
     mut query: Query<(
         Entity,

@@ -1,4 +1,4 @@
-use ferroflux_sdk::FerroFluxClient;
+use crate::FerroFluxClient;
 use flow_canvas::model::{GraphState, Node, NodeData, NodeId};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -93,12 +93,6 @@ pub async fn run_scenario(yaml: &str) -> anyhow::Result<()> {
 
     // Edges
     for edge_bp in &scenario.blueprint.edges {
-        // Need to find PortIds. GraphState doesn't auto-create ports on insert_node in this simple usage.
-        // We must ensure ports exist.
-        // For testing, we can lazily create ports.
-        // But `insert_node` doesn't return existing Node reference easily without ID.
-        // We have UUID -> NodeId map in graph.
-
         let src_node_id = *graph
             .uuid_index
             .get(&edge_bp.source_id)
@@ -107,11 +101,6 @@ pub async fn run_scenario(yaml: &str) -> anyhow::Result<()> {
             .uuid_index
             .get(&edge_bp.target_id)
             .ok_or_else(|| anyhow::anyhow!("Target node not found"))?;
-
-        // Create Ports (assuming 1 output, 1 input for simplicity, or handle names if needed)
-        // SDK Reconciler currently maps edges by finding ANY port?
-        // Wait, reconciler looks at `graph.ports`.
-        // We need to create ports on the nodes.
 
         let src_port = graph.add_port(src_node_id, false); // Output
         let tgt_port = graph.add_port(tgt_node_id, true); // Input
@@ -132,7 +121,6 @@ pub async fn run_scenario(yaml: &str) -> anyhow::Result<()> {
                 tokio::time::sleep(Duration::from_millis(duration_ms)).await;
             }
             TestStep::Inject { node, value } => {
-                // Resolve node name/uuid
                 let uuid = if let Ok(u) = Uuid::parse_str(&node) {
                     u
                 } else {
@@ -142,7 +130,6 @@ pub async fn run_scenario(yaml: &str) -> anyhow::Result<()> {
                 };
 
                 println!("[Inject] {} -> {:?}", uuid, value);
-                // We default to "default" port for now
                 client.inject_message(uuid, "default", value).await?;
             }
             TestStep::Assert {
@@ -163,23 +150,14 @@ pub async fn run_scenario(yaml: &str) -> anyhow::Result<()> {
                     .await?
                     .ok_or_else(|| anyhow::anyhow!("Node {} state not found", uuid))?;
 
-                // Assertion Logic:
-                // Check Outbox or Inbox or State?
-                // `property` could be "outbox.last", "inbox.count", etc.
-                // Or maybe we inspect memory?
-                // Current `NodeRuntimeState` only has inbox/outbox queues.
-                // Assuming we check the Outbox for results.
-
                 if property.starts_with("outbox.last") {
                     if let Some((_, ticket)) = state.outbox.queue.back() {
                         let blob = client.read_blob(ticket.clone()).await?.ok_or_else(|| {
                             anyhow::anyhow!("Blob not found for ticket {:?}", ticket)
                         })?;
 
-                        // Parse as Value
                         let mut current = blob;
 
-                        // Traverse if sub-properties exist (e.g. outbox.last.context.foo)
                         let parts: Vec<&str> = property.split('.').collect();
                         if parts.len() > 2 {
                             for part in &parts[2..] {
@@ -199,11 +177,8 @@ pub async fn run_scenario(yaml: &str) -> anyhow::Result<()> {
                                 current
                             ));
                         }
-                    } else {
-                        // Expected result, got empty
-                        if equals != serde_json::Value::Null {
-                            return Err(anyhow::anyhow!("Expected output {:?}, got None", equals));
-                        }
+                    } else if equals != serde_json::Value::Null {
+                        return Err(anyhow::anyhow!("Expected output {:?}, got None", equals));
                     }
                 } else if property == "inbox.count" {
                     let count = state.inbox.queue.len();
@@ -214,8 +189,6 @@ pub async fn run_scenario(yaml: &str) -> anyhow::Result<()> {
                             count
                         ));
                     }
-                } else if property.starts_with("context") {
-                    // Not implemented yet, but keeping structure open
                 }
 
                 println!("[Assert] Passed");

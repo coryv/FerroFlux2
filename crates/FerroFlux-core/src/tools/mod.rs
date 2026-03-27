@@ -59,6 +59,7 @@ pub trait Tool: Send + Sync {
 pub fn register_core_tools(registry: &mut registry::ToolRegistry) {
     use primitives::*;
     registry.register(HttpClientTool);
+    registry.register(PaginateTool);
     // registry.register(SwitchTool);
     registry.register(JsonQueryTool);
     registry.register(EmitTool);
@@ -71,4 +72,5 @@ pub fn register_core_tools(registry: &mut registry::ToolRegistry) {
     registry.register(RhaiTool::default());
     registry.register(TraceTool);
     registry.register(StatsTool);
+    registry.register(VerifySignatureTool);
 }

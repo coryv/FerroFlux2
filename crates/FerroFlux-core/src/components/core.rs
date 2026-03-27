@@ -19,12 +19,9 @@ pub struct NodeConfig {
     #[serde(skip_deserializing, default)]
     pub node_type: String,
     /// The ID of the workflow this node belongs to.
-    /// Optional to support legacy nodes (or "global" nodes in the future).
-    #[serde(default)]
-    pub workflow_id: Option<String>,
+    pub workflow_id: String,
     /// The tenant this node belongs to.
-    #[serde(default)]
-    pub tenant_id: Option<TenantId>,
+    pub tenant_id: TenantId,
 }
 
 /// A component that acts as a "mock" or "override" for a node's output.

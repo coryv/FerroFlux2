@@ -61,6 +61,8 @@ pub struct FtpConfig {
     pub connection_slug: Option<String>,
 }
 
+use std::collections::HashMap;
+
 /// Configuration for an SSH Command Execution Node.
 #[derive(Component, Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct SshConfig {
@@ -78,4 +80,28 @@ pub struct SshConfig {
     /// Optional slug reference to a secure connection.
     #[serde(default)]
     pub connection_slug: Option<String>,
+}
+
+/// Configuration for an SSE (Server-Sent Events) Trigger Node.
+#[derive(Component, Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub struct SseTriggerConfig {
+    /// The URL to connect to.
+    pub url: String,
+    /// Optional HTTP headers to send.
+    #[serde(default)]
+    pub headers: HashMap<String, String>,
+    /// Delay in milliseconds before attempting to reconnect.
+    #[serde(default = "default_reconnect_delay")]
+    pub reconnect_delay_ms: u64,
+    /// Maximum number of reconnection attempts. 0 means infinite.
+    #[serde(default = "default_max_reconnect_attempts")]
+    pub max_reconnect_attempts: u32,
+}
+
+fn default_reconnect_delay() -> u64 {
+    3000
+}
+
+fn default_max_reconnect_attempts() -> u32 {
+    10
 }

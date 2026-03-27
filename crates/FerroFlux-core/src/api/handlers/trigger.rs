@@ -69,10 +69,7 @@ pub fn handle_trigger_workflow(
     {
         let mut query = world.query::<(Entity, &NodeConfig)>();
         for (e, conf) in query.iter(world) {
-            if let Some(wf_id) = &conf.workflow_id
-                && wf_id == &workflow_id
-                && conf.node_type == "Webhook"
-            {
+            if conf.workflow_id == workflow_id && conf.node_type == "Webhook" {
                 target_entity = Some(e);
                 break;
             }

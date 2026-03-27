@@ -4,7 +4,6 @@ use crate::components::core::{Inbox, NodeConfig, Outbox};
 use crate::resources::TokioRuntime;
 use crate::store::BlobStore;
 use bevy_ecs::prelude::*;
-use ferroflux_iam::TenantId;
 use serde_json::json;
 use std::io::Read;
 
@@ -21,11 +20,7 @@ pub fn ssh_worker(
 
     for (config, node_config, mut inbox, mut outbox) in query.iter_mut() {
         while let Some(ticket) = inbox.queue.pop_front() {
-            let tenant = node_config
-                .tenant_id
-                .as_ref()
-                .cloned()
-                .unwrap_or_else(|| TenantId::from("default_tenant"));
+            let tenant = node_config.tenant_id.clone();
 
             // Resolve Credentials
             let (user, _key_secret) = if let Some(slug) = &config.connection_slug {

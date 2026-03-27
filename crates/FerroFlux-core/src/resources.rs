@@ -4,6 +4,7 @@ use std::sync::Arc;
 use tokio::sync::Semaphore;
 pub mod registry;
 pub mod templates;
+pub mod sse_registry;
 
 pub use registry::NodeRegistry;
 

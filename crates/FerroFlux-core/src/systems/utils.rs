@@ -27,7 +27,7 @@ pub fn merge_result(
             }
         }
         None => {
-            // Legacy Mode: Replace input with output
+            // Replacement Mode: no result_key, return output directly
             new_result.to_string()
         }
     }
@@ -39,10 +39,9 @@ mod tests {
     use serde_json::json;
 
     #[test]
-    fn test_merge_result_none() {
+    fn test_merge_result_replacement_mode() {
         let input = json!({"hello": "world"});
         let result = "replacement";
-        // Legacy behavior: Replace input entirely
         let output = merge_result(&input, result, None);
         assert_eq!(output, "replacement");
     }

@@ -9,7 +9,6 @@ use crate::secrets::{DatabaseSecretStore, SecretStore};
 use crate::store::BlobStore;
 use bevy_ecs::prelude::*;
 use bevy_ecs::system::SystemParam;
-use ferroflux_iam::TenantId;
 use serde_json::{Value, json};
 use uuid::Uuid;
 
@@ -102,10 +101,7 @@ pub fn agent_prep(
                 None => continue,
             };
 
-            let tenant = node_config
-                .tenant_id
-                .clone()
-                .unwrap_or_else(|| TenantId::from("default_tenant"));
+            let tenant = node_config.tenant_id.clone();
 
             // Resolve Secret (Async -> Sync block)
             // Resolve Secret (Async -> Sync block)
@@ -378,8 +374,8 @@ mod tests {
                     id: Uuid::new_v4(),
                     name: "Test Node".to_string(),
                     node_type: "Agent".to_string(),
-                    workflow_id: None,
-                    tenant_id: Some(TenantId::from("default_tenant")),
+                    workflow_id: "global".to_string(),
+                    tenant_id: TenantId::from("default_tenant"),
                 },
                 inbox,
                 Outbox::default(),

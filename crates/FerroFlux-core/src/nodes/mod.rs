@@ -3,6 +3,7 @@ use bevy_ecs::prelude::*;
 use serde_json::Value;
 
 pub mod definition;
+pub mod sse;
 pub mod yaml_factory;
 
 pub struct IntegrationNodeFactory;
@@ -128,4 +129,5 @@ pub fn register_core_nodes(registry: &mut crate::resources::registry::NodeRegist
     // We only register the Integration bridge for now.
     // All other core nodes are loaded via YAML from the platforms/ directory.
     registry.register("integration", Box::new(IntegrationNodeFactory));
+    registry.register("SseTrigger", Box::new(self::sse::SseTriggerNodeFactory));
 }

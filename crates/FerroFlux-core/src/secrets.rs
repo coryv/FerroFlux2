@@ -6,7 +6,7 @@ use ferroflux_iam::TenantId;
 use serde_json::Value;
 use std::env;
 
-/// Trait for retrieving secrets, abstracting the source (Env, Vault, DB, etc.)
+/// Trait for retrieving secrets, abstracting the source (Vault, DB, etc.)
 #[async_trait]
 pub trait SecretStore: Send + Sync {
     /// Retrieve a secret by key, scoped to a tenant.
@@ -14,24 +14,6 @@ pub trait SecretStore: Send + Sync {
 
     /// Resolve a connection reference (slug) to the full credential object.
     async fn resolve_connection(&self, tenant: &TenantId, slug: &str) -> Result<Value>;
-}
-
-/// Implementation that reads from environment variables (Legacy/Dev mode).
-#[derive(Clone, Resource)]
-pub struct EnvSecretStore;
-
-#[async_trait]
-impl SecretStore for EnvSecretStore {
-    async fn get_secret(&self, _tenant: &TenantId, key: &str) -> Result<String> {
-        env::var(key).map_err(|_| anyhow::anyhow!("Secret '{}' not found in environment", key))
-    }
-
-    async fn resolve_connection(&self, _tenant: &TenantId, slug: &str) -> Result<Value> {
-        Err(anyhow::anyhow!(
-            "EnvSecretStore cannot resolve connection '{}'.",
-            slug
-        ))
-    }
 }
 
 /// Implementation that reads encrypted connections from the database.
