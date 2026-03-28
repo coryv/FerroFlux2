@@ -1,0 +1,21 @@
+meta:
+  id: monday
+  name: Monday.com
+  type: Platform
+  category: Project Management
+  description: "Manage boards, items, and updates on Monday.com using GraphQL."
+  version: "1.0.0"
+
+config:
+  base_url: "https://api.monday.com/v2"
+  auth: oauth2
+  headers:
+    Authorization: "Bearer {{ get 'auth.access_token' }}"
+    Content-Type: "application/json"
+    API-Version: "2023-10"
+
+settings:
+  - name: api_token
+    label: "Personal API Token (Optional fallback)"
+    type: password
+    required: false

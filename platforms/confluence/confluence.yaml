@@ -1,0 +1,24 @@
+meta:
+  id: confluence
+  name: Confluence
+  type: Platform
+  category: Productivity
+  description: "Connects to the Atlassian Confluence Cloud REST API v2."
+  version: "1.0.0"
+
+config:
+  base_url: "https://{{ get 'settings.domain' }}.atlassian.net/wiki/api/v2"
+  headers:
+    Authorization: "Bearer {{ get 'settings.connection.access_token' }}"
+    Content-Type: "application/json"
+    Accept: "application/json"
+
+settings:
+  - name: domain
+    label: "Atlassian Domain (e.g. mycompany)"
+    type: string
+    required: true
+  - name: connection
+    label: "Atlassian Connection"
+    type: oauth2
+    required: true

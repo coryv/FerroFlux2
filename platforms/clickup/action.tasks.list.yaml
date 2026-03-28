@@ -1,0 +1,55 @@
+meta:
+  id: clickup.tasks.list
+  name: List Tasks
+  category: Tasks
+  type: Action
+  platform: clickup
+  description: "Retrieve a list of tasks from a specific list."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: list_id
+      type: string
+    - name: archived
+      type: boolean
+      default: false
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: tasks
+      type: array
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/list/{{ get 'inputs.list_id' }}/task"
+      headers: "{{ platform.headers }}"
+      query:
+        archived: "{{ get 'inputs.archived' 'false' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: "{{ steps.request.status_code }}"
+  cases:
+    "200":
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: tasks
+          value: "{{ steps.request.response_body.tasks }}"
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

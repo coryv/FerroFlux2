@@ -1,0 +1,51 @@
+meta:
+  id: mysql.query.execute
+  name: Execute Query
+  category: Database
+  type: Action
+  platform: mysql
+  description: "Execute a custom SQL query on a MySQL database."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: query
+      type: string
+    - name: bind
+      type: array
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: rows
+      type: array
+
+execution:
+  - id: sql
+    tool: sql_query
+    params:
+      connection_string: "{{ settings.connection_string }}"
+      query: "{{ get 'inputs.query' }}"
+      bind: "{{ get 'inputs.bind' }}"
+    returns:
+      rows: rows
+
+routing:
+  match: "{{ steps.sql.status }}"
+  cases:
+    "error":
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.sql.error }}"
+    default:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: rows
+          value: "{{ steps.sql.rows }}"

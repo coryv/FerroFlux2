@@ -1,14 +1,22 @@
+pub mod aws_sigv4;
 pub mod emit;
+
 pub mod http_client;
 pub mod json_query;
 pub mod log;
 pub mod logic;
 pub mod math;
+pub mod mongo_query;
 pub mod paginate;
+pub mod redis_query;
 pub mod request;
 pub mod rhai;
 pub mod sleep;
+pub mod smtp;
+pub mod sql_query;
 pub mod stats;
+
+
 pub mod trace;
 pub mod utils;
 pub mod variable;
@@ -23,10 +31,16 @@ pub use self::math::MathTool;
 pub use self::paginate::PaginateTool;
 pub use self::rhai::RhaiTool;
 pub use self::sleep::SleepTool;
+pub use self::smtp::SmtpTool;
 pub use self::stats::StatsTool;
+
 pub use self::trace::TraceTool;
 pub use self::variable::{GetVarTool, SetVarTool};
 pub use self::verify_signature::VerifySignatureTool;
+pub use self::sql_query::SqlTool;
+pub use self::mongo_query::MongoTool;
+pub use self::redis_query::RedisTool;
+
 
 use ferroflux_db::oauth2::TokenRefreshLocks;
 use ferroflux_db::secrets::{DatabaseSecretStore, SecretStore};

@@ -1,0 +1,73 @@
+meta:
+  id: whatsapp.messages.send_text
+  name: Send Text Message
+  category: Messages
+  type: Action
+  platform: whatsapp
+  description: "Sends a direct text message to a WhatsApp user."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: to
+      type: string
+      description: "WhatsApp ID or phone number of the recipient (e.g. 16505551234)."
+    - name: text
+      type: string
+      description: "The body of the text message."
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: result
+      type: object
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: POST
+      url: "{{ platform.base_url }}/v22.0/{{ get 'settings.phone_number_id' }}/messages"
+      headers: "{{ platform.headers }}"
+      body:
+        messaging_product: "whatsapp"
+        recipient_type: "individual"
+        to: "{{ get 'inputs.to' }}"
+        type: "text"
+        text:
+          body: "{{ get 'inputs.text' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "{{ steps.request.status_code }}"
+      cases:
+        - condition: "200"
+          output: success
+        - condition: "201"
+          output: success
+        - condition: default
+          output: error
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: result
+          value: "{{ steps.request.response_body }}"
+    error:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

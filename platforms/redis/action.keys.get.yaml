@@ -1,0 +1,45 @@
+meta:
+  id: redis.keys.get
+  name: Get Key
+  category: Database
+  type: Action
+  platform: redis
+  description: "Get the value of a key in Redis."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: key
+      type: string
+      required: true
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: value
+      type: string
+
+execution:
+  - id: redis
+    tool: redis_query
+    params:
+      connection_string: "{{ settings.connection_string }}"
+      operation: "get"
+      key: "{{ get 'inputs.key' }}"
+    returns:
+      value: value
+
+routing:
+  match: "{{ steps.redis.status }}"
+  cases:
+    default:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: value
+          value: "{{ steps.redis.value }}"

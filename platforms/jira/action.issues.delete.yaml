@@ -4,14 +4,14 @@ meta:
   category: Issues
   type: Action
   platform: jira
-  description: "Deletes an issue."
+  description: "Permanently delete a specific issue."
   version: "1.0.0"
 
 interface:
   inputs:
     - name: Exec
       type: flow
-    - name: issueIdOrKey
+    - name: issue_id
       type: string
   outputs:
     - name: Success
@@ -24,7 +24,7 @@ execution:
     tool: http_client
     params:
       method: DELETE
-      url: "https://{{ get 'settings.domain' }}.atlassian.net/rest/api/3/issue/{{ get 'inputs.issueIdOrKey' }}"
+      url: "{{ platform.base_url }}/issue/{{ get 'inputs.issue_id' }}"
       headers: "{{ platform.headers }}"
     returns:
       status: status_code

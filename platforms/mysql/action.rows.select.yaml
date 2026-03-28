@@ -1,0 +1,47 @@
+meta:
+  id: mysql.rows.select
+  name: Select Rows
+  category: Database
+  type: Action
+  platform: mysql
+  description: "Retrieve rows from a MySQL table."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: table
+      type: string
+      required: true
+    - name: limit
+      type: number
+      default: 100
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: rows
+      type: array
+
+execution:
+  - id: sql
+    tool: sql_query
+    params:
+      connection_string: "{{ settings.connection_string }}"
+      query: "SELECT * FROM {{ get 'inputs.table' }} LIMIT {{ get 'inputs.limit' '100' }}"
+    returns:
+      rows: rows
+
+routing:
+  match: "{{ steps.sql.status }}"
+  cases:
+    default:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: rows
+          value: "{{ steps.sql.rows }}"

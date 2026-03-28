@@ -1,0 +1,60 @@
+meta:
+  id: discord.messages.send_dm
+  name: Send Direct Message
+  category: Messages
+  type: Action
+  platform: discord
+  description: "Send a direct message to a specific user."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: recipient_id
+      type: string
+    - name: content
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+
+execution:
+  - id: create_dm
+    tool: http_client
+    params:
+      method: POST
+      url: "{{ platform.base_url }}/users/@me/channels"
+      headers: "{{ platform.headers }}"
+      body:
+        recipient_id: "{{ get 'inputs.recipient_id' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: send_message
+    tool: http_client
+    params:
+      method: POST
+      url: "{{ platform.base_url }}/channels/{{ steps.create_dm.response_body.id }}/messages"
+      headers: "{{ platform.headers }}"
+      body:
+        content: "{{ get 'inputs.content' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: "{{ steps.send_message.status_code }}"
+  cases:
+    "200":
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.send_message.response_body }}"

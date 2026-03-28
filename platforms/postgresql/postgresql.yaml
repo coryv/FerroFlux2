@@ -1,0 +1,25 @@
+meta:
+  id: postgresql
+  name: PostgreSQL
+  category: Database
+  type: Platform
+  description: "Direct connection to PostgreSQL databases via binary TCP protocol."
+  version: "1.0.0"
+
+config:
+  driver: postgres
+  base_url: "tcp://localhost" # Placeholder for database platforms
+  headers: {}                # Placeholder for database platforms
+
+settings:
+  - name: connection_string
+    label: "Connection String"
+    type: string
+    required: true
+    secret: true
+    placeholder: "postgres://user:password@localhost:5432/dbname"
+    description: "The full connection URI for your PostgreSQL database."
+
+interface:
+  inputs: []
+  outputs: []

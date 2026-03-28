@@ -1,43 +1,52 @@
 meta:
-  id: jira.files.attach
-  name: Attach File
-  category: Files
+  id: telegram.messages.send
+  name: Send Message
+  category: Messages
   type: Action
-  platform: jira
-  description: "TODO: Describe what this node does."
+  platform: telegram
+  description: "Send a text message to a Telegram chat."
   version: "1.0.0"
 
 interface:
   inputs:
     - name: Exec
       type: flow
-    # TODO: add runtime inputs that get wired from previous nodes
-    # - name: field_name
-    #   type: string
+    - name: chat_id
+      type: string
+    - name: text
+      type: string
   outputs:
     - name: Success
       type: flow
     - name: Error
       type: flow
-    - name: result
+    - name: message
       type: object
-  # settings:
-  #   - name: example_setting
-  #     label: "Example Setting"
-  #     type: string
-  #     required: false
-  #     placeholder: "default value"
+  settings:
+    - name: parse_mode
+      label: "Parse Mode"
+      type: select
+      required: false
+      default: "MarkdownV2"
+      options:
+        - value: "MarkdownV2"
+          label: "MarkdownV2"
+        - value: "HTML"
+          label: "HTML"
+        - value: "None"
+          label: "None"
 
 execution:
   - id: request
     tool: http_client
     params:
-      method: GET            # TODO: GET | POST | PUT | DELETE | PATCH
-      url: "{{ platform.base_url }}/TODO"
+      method: POST
+      url: "{{ platform.base_url }}/sendMessage"
       headers: "{{ platform.headers }}"
-      # body:                # Uncomment for POST/PUT/PATCH
-      #   field: "{{ get 'inputs.field_name' }}"
-      #   setting: "{{ get 'settings.example_setting' }}"
+      body:
+        chat_id: "{{ get 'inputs.chat_id' }}"
+        text: "{{ get 'inputs.text' }}"
+        parse_mode: "{{ get 'settings.parse_mode' }}"
     returns:
       status: status_code
       body: response_body
@@ -47,7 +56,7 @@ execution:
     params:
       value: "{{ steps.request.status_code }}"
       cases:
-        - condition: "200"   # TODO: add all success codes (201, 202, 204, etc.)
+        - condition: "200"
           output: success
         - condition: default
           output: error
@@ -61,7 +70,7 @@ routing:
           port: Success
       - tool: emit
         params:
-          port: result
+          port: message
           value: "{{ steps.request.response_body }}"
     error:
       - tool: emit

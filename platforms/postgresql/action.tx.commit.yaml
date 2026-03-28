@@ -1,0 +1,35 @@
+meta:
+  id: postgresql.tx.commit
+  name: Commit Transaction
+  category: Transaction
+  type: Action
+  platform: postgresql
+  description: "Commits the active database transaction for the current execution flow."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+
+execution:
+  - id: commit
+    tool: sql_query
+    params:
+      operation: commit
+      connection_string: "{{ get 'settings.connection_string' }}"
+    returns:
+      status: status
+
+routing:
+  match: success
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success

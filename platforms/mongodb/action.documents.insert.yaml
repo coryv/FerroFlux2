@@ -1,0 +1,50 @@
+meta:
+  id: mongodb.documents.insert
+  name: Insert Document
+  category: Database
+  type: Action
+  platform: mongodb
+  description: "Insert a new document into a MongoDB collection."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: collection
+      type: string
+      required: true
+    - name: document
+      type: object
+      required: true
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: inserted_id
+      type: string
+
+execution:
+  - id: mongo
+    tool: mongo_query
+    params:
+      connection_string: "{{ settings.connection_string }}"
+      database: "{{ settings.database }}"
+      collection: "{{ get 'inputs.collection' }}"
+      operation: "insert"
+      document: "{{ get 'inputs.document' }}"
+    returns:
+      inserted_id: inserted_id
+
+routing:
+  match: "{{ steps.mongo.status }}"
+  cases:
+    default:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: inserted_id
+          value: "{{ steps.mongo.inserted_id }}"

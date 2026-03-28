@@ -4,16 +4,16 @@ meta:
   category: Issues
   type: Action
   platform: jira
-  description: "Transitions an issue to a new status."
+  description: "Perform a status transition on an issue (e.g. Move to Done)."
   version: "1.0.0"
 
 interface:
   inputs:
     - name: Exec
       type: flow
-    - name: issueIdOrKey
+    - name: issue_id
       type: string
-    - name: transitionId
+    - name: transition_id
       type: string
   outputs:
     - name: Success
@@ -26,11 +26,11 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "https://{{ get 'settings.domain' }}.atlassian.net/rest/api/3/issue/{{ get 'inputs.issueIdOrKey' }}/transitions"
+      url: "{{ platform.base_url }}/issue/{{ get 'inputs.issue_id' }}/transitions"
       headers: "{{ platform.headers }}"
       body:
         transition:
-          id: "{{ get 'inputs.transitionId' }}"
+          id: "{{ get 'inputs.transition_id' }}"
     returns:
       status: status_code
       body: response_body

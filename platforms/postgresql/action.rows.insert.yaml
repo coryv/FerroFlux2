@@ -1,0 +1,68 @@
+meta:
+  id: postgresql.rows.insert
+  name: Insert Row
+  category: Tables
+  type: Action
+  platform: postgresql
+  description: "Inserts a single row into a table. Automatically participates in any active transaction for the current flow."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: table
+      type: string
+      description: "The name of the table to insert into."
+    - name: data
+      type: object
+      description: "The data to insert (column: value)."
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: result
+      type: object
+
+execution:
+  # This uses a Rhai script to construct the INSERT query dynamically
+  - id: build_query
+    tool: rhai
+    params:
+      code: |
+        let table = get("inputs.table");
+        let data = get("inputs.data");
+        let columns = data.keys();
+        let values = data.values();
+        let placeholders = columns.map(|col, idx| "$" + (idx + 1).to_string());
+        
+        let query = "INSERT INTO " + table + " (" + columns.join(", ") + ") VALUES (" + placeholders.join(", ") + ") RETURNING *";
+        
+        set("query", query);
+        set("bind", values);
+    returns:
+      query: query
+      bind: bind
+
+  - id: execute
+    tool: sql_query
+    params:
+      operation: execute
+      connection_string: "{{ get 'settings.connection_string' }}"
+      query: "{{ steps.build_query.query }}"
+      bind: "{{ steps.build_query.bind' }}"
+    returns:
+      result: rows[0]
+
+routing:
+  match: success
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: result
+          value: "{{ steps.execute.result }}"

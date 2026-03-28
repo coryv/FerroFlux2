@@ -1,0 +1,47 @@
+meta:
+  id: whatsapp.messages.new
+  name: New Incoming Message
+  category: Messages
+  type: Trigger
+  platform: whatsapp
+  description: "Fires when a new message is received via WhatsApp Webhook."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: message
+      type: object
+  settings:
+    - name: webhook_verify_token
+      label: "Webhook Verify Token"
+      type: string
+      required: true
+      description: "The token you set in the Meta App Dashboard to verify your webhook."
+
+execution:
+  # This trigger assumes the workflow is triggered by an inbound webhook.
+  # The 'event' object contains the webhook payload.
+  # Meta WhatsApp webhooks follow a nested structure: entry[0].changes[0].value.messages[0]
+  - id: extract_message
+    tool: json_query
+    params:
+      json: "{{ event.body }}"
+      path: "/entry/0/changes/0/value/messages/0"
+    returns:
+      result: message_data
+
+routing:
+  match: "{{ steps.extract_message.result != null }}"
+  cases:
+    "true":
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: message
+          value: "{{ steps.extract_message.result }}"
+    "false": []

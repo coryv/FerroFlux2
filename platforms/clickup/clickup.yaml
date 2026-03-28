@@ -1,0 +1,20 @@
+meta:
+  id: clickup
+  name: ClickUp
+  type: Platform
+  category: Project Management
+  description: "Manage tasks, lists, and folders on ClickUp using the REST API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://api.clickup.com/api/v2"
+  auth: oauth2
+  headers:
+    Authorization: "{{ get 'auth.access_token' }}"
+    Content-Type: "application/json"
+
+settings:
+  - name: api_token
+    label: "Personal API Token (Optional fallback)"
+    type: password
+    required: false

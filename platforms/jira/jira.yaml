@@ -3,21 +3,22 @@ meta:
   name: Jira
   type: Platform
   category: Productivity
-  description: "Connects to the Atlassian Jira REST API."
+  description: "Connects to the Atlassian Jira Cloud REST API v3."
   version: "1.0.0"
 
 config:
-  base_url: "https://<YOUR_DOMAIN>.atlassian.net/rest/api/3"
+  base_url: "https://{{ get 'settings.domain' }}.atlassian.net/rest/api/3"
   headers:
+    Authorization: "Bearer {{ get 'settings.connection.access_token' }}"
     Content-Type: "application/json"
     Accept: "application/json"
 
 settings:
   - name: domain
-    label: "Atlassian Domain (e.g., example)"
+    label: "Atlassian Domain (e.g. mycompany)"
     type: string
     required: true
   - name: connection
-    label: "Jira Account"
-    type: connection_select
+    label: "Atlassian Connection"
+    type: oauth2
     required: true

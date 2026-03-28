@@ -1,0 +1,74 @@
+meta:
+  id: outlook.messages.new
+  name: New Email
+  category: Messages
+  type: Trigger
+  platform: outlook
+  description: "Polls for new emails in the Outlook Inbox."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: email
+      type: object
+  settings:
+    - name: limit
+      label: "Batch Limit"
+      type: number
+      default: 10
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/me/messages"
+      headers: "{{ platform.headers }}"
+      query:
+        "$filter": "receivedDateTime gt {{ get 'event.cursor' '1970-01-01T00:00:00Z' }}"
+        "$orderby": "receivedDateTime asc"
+        "$top": "{{ get 'settings.limit' }}"
+        "$select": "id,subject,bodyPreview,from,receivedDateTime,body"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "{{ steps.request.status_code }}"
+      cases:
+        - condition: "200"
+          output: success
+        - condition: default
+          output: error
+
+  - id: extract_messages
+    tool: json_query
+    params:
+      json: "{{ steps.request.response_body }}"
+      path: "/value"
+    returns:
+      emails: emails_array
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: iterate
+        params:
+          items: "{{ steps.extract_messages.emails_array }}"
+          cursor_key: "receivedDateTime"
+          # Graph API receivedDateTime is a string, but the engine usually handles string cursors for 'gt' comparisons.
+          port: email
+      - tool: emit
+        params:
+          port: Success
+    error:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

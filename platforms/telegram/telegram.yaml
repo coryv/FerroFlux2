@@ -1,0 +1,18 @@
+meta:
+  id: telegram
+  name: Telegram
+  type: Platform
+  category: Communication
+  description: "Connects to the Telegram Bot API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://api.telegram.org/bot{{ get 'settings.bot_token' }}"
+  headers:
+    Content-Type: "application/json"
+
+settings:
+  - name: bot_token
+    label: "Bot Token"
+    type: password
+    required: true

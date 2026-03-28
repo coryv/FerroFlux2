@@ -22,8 +22,9 @@ Each entry lists:
 - `core` — workflow primitives
 - `github` — repos, issues
 - `open-meteo` — weather/forecast
-- `openai` — chat completions *(needs Chat Completion with Tools node added)*
+- `openai` — chat completions, chat completions with tools
 - `resend` — transactional email
+- `telegram` — messages, media, admin
 
 ---
 
@@ -41,7 +42,8 @@ Each entry lists:
 **Triggers:** New Message in Channel, New Chat Message, New Meeting Created
 **Actions:** Send Channel Message, Send Chat Message, Create Team, Create Channel, List Teams, List Channels, List Members, Upload File
 
-### Telegram *(Tier 1)*
+### ✅ Telegram *(Tier 1)* ✅
+
 **Triggers:** New Message, New Command, New Callback Query, New Inline Query
 **Actions:** Send Message, Send Photo, Send Document, Send Audio, Send Video, Edit Message, Delete Message, Pin Message, Ban User, Get Chat Info, Answer Callback Query, Send Poll
 
@@ -49,11 +51,11 @@ Each entry lists:
 **Triggers:** New Email, New Email Matching Search, New Label Added, New Attachment
 **Actions:** Send Email, Reply to Email, Forward Email, Create Draft, Get Email, List Emails, Move to Label, Delete Email, Mark as Read, Mark as Unread, Add Label, Remove Label, Create Label, Get Attachment, Search Emails
 
-### Microsoft Outlook *(Tier 1)*
-**Triggers:** New Email, New Email Matching Filter, New Calendar Event
-**Actions:** Send Email, Reply to Email, Forward Email, Create Draft, Get Email, Move Email, Delete Email, List Emails, Create Contact, Update Contact, Get Contact
+### ✅ Microsoft Outlook *(Tier 1)*
+**Triggers:** New Email, New Calendar Event
+**Actions:** Send Email, Reply to Email, Forward Email, Create Draft, Move Email, Delete Email, List Messages, Get Message, Create Calendar Event, Update Calendar Event, Delete Calendar Event
 
-### SMTP *(Tier 1)*
+### ✅ SMTP *(Tier 1)*
 **Actions:** Send Email (plain text), Send Email (HTML), Send Email with Attachment
 
 ### ✅ Twilio *(Tier 1)*
@@ -95,13 +97,13 @@ Each entry lists:
 **Triggers:** New Issue, Updated Issue, Issue State Changed, New Comment
 **Actions:** Create Issue, Update Issue, Archive Issue, Get Issue, Search Issues, Create Comment, Update Issue Status, Assign Issue, Create Label, List Teams, List Projects, Create Project
 
-### Monday.com *(Tier 1)*
-**Triggers:** New Item, Updated Item, Status Changed, New Update (comment)
-**Actions:** Create Item, Update Item, Delete Item, Get Item, List Items, Change Column Value, Create Update, Get Board, List Boards, Create Board, Create Column, Move Item to Group
+### ✅ Monday.com *(Tier 1)*
+**Triggers:** New Item, Updated Item, Status Updated
+**Actions:** Create Item, Update Item, Get Board, List Items, Add Update to Item, Get Item, Delete Item, Archive Item, Update Column Value
 
-### ClickUp *(Tier 1)*
-**Triggers:** New Task, Updated Task, Task Status Changed, New Comment
-**Actions:** Create Task, Update Task, Delete Task, Get Task, List Tasks, Move Task, Create Comment, Get Comments, Create List, Create Space, Get Space, List Spaces, Get Folder, Set Task Status
+### ✅ ClickUp *(Tier 1)*
+**Triggers:** New Task, Task Updated, Task Status Updated, New Folder, New List
+**Actions:** Create Task, Update Task, Get Task, List Tasks, Delete Task, Add Comment to Task, Get Lists, Get Folders, Create List, Create Folder, Get Space, List Spaces, Get Folder, Set Task Status
 
 ### Todoist *(Tier 2)*
 **Triggers:** New Task, Completed Task, New Project
@@ -222,15 +224,16 @@ Each entry lists:
 **Triggers:** New File, New File in Folder, File Updated, File Deleted
 **Actions:** Upload File, Download File, Create Folder, Move File, Copy File, Delete File, Get File Metadata, List Files, Search Files, Share File, Get File Permission, Create Google Doc, Create Google Sheet
 
-### Dropbox *(Tier 1)*
+### ✅ Dropbox *(Tier 1)*
 **Triggers:** New File, Updated File, Deleted File
 **Actions:** Upload File, Download File, Create Folder, Move File, Copy File, Delete File, Get File Metadata, List Folder, Search Files, Share Folder, Create Shared Link
 
-### AWS S3 *(Tier 1)*
+### ✅ AWS S3 *(Tier 1)*
 **Actions:** Upload Object, Download Object, Delete Object, Copy Object, List Objects, Get Object Metadata, Create Bucket, Delete Bucket, List Buckets, Generate Presigned URL, Set Object ACL
 
-### Microsoft OneDrive *(Tier 1)*
+### ✅ Microsoft OneDrive *(Tier 1)*
 **Actions:** Upload File, Download File, Create Folder, Move File, Delete File, Get File Metadata, List Files, Search Files, Share File
+
 
 ### Cloudinary *(Tier 2)*
 **Actions:** Upload Image, Upload Video, Get Resource, Transform Image (resize/crop/format), Delete Resource, Create Folder, List Resources, Generate URL
@@ -243,9 +246,10 @@ Each entry lists:
 **Triggers:** New Row, Updated Row, New Spreadsheet
 **Actions:** Append Row, Get Row, Update Row, Delete Row, Clear Row, Get Spreadsheet, Create Spreadsheet, Add Sheet, Get Sheet Values, Update Sheet Values, Clear Sheet, Format Cells, Lookup Row
 
-### Microsoft Excel 365 *(Tier 1)*
+### ✅ Microsoft Excel 365 *(Tier 1)*
 **Triggers:** New Row in Table, Updated Row in Table
 **Actions:** Add Row to Table, Get Row, Update Row, Delete Row, List Rows, Create Workbook, Add Worksheet, Get Range, Update Range
+
 
 ---
 
@@ -593,8 +597,14 @@ Each entry lists:
 23. ~~AWS (S3 + Lambda + SES + SQS + SNS + DynamoDB)~~ (Documented Gaps)
 24. ~~GitLab~~
 25. ~~Bitbucket~~
-26. XML Parser
+26. ~~Telegram~~
+27. XML Parser
+
 27. JSON Utilities
-28. Date/Time
-29. Text Utilities
-30. GraphQL Client
+28. ~~Microsoft Outlook~~
+29. ~~SMTP~~
+30. ~~Monday.com~~
+31. ~~ClickUp~~
+32. GraphQL Client
+
+

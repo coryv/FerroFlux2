@@ -1,0 +1,25 @@
+meta:
+  id: mongodb
+  name: MongoDB
+  category: Database
+  type: Platform
+  description: "Direct connection to MongoDB databases."
+  version: "1.0.0"
+
+config: {}
+
+settings:
+
+  - name: connection_string
+    label: "Connection String (e.g. mongodb://user:pass@host:27017)"
+    type: string
+    required: true
+    secret: true
+  - name: database
+    label: "Default Database"
+    type: string
+    required: true
+
+interface:
+  inputs: []
+  outputs: []

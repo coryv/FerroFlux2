@@ -1,0 +1,81 @@
+meta:
+  id: s3.objects.list
+  name: List Objects
+  category: Objects
+  type: Action
+  platform: s3
+  description: "List objects in an S3 bucket."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: bucket
+      type: string
+    - name: prefix
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: objects
+      type: array
+  settings:
+    - name: region
+      label: "Region"
+      type: string
+      required: true
+      default: "us-east-1"
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: GET
+      url: "https://{{ get 'inputs.bucket' }}.s3.{{ get 'settings.region' }}.amazonaws.com/?list-type=2&prefix={{ get 'inputs.prefix' }}"
+      aws_auth:
+        service: "s3"
+        region: "{{ get 'settings.region' }}"
+        access_key: "{{ get 'settings.access_key' }}"
+        secret_key: "{{ get 'settings.secret_key' }}"
+
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "{{ steps.request.status_code }}"
+      cases:
+        - condition: "200"
+          output: success
+        - condition: default
+          output: error
+
+  - id: extract_objects
+    tool: json_query
+    params:
+      json: "{{ steps.request.response_body }}"
+      path: "/content/Contents"          # Path in the XML-to-JSON converted body
+    returns:
+      result: objects_raw
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: objects
+          value: "{{ steps.extract_objects.objects_raw }}"
+    error:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

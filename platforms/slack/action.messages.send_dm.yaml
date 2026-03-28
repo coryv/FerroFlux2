@@ -1,0 +1,61 @@
+meta:
+  id: slack.messages.send_dm
+  name: Send Direct Message
+  category: Messages
+  type: Action
+  platform: slack
+  description: "Send a direct message to a specific user."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: user_id
+      type: string
+    - name: text
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+
+execution:
+  - id: open_dm
+    tool: http_client
+    params:
+      method: POST
+      url: "{{ platform.base_url }}/conversations.open"
+      headers: "{{ platform.headers }}"
+      body:
+        users: "{{ get 'inputs.user_id' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: send_message
+    tool: http_client
+    params:
+      method: POST
+      url: "{{ platform.base_url }}/chat.postMessage"
+      headers: "{{ platform.headers }}"
+      body:
+        channel: "{{ steps.open_dm.response_body.channel.id }}"
+        text: "{{ get 'inputs.text' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: "{{ steps.send_message.status_code }}"
+  cases:
+    "200":
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.send_message.response_body }}"

@@ -1,0 +1,58 @@
+meta:
+  id: outlook.calendar.update
+  name: Update Calendar Event
+  category: Calendar
+  type: Action
+  platform: outlook
+  description: "Update an existing calendar event."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: event_id
+      type: string
+    - name: subject
+      type: string
+    - name: start_time
+      type: string
+    - name: end_time
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: PATCH
+      url: "{{ platform.base_url }}/me/events/{{ get 'inputs.event_id' }}"
+      headers: "{{ platform.headers }}"
+      body:
+        subject: "{{ get 'inputs.subject' }}"
+        start:
+          dateTime: "{{ get 'inputs.start_time' }}"
+          timeZone: "UTC"
+        end:
+          dateTime: "{{ get 'inputs.end_time' }}"
+          timeZone: "UTC"
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: "{{ steps.request.status_code }}"
+  cases:
+    "200":
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

@@ -1,0 +1,40 @@
+meta:
+  id: smtp
+  name: SMTP
+  type: Platform
+  category: Communication
+  description: "Send emails via any SMTP server using the native SMTP tool."
+  version: "1.0.0"
+
+config:
+  base_url: "smtp://{{ get 'settings.host' }}"
+  auth: none # Credentials handled directly by the smtp tool
+
+settings:
+  - name: host
+    label: "SMTP Host"
+    type: string
+    required: true
+  - name: port
+    label: "SMTP Port"
+    type: number
+    default: 587
+  - name: username
+    label: "Username"
+    type: string
+    required: false
+  - name: password
+    label: "Password"
+    type: password
+    required: false
+  - name: encryption
+    label: "Encryption"
+    type: select
+    default: "starttls"
+    options:
+      - value: "tls"
+        label: "TLS (Port 465)"
+      - value: "starttls"
+        label: "STARTTLS (Port 587)"
+      - value: "none"
+        label: "No Encryption"

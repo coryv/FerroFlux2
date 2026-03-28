@@ -4,16 +4,16 @@ meta:
   category: Issues
   type: Action
   platform: jira
-  description: "Assigns an issue to a user."
+  description: "Assign an issue to a specific user."
   version: "1.0.0"
 
 interface:
   inputs:
     - name: Exec
       type: flow
-    - name: issueIdOrKey
+    - name: issue_id
       type: string
-    - name: accountId
+    - name: account_id
       type: string
   outputs:
     - name: Success
@@ -26,10 +26,10 @@ execution:
     tool: http_client
     params:
       method: PUT
-      url: "https://{{ get 'settings.domain' }}.atlassian.net/rest/api/3/issue/{{ get 'inputs.issueIdOrKey' }}/assignee"
+      url: "{{ platform.base_url }}/issue/{{ get 'inputs.issue_id' }}/assignee"
       headers: "{{ platform.headers }}"
       body:
-        accountId: "{{ get 'inputs.accountId' }}"
+        accountId: "{{ get 'inputs.account_id' }}"
     returns:
       status: status_code
       body: response_body

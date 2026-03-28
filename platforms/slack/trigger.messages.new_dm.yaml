@@ -1,0 +1,58 @@
+meta:
+  id: slack.messages.new_dm
+  name: New Direct Message
+  category: Messages
+  type: Trigger
+  platform: slack
+  description: "Polls for new direct messages across all active DM channels."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: message
+      type: object
+  settings:
+    - name: limit
+      label: "Batch Limit"
+      type: number
+      default: 50
+
+execution:
+  - id: list_ims
+    tool: http_client
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/conversations.list?types=im&limit=100"
+      headers: "{{ platform.headers }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: extract_ims
+    tool: json_query
+    params:
+      json: "{{ steps.list_ims.response_body }}"
+      path: "/channels"
+    returns:
+      channels: channels_array
+
+routing:
+  match: "{{ steps.list_ims.status_code }}"
+  cases:
+    "200":
+      - tool: iterate
+        params:
+          items: "{{ steps.extract_ims.channels_array }}"
+          cursor_key: "last_read" # Slack uses timestamps for cursors
+          port: message
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.list_ims.response_body }}"

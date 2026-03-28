@@ -6,8 +6,10 @@ use serde_json::Value;
 
 use super::request::{
     build_multipart_form, check_ssrf, execute_binary_request, execute_multipart_request,
-    execute_request, execute_streaming_request, resolve_connection_auth,
+    execute_raw_request, execute_request, execute_streaming_request, resolve_connection_auth,
+    AwsSigV4Config,
 };
+
 
 pub struct HttpClientTool;
 
@@ -695,6 +697,16 @@ impl Tool for HttpClientTool {
         let body = params.get("body");
         let headers_val = params.get("headers");
         let connection_slug = params.get("connection").and_then(|v| v.as_str());
+        let aws_auth = params.get("aws_auth");
+
+        let aws_config = aws_auth.and_then(|v| {
+            let service = v.get("service")?.as_str()?.to_string();
+            let region = v.get("region")?.as_str()?.to_string();
+            let access_key = v.get("access_key")?.as_str()?.to_string();
+            let secret_key = v.get("secret_key")?.as_str()?.to_string();
+            Some(AwsSigV4Config { service, region, access_key, secret_key })
+        });
+
 
         // 1. Connection Resolution (Auth + Base URL)
         let (resolved_url, dynamic_headers) =
@@ -723,7 +735,9 @@ impl Tool for HttpClientTool {
                 context.event_bus.as_ref(),
                 &context.trace_id,
                 step_id,
+                aws_config.as_ref(),
             )?;
+
             return Ok(serde_json::json!({
                 "status": status,
                 "headers": headers,
@@ -731,22 +745,64 @@ impl Tool for HttpClientTool {
             }));
         }
 
-        let (status, headers, body_val) = if body_type == "multipart" {
+        let response_type = params.get("response_type").and_then(|v| v.as_str()).unwrap_or("json");
+
+        let (status, headers, body_val) = if response_type == "blob" {
+            let (status, headers, bytes) = execute_raw_request(
+                &client,
+                &resolved_url,
+                method,
+                headers_val,
+                &dynamic_headers,
+                body,
+                aws_config.as_ref(),
+            )?;
+            let store = context
+                .store
+                .ok_or_else(|| anyhow!("BlobStore not available in context"))?;
+            let ticket = store.check_in_with_metadata(&bytes, headers.clone())?;
+            (status, headers, serde_json::to_value(ticket)?)
+        } else if body_type == "multipart" {
             let parts = params
                 .get("parts")
                 .and_then(|v| v.as_array())
                 .ok_or_else(|| anyhow!("Missing 'parts' array for multipart body"))?;
             let form = build_multipart_form(parts, context)?;
-            execute_multipart_request(&client, &resolved_url, method, headers_val, &dynamic_headers, form)?
+            execute_multipart_request(
+                &client,
+                &resolved_url,
+                method,
+                headers_val,
+                &dynamic_headers,
+                form,
+                aws_config.as_ref(),
+            )?
         } else if body_type == "binary" {
             let content_type = params
                 .get("content_type")
                 .and_then(|v| v.as_str())
                 .ok_or_else(|| anyhow!("Missing 'content_type' for binary body"))?;
             let bytes = resolve_binary_body(&params, context)?;
-            execute_binary_request(&client, &resolved_url, method, headers_val, &dynamic_headers, bytes, content_type)?
+            execute_binary_request(
+                &client,
+                &resolved_url,
+                method,
+                headers_val,
+                &dynamic_headers,
+                bytes,
+                content_type,
+                aws_config.as_ref(),
+            )?
         } else {
-            execute_request(&client, &resolved_url, method, headers_val, &dynamic_headers, body)?
+            execute_request(
+                &client,
+                &resolved_url,
+                method,
+                headers_val,
+                &dynamic_headers,
+                body,
+                aws_config.as_ref(),
+            )?
         };
 
         Ok(serde_json::json!({

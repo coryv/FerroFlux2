@@ -1,0 +1,68 @@
+meta:
+  id: smtp.email.send
+  name: Send Email
+  category: Email
+  type: Action
+  platform: smtp
+  description: "Send an email using the SMTP protocol."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: from
+      type: string
+    - name: to
+      type: string
+    - name: subject
+      type: string
+    - name: body_text
+      type: string
+    - name: body_html
+      type: string
+    - name: attachments
+      type: array
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: result
+      type: object
+
+execution:
+  - id: send
+    tool: smtp
+    params:
+      host: "{{ get 'settings.host' }}"
+      port: "{{ get 'settings.port' }}"
+      username: "{{ get 'settings.username' }}"
+      password: "{{ get 'settings.password' }}"
+      encryption: "{{ get 'settings.encryption' }}"
+
+      from: "{{ get 'inputs.from' }}"
+      to: "{{ get 'inputs.to' }}"
+      subject: "{{ get 'inputs.subject' }}"
+      body_text: "{{ get 'inputs.body_text' }}"
+      body_html: "{{ get 'inputs.body_html' }}"
+      attachments: "{{ get 'inputs.attachments' }}"
+    returns:
+      result: response_body
+
+routing:
+  match: "{{ steps.send.response_body.status }}"
+  cases:
+    "sent":
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: result
+          value: "{{ steps.send.response_body }}"
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.send.response_body }}"

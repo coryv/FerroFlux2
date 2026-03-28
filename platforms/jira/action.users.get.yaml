@@ -26,7 +26,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "https://{{ get 'settings.domain' }}.atlassian.net/rest/api/3/user"
+      url: "{{ platform.base_url }}/user"
+
       headers: "{{ platform.headers }}"
       query:
         accountId: "{{ get 'inputs.accountId' }}"

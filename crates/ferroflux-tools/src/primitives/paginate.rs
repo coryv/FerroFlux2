@@ -14,8 +14,9 @@ use serde_json::Value;
 
 use super::request::{
     check_ssrf, execute_request, extract_by_path, parse_link_header_next, resolve_connection_auth,
-    set_query_param,
+    set_query_param, AwsSigV4Config,
 };
+
 
 const DEFAULT_MAX_PAGES: u64 = 100;
 const DEFAULT_LIMIT: u64 = 100;
@@ -65,6 +66,16 @@ impl Tool for PaginateTool {
         let body = params.get("body");
         let headers_val = params.get("headers");
         let connection_slug = params.get("connection").and_then(|v| v.as_str());
+        let aws_auth = params.get("aws_auth");
+
+        let aws_config = aws_auth.and_then(|v| {
+            let service = v.get("service")?.as_str()?.to_string();
+            let region = v.get("region")?.as_str()?.to_string();
+            let access_key = v.get("access_key")?.as_str()?.to_string();
+            let secret_key = v.get("secret_key")?.as_str()?.to_string();
+            Some(AwsSigV4Config { service, region, access_key, secret_key })
+        });
+
 
         let strategy = params
             .get("strategy")
@@ -162,7 +173,9 @@ impl Tool for PaginateTool {
                 headers_val,
                 &dynamic_headers,
                 body,
+                aws_config.as_ref(),
             )?;
+
 
             if status >= 400 {
                 return Err(anyhow!(

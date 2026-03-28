@@ -1,0 +1,48 @@
+meta:
+  id: gmail.emails.add_label
+  name: Add Label
+  category: Emails
+  type: Action
+  platform: gmail
+  description: "Add a specific label to an email."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: message_id
+      type: string
+    - name: label_id
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: POST
+      url: "{{ platform.base_url }}/messages/{{ get 'inputs.message_id' }}/modify"
+      headers: "{{ platform.headers }}"
+      body:
+        addLabelIds: ["{{ get 'inputs.label_id' }}"]
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: "{{ steps.request.status_code }}"
+  cases:
+    "200":
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

@@ -1,0 +1,21 @@
+meta:
+  id: redis
+  name: Redis
+  category: Database
+  type: Platform
+  description: "Direct connection to Redis database."
+  version: "1.0.0"
+
+config: {}
+
+settings:
+
+  - name: connection_string
+    label: "Connection String (e.g. redis://host:6379)"
+    type: string
+    required: true
+    secret: true
+
+interface:
+  inputs: []
+  outputs: []

@@ -14,52 +14,52 @@ interface:
       type: flow
     - name: file
       type: object
-
   settings:
     - name: channel
       label: "Channel ID (optional — leave blank for all)"
       type: string
       required: false
       placeholder: "C1234567890"
-    - name: poll_interval
-      label: "Poll Interval (minutes)"
+    - name: limit
+      label: "Batch Limit"
       type: number
-      default: 5
-      min: 1
+      default: 10
 
 execution:
   - id: fetch
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/files.list?channel={{ get 'settings.channel' }}&ts_from={{ get 'event.cursor' }}&count=10"
+      url: "{{ platform.base_url }}/files.list"
       headers: "{{ platform.headers }}"
+      query:
+        channel: "{{ get 'settings.channel' }}"
+        limit: "{{ get 'settings.limit' '10' }}"
     returns:
       status: status_code
       body: response_body
 
-  - id: check_status
-    tool: switch
+  - id: extract_files
+    tool: json_query
     params:
-      value: "{{ steps.fetch.status_code }}"
-      cases:
-        - condition: "200"
-          output: success
-        - condition: default
-          output: error
+      json: "{{ steps.fetch.response_body }}"
+      path: "/files"
+    returns:
+      files: files_array
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: "{{ steps.fetch.status_code }}"
   cases:
-    success:
+    "200":
+      - tool: iterate
+        params:
+          items: "{{ steps.extract_files.files_array }}"
+          cursor_key: "timestamp"
+          port: file
       - tool: emit
         params:
           port: Success
-      - tool: emit
-        params:
-          port: file
-          value: "{{ steps.fetch.response_body }}"
-    error:
+    default:
       - tool: emit
         params:
           port: Error

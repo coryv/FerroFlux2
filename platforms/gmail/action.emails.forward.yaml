@@ -1,0 +1,65 @@
+meta:
+  id: gmail.emails.forward
+  name: Forward Email
+  category: Emails
+  type: Action
+  platform: gmail
+  description: "Forward a specific email to a new recipient."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: message_id
+      type: string
+    - name: to
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+
+execution:
+  - id: get_original
+    tool: http_client
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/messages/{{ get 'inputs.message_id' }}"
+      headers: "{{ platform.headers }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: send_forward
+    tool: http_client
+    params:
+      method: POST
+      url: "{{ platform.base_url }}/messages/send"
+      headers: "{{ platform.headers }}"
+      body:
+        threadId: "{{ steps.get_original.response_body.threadId }}"
+        payload:
+          headers:
+            - name: "To"
+              value: "{{ get 'inputs.to' }}"
+            - name: "Subject"
+              value: "Fwd: {{ steps.get_original.response_body.payload.headers | json_query(\"[?name=='Subject'].value | [0]\") }}"
+          parts: "{{ steps.get_original.response_body.payload.parts }}"
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: "{{ steps.send_forward.status_code }}"
+  cases:
+    "200":
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.send_forward.response_body }}"

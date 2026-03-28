@@ -4,17 +4,19 @@ meta:
   category: Issues
   type: Action
   platform: jira
-  description: "Updates an issue."
+  description: "Update an existing issue's fields."
   version: "1.0.0"
 
 interface:
   inputs:
     - name: Exec
       type: flow
-    - name: issueIdOrKey
+    - name: issue_id
       type: string
-    - name: fields
-      type: object
+    - name: summary
+      type: string
+    - name: description
+      type: string
   outputs:
     - name: Success
       type: flow
@@ -26,10 +28,19 @@ execution:
     tool: http_client
     params:
       method: PUT
-      url: "https://{{ get 'settings.domain' }}.atlassian.net/rest/api/3/issue/{{ get 'inputs.issueIdOrKey' }}"
+      url: "{{ platform.base_url }}/issue/{{ get 'inputs.issue_id' }}"
       headers: "{{ platform.headers }}"
       body:
-        fields: "{{ get 'inputs.fields' }}"
+        fields:
+          summary: "{{ get 'inputs.summary' }}"
+          description:
+            type: "doc"
+            version: 1
+            content:
+              - type: "paragraph"
+                content:
+                  - type: "text"
+                    text: "{{ get 'inputs.description' }}"
     returns:
       status: status_code
       body: response_body

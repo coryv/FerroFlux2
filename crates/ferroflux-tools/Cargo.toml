@@ -28,6 +28,26 @@ lettre = { version = "0.11.19", features = ["builder"] }
 base64 = "0.22"
 ipnet = "2.9"
 url = "2.5"
+quick-xml = { version = "0.36", features = ["serialize"] }
+uuid = { version = "1.7", features = ["v4", "serde"] }
+
+
+aws-sigv4 = { version = "1.0", features = ["http0-compat", "sign-http"] }
+
+
+aws-credential-types = "1.0"
+aws-smithy-runtime-api = { version = "1.0", features = ["http-02x"] }
+aws-smithy-types = "1.0"
+http02 = { package = "http", version = "0.2" }
+sqlx = { version = "0.8.6", features = ["postgres", "mysql", "runtime-tokio-rustls", "chrono", "uuid", "json"] }
+mongodb = "3.5.2"
+once_cell = "1.21.4"
+tokio = { version = "1.36.0", features = ["rt", "rt-multi-thread"] }
+futures = "0.3.32"
+redis_actual = { version = "1.1.0", package = "redis", features = ["tokio-comp", "tokio-rustls-comp"] }
+redis = { version = "0.27", features = ["tokio-comp", "tokio-rustls-comp"] }
+
+
 
 [dev-dependencies]
 tokio = { version = "1.36.0", features = ["full"] }

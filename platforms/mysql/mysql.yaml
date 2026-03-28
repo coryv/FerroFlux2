@@ -1,0 +1,21 @@
+meta:
+  id: mysql
+  name: MySQL
+  category: Database
+  type: Platform
+  description: "Direct connection to MySQL databases."
+  version: "1.0.0"
+
+config: {}
+
+settings:
+
+  - name: connection_string
+    label: "Connection String (e.g. mysql://user:pass@host:3306/db)"
+    type: string
+    required: true
+    secret: true
+
+interface:
+  inputs: []
+  outputs: []

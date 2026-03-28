@@ -244,6 +244,7 @@ pub fn validate_node(def: &NodeDefinition) -> ValidationResult {
         "log", "sleep", "set_var", "get_var", "math", "rhai",
         "trace", "stats", "verify_signature", "transform",
         "switch", "agent", "aggregate", "split", "ferroflux:stats",
+        "sql_query", "mongo_query", "redis_query",
     ];
     for step in &def.execution {
         if !KNOWN_TOOLS.contains(&step.tool.as_str()) {

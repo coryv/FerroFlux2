@@ -1,0 +1,65 @@
+meta:
+  id: confluence.trigger.pages.new
+  name: New Page
+  category: Pages
+  type: Trigger
+  platform: confluence
+  description: "Polls Confluence for newly created pages."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: page
+      type: object
+  settings:
+    - name: space_id
+      label: "Space ID (Optional)"
+      type: string
+    - name: limit
+      label: "Batch Limit"
+      type: number
+      default: 20
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/pages"
+      headers: "{{ platform.headers }}"
+      query:
+        spaceId: "{{ get 'settings.space_id' }}"
+        sort: "-created-date"
+        limit: "{{ get 'settings.limit' '20' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: extract_pages
+    tool: json_query
+    params:
+      json: "{{ steps.request.response_body }}"
+      path: "/results"
+    returns:
+      pages: pages_array
+
+routing:
+  match: "{{ steps.request.status_code }}"
+  cases:
+    "200":
+      - tool: iterate
+        params:
+          items: "{{ steps.extract_pages.pages_array }}"
+          cursor_key: "id"
+          port: page
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

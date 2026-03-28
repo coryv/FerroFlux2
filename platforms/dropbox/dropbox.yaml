@@ -1,0 +1,19 @@
+meta:
+  id: dropbox
+  name: Dropbox
+  type: Platform
+  category: Storage
+  description: "Connects to the Dropbox API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://api.dropboxapi.com/2"
+  headers:
+    Content-Type: "application/json"
+    # No Authorization header — injected automatically from the stored connection
+
+settings:
+  - name: connection
+    label: "Dropbox Account"
+    type: connection_select
+    required: true

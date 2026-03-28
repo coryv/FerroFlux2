@@ -31,4 +31,8 @@ pub fn register_core_tools(registry: &mut ToolRegistry) {
     registry.register(TraceTool);
     registry.register(StatsTool);
     registry.register(VerifySignatureTool);
+    registry.register(SqlTool);
+    registry.register(MongoTool);
+    registry.register(RedisTool);
 }
+

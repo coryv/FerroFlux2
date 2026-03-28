@@ -1,0 +1,19 @@
+meta:
+  id: onedrive
+  name: Microsoft OneDrive
+  type: Platform
+  category: Storage
+  description: "Connects to the Microsoft OneDrive API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://graph.microsoft.com/v1.0"
+  headers:
+    Content-Type: "application/json"
+    # No Authorization header — injected automatically from the stored connection
+
+settings:
+  - name: connection
+    label: "Microsoft OneDrive Account"
+    type: connection_select
+    required: true

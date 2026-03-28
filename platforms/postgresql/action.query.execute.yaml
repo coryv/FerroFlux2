@@ -1,0 +1,50 @@
+meta:
+  id: postgresql.query.execute
+  name: Execute Query
+  category: Query
+  type: Action
+  platform: postgresql
+  description: "Executes a SQL query against the database. Automatically participates in any active transaction for the current flow."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: query
+      type: string
+      description: "The SQL query to execute (e.g. SELECT * FROM users WHERE id = $1)."
+    - name: bind
+      type: array
+      description: "Optional. Array of values to bind to parameters in the query."
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: rows
+      type: array
+      description: "The result sets returned by the query."
+
+execution:
+  - id: execute
+    tool: sql_query
+    params:
+      operation: execute
+      connection_string: "{{ get 'settings.connection_string' }}"
+      query: "{{ get 'inputs.query' }}"
+      bind: "{{ get 'inputs.bind' }}"
+    returns:
+      rows: rows
+
+routing:
+  match: success
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: rows
+          value: "{{ steps.execute.rows }}"

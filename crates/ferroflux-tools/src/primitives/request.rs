@@ -9,13 +9,17 @@ use ferroflux_types::tool::ToolContext;
 use anyhow::{anyhow, Context, Result};
 use base64::{engine::general_purpose, Engine as _};
 use ferroflux_iam::TenantId;
-use ipnet::IpNet;
-use serde_json::Value;
 use std::collections::HashMap;
-use std::env;
-use std::io::{BufRead, BufReader};
-use std::net::ToSocketAddrs;
+pub use super::aws_sigv4::{self, AwsSigV4Config};
 use url::Url;
+use std::io::{BufRead, BufReader};
+
+use ipnet::IpNet;
+use reqwest::Method;
+use serde_json::Value;
+use std::env;
+use std::net::ToSocketAddrs;
+
 
 /// Resolves an optional connection slug to auth headers and a fully-qualified URL.
 ///
@@ -168,8 +172,20 @@ pub fn execute_request(
     static_headers: Option<&Value>,
     dynamic_headers: &[(String, String)],
     body: Option<&Value>,
+    aws_config: Option<&AwsSigV4Config>,
 ) -> Result<(u16, HashMap<String, String>, Value)> {
+
+    let mut final_dynamic_headers = dynamic_headers.to_vec();
+
+    if let Some(config) = aws_config {
+        let body_bytes = body.map(serde_json::to_vec).transpose()?.unwrap_or_default();
+
+        let sig_headers = aws_sigv4::generate_sigv4_headers(config, method, url, dynamic_headers, &body_bytes)?;
+        final_dynamic_headers.extend(sig_headers);
+    }
+
     let mut req = match method {
+
         "POST" => client.post(url),
         "PUT" => client.put(url),
         "DELETE" => client.delete(url),
@@ -186,16 +202,20 @@ pub fn execute_request(
         }
     }
 
-    // Dynamic auth headers from connection
-    for (k, v) in dynamic_headers {
+    // Dynamic auth headers from connection and AWS SigV4
+    for (k, v) in &final_dynamic_headers {
         req = req.header(k, v);
     }
+
 
     if let Some(b) = body {
         req = req.json(b);
     }
 
     let resp = req.send().context("HTTP request failed")?;
+
+
+
     let status = resp.status().as_u16();
     let resp_headers: HashMap<String, String> = resp
         .headers()
@@ -203,12 +223,143 @@ pub fn execute_request(
         .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("").to_string()))
         .collect();
 
-    // Parse JSON body; fall back to raw text as a JSON string
-    let text = resp.text().unwrap_or_default();
-    let body_val: Value = serde_json::from_str(&text).unwrap_or(Value::String(text));
+    // Parse body: detect XML or JSON
+    let (body_val, _raw_bytes) = parse_response_body(resp, &resp_headers)?;
 
     Ok((status, resp_headers, body_val))
 }
+
+pub fn execute_raw_request(
+    client: &reqwest::blocking::Client,
+    url: &str,
+    method: &str,
+    static_headers: Option<&Value>,
+    dynamic_headers: &[(String, String)],
+    body: Option<&Value>,
+    aws_config: Option<&AwsSigV4Config>,
+) -> Result<(u16, HashMap<String, String>, Vec<u8>)> {
+    let mut final_dynamic_headers = dynamic_headers.to_vec();
+
+    if let Some(config) = aws_config {
+        let body_bytes = body.map(serde_json::to_vec).transpose()?.unwrap_or_default();
+        let sig_headers = aws_sigv4::generate_sigv4_headers(config, method, url, dynamic_headers, &body_bytes)?;
+        final_dynamic_headers.extend(sig_headers);
+    }
+
+    let mut req = match method {
+        "POST" => client.post(url),
+        "PUT" => client.put(url),
+        "DELETE" => client.delete(url),
+        "PATCH" => client.patch(url),
+        _ => client.get(url),
+    };
+
+    if let Some(h) = static_headers.and_then(|v| v.as_object()) {
+        for (k, v) in h {
+            if let Some(s) = v.as_str() {
+                req = req.header(k, s);
+            }
+        }
+    }
+
+    for (k, v) in &final_dynamic_headers {
+        req = req.header(k, v);
+    }
+
+    if let Some(b) = body {
+        req = req.json(b);
+    }
+
+    let mut resp = req.send().context("Raw HTTP request failed")?;
+
+    let status = resp.status().as_u16();
+    let resp_headers: HashMap<String, String> = resp
+        .headers()
+        .iter()
+        .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("").to_string()))
+        .collect();
+
+    let mut bytes = Vec::new();
+    resp.copy_to(&mut bytes).context("Failed to read response bytes")?;
+
+    Ok((status, resp_headers, bytes))
+}
+
+fn parse_response_body(mut resp: reqwest::blocking::Response, headers: &HashMap<String, String>) -> Result<(Value, Vec<u8>)> {
+    let mut bytes = Vec::new();
+    resp.copy_to(&mut bytes).context("Failed to read response body")?;
+    
+    let text = String::from_utf8_lossy(&bytes);
+    let body_val: Value = if headers
+        .get("content-type")
+        .map(|s| s.to_lowercase().contains("xml"))
+        .unwrap_or(false)
+    {
+        parse_xml_to_json(&text).unwrap_or_else(|_| Value::String(text.to_string()))
+    } else {
+        serde_json::from_str(&text).unwrap_or_else(|_| Value::String(text.to_string()))
+    };
+
+    Ok((body_val, bytes))
+}
+
+
+fn parse_xml_to_json(xml: &str) -> Result<Value> {
+    use quick_xml::events::Event;
+    use quick_xml::reader::Reader;
+
+    let mut reader = Reader::from_str(xml);
+    reader.config_mut().trim_text(true);
+    let mut buf = Vec::new();
+    let mut stack: Vec<Value> = vec![serde_json::json!({})];
+
+    loop {
+        match reader.read_event_into(&mut buf) {
+            Ok(Event::Start(ref e)) => {
+                let name = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                stack.push(serde_json::json!({ "tag": name, "content": {} }));
+            }
+            Ok(Event::Text(ref e)) => {
+                let text = e.unescape()?.to_string();
+                if let Some(parent) = stack.last_mut() {
+                    if let Some(obj) = parent.as_object_mut() {
+                        obj.insert("text".to_string(), Value::String(text));
+                    }
+                }
+            }
+            Ok(Event::End(ref e)) => {
+                let name = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                let child = stack.pop().unwrap_or(Value::Null);
+                if let Some(parent) = stack.last_mut() {
+                    if let Some(obj) = parent.as_object_mut() {
+                        let content = obj.get_mut("content").and_then(|v| v.as_object_mut()).unwrap();
+                        let current = content.get(&name);
+                        match current {
+                            Some(Value::Array(arr)) => {
+                                let mut new_arr = arr.clone();
+                                new_arr.push(child);
+                                content.insert(name, Value::Array(new_arr));
+                            }
+                            Some(val) => {
+                                content.insert(name, Value::Array(vec![val.clone(), child]));
+                            }
+                            None => {
+                                content.insert(name, child);
+                            }
+                        }
+                    }
+                }
+            }
+            Ok(Event::Eof) => break,
+            Err(_) => break,
+            _ => (),
+        }
+        buf.clear();
+    }
+
+    Ok(stack.pop().unwrap_or(Value::Null))
+}
+
 
 /// Extracts a value from a JSON document using a flexible path syntax.
 ///
@@ -392,8 +543,19 @@ pub fn execute_multipart_request(
     static_headers: Option<&Value>,
     dynamic_headers: &[(String, String)],
     form: reqwest::blocking::multipart::Form,
+    aws_config: Option<&AwsSigV4Config>,
 ) -> Result<(u16, HashMap<String, String>, Value)> {
+    // SigV4 for multipart is tricky because the body is complex.
+    // However, S3 often uses raw binary PUT for uploads, which uses execute_binary_request.
+    // For now, we'll implement it for binary and simple requests first.
+    let final_dynamic_headers = dynamic_headers.to_vec();
+    if let Some(_config) = aws_config {
+        // Multipart signing is technically complex and requires different headers.
+        // We will skip for now or implement as needed.
+    }
+
     let mut req = match method {
+
         "POST" => client.post(url),
         "PUT" => client.put(url),
         "PATCH" => client.patch(url),
@@ -409,10 +571,11 @@ pub fn execute_multipart_request(
         }
     }
 
-    // Dynamic auth headers from connection
-    for (k, v) in dynamic_headers {
+    // Dynamic auth headers from connection and AWS SigV4
+    for (k, v) in &final_dynamic_headers {
         req = req.header(k, v);
     }
+
 
     let resp = req.multipart(form).send().context("Multipart HTTP request failed")?;
     let status = resp.status().as_u16();
@@ -441,7 +604,18 @@ pub fn execute_binary_request(
     dynamic_headers: &[(String, String)],
     bytes: Vec<u8>,
     content_type: &str,
+    aws_config: Option<&AwsSigV4Config>,
 ) -> Result<(u16, HashMap<String, String>, Value)> {
+    let mut final_dynamic_headers = dynamic_headers.to_vec();
+
+    if let Some(config) = aws_config {
+        // MUST include content-type in signing if we're adding it manually
+        let mut combined_headers = dynamic_headers.to_vec();
+        combined_headers.push(("Content-Type".to_string(), content_type.to_string()));
+        let sig_headers = aws_sigv4::generate_sigv4_headers(config, method, url, &combined_headers, &bytes)?;
+        final_dynamic_headers.extend(sig_headers);
+    }
+
     let mut req = match method {
         "POST" => client.post(url),
         "PUT" => client.put(url),
@@ -458,12 +632,13 @@ pub fn execute_binary_request(
         }
     }
 
-    // Dynamic auth headers from connection
-    for (k, v) in dynamic_headers {
+    // Dynamic auth headers from connection and AWS SigV4
+    for (k, v) in &final_dynamic_headers {
         req = req.header(k, v);
     }
 
     req = req.header("Content-Type", content_type).body(bytes);
+
 
     let resp = req.send().context("Binary HTTP request failed")?;
     let status = resp.status().as_u16();
@@ -500,8 +675,19 @@ pub fn execute_streaming_request(
     event_bus: Option<&SystemEventBus>,
     trace_id: &str,
     step_id: &str,
+    aws_config: Option<&AwsSigV4Config>,
 ) -> Result<(u16, HashMap<String, String>, Value)> {
+    let mut final_dynamic_headers = dynamic_headers.to_vec();
+
+    if let Some(config) = aws_config {
+        let body_bytes = body.map(serde_json::to_vec).transpose()?.unwrap_or_default();
+
+        let sig_headers = aws_sigv4::generate_sigv4_headers(config, method, url, dynamic_headers, &body_bytes)?;
+        final_dynamic_headers.extend(sig_headers);
+    }
+
     let mut req = match method {
+
         "POST" => client.post(url),
         "PUT" => client.put(url),
         "PATCH" => client.patch(url),
@@ -516,9 +702,10 @@ pub fn execute_streaming_request(
         }
     }
 
-    for (k, v) in dynamic_headers {
+    for (k, v) in &final_dynamic_headers {
         req = req.header(k, v);
     }
+
 
     if let Some(b) = body {
         req = req.json(b);
