@@ -13,6 +13,11 @@ Each entry lists:
 
 ---
 
+
+## Status Key
+- ✅ **Completed:** Fully built and validated (actions/triggers defined in YAML).
+- 🚧 **Documented Gaps:** API requires structural capabilities (SigV4, binary TCP, or mandatory inbound webhooks) not currently supported; documented fully in the platform's `GAPS.md`.
+
 ## Already Built
 - `core` — workflow primitives
 - `github` — repos, issues
@@ -24,15 +29,15 @@ Each entry lists:
 
 ## Communication & Messaging
 
-### Slack *(Tier 1)*
+### ✅ Slack *(Tier 1)*
 **Triggers:** New Message in Channel, New Direct Message, New Reaction Added, New Channel Created, App Mention, New File Shared
 **Actions:** Send Message, Send Direct Message, Update Message, Delete Message, Add Reaction, Remove Reaction, Create Channel, Archive Channel, Invite User to Channel, Set Channel Topic, Upload File, Get User by ID, Get User by Email, List Channels, List Users, Create Reminder, Post to Incoming Webhook
 
-### Discord *(Tier 1)*
+### ✅ Discord *(Tier 1)*
 **Triggers:** New Message in Channel, New Guild Member, New Reaction, Message Deleted
 **Actions:** Send Message, Send Direct Message, Edit Message, Delete Message, Add Role to User, Remove Role from User, Create Channel, Delete Channel, Ban User, Kick User, Send Webhook Message, Pin Message
 
-### Microsoft Teams *(Tier 1)*
+### ✅ Microsoft Teams *(Tier 1)*
 **Triggers:** New Message in Channel, New Chat Message, New Meeting Created
 **Actions:** Send Channel Message, Send Chat Message, Create Team, Create Channel, List Teams, List Channels, List Members, Upload File
 
@@ -40,7 +45,7 @@ Each entry lists:
 **Triggers:** New Message, New Command, New Callback Query, New Inline Query
 **Actions:** Send Message, Send Photo, Send Document, Send Audio, Send Video, Edit Message, Delete Message, Pin Message, Ban User, Get Chat Info, Answer Callback Query, Send Poll
 
-### Gmail *(Tier 1)*
+### ✅ Gmail *(Tier 1)*
 **Triggers:** New Email, New Email Matching Search, New Label Added, New Attachment
 **Actions:** Send Email, Reply to Email, Forward Email, Create Draft, Get Email, List Emails, Move to Label, Delete Email, Mark as Read, Mark as Unread, Add Label, Remove Label, Create Label, Get Attachment, Search Emails
 
@@ -51,7 +56,7 @@ Each entry lists:
 ### SMTP *(Tier 1)*
 **Actions:** Send Email (plain text), Send Email (HTML), Send Email with Attachment
 
-### Twilio *(Tier 1)*
+### ✅ Twilio *(Tier 1)*
 **Triggers:** New SMS Received, New Call Received, New WhatsApp Message
 **Actions:** Send SMS, Send MMS, Make Call, Send WhatsApp Message, Look Up Phone Number, Create Verification, Check Verification Code
 
@@ -66,27 +71,27 @@ Each entry lists:
 
 ## Productivity & Project Management
 
-### Notion *(Tier 1)*
+### ✅ Notion *(Tier 1)*
 **Triggers:** New Database Item, Updated Database Item, New Page in Database
 **Actions:** Create Database Item, Update Database Item, Get Database Item, Delete Database Item, Query Database, Create Page, Get Page, Update Page, Archive Page, Create Block, Append Block Children, Get Block Children, Search, List Users, List Databases
 
-### Airtable *(Tier 1)*
+### ✅ Airtable *(Tier 1)*
 **Triggers:** New Record, Updated Record, New/Updated Record
 **Actions:** Create Record, Update Record, Get Record, Delete Record, List Records, Search Records, Create Table, List Tables, Get Table Schema, Upload Attachment
 
-### Trello *(Tier 1)*
+### ✅ Trello *(Tier 1)*
 **Triggers:** New Card, Card Moved, Card Updated, New Comment, New Checklist Item Completed
 **Actions:** Create Card, Update Card, Delete Card, Move Card, Add Comment, Get Card, List Cards, Create Board, Create List, Archive Card, Add Label, Add Attachment, Add Checklist, Add Checklist Item, Mark Checklist Item Complete
 
-### Asana *(Tier 1)*
+### ✅ Asana *(Tier 1)*
 **Triggers:** New Task, Updated Task, New Project, Task Completed
 **Actions:** Create Task, Update Task, Delete Task, Get Task, List Tasks, Complete Task, Add Subtask, Add Comment, Add Follower, Create Project, Get Project, List Projects, Create Section, Move Task to Section
 
-### Jira *(Tier 1)*
+### ✅ Jira *(Tier 1)*
 **Triggers:** New Issue, Updated Issue, Issue Status Changed, New Comment, New Sprint Started
 **Actions:** Create Issue, Update Issue, Delete Issue, Get Issue, Transition Issue, Add Comment, Get Comments, Assign Issue, Search Issues (JQL), Create Sprint, Start Sprint, Get Sprint, List Projects, Create Project, Get User, Attach File
 
-### Linear *(Tier 1)*
+### ✅ Linear *(Tier 1)*
 **Triggers:** New Issue, Updated Issue, Issue State Changed, New Comment
 **Actions:** Create Issue, Update Issue, Archive Issue, Get Issue, Search Issues, Create Comment, Update Issue Status, Assign Issue, Create Label, List Teams, List Projects, Create Project
 
@@ -110,7 +115,7 @@ Each entry lists:
 
 ## Calendar & Scheduling
 
-### Google Calendar *(Tier 1)*
+### ✅ Google Calendar *(Tier 1)*
 **Triggers:** New Event, Event Starting, Event Updated, Event Deleted
 **Actions:** Create Event, Update Event, Delete Event, Get Event, List Events, Search Events, Create Calendar, List Calendars, Add Attendee, Get Free/Busy Info
 
@@ -130,11 +135,11 @@ Each entry lists:
 
 ## CRM & Sales
 
-### HubSpot *(Tier 1)*
+### ✅ HubSpot *(Tier 1)*
 **Triggers:** New Contact, Updated Contact, New Deal, Deal Stage Changed, New Company, Form Submitted, New Ticket
 **Actions:** Create Contact, Update Contact, Delete Contact, Get Contact, Search Contacts, Create Deal, Update Deal, Get Deal, List Deals, Create Company, Get Company, Create Ticket, Update Ticket, Add Note, Create Engagement, Associate Objects, List Properties, Create Property
 
-### Salesforce *(Tier 1)*
+### Salesforce *(Tier 1)* ✅
 **Triggers:** New Record, Updated Record (any object), New Lead, New Opportunity, Opportunity Stage Changed
 **Actions:** Create Record, Update Record, Delete Record, Get Record, Query Records (SOQL), Search Records, Create Lead, Convert Lead, Create Opportunity, Create Case, Add Note, Upload File, Get Fields
 
@@ -154,11 +159,11 @@ Each entry lists:
 
 ## Developer Tools & DevOps
 
-### GitLab *(Tier 1)*
+### ✅ GitLab *(Tier 1)*
 **Triggers:** New Push, New Merge Request, New Issue, Pipeline Status Changed, New Comment
 **Actions:** Create Issue, Update Issue, Get Issue, List Issues, Create Merge Request, Merge a MR, Create Note, List Pipelines, Trigger Pipeline, Get Pipeline, Create Repository File, Get Repository File, List Branches, Create Tag, Get Project
 
-### Bitbucket *(Tier 1)*
+### ✅ Bitbucket *(Tier 1)*
 **Triggers:** New Push, New Pull Request, Pull Request Merged, New Issue
 **Actions:** Create Issue, Get Issue, List Issues, Create Pull Request, Merge Pull Request, List Repos, Get Repository, List Branches, Create Branch, Get File Contents
 
@@ -190,19 +195,19 @@ Each entry lists:
 
 ## Databases
 
-### PostgreSQL *(Tier 1)*
+### 🚧 PostgreSQL *(Tier 1)*
 **Actions:** Execute Query, Insert Row, Update Row, Delete Row, Select Rows, Execute Stored Procedure, Begin Transaction, Commit Transaction, Rollback Transaction
 
-### MySQL *(Tier 1)*
+### 🚧 MySQL *(Tier 1)*
 **Actions:** Execute Query, Insert Row, Update Row, Delete Row, Select Rows, Execute Stored Procedure
 
-### MongoDB *(Tier 1)*
+### 🚧 MongoDB *(Tier 1)*
 **Actions:** Insert Document, Update Document, Delete Document, Find Documents, Find One, Aggregate, Count Documents, Create Index, Drop Collection
 
 ### Redis *(Tier 2)*
 **Actions:** Get, Set, Delete, Expire, List Push, List Pop, List Range, Hash Get, Hash Set, Publish, Increment, Decrement
 
-### Supabase *(Tier 1)*
+### ✅ Supabase *(Tier 1)*
 **Triggers:** Database Row Inserted, Row Updated, Row Deleted (via Realtime)
 **Actions:** Insert Row, Update Row, Delete Row, Select Rows, Execute RPC, Upload File (Storage), Download File, Delete File, List Files, Sign In User, Create User, Delete User
 
@@ -213,7 +218,7 @@ Each entry lists:
 
 ## Cloud Storage & Files
 
-### Google Drive *(Tier 1)*
+### ✅ Google Drive *(Tier 1)*
 **Triggers:** New File, New File in Folder, File Updated, File Deleted
 **Actions:** Upload File, Download File, Create Folder, Move File, Copy File, Delete File, Get File Metadata, List Files, Search Files, Share File, Get File Permission, Create Google Doc, Create Google Sheet
 
@@ -234,7 +239,7 @@ Each entry lists:
 
 ## Spreadsheets
 
-### Google Sheets *(Tier 1)*
+### ✅ Google Sheets *(Tier 1)*
 **Triggers:** New Row, Updated Row, New Spreadsheet
 **Actions:** Append Row, Get Row, Update Row, Delete Row, Clear Row, Get Spreadsheet, Create Spreadsheet, Add Sheet, Get Sheet Values, Update Sheet Values, Clear Sheet, Format Cells, Lookup Row
 
@@ -246,7 +251,7 @@ Each entry lists:
 
 ## E-Commerce & Payments
 
-### Stripe *(Tier 1)*
+### ✅ Stripe *(Tier 1)*
 **Triggers:** Payment Succeeded, Payment Failed, Subscription Created, Subscription Updated, Subscription Cancelled, Customer Created, Invoice Created, Invoice Paid, Checkout Session Completed, Refund Created
 **Actions:** Create Customer, Update Customer, Get Customer, Delete Customer, Create Charge, Capture Charge, Refund Charge, Create Payment Intent, Confirm Payment Intent, Create Subscription, Update Subscription, Cancel Subscription, Create Invoice, Finalize Invoice, Pay Invoice, Create Price, Create Product, List Customers, List Charges, List Subscriptions, Create Checkout Session, Retrieve Balance
 
@@ -254,7 +259,7 @@ Each entry lists:
 **Triggers:** Payment Completed, Subscription Activated, Subscription Cancelled
 **Actions:** Create Order, Capture Order, Get Order, Create Subscription, Suspend Subscription, Cancel Subscription, List Subscriptions, Get Subscription, Create Invoice, Send Invoice, List Payments
 
-### Shopify *(Tier 1)*
+### Shopify *(Tier 1)* ✅
 **Triggers:** New Order, Order Updated, Order Paid, Order Fulfilled, Order Cancelled, New Customer, Customer Updated, New Product, Product Updated, New Refund, Abandoned Checkout, New Draft Order
 **Actions:** Create Order, Update Order, Cancel Order, Fulfill Order, Create Product, Update Product, Delete Product, Get Product, List Products, Create Customer, Update Customer, Get Customer, List Customers, Create Discount, Apply Discount, Get Inventory Level, Adjust Inventory, Create Metafield
 
@@ -270,7 +275,7 @@ Each entry lists:
 
 ## Marketing
 
-### Mailchimp *(Tier 1)*
+### Mailchimp *(Tier 1)* ✅
 **Triggers:** New Subscriber, Unsubscribe, Profile Updated, Campaign Sent
 **Actions:** Add/Update Subscriber, Remove Subscriber, Get Subscriber, List Subscribers, Create Campaign, Send Campaign, Schedule Campaign, Add Tag, Remove Tag, Create List, List Audiences, Add Note, Get Campaign Report
 
@@ -294,7 +299,7 @@ Each entry lists:
 
 ## Customer Support
 
-### Zendesk *(Tier 1)*
+### Zendesk *(Tier 1)* ✅
 **Triggers:** New Ticket, Ticket Updated, Ticket Status Changed, New Comment
 **Actions:** Create Ticket, Update Ticket, Delete Ticket, Get Ticket, List Tickets, Add Comment, Get Comments, Assign Ticket, Set Ticket Status, Create User, Get User, List Organizations
 
@@ -324,14 +329,14 @@ Each entry lists:
 
 ## AI & Machine Learning
 
-### Anthropic Claude *(Tier 1)*
+### ✅ Anthropic Claude *(Tier 1)*
 **Actions:** Messages (single-turn), Messages with Tools, Messages with Vision, Multi-turn Conversation, Count Tokens, Streaming Messages
 
-### Azure OpenAI *(Tier 1 — Enterprise)*
+### ✅ Azure OpenAI *(Tier 1 — Enterprise)*
 **Note:** Uses per-customer resource URLs (`https://<resource>.openai.azure.com/openai/deployments/<deployment>`) and `api-key` header auth. Deployment name is a node-level setting.
 **Actions:** Chat Completion, Chat Completion with Tools (function calling), Chat Completion with Vision, Create Embeddings, List Deployments
 
-### Google Gemini *(Tier 1)*
+### ✅ Google Gemini *(Tier 1)*
 **Actions:** Generate Content, Generate Content with Tools (function calling), Chat, Generate with Vision, Embed Text, Count Tokens, List Models
 
 ### Mistral *(Tier 2)*
@@ -414,7 +419,7 @@ Each entry lists:
 
 ## Documents & Signatures
 
-### Google Docs *(Tier 1)*
+### ✅ Google Docs *(Tier 1)*
 **Actions:** Create Document, Get Document, Update Document (insert/replace text), Delete Document, Export Document (PDF/DOCX)
 
 ### Docusign *(Tier 2)*
@@ -448,7 +453,7 @@ Each entry lists:
 
 ## Cloud Provider Services
 
-### AWS *(Tier 1)*
+### 🚧 AWS *(Tier 1)*
 **Services & Actions:**
 - **S3**: Upload Object, Download Object, Delete Object, List Objects, Create Presigned URL, Create Bucket
 - **Lambda**: Invoke Function, List Functions, Get Function
@@ -563,31 +568,31 @@ Each entry lists:
 
 ## Recommended Build Order (Phase 1 MVP)
 
-1. Slack
-2. Gmail
-3. Google Sheets
-4. Notion
-5. Airtable
-6. Stripe
-7. HubSpot
-8. PostgreSQL
-9. MySQL
-10. MongoDB
-11. Supabase
-12. Google Drive
-13. Anthropic Claude
-14. Jira
-15. Trello
-16. Asana
-17. Linear
-18. Google Calendar
-19. Twilio
-20. Discord
-21. Microsoft Teams
-22. Google Docs
-23. AWS (S3 + Lambda + SES + SQS + SNS + DynamoDB)
-24. GitLab
-25. Bitbucket
+1. ~~Slack~~
+2. ~~Gmail~~
+3. ~~Google Sheets~~
+4. ~~Notion~~
+5. ~~Airtable~~
+6. ~~Stripe~~
+7. ~~HubSpot~~
+8. ~~PostgreSQL~~ (Documented Gaps)
+9. ~~MySQL~~ (Documented Gaps)
+10. ~~MongoDB~~ (Documented Gaps)
+11. ~~Supabase~~
+12. ~~Google Drive~~
+13. ~~Anthropic Claude~~
+14. ~~Jira~~
+15. ~~Trello~~
+16. ~~Asana~~
+17. ~~Linear~~
+18. ~~Google Calendar~~
+19. ~~Twilio~~
+20. ~~Discord~~
+21. ~~Microsoft Teams~~
+22. ~~Google Docs~~
+23. ~~AWS (S3 + Lambda + SES + SQS + SNS + DynamoDB)~~ (Documented Gaps)
+24. ~~GitLab~~
+25. ~~Bitbucket~~
 26. XML Parser
 27. JSON Utilities
 28. Date/Time

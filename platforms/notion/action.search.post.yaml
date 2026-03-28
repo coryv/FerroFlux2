@@ -1,0 +1,65 @@
+meta:
+  id: notion.search.post
+  name: Search
+  category: Search
+  type: Action
+  platform: notion
+  description: "Searches all pages and child pages that are shared with the integration."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: query
+      type: string
+    - name: filter
+      type: object
+    - name: sort
+      type: object
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: results
+      type: array
+  settings: []
+
+execution:
+  - id: request
+    tool: paginate
+    params:
+      method: POST
+      url: "{{ platform.base_url }}/search"
+      headers: "{{ platform.headers }}"
+      strategy: cursor
+      cursor_param: "start_cursor"
+      body:
+        query: "{{ get 'inputs.query' }}"
+        filter: "{{ get 'inputs.filter' }}"
+        sort: "{{ get 'inputs.sort' }}"
+    returns:
+      items: pages
+      total_pages: page_count
+      total_items: item_count
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "200"
+      cases:
+        - condition: "200"
+          output: success
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: results
+          value: "{{ steps.request.pages }}"

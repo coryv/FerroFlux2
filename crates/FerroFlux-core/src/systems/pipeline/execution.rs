@@ -45,18 +45,7 @@ pub fn execute_pipeline_node(
         DataRef::Inline(serde_json::to_value(&node.config)?),
     );
 
-    // Inject Platform Config
-    if let Some(platform_id) = &def.meta.platform {
-        if let Some(platform) = definitions.platforms.get(platform_id) {
-            ctx_map.insert(
-                "platform".to_string(),
-                DataRef::Inline(serde_json::to_value(&platform.config)?),
-            );
-        } else {
-            // Warn? Or Fail? For now, just log and continue (might use default)
-            eprintln!("WARN: Platform definition not found: {}", platform_id);
-        }
-    }
+
 
     // --- NEW: SETUP HANDLEBARS WITH LAZY HELPER ---
     let mut handlebars = Handlebars::new();
@@ -153,6 +142,21 @@ pub fn execute_pipeline_node(
             },
         ),
     );
+
+    // Inject and Pre-render Platform Config
+    if let Some(platform_id) = &def.meta.platform {
+        if let Some(platform) = definitions.platforms.get(platform_id) {
+            let platform_val = serde_json::to_value(&platform.config).unwrap_or(serde_json::json!({}));
+            let rendered_platform = resolve_recursive(&platform_val, &ctx_map, &handlebars, store).unwrap_or(platform_val);
+            ctx_map.insert(
+                "platform".to_string(),
+                DataRef::Inline(rendered_platform),
+            );
+        } else {
+            // Warn? Or Fail? For now, just log and continue (might use default)
+            eprintln!("WARN: Platform definition not found: {}", platform_id);
+        }
+    }
 
     // Also support the explicit `context` variables from definition
     if let Some(ctx_defs) = &def.context {

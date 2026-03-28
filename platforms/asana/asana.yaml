@@ -1,0 +1,19 @@
+meta:
+  id: asana
+  name: Asana
+  type: Platform
+  category: Productivity
+  description: "Connects to the Asana API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://app.asana.com/api/1.0"
+  headers:
+    Content-Type: "application/json"
+    Authorization: "Bearer {{ get 'settings.api_key' }}"
+
+settings:
+  - name: api_key
+    label: "Personal Access Token"
+    type: string
+    required: true

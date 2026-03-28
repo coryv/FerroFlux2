@@ -1,0 +1,46 @@
+meta:
+  id: zendesk.tickets.list
+  name: List Tickets
+  category: Tickets
+  type: Action
+  platform: zendesk
+  description: "Lists all tickets."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: tickets
+      type: array
+
+execution:
+  - id: request
+    tool: paginate
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/tickets.json"
+      headers: "{{ platform.headers }}"
+      strategy: cursor
+      cursor_path: "/meta/after_cursor"
+      cursor_param: "page[after]"
+      items_path: "/tickets"
+    returns:
+      items: all_items
+
+routing:
+  match: "success"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: tickets
+          value: "{{ steps.request.all_items }}"

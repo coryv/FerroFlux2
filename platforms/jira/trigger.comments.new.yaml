@@ -1,0 +1,50 @@
+meta:
+  id: jira.comments.new
+  name: New Comment
+  category: Comments
+  type: Trigger
+  platform: jira
+  description: "TODO: Describe when this trigger fires."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: result
+      type: object
+  settings:
+    - name: poll_interval
+      label: "Poll Interval (minutes)"
+      type: number
+      required: false
+      default: 1
+      min: 1
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/TODO"
+      headers: "{{ platform.headers }}"
+      query:
+        since: "{{ get 'event.cursor' }}"   # Stateful cursor for incremental polling
+        limit: 100
+        # TODO: add any filter/scope query params (channel_id, resource_id, etc.)
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: "{{ steps.request.status_code }}"
+  cases:
+    "200":
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: result
+          value: "{{ steps.request.response_body }}"

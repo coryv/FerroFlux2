@@ -1,0 +1,23 @@
+meta:
+  id: salesforce
+  name: Salesforce
+  type: Platform
+  category: CRM
+  description: "Connects to the Salesforce REST API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://{{ get 'settings.domain' }}.my.salesforce.com/services/data/v60.0"
+  headers:
+    Content-Type: "application/json"
+    Accept: "application/json"
+
+settings:
+  - name: domain
+    label: "My Domain (e.g. company-name)"
+    type: string
+    required: true
+  - name: connection
+    label: "Salesforce Account"
+    type: connection_select
+    required: true

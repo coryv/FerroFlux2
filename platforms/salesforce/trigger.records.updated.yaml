@@ -1,0 +1,54 @@
+meta:
+  id: salesforce.records.updated
+  name: Updated Record
+  category: Records
+  type: Trigger
+  platform: salesforce
+  description: "Triggers when an SObject record is updated."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: record
+      type: object
+  settings:
+    - name: sObjectName
+      label: "SObject Name"
+      type: string
+      required: true
+    - name: polling_interval
+      label: "Polling Interval (minutes)"
+      type: number
+      default: 15
+
+execution:
+  - id: query
+    tool: http_client
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/query"
+      headers: "{{ platform.headers }}"
+      query:
+        q: "SELECT Id FROM {{ get 'settings.sObjectName' }} WHERE SystemModstamp > {{ get 'state.last_poll' }} ORDER BY SystemModstamp ASC"
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: "{{ steps.query.status_code }}"
+  cases:
+    "200":
+      - tool: foreach
+        params:
+          items: "{{ get 'steps.query.response_body.records' }}"
+          action:
+            - tool: emit
+              params:
+                port: Success
+            - tool: emit
+              params:
+                port: record
+                value: "{{ item }}"

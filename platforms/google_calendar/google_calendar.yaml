@@ -1,0 +1,18 @@
+meta:
+  id: google_calendar
+  name: Google Calendar
+  type: Platform
+  category: Calendar
+  description: "Connects to the Google Calendar API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://www.googleapis.com/calendar/v3/calendars"
+  headers:
+    Content-Type: "application/json"
+
+settings:
+  - name: connection
+    label: "Google Account (OAuth)"
+    type: connection_select
+    required: true

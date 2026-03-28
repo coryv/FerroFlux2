@@ -1,0 +1,52 @@
+meta:
+  id: zendesk.tickets.new
+  name: New Ticket
+  category: Tickets
+  type: Trigger
+  platform: zendesk
+  description: "Triggers when a new ticket is created."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: ticket
+      type: object
+  settings:
+    - name: polling_interval
+      label: "Polling Interval (minutes)"
+      type: number
+      default: 15
+
+execution:
+  - id: query
+    tool: http_client
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/search.json"
+      headers: "{{ platform.headers }}"
+      query:
+        query: "type:ticket created>{{ get 'state.last_poll' }}"
+        sort_by: "created_at"
+        sort_order: "asc"
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: "{{ steps.query.status_code }}"
+  cases:
+    "200":
+      - tool: foreach
+        params:
+          items: "{{ get 'steps.query.response_body.results' }}"
+          action:
+            - tool: emit
+              params:
+                port: Success
+            - tool: emit
+              params:
+                port: ticket
+                value: "{{ item }}"

@@ -1,0 +1,19 @@
+meta:
+  id: google-drive
+  name: Google Drive
+  type: Platform
+  category: Cloud Storage & Files
+  description: "Connects to the Google Drive API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://www.googleapis.com/drive/v3"
+  headers:
+    Content-Type: "application/json"
+    # No Authorization header — injected automatically from the stored connection
+
+settings:
+  - name: connection
+    label: "Google Drive Account"
+    type: connection_select
+    required: true

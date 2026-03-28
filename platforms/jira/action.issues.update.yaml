@@ -1,0 +1,48 @@
+meta:
+  id: jira.issues.update
+  name: Update Issue
+  category: Issues
+  type: Action
+  platform: jira
+  description: "Updates an issue."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: issueIdOrKey
+      type: string
+    - name: fields
+      type: object
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: PUT
+      url: "https://{{ get 'settings.domain' }}.atlassian.net/rest/api/3/issue/{{ get 'inputs.issueIdOrKey' }}"
+      headers: "{{ platform.headers }}"
+      body:
+        fields: "{{ get 'inputs.fields' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: "{{ steps.request.status_code }}"
+  cases:
+    "204":
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

@@ -1,0 +1,23 @@
+meta:
+  id: shopify
+  name: Shopify
+  type: Platform
+  category: E-Commerce
+  description: "Connects to the Shopify Admin REST API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://{{ get 'settings.store_name' }}.myshopify.com/admin/api/2024-01"
+  headers:
+    Content-Type: "application/json"
+    X-Shopify-Access-Token: "{{ get 'settings.access_token' }}"
+
+settings:
+  - name: store_name
+    label: "Store Name (e.g. my-store-name for my-store-name.myshopify.com)"
+    type: string
+    required: true
+  - name: access_token
+    label: "Admin API Access Token"
+    type: string
+    required: true

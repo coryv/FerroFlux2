@@ -1,0 +1,52 @@
+meta:
+  id: asana.tasks.list
+  name: List Tasks
+  category: Tasks
+  type: Action
+  platform: asana
+  description: "Lists tasks in a project."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: projectGid
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: tasks
+      type: array
+
+execution:
+  - id: request
+    tool: paginate
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/tasks"
+      headers: "{{ platform.headers }}"
+      query:
+        project: "{{ get 'inputs.projectGid' }}"
+        opt_fields: "name,notes,completed"
+      strategy: offset
+      offset_param: offset
+      limit_param: limit
+      per_page: 50
+      items_path: "/data"
+    returns:
+      items: all_items
+
+routing:
+  match: "success"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: tasks
+          value: "{{ steps.request.all_items }}"

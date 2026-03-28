@@ -1,0 +1,23 @@
+meta:
+  id: mailchimp
+  name: Mailchimp
+  type: Platform
+  category: Marketing & Email
+  description: "Connects to the Mailchimp Marketing API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://{{ get 'settings.server_prefix' }}.api.mailchimp.com/3.0"
+  headers:
+    Content-Type: "application/json"
+    Authorization: "Basic {{ get 'settings.api_key_base64' }}"
+
+settings:
+  - name: server_prefix
+    label: "Server Prefix (e.g. us1)"
+    type: string
+    required: true
+  - name: api_key_base64
+    label: "API Key (Base64 encoded 'anystring:YOUR_API_KEY')"
+    type: string
+    required: true

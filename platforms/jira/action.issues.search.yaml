@@ -1,0 +1,51 @@
+meta:
+  id: jira.issues.search
+  name: Search Issues
+  category: Issues
+  type: Action
+  platform: jira
+  description: "Searches for issues using JQL."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: jql
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: issues
+      type: array
+
+execution:
+  - id: request
+    tool: paginate
+    params:
+      method: GET
+      url: "https://{{ get 'settings.domain' }}.atlassian.net/rest/api/3/search"
+      headers: "{{ platform.headers }}"
+      strategy: offset
+      offset_param: "startAt"
+      limit_param: "maxResults"
+      per_page: 50
+      items_path: "/issues"
+      query:
+        jql: "{{ get 'inputs.jql' }}"
+    returns:
+      items: all_items
+
+routing:
+  match: "success"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: issues
+          value: "{{ steps.request.all_items }}"

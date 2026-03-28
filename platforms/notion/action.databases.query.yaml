@@ -1,0 +1,64 @@
+meta:
+  id: notion.databases.query
+  name: Query Database
+  category: Databases
+  type: Action
+  platform: notion
+  description: "Gets a list of Pages contained in the database, filtered and ordered according to the request."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: database_id
+      type: string
+    - name: filter
+      type: object
+    - name: sorts
+      type: array
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: pages
+      type: array
+  settings: []
+
+execution:
+  - id: request
+    tool: paginate
+    params:
+      method: POST
+      url: "{{ platform.base_url }}/databases/{{ get 'inputs.database_id' }}/query"
+      headers: "{{ platform.headers }}"
+      strategy: cursor
+      cursor_param: "start_cursor"
+      body:
+        filter: "{{ get 'inputs.filter' }}"
+        sorts: "{{ get 'inputs.sorts' }}"
+    returns:
+      items: pages
+      total_pages: page_count
+      total_items: item_count
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "200"
+      cases:
+        - condition: "200"
+          output: success
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: pages
+          value: "{{ steps.request.pages }}"

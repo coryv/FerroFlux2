@@ -1,0 +1,19 @@
+meta:
+  id: openai
+  name: OpenAI
+  type: Platform
+  category: AI/ML
+  description: "Connects to the OpenAI API for chat completions, embeddings, and more."
+  version: "1.0.0"
+
+config:
+  base_url: "https://api.openai.com/v1"
+  headers:
+    Content-Type: "application/json"
+    Authorization: "Bearer PASTE_YOUR_KEY_HERE"
+
+settings:
+  - name: api_key
+    label: "API Key"
+    type: string
+    required: true

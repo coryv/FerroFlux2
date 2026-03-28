@@ -1,0 +1,68 @@
+meta:
+  id: google-drive.files.upload
+  name: Upload File
+  category: Cloud Storage & Files
+  type: Action
+  platform: google-drive
+  description: "Uploads a file to Google Drive."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: file
+      type: blob
+    - name: name
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: file
+      type: object
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: POST
+      url: "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart"
+      headers: "{{ platform.headers }}"
+      body_type: multipart
+      parts:
+        - name: metadata
+          content_json: 
+            name: "{{ get 'inputs.name' }}"
+          content_type: "application/json"
+        - name: file
+          content_var: "inputs.file"
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: "{{ steps.request.status_code }}"
+  cases:
+    "200":
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: file
+          value: "{{ steps.request.response_body }}"
+    "201":
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: file
+          value: "{{ steps.request.response_body }}"
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

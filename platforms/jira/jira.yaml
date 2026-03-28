@@ -1,0 +1,23 @@
+meta:
+  id: jira
+  name: Jira
+  type: Platform
+  category: Productivity
+  description: "Connects to the Atlassian Jira REST API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://<YOUR_DOMAIN>.atlassian.net/rest/api/3"
+  headers:
+    Content-Type: "application/json"
+    Accept: "application/json"
+
+settings:
+  - name: domain
+    label: "Atlassian Domain (e.g., example)"
+    type: string
+    required: true
+  - name: connection
+    label: "Jira Account"
+    type: connection_select
+    required: true

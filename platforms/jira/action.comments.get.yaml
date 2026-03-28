@@ -1,0 +1,48 @@
+meta:
+  id: jira.comments.get
+  name: Get Comments
+  category: Comments
+  type: Action
+  platform: jira
+  description: "Gets comments for an issue."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: issueIdOrKey
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: comments
+      type: array
+
+execution:
+  - id: request
+    tool: paginate
+    params:
+      method: GET
+      url: "https://{{ get 'settings.domain' }}.atlassian.net/rest/api/3/issue/{{ get 'inputs.issueIdOrKey' }}/comment"
+      headers: "{{ platform.headers }}"
+      strategy: offset
+      offset_param: startAt
+      limit_param: maxResults
+      per_page: 50
+    returns:
+      items: all_items
+
+routing:
+  match: "success"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: comments
+          value: "{{ steps.request.all_items }}"

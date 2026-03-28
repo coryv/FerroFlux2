@@ -1,0 +1,19 @@
+meta:
+  id: gitlab
+  name: GitLab
+  type: Platform
+  category: Developer Tools
+  description: "Connects to the GitLab API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://gitlab.com/api/v4"
+  headers:
+    Content-Type: "application/json"
+    Authorization: "Bearer PASTE_YOUR_TOKEN_HERE"
+
+settings:
+  - name: api_key
+    label: "Personal Access Token"
+    type: string
+    required: true

@@ -1,0 +1,18 @@
+meta:
+  id: bitbucket
+  name: Bitbucket
+  type: Platform
+  category: Developer Tools
+  description: "Connects to the Bitbucket API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://api.bitbucket.org/2.0"
+  headers:
+    Content-Type: "application/json"
+
+settings:
+  - name: connection
+    label: "Bitbucket Account (Basic Auth / App Password)"
+    type: connection_select
+    required: true

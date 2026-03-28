@@ -1,0 +1,50 @@
+meta:
+  id: shopify.customers.new
+  name: New Customer
+  category: Customers
+  type: Trigger
+  platform: shopify
+  description: "Triggers when a new customer registers."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: customer
+      type: object
+  settings:
+    - name: polling_interval
+      label: "Polling Interval (minutes)"
+      type: number
+      default: 15
+
+execution:
+  - id: query
+    tool: http_client
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/customers.json"
+      headers: "{{ platform.headers }}"
+      query:
+        created_at_min: "{{ get 'state.last_poll' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: "{{ steps.query.status_code }}"
+  cases:
+    "200":
+      - tool: foreach
+        params:
+          items: "{{ get 'steps.query.response_body.customers' }}"
+          action:
+            - tool: emit
+              params:
+                port: Success
+            - tool: emit
+              params:
+                port: customer
+                value: "{{ item }}"

@@ -1,0 +1,49 @@
+meta:
+  id: jira.issues.transition
+  name: Transition Issue
+  category: Issues
+  type: Action
+  platform: jira
+  description: "Transitions an issue to a new status."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: issueIdOrKey
+      type: string
+    - name: transitionId
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: POST
+      url: "https://{{ get 'settings.domain' }}.atlassian.net/rest/api/3/issue/{{ get 'inputs.issueIdOrKey' }}/transitions"
+      headers: "{{ platform.headers }}"
+      body:
+        transition:
+          id: "{{ get 'inputs.transitionId' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: "{{ steps.request.status_code }}"
+  cases:
+    "204":
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

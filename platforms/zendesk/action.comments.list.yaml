@@ -1,0 +1,48 @@
+meta:
+  id: zendesk.comments.list
+  name: List Comments
+  category: Comments
+  type: Action
+  platform: zendesk
+  description: "Lists comments on a ticket."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: ticketId
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: comments
+      type: array
+
+execution:
+  - id: request
+    tool: paginate
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/tickets/{{ get 'inputs.ticketId' }}/comments.json"
+      headers: "{{ platform.headers }}"
+      strategy: cursor
+      cursor_path: "/meta/after_cursor"
+      cursor_param: "page[after]"
+      items_path: "/comments"
+    returns:
+      items: all_items
+
+routing:
+  match: "success"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: comments
+          value: "{{ steps.request.all_items }}"

@@ -1,0 +1,50 @@
+meta:
+  id: salesforce.records.query
+  name: Query Records (SOQL)
+  category: Records
+  type: Action
+  platform: salesforce
+  description: "Executes a SOQL query."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: query
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: records
+      type: array
+
+execution:
+  - id: request
+    tool: paginate
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/query"
+      headers: "{{ platform.headers }}"
+      query:
+        q: "{{ get 'inputs.query' }}"
+      strategy: cursor
+      cursor_path: "/nextRecordsUrl"
+      cursor_param: "nextRecordsUrl_full"
+      items_path: "/records"
+    returns:
+      items: all_items
+
+routing:
+  match: "success"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: records
+          value: "{{ steps.request.all_items }}"

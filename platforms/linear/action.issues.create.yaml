@@ -1,0 +1,71 @@
+meta:
+  id: linear.issues.create
+  name: Create Issue
+  category: Issues
+  type: Action
+  platform: linear
+  description: "Creates an issue in Linear using GraphQL."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: teamId
+      type: string
+    - name: title
+      type: string
+    - name: description
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: issue
+      type: object
+  settings: []
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: POST
+      url: "{{ platform.base_url }}"
+      headers: "{{ platform.headers }}"
+      body:
+        query: "mutation IssueCreate($teamId: String!, $title: String!, $description: String) { issueCreate(input: { teamId: $teamId, title: $title, description: $description }) { success issue { id title } } }"
+        variables:
+          teamId: "{{ get 'inputs.teamId' }}"
+          title: "{{ get 'inputs.title' }}"
+          description: "{{ get 'inputs.description' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "{{ steps.request.status_code }}"
+      cases:
+        - condition: "200"
+          output: success
+        - condition: default
+          output: error
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: issue
+          value: "{{ steps.request.response_body }}"
+    error:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

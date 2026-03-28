@@ -1,0 +1,57 @@
+meta:
+  id: google-drive.files.updated
+  name: File Updated
+  category: Cloud Storage & Files
+  type: Trigger
+  platform: google-drive
+  description: "Fires when a file is modified."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: file
+      type: object
+  settings:
+    - name: poll_interval
+      label: "Poll Interval (minutes)"
+      type: number
+      required: false
+      default: 5
+      min: 1
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/files"
+      headers: "{{ platform.headers }}"
+      query:
+        orderBy: "modifiedTime desc"
+        q: "modifiedTime > '{{ get 'event.cursor' }}' and trashed = false"
+        pageSize: 10
+        fields: "files(id,name,mimeType,modifiedTime)"
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: "{{ steps.request.status_code }}"
+  cases:
+    "200":
+      - tool: json_query
+        params:
+          json: "{{ steps.request.response_body }}"
+          path: "/files"
+        returns:
+          result: files_array
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: file
+          value: "{{ files_array }}"

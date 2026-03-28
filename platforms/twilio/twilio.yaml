@@ -1,0 +1,22 @@
+meta:
+  id: twilio
+  name: Twilio
+  type: Platform
+  category: Communication
+  description: "Connects to the Twilio API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://api.twilio.com/2010-04-01/Accounts"
+  headers:
+    Content-Type: "application/x-www-form-urlencoded"
+
+settings:
+  - name: account_sid
+    label: "Twilio Account SID"
+    type: string
+    required: true
+  - name: connection
+    label: "Twilio API Key (Basic Auth)"
+    type: connection_select
+    required: true

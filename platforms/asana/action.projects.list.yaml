@@ -1,0 +1,51 @@
+meta:
+  id: asana.projects.list
+  name: List Projects
+  category: Projects
+  type: Action
+  platform: asana
+  description: "Lists all projects in a workspace."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: workspaceGid
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: projects
+      type: array
+
+execution:
+  - id: request
+    tool: paginate
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/projects"
+      headers: "{{ platform.headers }}"
+      query:
+        workspace: "{{ get 'inputs.workspaceGid' }}"
+      strategy: offset
+      offset_param: offset
+      limit_param: limit
+      per_page: 50
+      items_path: "/data"
+    returns:
+      items: all_items
+
+routing:
+  match: "success"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: projects
+          value: "{{ steps.request.all_items }}"

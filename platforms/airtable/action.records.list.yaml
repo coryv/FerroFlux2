@@ -1,0 +1,66 @@
+meta:
+  id: airtable.records.list
+  name: List Records
+  category: Records
+  type: Action
+  platform: airtable
+  description: "Lists records in a table with pagination and filtering."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: base_id
+      type: string
+    - name: table_id_or_name
+      type: string
+    - name: filterByFormula
+      type: string
+    - name: maxRecords
+      type: number
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: records
+      type: array
+  settings: []
+
+execution:
+  - id: request
+    tool: paginate
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/{{ get 'inputs.base_id' }}/{{ get 'inputs.table_id_or_name' }}"
+      headers: "{{ platform.headers }}"
+      strategy: cursor
+      cursor_param: "offset"
+      query:
+        filterByFormula: "{{ get 'inputs.filterByFormula' }}"
+        maxRecords: "{{ get 'inputs.maxRecords' }}"
+    returns:
+      items: records
+      total_pages: page_count
+      total_items: item_count
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "200"
+      cases:
+        - condition: "200"
+          output: success
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: records
+          value: "{{ steps.request.records }}"

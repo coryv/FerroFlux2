@@ -1,0 +1,20 @@
+meta:
+  id: anthropic
+  name: Anthropic Claude
+  type: Platform
+  category: AI/ML
+  description: "Connects to the Anthropic Claude API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://api.anthropic.com/v1"
+  headers:
+    Content-Type: "application/json"
+    x-api-key: "{{ get 'settings.api_key' }}"
+    anthropic-version: "2023-06-01"
+
+settings:
+  - name: api_key
+    label: "API Key"
+    type: string
+    required: true

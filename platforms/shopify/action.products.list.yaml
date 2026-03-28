@@ -1,0 +1,46 @@
+meta:
+  id: shopify.products.list
+  name: List Products
+  category: Products
+  type: Action
+  platform: shopify
+  description: "Lists store products."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: products
+      type: array
+
+execution:
+  - id: request
+    tool: paginate
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/products.json"
+      headers: "{{ platform.headers }}"
+      strategy: cursor
+      cursor_path: "link"
+      cursor_param: "page_info"
+      items_path: "/products"
+    returns:
+      items: all_items
+
+routing:
+  match: "success"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: products
+          value: "{{ steps.request.all_items }}"

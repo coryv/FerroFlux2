@@ -1,0 +1,51 @@
+meta:
+  id: google-drive.files.list
+  name: List Files
+  category: Cloud Storage & Files
+  type: Action
+  platform: google-drive
+  description: "Lists files in a folder."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: folderId
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: files
+      type: array
+
+execution:
+  - id: request
+    tool: paginate
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/files"
+      headers: "{{ platform.headers }}"
+      strategy: page_token
+      cursor_param: "pageToken"
+      max_pages: 5
+      query:
+        q: "'{{ get 'inputs.folderId' }}' in parents and trashed=false"
+        fields: "nextPageToken,files(id,name,mimeType,size,createdTime)"
+        pageSize: 100
+    returns:
+      items: all_items
+
+routing:
+  match: "success"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: files
+          value: "{{ steps.request.all_items }}"

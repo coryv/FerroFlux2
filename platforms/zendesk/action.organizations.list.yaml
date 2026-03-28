@@ -1,0 +1,46 @@
+meta:
+  id: zendesk.organizations.list
+  name: List Organizations
+  category: Organizations
+  type: Action
+  platform: zendesk
+  description: "Lists all organizations."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: organizations
+      type: array
+
+execution:
+  - id: request
+    tool: paginate
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/organizations.json"
+      headers: "{{ platform.headers }}"
+      strategy: cursor
+      cursor_path: "/meta/after_cursor"
+      cursor_param: "page[after]"
+      items_path: "/organizations"
+    returns:
+      items: all_items
+
+routing:
+  match: "success"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: organizations
+          value: "{{ steps.request.all_items }}"

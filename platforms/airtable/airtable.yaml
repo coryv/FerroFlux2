@@ -1,0 +1,19 @@
+meta:
+  id: airtable
+  name: Airtable
+  type: Platform
+  category: Databases
+  description: "Connects to the Airtable API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://api.airtable.com/v0"
+  headers:
+    Content-Type: "application/json"
+    Authorization: "Bearer PASTE_YOUR_KEY_HERE"
+
+settings:
+  - name: connection
+    label: "Airtable Connection"
+    type: connection_select
+    required: true

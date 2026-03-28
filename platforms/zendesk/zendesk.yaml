@@ -1,0 +1,23 @@
+meta:
+  id: zendesk
+  name: Zendesk
+  type: Platform
+  category: Support
+  description: "Connects to the Zendesk Support API."
+  version: "1.0.0"
+
+config:
+  base_url: "https://{{ get 'settings.domain' }}.zendesk.com/api/v2"
+  headers:
+    Content-Type: "application/json"
+    Accept: "application/json"
+
+settings:
+  - name: domain
+    label: "Zendesk Subdomain (e.g. company-name)"
+    type: string
+    required: true
+  - name: connection
+    label: "Zendesk Account"
+    type: connection_select
+    required: true

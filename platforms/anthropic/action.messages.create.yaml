@@ -1,0 +1,98 @@
+meta:
+  id: anthropic.messages.create
+  name: Create Message
+  category: AI/ML
+  type: Action
+  platform: anthropic
+  description: "Creates a message (chat completion) with Claude."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: messages
+      type: array
+    - name: system
+      type: string
+    - name: tools
+      type: array
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: message
+      type: object
+    - name: text
+      type: string
+    - name: tool_calls
+      type: array
+  settings:
+    - name: model
+      label: "Model"
+      type: select
+      required: true
+      default: "claude-3-5-sonnet-20241022"
+      options:
+        - value: "claude-3-7-sonnet-20250219"
+          label: "Claude 3.7 Sonnet"
+        - value: "claude-3-5-sonnet-20241022"
+          label: "Claude 3.5 Sonnet"
+        - value: "claude-3-5-haiku-20241022"
+          label: "Claude 3.5 Haiku"
+    - name: max_tokens
+      label: "Max Tokens"
+      type: number
+      required: false
+      default: 1024
+    - name: temperature
+      label: "Temperature"
+      type: number
+      required: false
+      default: 0.7
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: POST
+      url: "{{ platform.base_url }}/messages"
+      headers: "{{ platform.headers }}"
+      body:
+        model: "{{ get 'settings.model' }}"
+        messages: "{{ get 'inputs.messages' }}"
+        system: "{{ get 'inputs.system' }}"
+        tools: "{{ get 'inputs.tools' }}"
+        max_tokens: "{{ get 'settings.max_tokens' }}"
+        temperature: "{{ get 'settings.temperature' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: "{{ steps.request.status_code }}"
+  cases:
+    "200":
+      - tool: json_query
+        params:
+          json: "{{ steps.request.response_body }}"
+          path: "/content/0/text"
+        returns:
+          result: message_text
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: message
+          value: "{{ steps.request.response_body }}"
+      - tool: emit
+        params:
+          port: text
+          value: "{{ message_text }}"
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

@@ -1,0 +1,63 @@
+meta:
+  id: google_docs.documents.create
+  name: Create Document
+  category: Documents
+  type: Action
+  platform: google_docs
+  description: "Creates an empty document."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: title
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: document
+      type: object
+  settings: []
+
+execution:
+  - id: request
+    tool: http_client
+    params:
+      method: POST
+      url: "{{ platform.base_url }}"
+      headers: "{{ platform.headers }}"
+      body:
+        title: "{{ get 'inputs.title' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "{{ steps.request.status_code }}"
+      cases:
+        - condition: "200"
+          output: success
+        - condition: default
+          output: error
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: document
+          value: "{{ steps.request.response_body }}"
+    error:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.request.response_body }}"

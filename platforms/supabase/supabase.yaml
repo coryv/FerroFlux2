@@ -1,0 +1,24 @@
+meta:
+  id: supabase
+  name: Supabase
+  type: Platform
+  category: Databases
+  description: "Connects to a specific Supabase instance's REST APIs (PostgREST, Auth, Storage)."
+  version: "1.0.0"
+
+config:
+  base_url: "https://<PROJECT_REF>.supabase.co/rest/v1"
+  headers:
+    Content-Type: "application/json"
+    apikey: "PASTE_YOUR_KEY_HERE"
+    Authorization: "Bearer PASTE_YOUR_KEY_HERE"
+
+settings:
+  - name: project_ref
+    label: "Supabase Project ID"
+    type: string
+    required: true
+  - name: api_key
+    label: "Supabase Anon/Service Role Key"
+    type: string
+    required: true
