@@ -285,10 +285,8 @@ mod tests {
                 event_bus: None,
                 shadow_mode: false,
                 shadow_masks: $masks,
-                secret_store: None,
-                runtime: None,
                 store: None,
-                refresh_locks: None,
+                secrets: None,
             }
         };
     }

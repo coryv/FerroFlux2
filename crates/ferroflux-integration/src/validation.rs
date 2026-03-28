@@ -238,7 +238,65 @@ pub fn validate_node(def: &NodeDefinition) -> ValidationResult {
         ));
     }
 
+    // Rule 8 (warning): execution steps should reference known tools
+    const KNOWN_TOOLS: &[&str] = &[
+        "http_client", "paginate", "json_query", "emit", "logic",
+        "log", "sleep", "set_var", "get_var", "math", "rhai",
+        "trace", "stats", "verify_signature", "transform",
+        "switch", "agent", "aggregate", "split", "ferroflux:stats",
+    ];
+    for step in &def.execution {
+        if !KNOWN_TOOLS.contains(&step.tool.as_str()) {
+            result.diagnostics.push(ValidationDiagnostic::warning(
+                "unknown-tool",
+                format!(
+                    "execution step '{}' references unknown tool '{}'; known tools: {}",
+                    step.id, step.tool, KNOWN_TOOLS.join(", ")
+                ),
+            ));
+        }
+    }
+
+    // Rule 9: template syntax — every {{ must have a matching }}
+    for step in &def.execution {
+        check_template_syntax(&step.params, &step.id, &mut result);
+    }
+
     result
+}
+
+/// Recursively scan JSON values for unmatched Handlebars template braces.
+fn check_template_syntax(
+    value: &serde_json::Value,
+    step_id: &str,
+    result: &mut ValidationResult,
+) {
+    match value {
+        serde_json::Value::String(s) => {
+            let opens = s.matches("{{").count();
+            let closes = s.matches("}}").count();
+            if opens != closes {
+                result.diagnostics.push(ValidationDiagnostic::error(
+                    "malformed-template",
+                    format!(
+                        "step '{}': unmatched template braces ({} '{{{{' vs {} '}}}}')",
+                        step_id, opens, closes
+                    ),
+                ));
+            }
+        }
+        serde_json::Value::Object(map) => {
+            for v in map.values() {
+                check_template_syntax(v, step_id, result);
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            for v in arr {
+                check_template_syntax(v, step_id, result);
+            }
+        }
+        _ => {}
+    }
 }
 
 /// Cross-validate a set of node definitions against their referenced platforms.
@@ -516,6 +574,83 @@ mod tests {
         let r = validate_node(&node);
         assert!(r.diagnostics.iter().any(|d| d.rule == "id-not-namespaced"));
     }
+
+    // Tool name validation tests
+
+    #[test]
+    fn node_unknown_tool_warning() {
+        let step = PipelineStep {
+            id: "bad".into(),
+            tool: "httpp_client".into(), // typo
+            params: json!({ "url": "{{ platform.base_url }}/ep", "method": "GET" }),
+            returns: [("status".into(), "status_code".into()), ("body".into(), "body".into())].into(),
+        };
+        let node = make_node(
+            "Action",
+            Some("test_platform"),
+            vec![exec_port()],
+            vec![flow_port("Success"), flow_port("Error")],
+            vec![step],
+        );
+        let r = validate_node(&node);
+        let diag = r.diagnostics.iter().find(|d| d.rule == "unknown-tool");
+        assert!(diag.is_some(), "Expected unknown-tool warning");
+        assert_eq!(diag.unwrap().severity, Severity::Warning);
+    }
+
+    #[test]
+    fn node_known_tools_no_warning() {
+        let step = http_step("call", "{{ platform.base_url }}/ep", true);
+        let node = make_node(
+            "Action",
+            Some("test_platform"),
+            vec![exec_port()],
+            vec![flow_port("Success"), flow_port("Error")],
+            vec![step],
+        );
+        let r = validate_node(&node);
+        assert!(!r.diagnostics.iter().any(|d| d.rule == "unknown-tool"));
+    }
+
+    // Template syntax validation tests
+
+    #[test]
+    fn node_malformed_template_missing_close() {
+        let step = PipelineStep {
+            id: "call".into(),
+            tool: "http_client".into(),
+            params: json!({ "url": "{{ platform.base_url }/endpoint", "method": "GET" }),
+            returns: [("status".into(), "status_code".into()), ("body".into(), "body".into())].into(),
+        };
+        let node = make_node(
+            "Action",
+            Some("test_platform"),
+            vec![exec_port()],
+            vec![flow_port("Success"), flow_port("Error")],
+            vec![step],
+        );
+        let r = validate_node(&node);
+        assert!(
+            r.diagnostics.iter().any(|d| d.rule == "malformed-template"),
+            "Expected malformed-template error"
+        );
+    }
+
+    #[test]
+    fn node_valid_template_no_error() {
+        let step = http_step("call", "{{ platform.base_url }}/endpoint", true);
+        let node = make_node(
+            "Action",
+            Some("test_platform"),
+            vec![exec_port()],
+            vec![flow_port("Success"), flow_port("Error")],
+            vec![step],
+        );
+        let r = validate_node(&node);
+        assert!(!r.diagnostics.iter().any(|d| d.rule == "malformed-template"));
+    }
+
+    // Cross-validation tests
 
     #[test]
     fn cross_unknown_platform_ref() {

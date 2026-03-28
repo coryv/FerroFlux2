@@ -287,7 +287,7 @@ impl<T: NodeData + Send + 'static> EngineActor<T> {
 
         // Access NodeRegistry
         if let Some(registry) =
-            world.get_resource::<ferroflux_core::resources::registry::NodeRegistry>()
+            world.get_resource::<ferroflux_core::resources::NodeRegistry>()
         {
             templates.extend(registry.list_templates());
         } else {

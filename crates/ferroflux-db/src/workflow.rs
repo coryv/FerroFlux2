@@ -402,3 +402,281 @@ impl PersistentStore {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    async fn in_memory_store() -> PersistentStore {
+        PersistentStore::new("sqlite::memory:").await.unwrap()
+    }
+
+    fn tenant() -> TenantId {
+        TenantId::from("test_tenant")
+    }
+
+    fn other_tenant() -> TenantId {
+        TenantId::from("other_tenant")
+    }
+
+    // ── Workflow CRUD ─────────────────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn save_and_load_workflow() {
+        let store = in_memory_store().await;
+        let t = tenant();
+
+        store
+            .save_workflow(&t, "wf1", "My Flow", None, r#"{"nodes":[]}"#, "active")
+            .await
+            .unwrap();
+
+        let loaded = store.load_active_workflows(&t).await.unwrap();
+        assert_eq!(loaded.len(), 1);
+        assert_eq!(loaded[0].0, "wf1");
+        assert_eq!(loaded[0].1, r#"{"nodes":[]}"#);
+        assert_eq!(loaded[0].2, "active");
+    }
+
+    #[tokio::test]
+    async fn load_active_workflows_excludes_inactive() {
+        let store = in_memory_store().await;
+        let t = tenant();
+
+        store
+            .save_workflow(&t, "wf_active", "Active", None, "{}", "active")
+            .await
+            .unwrap();
+        store
+            .save_workflow(&t, "wf_inactive", "Inactive", None, "{}", "inactive")
+            .await
+            .unwrap();
+
+        let loaded = store.load_active_workflows(&t).await.unwrap();
+        assert_eq!(loaded.len(), 1);
+        assert_eq!(loaded[0].0, "wf_active");
+    }
+
+    #[tokio::test]
+    async fn save_workflow_upserts_on_conflict() {
+        let store = in_memory_store().await;
+        let t = tenant();
+
+        store
+            .save_workflow(&t, "wf1", "Original", None, r#"{"v":1}"#, "active")
+            .await
+            .unwrap();
+        store
+            .save_workflow(&t, "wf1", "Updated", None, r#"{"v":2}"#, "active")
+            .await
+            .unwrap();
+
+        let rows = store.list_workflows(&t).await.unwrap();
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].1, "Updated");
+
+        let wf = store.get_workflow(&t, "wf1").await.unwrap().unwrap();
+        assert_eq!(wf.3, r#"{"v":2}"#);
+    }
+
+    #[tokio::test]
+    async fn delete_workflow() {
+        let store = in_memory_store().await;
+        let t = tenant();
+
+        store
+            .save_workflow(&t, "wf1", "Flow", None, "{}", "active")
+            .await
+            .unwrap();
+        store.delete_workflow(&t, "wf1").await.unwrap();
+
+        let loaded = store.load_active_workflows(&t).await.unwrap();
+        assert!(loaded.is_empty());
+    }
+
+    #[tokio::test]
+    async fn tenant_isolation_workflows() {
+        let store = in_memory_store().await;
+        let t1 = tenant();
+        let t2 = other_tenant();
+
+        store
+            .save_workflow(&t1, "wf_a", "A", None, "{}", "active")
+            .await
+            .unwrap();
+        store
+            .save_workflow(&t2, "wf_b", "B", None, "{}", "active")
+            .await
+            .unwrap();
+
+        let t1_wfs = store.load_active_workflows(&t1).await.unwrap();
+        let t2_wfs = store.load_active_workflows(&t2).await.unwrap();
+
+        assert_eq!(t1_wfs.len(), 1);
+        assert_eq!(t1_wfs[0].0, "wf_a");
+        assert_eq!(t2_wfs.len(), 1);
+        assert_eq!(t2_wfs[0].0, "wf_b");
+    }
+
+    // ── Checkpoints ───────────────────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn save_and_claim_checkpoint() {
+        let store = in_memory_store().await;
+        let t = tenant();
+        let node_id = uuid::Uuid::new_v4();
+        let mut meta = std::collections::HashMap::new();
+        meta.insert("trace_id".into(), "t42".into());
+
+        store
+            .save_checkpoint(&t, "tok1", node_id, b"checkpoint_data", &meta)
+            .await
+            .unwrap();
+
+        let result = store.claim_checkpoint(&t, "tok1").await.unwrap();
+        assert!(result.is_some());
+        let (nid, data, m) = result.unwrap();
+        assert_eq!(nid, node_id);
+        assert_eq!(data, b"checkpoint_data");
+        assert_eq!(m["trace_id"], "t42");
+    }
+
+    #[tokio::test]
+    async fn claim_checkpoint_is_consume_on_read() {
+        let store = in_memory_store().await;
+        let t = tenant();
+        let node_id = uuid::Uuid::new_v4();
+        let meta = std::collections::HashMap::new();
+
+        store
+            .save_checkpoint(&t, "tok2", node_id, b"data", &meta)
+            .await
+            .unwrap();
+
+        // First claim succeeds
+        assert!(store.claim_checkpoint(&t, "tok2").await.unwrap().is_some());
+        // Second claim returns None (consumed)
+        assert!(store.claim_checkpoint(&t, "tok2").await.unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn claim_checkpoint_wrong_tenant_returns_none() {
+        let store = in_memory_store().await;
+        let t1 = tenant();
+        let t2 = other_tenant();
+        let node_id = uuid::Uuid::new_v4();
+
+        store
+            .save_checkpoint(&t1, "tok3", node_id, b"data", &std::collections::HashMap::new())
+            .await
+            .unwrap();
+
+        assert!(store.claim_checkpoint(&t2, "tok3").await.unwrap().is_none());
+    }
+
+    // ── Connections ───────────────────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn save_and_retrieve_connection() {
+        let store = in_memory_store().await;
+        let t = tenant();
+
+        store
+            .save_connection(&t, "my-api", "My API", "rest", b"enc_data", b"nonce12345678901", "active")
+            .await
+            .unwrap();
+
+        let conn = store.get_connection_by_slug(&t, "my-api").await.unwrap();
+        assert!(conn.is_some());
+        let (ptype, data, nonce, name, status) = conn.unwrap();
+        assert_eq!(ptype, "rest");
+        assert_eq!(data, b"enc_data");
+        assert_eq!(nonce, b"nonce12345678901");
+        assert_eq!(name, "My API");
+        assert_eq!(status, "active");
+    }
+
+    #[tokio::test]
+    async fn save_connection_upserts_on_conflict() {
+        let store = in_memory_store().await;
+        let t = tenant();
+
+        store
+            .save_connection(&t, "slug1", "Old", "rest", b"old_data", b"nonce12345678901", "active")
+            .await
+            .unwrap();
+        store
+            .save_connection(&t, "slug1", "New", "rest", b"new_data", b"nonce12345678901", "active")
+            .await
+            .unwrap();
+
+        let conn = store.get_connection_by_slug(&t, "slug1").await.unwrap().unwrap();
+        assert_eq!(conn.0, "rest");
+        assert_eq!(conn.1, b"new_data");
+        assert_eq!(conn.3, "New");
+    }
+
+    #[tokio::test]
+    async fn tenant_isolation_connections() {
+        let store = in_memory_store().await;
+        let t1 = tenant();
+        let t2 = other_tenant();
+
+        store
+            .save_connection(&t1, "conn", "C1", "rest", b"d1", b"n1n2n3n4n5n6n7n", "active")
+            .await
+            .unwrap();
+
+        // t2 cannot read t1's connection
+        assert!(store.get_connection_by_slug(&t2, "conn").await.unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn delete_connection() {
+        let store = in_memory_store().await;
+        let t = tenant();
+
+        store
+            .save_connection(&t, "to_del", "Del", "rest", b"d", b"n123456789012345", "active")
+            .await
+            .unwrap();
+        store.delete_connection(&t, "to_del").await.unwrap();
+
+        assert!(store.get_connection_by_slug(&t, "to_del").await.unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn mark_connection_status() {
+        let store = in_memory_store().await;
+        let t = tenant();
+
+        store
+            .save_connection(&t, "sc", "SC", "rest", b"d", b"n123456789012345", "unverified")
+            .await
+            .unwrap();
+        store.mark_connection_status(&t, "sc", "active").await.unwrap();
+
+        let conn = store.get_connection_by_slug(&t, "sc").await.unwrap().unwrap();
+        assert_eq!(conn.4, "active");
+    }
+
+    #[tokio::test]
+    async fn update_connection_encrypted_data() {
+        let store = in_memory_store().await;
+        let t = tenant();
+
+        store
+            .save_connection(&t, "upd", "Upd", "rest", b"old", b"n123456789012345", "active")
+            .await
+            .unwrap();
+        store
+            .update_connection_encrypted_data(&t, "upd", b"new_enc", b"new_nonce_123456")
+            .await
+            .unwrap();
+
+        let conn = store.get_connection_by_slug(&t, "upd").await.unwrap().unwrap();
+        assert_eq!(conn.1, b"new_enc");
+        assert_eq!(conn.2, b"new_nonce_123456");
+        assert_eq!(conn.4, "active"); // update_connection_encrypted_data sets status = 'active'
+    }
+}

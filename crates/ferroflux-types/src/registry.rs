@@ -1,24 +1,6 @@
 use crate::node_factory::{NodeFactory, NodeMetadata};
 use bevy_ecs::prelude::*;
-use ferroflux_integration::DefinitionRegistry as IntegrationRegistry;
 use std::collections::HashMap;
-
-/// Bevy `Resource` wrapper around `ferroflux_integration::DefinitionRegistry`.
-#[derive(Resource, Default, Clone)]
-pub struct DefinitionRegistry(pub IntegrationRegistry);
-
-impl std::ops::Deref for DefinitionRegistry {
-    type Target = IntegrationRegistry;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl std::ops::DerefMut for DefinitionRegistry {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
 
 #[derive(Resource, Default)]
 pub struct NodeRegistry {

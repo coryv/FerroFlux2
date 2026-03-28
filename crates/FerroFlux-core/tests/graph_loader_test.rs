@@ -7,7 +7,7 @@ use ferroflux_core::components::{
 use ferroflux_core::graph_loader::load_graph_from_str;
 use ferroflux_core::nodes::register_core_nodes;
 use ferroflux_core::resources::NodeRouter;
-use ferroflux_core::resources::registry::{DefinitionRegistry, NodeRegistry};
+use ferroflux_core::resources::{DefinitionRegistry, NodeRegistry};
 use ferroflux_iam::TenantId;
 
 #[test]

@@ -1,7 +1,6 @@
 pub mod primitives;
 
-use ferroflux_types::tool::ToolRegistry;
-use ferroflux_types::Plugin;
+use ferroflux_types::{Plugin, ToolRegistry};
 use bevy_ecs::prelude::*;
 
 /// Plugin for registering all core primitive tools.

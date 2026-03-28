@@ -4,10 +4,10 @@ use ferroflux_core::components::execution_state::ActiveWorkflowState;
 use ferroflux_core::components::pipeline::PipelineNode;
 use ferroflux_core::components::{Inbox, Outbox};
 use ferroflux_core::nodes::definition::{Interface, NodeDefinition, NodeMeta, PipelineStep};
-use ferroflux_core::resources::registry::DefinitionRegistry;
+use ferroflux_core::resources::DefinitionRegistry;
 use ferroflux_core::store::BlobStore;
 use ferroflux_core::systems::pipeline::pipeline_execution_system;
-use ferroflux_core::tools::registry::ToolRegistry;
+use ferroflux_core::tools::ToolRegistry;
 use ferroflux_core::tools::{Tool, ToolContext};
 use serde_json::{Value, json};
 use std::collections::HashMap;
@@ -44,7 +44,7 @@ fn test_dataref_blob_templating() {
         .unwrap();
     let sec_store = ferroflux_core::secrets::DatabaseSecretStore::new(p_store, vec![0u8; 32]);
     world.insert_resource(sec_store);
-    world.insert_resource(ferroflux_core::oauth2::TokenRefreshLocks::default());
+    world.insert_resource(ferroflux_db::oauth2::TokenRefreshLocks::default());
 
     let mut tool_registry = ToolRegistry::default();
     tool_registry.register(EchoTool);

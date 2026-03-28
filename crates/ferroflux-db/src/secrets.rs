@@ -74,3 +74,146 @@ impl SecretStore for DatabaseSecretStore {
         Ok(json)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::workflow::PersistentStore;
+
+    const MASTER_KEY: [u8; 32] = [0xAB; 32];
+
+    async fn in_memory_store() -> PersistentStore {
+        PersistentStore::new("sqlite::memory:").await.unwrap()
+    }
+
+    fn tenant() -> TenantId {
+        TenantId::from("test_tenant")
+    }
+
+    async fn store_with_connection(
+        store: &PersistentStore,
+        tenant: &TenantId,
+        slug: &str,
+        creds: &Value,
+    ) {
+        let plaintext = serde_json::to_vec(creds).unwrap();
+        let (enc_data, nonce) =
+            ferroflux_security::encryption::encrypt(&plaintext, &MASTER_KEY).unwrap();
+        store
+            .save_connection(tenant, slug, "Test Conn", "oauth2", &enc_data, &nonce, "active")
+            .await
+            .unwrap();
+    }
+
+    // ── resolve_connection round-trip ────────────────────────────────────────
+
+    #[tokio::test]
+    async fn resolve_connection_decrypts_stored_credentials() {
+        let store = in_memory_store().await;
+        let tenant = tenant();
+        let creds = serde_json::json!({ "access_token": "tok_abc", "refresh_token": "ref_xyz" });
+        store_with_connection(&store, &tenant, "github", &creds).await;
+
+        let secret_store = DatabaseSecretStore::new(store, MASTER_KEY.to_vec());
+        let resolved = secret_store.resolve_connection(&tenant, "github").await.unwrap();
+
+        assert_eq!(resolved["access_token"], "tok_abc");
+        assert_eq!(resolved["refresh_token"], "ref_xyz");
+    }
+
+    #[tokio::test]
+    async fn resolve_connection_missing_returns_error() {
+        let store = in_memory_store().await;
+        let secret_store = DatabaseSecretStore::new(store, MASTER_KEY.to_vec());
+
+        let err = secret_store
+            .resolve_connection(&tenant(), "nonexistent")
+            .await
+            .unwrap_err();
+        assert!(err.to_string().contains("not found"), "{err}");
+    }
+
+    #[tokio::test]
+    async fn resolve_connection_tenant_isolated() {
+        let store = in_memory_store().await;
+        let tenant_a = tenant();
+        let tenant_b = TenantId::from("other_tenant");
+        let creds = serde_json::json!({ "token": "secret_a" });
+        store_with_connection(&store, &tenant_a, "stripe", &creds).await;
+
+        let secret_store = DatabaseSecretStore::new(store, MASTER_KEY.to_vec());
+        // tenant_b cannot see tenant_a's connection
+        let err = secret_store
+            .resolve_connection(&tenant_b, "stripe")
+            .await
+            .unwrap_err();
+        assert!(err.to_string().contains("not found"), "{err}");
+    }
+
+    // ── update_connection_data re-encrypts and resolves correctly ─────────────
+
+    #[tokio::test]
+    async fn update_connection_data_refreshed_token_resolves() {
+        let store = in_memory_store().await;
+        let tenant = tenant();
+        let original = serde_json::json!({ "access_token": "old_token" });
+        store_with_connection(&store, &tenant, "slack", &original).await;
+
+        let secret_store = DatabaseSecretStore::new(store, MASTER_KEY.to_vec());
+
+        let updated = serde_json::json!({ "access_token": "new_token" });
+        let updated_bytes = serde_json::to_vec(&updated).unwrap();
+        secret_store
+            .update_connection_data(&tenant, "slack", &updated_bytes)
+            .await
+            .unwrap();
+
+        let resolved = secret_store.resolve_connection(&tenant, "slack").await.unwrap();
+        assert_eq!(resolved["access_token"], "new_token");
+    }
+
+    // ── get_secret reads from environment ─────────────────────────────────────
+
+    #[tokio::test]
+    async fn get_secret_reads_env_var() {
+        let store = in_memory_store().await;
+        let secret_store = DatabaseSecretStore::new(store, MASTER_KEY.to_vec());
+
+        unsafe { std::env::set_var("TEST_FF_SECRET_KEY", "super_secret_value"); }
+        let val = secret_store.get_secret(&tenant(), "TEST_FF_SECRET_KEY").await.unwrap();
+        assert_eq!(val, "super_secret_value");
+        unsafe { std::env::remove_var("TEST_FF_SECRET_KEY"); }
+    }
+
+    #[tokio::test]
+    async fn get_secret_missing_env_var_returns_error() {
+        let store = in_memory_store().await;
+        let secret_store = DatabaseSecretStore::new(store, MASTER_KEY.to_vec());
+
+        unsafe { std::env::remove_var("FF_THIS_DOES_NOT_EXIST"); }
+        let err = secret_store
+            .get_secret(&tenant(), "FF_THIS_DOES_NOT_EXIST")
+            .await
+            .unwrap_err();
+        assert!(err.to_string().contains("not found"), "{err}");
+    }
+
+    // ── wrong key cannot decrypt ──────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn resolve_connection_wrong_key_returns_error() {
+        let store = in_memory_store().await;
+        let tenant = tenant();
+        let creds = serde_json::json!({ "token": "secret" });
+        store_with_connection(&store, &tenant, "github", &creds).await;
+
+        // Different key — decryption must fail
+        let wrong_key = [0x00u8; 32];
+        let secret_store = DatabaseSecretStore::new(store, wrong_key.to_vec());
+        let err = secret_store.resolve_connection(&tenant, "github").await.unwrap_err();
+        assert!(
+            err.to_string().contains("Decryption") || err.to_string().contains("decrypt"),
+            "{err}"
+        );
+    }
+}

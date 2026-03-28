@@ -1,0 +1,19 @@
+meta:
+  id: discord
+  name: Discord
+  type: Platform
+  category: Communication
+  description: "Connects to the Discord API for bot messaging and server management."
+  version: "1.0.0"
+
+config:
+  base_url: "https://discord.com/api/v10"
+  headers:
+    Content-Type: "application/json"
+    Authorization: "Bot PASTE_YOUR_BOT_TOKEN_HERE"
+
+settings:
+  - name: bot_token
+    label: "Bot Token"
+    type: string
+    required: true

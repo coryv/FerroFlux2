@@ -4,10 +4,10 @@ use ferroflux_core::components::execution_state::ActiveWorkflowState;
 use ferroflux_core::components::pipeline::PipelineNode;
 use ferroflux_core::components::{Inbox, Outbox};
 use ferroflux_core::nodes::definition::{Interface, NodeDefinition, NodeMeta, PipelineStep};
-use ferroflux_core::resources::registry::DefinitionRegistry;
+use ferroflux_core::resources::DefinitionRegistry;
 use ferroflux_core::store::BlobStore;
 use ferroflux_core::systems::pipeline::pipeline_execution_system;
-use ferroflux_core::tools::registry::ToolRegistry;
+use ferroflux_core::tools::ToolRegistry;
 use serde_json::json;
 use std::collections::HashMap;
 use tokio::sync::broadcast;
@@ -34,11 +34,11 @@ async fn test_stats_tool_large_dataset() {
         .unwrap();
     let sec_store = ferroflux_core::secrets::DatabaseSecretStore::new(p_store, vec![0u8; 32]);
     world.insert_resource(sec_store);
-    world.insert_resource(ferroflux_core::oauth2::TokenRefreshLocks::default());
+    world.insert_resource(ferroflux_db::oauth2::TokenRefreshLocks::default());
 
     // 2. Registry Setup
     let mut tool_registry = ToolRegistry::default();
-    tool_registry.register(ferroflux_core::tools::primitives::StatsTool);
+    tool_registry.register(ferroflux_tools::primitives::StatsTool);
     world.insert_resource(tool_registry);
 
     let mut def_registry = DefinitionRegistry::default();

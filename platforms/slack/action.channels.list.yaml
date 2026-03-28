@@ -1,0 +1,73 @@
+meta:
+  id: slack.action.channels.list
+  name: List Channels
+  category: Channels
+  type: Action
+  platform: slack
+  description: "Lists all public and private channels in a workspace."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: types
+      type: string
+      default: "public_channel,private_channel"
+    - name: limit
+      type: number
+      default: 100
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: channels
+      type: array
+    - name: response_metadata
+      type: object
+
+execution:
+  - id: fetch
+    tool: http_client
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/conversations.list"
+      headers: "{{ platform.headers }}"
+      query:
+        types: "{{ get 'inputs.types' }}"
+        limit: "{{ get 'inputs.limit' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "{{ steps.fetch.status_code }}"
+      cases:
+        - condition: "200"
+          output: success
+        - condition: default
+          output: error
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: channels
+          value: "{{ steps.fetch.response_body.channels }}"
+      - tool: emit
+        params:
+          port: response_metadata
+          value: "{{ steps.fetch.response_body.response_metadata }}"
+    error:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.fetch.response_body }}"

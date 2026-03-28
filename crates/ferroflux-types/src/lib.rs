@@ -19,7 +19,7 @@ pub use data_ref::{ActiveWorkflowState, DataRef};
 pub use events::{SystemEvent, SystemEventBus};
 pub use execution::{BackendResource, ExecutionBackend, ExecutionJob, LocalExecutionBackend};
 pub use node_factory::{NodeFactory, NodeMetadata, PortMetadata};
-pub use registry::{DefinitionRegistry, NodeRegistry};
+pub use registry::NodeRegistry;
 pub use resources::{GlobalHttpClient, SseTriggerRegistry, TokioRuntime};
 pub use shadow::{MockConfig, ShadowExecution};
 pub use tenant::TenantId;

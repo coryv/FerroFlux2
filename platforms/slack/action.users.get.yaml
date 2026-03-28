@@ -1,0 +1,63 @@
+meta:
+  id: slack.action.users.get
+  name: Get User Info
+  category: Users
+  type: Action
+  platform: slack
+  description: "Gets information about a specific user."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: user_id
+      type: string
+      required: true
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: user
+      type: object
+
+execution:
+  - id: fetch
+    tool: http_client
+    params:
+      method: GET
+      url: "{{ platform.base_url }}/users.info"
+      headers: "{{ platform.headers }}"
+      query:
+        user: "{{ get 'inputs.user_id' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "{{ steps.fetch.status_code }}"
+      cases:
+        - condition: "200"
+          output: success
+        - condition: default
+          output: error
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: user
+          value: "{{ steps.fetch.response_body.user }}"
+    error:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.fetch.response_body }}"

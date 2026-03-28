@@ -3,10 +3,10 @@ use ferroflux_core::components::execution_state::{ActiveWorkflowState, DataRef};
 use ferroflux_core::components::pipeline::PipelineNode;
 use ferroflux_core::components::{Inbox, Outbox};
 use ferroflux_core::nodes::definition::{Interface, NodeDefinition, NodeMeta, PipelineStep};
-use ferroflux_core::resources::registry::DefinitionRegistry;
+use ferroflux_core::resources::DefinitionRegistry;
 use ferroflux_core::store::BlobStore;
 use ferroflux_core::systems::pipeline::pipeline_execution_system;
-use ferroflux_core::tools::registry::ToolRegistry;
+use ferroflux_core::tools::ToolRegistry;
 use ferroflux_core::tools::{Tool, ToolContext};
 use serde_json::{Value, json};
 use std::collections::HashMap;
@@ -123,7 +123,7 @@ async fn setup_world() -> World {
     }
 
     // OAuth2 Token Refresh Locks
-    world.insert_resource(ferroflux_core::oauth2::TokenRefreshLocks::default());
+    world.insert_resource(ferroflux_db::oauth2::TokenRefreshLocks::default());
 
     return world;
 }

@@ -4,7 +4,6 @@ use ferroflux_types::{
     merge_result, BlobStore, Inbox, NodeConfig, Outbox, SystemEvent, SystemEventBus,
 };
 use serde_json::json;
-use std::sync::Arc;
 use wasmtime::*;
 
 #[derive(Resource, Clone)]
@@ -24,11 +23,11 @@ impl Default for WasmRuntime {
 }
 
 /// System: WASM Compute Worker
-#[tracing::instrument(skip(query, store, runtime, event_bus))]
+#[tracing::instrument(skip(query, store, _runtime, event_bus))]
 pub fn wasm_worker(
     mut query: Query<(&ComputeConfig, &NodeConfig, &mut Inbox, &mut Outbox)>,
     store: Res<BlobStore>,
-    runtime: Res<WasmRuntime>,
+    _runtime: Res<WasmRuntime>,
     event_bus: Res<SystemEventBus>,
 ) {
     let event_tx = event_bus.0.clone();

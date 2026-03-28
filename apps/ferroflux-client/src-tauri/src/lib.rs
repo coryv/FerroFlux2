@@ -1,5 +1,5 @@
 use ferroflux_core::nodes::yaml_factory::YamlNodeFactory;
-use ferroflux_core::resources::registry::{DefinitionRegistry, NodeRegistry};
+use ferroflux_core::resources::{DefinitionRegistry, NodeRegistry};
 use flow_canvas::model::GraphState;
 use std::sync::Mutex;
 use tauri::Manager;

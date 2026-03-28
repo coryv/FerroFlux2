@@ -6,8 +6,9 @@ use uuid::Uuid;
 
 #[tokio::test]
 async fn test_yaml_pipeline_flow() {
-    // 1. Setup App
+    // 1. Setup App — tools must be registered for the pipeline to execute Rhai/emit steps
     let mut ctx = AppBuilder::new()
+        .add_plugin(ferroflux_tools::ToolsPlugin)
         .build()
         .await
         .expect("Failed to build app");

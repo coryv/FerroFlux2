@@ -7,7 +7,6 @@ use crate::store::analytics::AnalyticsBackend;
 use crate::store::database::PersistentStore;
 use crate::systems::api_worker::api_command_worker;
 use crate::systems::janitor::JanitorTimer;
-use crate::systems::register_core_systems;
 use bevy_ecs::prelude::*;
 use bevy_ecs::system::SystemState;
 
@@ -65,7 +64,7 @@ impl ferroflux_types::Plugin for CorePlugin {
 
 impl AppBuilder {
     pub fn new() -> Self {
-        let mut builder = Self {
+        let builder = Self {
             db_url: None,
             store: None,
             master_key: None,
@@ -248,10 +247,10 @@ impl AppBuilder {
         let tool_registry = crate::tools::ToolRegistry::default();
         world.insert_resource(tool_registry);
 
-        world.insert_resource(ferroflux_types::registry::NodeRegistry::default());
+        world.insert_resource(crate::resources::NodeRegistry::default());
 
         // 9. YAML Definitions Registry
-        let mut def_registry = ferroflux_types::registry::DefinitionRegistry::default();
+        let mut def_registry = crate::resources::DefinitionRegistry::default();
 
         // Robust discovery of the 'platforms' directory
         let mut platform_path = std::path::PathBuf::from("platforms");
@@ -295,7 +294,7 @@ impl AppBuilder {
         // 10. Bridge YAML to NodeRegistry
         {
             let mut system_state =
-                SystemState::<ResMut<ferroflux_types::registry::NodeRegistry>>::new(&mut world);
+                SystemState::<ResMut<crate::resources::NodeRegistry>>::new(&mut world);
             let mut registry_res = system_state.get_mut(&mut world);
 
             // Register Core Nodes (Hardcoded)

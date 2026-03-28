@@ -1,7 +1,27 @@
 use async_channel::{Receiver, Sender};
 use bevy_ecs::prelude::*;
-pub use ferroflux_types::registry::{DefinitionRegistry, NodeRegistry};
+pub use ferroflux_types::registry::NodeRegistry;
 pub use ferroflux_types::resources::{GlobalHttpClient, TokioRuntime};
+
+/// Bevy `Resource` wrapper around `ferroflux_integration::DefinitionRegistry`.
+///
+/// Lives here (in core) rather than in `ferroflux-types` so that the foundational
+/// types crate does not depend on the domain-specific integration crate.
+#[derive(Resource, Default, Clone)]
+pub struct DefinitionRegistry(pub ferroflux_integration::DefinitionRegistry);
+
+impl std::ops::Deref for DefinitionRegistry {
+    type Target = ferroflux_integration::DefinitionRegistry;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for DefinitionRegistry {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 use std::sync::Arc;
 use tokio::sync::Semaphore;
 pub mod templates;

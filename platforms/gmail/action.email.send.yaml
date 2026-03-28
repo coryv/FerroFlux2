@@ -1,0 +1,88 @@
+meta:
+  id: gmail.action.email.send
+  name: Send Email
+  category: Email
+  type: Action
+  platform: gmail
+  description: "Sends an email via the Gmail API."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: to
+      type: string
+      required: true
+    - name: subject
+      type: string
+      required: true
+    - name: body
+      type: string
+      required: true
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: message_id
+      type: string
+
+execution:
+  - id: prepare_rfc822
+    tool: rhai
+    params:
+      script: |
+        let to = input.to;
+        let subject = input.subject;
+        let body = input.body;
+        let msg = "To: " + to + "\r\n" +
+                  "Subject: " + subject + "\r\n" +
+                  "Content-Type: text/plain; charset=utf-8\r\n\r\n" +
+                  body;
+        base64_url_encode(msg)
+      input:
+        to: "{{ get 'inputs.to' }}"
+        subject: "{{ get 'inputs.subject' }}"
+        body: "{{ get 'inputs.body' }}"
+    returns:
+      result: raw_body
+
+  - id: send
+    tool: http_client
+    params:
+      method: POST
+      url: "{{ platform.base_url }}/users/me/messages/send"
+      headers: "{{ platform.headers }}"
+      body:
+        raw: "{{ steps.prepare_rfc822.raw_body }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "{{ steps.send.status_code }}"
+      cases:
+        - condition: "200"
+          output: success
+        - condition: default
+          output: error
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: message_id
+          value: "{{ steps.send.response_body.id }}"
+    error:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.send.response_body }}"

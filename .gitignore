@@ -18,6 +18,11 @@ ferroflux.db
 # AI tool configs
 .gemini/
 
+# Claude Code — ignore local/transient files
+.claude/settings.local.json
+.claude/worktrees/
+.claude/plans/
+
 # Documentation Artifacts
 implementation_plan.md
 task.md

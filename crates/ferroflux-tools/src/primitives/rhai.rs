@@ -3,15 +3,25 @@ use ferroflux_types::tool::{Tool, ToolContext};
 use anyhow::{Result, anyhow};
 use serde_json::Value;
 
+use base64::{Engine as _, engine::general_purpose};
+
 pub struct RhaiTool {
     engine: rhai::Engine,
 }
 
 impl Default for RhaiTool {
     fn default() -> Self {
-        Self {
-            engine: rhai::Engine::new(),
-        }
+        let mut engine = rhai::Engine::new();
+
+        // Register Base64 Helpers
+        engine.register_fn("base64_encode", |s: String| {
+            general_purpose::STANDARD.encode(s)
+        });
+        engine.register_fn("base64_url_encode", |s: String| {
+            general_purpose::URL_SAFE_NO_PAD.encode(s)
+        });
+
+        Self { engine }
     }
 }
 

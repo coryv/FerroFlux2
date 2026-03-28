@@ -1,0 +1,25 @@
+meta:
+  id: gmail
+  name: Gmail
+  type: Platform
+  category: Communication
+  description: "Connects to the Gmail API for sending and managing emails."
+  version: "1.0.0"
+
+config:
+  base_url: "https://gmail.googleapis.com/gmail/v1"
+  auth_type: OAuth2
+  headers: {}
+  scopes:
+    - "https://www.googleapis.com/auth/gmail.send"
+    - "https://www.googleapis.com/auth/gmail.readonly"
+
+settings:
+  - name: client_id
+    label: "Client ID"
+    type: string
+    required: true
+  - name: client_secret
+    label: "Client Secret"
+    type: string
+    required: true

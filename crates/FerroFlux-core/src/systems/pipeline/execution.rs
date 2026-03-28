@@ -1,6 +1,6 @@
 use crate::components::execution_state::{ActiveWorkflowState, DataRef};
 use crate::components::pipeline::PipelineNode;
-use ferroflux_types::registry::DefinitionRegistry;
+use crate::resources::DefinitionRegistry;
 use crate::tools::ToolContext;
 use crate::tools::ToolRegistry;
 use anyhow::Result;
@@ -8,6 +8,7 @@ use handlebars::{Context, Handlebars, Helper, HelperResult, Output, RenderContex
 use jmespath;
 use serde_json::Value;
 use std::collections::HashMap;
+use std::time::Instant;
 
 use super::resolution::{resolve_dataref_to_value, resolve_recursive};
 
@@ -169,6 +170,7 @@ pub fn execute_pipeline_node(
     ctx_map.insert("steps".to_string(), DataRef::Inline(serde_json::json!({})));
 
     // 2. Execute Steps
+    let execution_start = Instant::now();
     for step in &def.execution {
         let tool = tools
             .get(&step.tool)
@@ -362,7 +364,7 @@ pub fn execute_pipeline_node(
             trace_id: trace_id.clone(),
             node_id: node_config.map(|c| c.id).unwrap_or_default(),
             node_type: def.meta.name.clone(),
-            execution_ms: 0, // TODO: timer
+            execution_ms: execution_start.elapsed().as_millis() as u64,
             success: true,
             details: serde_json::json!({
                 "outputs": outputs,

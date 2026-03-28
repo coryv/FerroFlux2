@@ -1,0 +1,78 @@
+meta:
+  id: slack.action.files.upload
+  name: Upload File
+  category: Files
+  type: Action
+  platform: slack
+  description: "Uploads a file to a Slack channel using multipart/form-data."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: file
+      type: blob
+      required: true
+    - name: filename
+      type: string
+      required: true
+    - name: channels
+      type: string
+      required: true
+    - name: initial_comment
+      type: string
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: file_info
+      type: object
+
+execution:
+  - id: upload
+    tool: http_client
+    params:
+      method: POST
+      url: "{{ platform.base_url }}/files.upload"
+      headers: "{{ platform.headers }}"
+      body_type: multipart
+      parts:
+        - name: file
+          content_var: "inputs.file"
+          filename: "{{ get 'inputs.filename' }}"
+        - name: channels
+          content: "{{ get 'inputs.channels' }}"
+        - name: initial_comment
+          content: "{{ get 'inputs.initial_comment' }}"
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: check_status
+    tool: switch
+    params:
+      value: "{{ steps.upload.status_code }}"
+      cases:
+        - condition: "200"
+          output: success
+        - condition: default
+          output: error
+
+routing:
+  match: "{{ steps.check_status.branch }}"
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: file_info
+          value: "{{ steps.upload.response_body.file }}"
+    error:
+      - tool: emit
+        params:
+          port: Error
+          value: "{{ steps.upload.response_body }}"

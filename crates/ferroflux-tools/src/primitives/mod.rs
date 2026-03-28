@@ -32,7 +32,7 @@ use ferroflux_db::oauth2::TokenRefreshLocks;
 use ferroflux_db::secrets::{DatabaseSecretStore, SecretStore};
 use ferroflux_types::resources::TokioRuntime;
 use ferroflux_types::tenant::TenantId;
-use ferroflux_types::tool::{SecretResolver, ToolRegistry};
+use ferroflux_types::tool::SecretResolver;
 
 /// A wrapper that implements `SecretResolver` for the core runtime.
 pub struct CoreSecretResolver<'a> {
