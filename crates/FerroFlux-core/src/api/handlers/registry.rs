@@ -1,7 +1,7 @@
 use crate::api::PlatformPath;
 use crate::nodes::register_core_nodes;
 use crate::nodes::yaml_factory::YamlNodeFactory;
-use crate::resources::registry::{DefinitionRegistry, NodeRegistry};
+use ferroflux_types::registry::{DefinitionRegistry, NodeRegistry};
 use bevy_ecs::prelude::*;
 
 pub fn handle_reload_definitions(world: &mut World) -> anyhow::Result<()> {

@@ -1,7 +1,3 @@
-
-pub mod primitives;
-mod tests;
-
 pub use ferroflux_types::tool::{SecretResolver, Tool, ToolRegistry};
 
 /// Re-export DataRef from types for convenience within tools.
@@ -10,7 +6,7 @@ pub use ferroflux_types::data_ref::DataRef;
 /// Re-export the portable ToolContext.
 pub use ferroflux_types::tool::ToolContext;
 
-use ferroflux_db::SecretStore;
+use ferroflux_db::secrets::SecretStore;
 
 /// A wrapper that implements `SecretResolver` for the core runtime.
 ///
@@ -19,8 +15,8 @@ use ferroflux_db::SecretStore;
 pub struct CoreSecretResolver<'a> {
     pub tenant_id: ferroflux_types::tenant::TenantId,
     pub store: &'a crate::secrets::DatabaseSecretStore,
-    pub runtime: &'a crate::resources::TokioRuntime,
-    pub refresh_locks: Option<&'a crate::oauth2::TokenRefreshLocks>,
+    pub runtime: &'a ferroflux_types::resources::TokioRuntime,
+    pub refresh_locks: Option<&'a ferroflux_db::oauth2::TokenRefreshLocks>,
 }
 
 impl<'a> SecretResolver for CoreSecretResolver<'a> {
@@ -38,7 +34,7 @@ impl<'a> SecretResolver for CoreSecretResolver<'a> {
         if let Some(auth_type) = conn_data.get("auth_type").and_then(|v| v.as_str())
             && auth_type == "OAuth2"
         {
-            let refreshed_token = crate::oauth2::resolve_oauth2_token(
+            let refreshed_token = ferroflux_db::oauth2::resolve_oauth2_token(
                 tenant,
                 slug,
                 &conn_data,
@@ -70,24 +66,4 @@ impl<'a> SecretResolver for CoreSecretResolver<'a> {
             .0
             .block_on(async { self.store.get_secret(tenant, key).await })
     }
-}
-
-/// Helper to register all core primitive tools into the given registry.
-pub fn register_core_tools(registry: &mut ToolRegistry) {
-    use primitives::*;
-    registry.register(HttpClientTool);
-    registry.register(PaginateTool);
-    // registry.register(SwitchTool);
-    registry.register(JsonQueryTool);
-    registry.register(EmitTool);
-    registry.register(LogicTool);
-    registry.register(LogTool);
-    registry.register(SleepTool);
-    registry.register(SetVarTool);
-    registry.register(GetVarTool);
-    registry.register(MathTool);
-    registry.register(RhaiTool::default());
-    registry.register(TraceTool);
-    registry.register(StatsTool);
-    registry.register(VerifySignatureTool);
 }

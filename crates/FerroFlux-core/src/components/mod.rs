@@ -3,8 +3,6 @@
 /// Each struct here roughly corresponds to a "Node Type" in the visual graph editor.
 /// These components are attached to Entities and processed by Systems in `src/systems/`.
 pub mod agent;
-pub mod compute;
-pub mod connectors;
 pub mod control;
 pub mod core;
 pub mod execution_state;
@@ -17,14 +15,10 @@ pub mod pipeline;
 pub mod schema;
 pub mod security;
 pub mod shadow;
+
 // Explicit re-exports for better maintainability and discovery
 pub use self::agent::{
     AgentConfig, GenerationSettings, HistoryConfig, OutputMode, ToolChoice, ToolDefinition,
-};
-pub use self::compute::ComputeConfig;
-pub use self::connectors::{
-    FtpConfig, FtpOperation, FtpProtocol, RssConfig, RssState, SseTriggerConfig, SshConfig,
-    XmlConfig,
 };
 pub use self::control::CheckpointConfig;
 pub use self::core::{Edge, EdgeLabel, Inbox, NodeConfig, Outbox, PinnedOutput};
@@ -39,7 +33,7 @@ pub use self::manipulation::{
 pub use self::observability::{Sensitive, Trace, TraceInput, TraceNode, TraceStart};
 pub use self::pipeline::{ExecutionContext, ExecutionResult, PipelineNode, ReadyToExecute};
 pub use self::schema::{ExpectedOutput, Requirements};
-pub use self::security::{AuthConfig, OAuth2Credentials, OAuth2TokenResponse, SecretConfig};
+pub use self::security::{AuthConfig, SecretConfig};
 pub use self::shadow::{MockConfig, ShadowExecution};
 
 // Re-export common resources

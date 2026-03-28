@@ -6,7 +6,6 @@ use crate::store::BlobStore;
 use crate::store::analytics::AnalyticsBackend;
 use crate::store::database::PersistentStore;
 use crate::systems::api_worker::api_command_worker;
-use crate::systems::compute::WasmRuntime;
 use crate::systems::janitor::JanitorTimer;
 use crate::systems::register_core_systems;
 use bevy_ecs::prelude::*;
@@ -35,6 +34,8 @@ pub struct AppContext {
     pub integration_registry: crate::integrations::IntegrationRegistry,
     /// Per-request integration response cache.
     pub action_cache: crate::store::cache::IntegrationCache,
+    /// Receiver for trigger events.
+    pub trigger_rx: async_channel::Receiver<ferroflux_types::trigger::TriggerEvent>,
 }
 
 pub struct AppBuilder {
@@ -45,6 +46,7 @@ pub struct AppBuilder {
     analytics_backend: Option<Arc<dyn AnalyticsBackend>>,
     execution_backend: Option<Arc<dyn crate::traits::execution::ExecutionBackend>>,
     trigger_providers: Vec<Box<dyn crate::traits::trigger::TriggerProvider>>,
+    plugins: Vec<Box<dyn ferroflux_types::Plugin>>,
 }
 
 impl Default for AppBuilder {
@@ -53,9 +55,17 @@ impl Default for AppBuilder {
     }
 }
 
+pub struct CorePlugin;
+
+impl ferroflux_types::Plugin for CorePlugin {
+    fn build(&self, _world: &mut World, schedule: &mut Schedule) {
+        crate::systems::register_core_systems(schedule);
+    }
+}
+
 impl AppBuilder {
     pub fn new() -> Self {
-        Self {
+        let mut builder = Self {
             db_url: None,
             store: None,
             master_key: None,
@@ -63,7 +73,14 @@ impl AppBuilder {
             analytics_backend: None,
             execution_backend: None,
             trigger_providers: Vec::new(),
-        }
+            plugins: Vec::new(),
+        };
+        builder.add_plugin(CorePlugin)
+    }
+
+    pub fn add_plugin<P: ferroflux_types::Plugin + 'static>(mut self, plugin: P) -> Self {
+        self.plugins.push(Box::new(plugin));
+        self
     }
 
     pub fn with_db_url(mut self, url: impl Into<String>) -> Self {
@@ -183,19 +200,21 @@ impl AppBuilder {
         world.insert_resource(GlobalHttpClient::default());
         world.insert_resource(crate::resources::AgentResultChannel::default());
         world.insert_resource(crate::resources::HttpResultChannel::default());
-        world.insert_resource(crate::resources::sse_registry::SseTriggerRegistry::default());
+        world.insert_resource(ferroflux_types::resources::SseTriggerRegistry::default());
         world.insert_resource(crate::api::events::SystemEventBus(event_tx.clone()));
 
         // Trigger Protocol Setup
-        let (trigger_tx, trigger_rx) = async_channel::unbounded();
-        world.insert_resource(crate::traits::trigger::TriggerSender(trigger_tx.clone()));
-        world.insert_resource(crate::traits::trigger::TriggerReceiver(trigger_rx));
+        let (trigger_tx, trigger_rx) = async_channel::unbounded::<ferroflux_types::trigger::TriggerEvent>();
+        let trigger_sender_res = ferroflux_types::trigger::TriggerSender(trigger_tx.clone());
+        let trigger_receiver_res = ferroflux_types::trigger::TriggerReceiver(trigger_rx.clone());
+        
+        world.insert_resource(trigger_sender_res);
+        world.insert_resource(trigger_receiver_res);
 
         // Initialize Trigger Providers
         for provider in self.trigger_providers {
             tracing::info!("Initializing trigger provider: {}", provider.name());
-            provider.on_enable(crate::traits::trigger::TriggerSender(trigger_tx.clone()));
-            // We could store them in specific resource if needed, but for now just init is enough logic.
+            provider.on_enable(ferroflux_types::trigger::TriggerSender(trigger_tx.clone()));
         }
 
         world.insert_resource(store.clone());
@@ -218,7 +237,6 @@ impl AppBuilder {
 
         // Registry
         world.insert_resource(int_registry.clone());
-        world.insert_resource(WasmRuntime::default());
         world.insert_resource(JanitorTimer::default());
         world.insert_resource(WorkDone::default());
         world.insert_resource(crate::resources::NodeRouter::default());
@@ -227,14 +245,13 @@ impl AppBuilder {
         world.insert_resource(crate::resources::templates::TemplateEngine::default());
         world.insert_resource(crate::resources::PipelineResultChannel::default());
         // Create and register ToolRegistry
-        let mut tool_registry = crate::tools::ToolRegistry::default();
-        crate::tools::register_core_tools(&mut tool_registry);
+        let tool_registry = crate::tools::ToolRegistry::default();
         world.insert_resource(tool_registry);
 
-        world.insert_resource(crate::resources::registry::NodeRegistry::default());
+        world.insert_resource(ferroflux_types::registry::NodeRegistry::default());
 
         // 9. YAML Definitions Registry
-        let mut def_registry = crate::resources::registry::DefinitionRegistry::default();
+        let mut def_registry = ferroflux_types::registry::DefinitionRegistry::default();
 
         // Robust discovery of the 'platforms' directory
         let mut platform_path = std::path::PathBuf::from("platforms");
@@ -278,7 +295,7 @@ impl AppBuilder {
         // 10. Bridge YAML to NodeRegistry
         {
             let mut system_state =
-                SystemState::<ResMut<crate::resources::registry::NodeRegistry>>::new(&mut world);
+                SystemState::<ResMut<ferroflux_types::registry::NodeRegistry>>::new(&mut world);
             let mut registry_res = system_state.get_mut(&mut world);
 
             // Register Core Nodes (Hardcoded)
@@ -302,10 +319,13 @@ impl AppBuilder {
         ));
 
         // OAuth2 Token Refresh Locks
-        world.insert_resource(crate::oauth2::TokenRefreshLocks::default());
+        world.insert_resource(ferroflux_db::oauth2::TokenRefreshLocks::default());
 
-        // Register Core Systems
-        register_core_systems(&mut schedule);
+        // 11. Run Plugins
+        for plugin in self.plugins {
+            plugin.build(&mut world, &mut schedule);
+        }
+
         // Add flush_local_execution_jobs if local receiver exists
         if world.contains_resource::<crate::traits::execution::LocalExecutionReceiver>() {
             schedule.add_systems(crate::traits::execution::flush_local_execution_jobs);
@@ -321,6 +341,7 @@ impl AppBuilder {
             master_key: master_key_clone,
             integration_registry: int_registry,
             action_cache,
+            trigger_rx,
         })
     }
 }
@@ -339,7 +360,7 @@ impl App {
     pub fn shutdown(&mut self) {
         if let Some(mut registry) = self
             .world
-            .get_resource_mut::<crate::resources::sse_registry::SseTriggerRegistry>()
+            .get_resource_mut::<ferroflux_types::resources::SseTriggerRegistry>()
         {
             registry.abort_all();
         }

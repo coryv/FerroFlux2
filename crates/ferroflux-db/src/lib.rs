@@ -9,6 +9,7 @@
 //! **Multi-tenancy**: every table includes a `tenant_id` column. All queries
 //! MUST include `AND tenant_id = ?` to prevent data leaks across tenants.
 
+pub mod oauth2;
 pub mod secrets;
 pub mod workflow;
 
@@ -36,5 +37,6 @@ mod sqlite {
 }
 
 // Convenience re-exports
+pub use oauth2::{TokenRefreshLocks, resolve_oauth2_token};
 pub use secrets::{DatabaseSecretStore, SecretStore};
 pub use workflow::PersistentStore;

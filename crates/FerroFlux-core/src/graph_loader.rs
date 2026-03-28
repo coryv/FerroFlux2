@@ -113,7 +113,7 @@ pub fn load_graph_from_str(world: &mut World, tenant: TenantId, yaml: &str) -> a
 
         // Use Registry to add variant-specific components
         world.resource_scope(
-            |world, registry: Mut<crate::resources::registry::NodeRegistry>| {
+            |world, registry: Mut<ferroflux_types::registry::NodeRegistry>| {
                 if let Some(factory) = registry.get(&node_type) {
                     let mut entity_mut = world.entity_mut(entity);
                     if let Err(e) = factory.build(&mut entity_mut, &node_bp.config) {
@@ -186,7 +186,7 @@ pub fn save_graph(world: &mut World, path: &str) -> anyhow::Result<()> {
     for (e, node_config) in node_entities {
         let mut config_json = serde_json::json!({});
         world.resource_scope(
-            |world, registry: Mut<crate::resources::registry::NodeRegistry>| {
+            |world, registry: Mut<ferroflux_types::registry::NodeRegistry>| {
                 if let Some(factory) = registry.get(&node_config.node_type)
                     && let Some(c) = factory.serialize(world, e)
                 {

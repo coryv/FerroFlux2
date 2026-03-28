@@ -1,6 +1,6 @@
 use crate::components::execution_state::{ActiveWorkflowState, DataRef};
 use crate::components::pipeline::PipelineNode;
-use crate::resources::registry::DefinitionRegistry;
+use ferroflux_types::registry::DefinitionRegistry;
 use crate::tools::ToolContext;
 use crate::tools::ToolRegistry;
 use anyhow::Result;
@@ -27,7 +27,7 @@ pub fn execute_pipeline_node(
     node_config: Option<&crate::components::NodeConfig>,
     secret_store: Option<&crate::secrets::DatabaseSecretStore>,
     runtime: Option<&crate::resources::TokioRuntime>,
-    refresh_locks: Option<&crate::oauth2::TokenRefreshLocks>,
+    refresh_locks: Option<&ferroflux_db::oauth2::TokenRefreshLocks>,
 ) -> Result<Vec<String>> {
     let def = definitions
         .definitions

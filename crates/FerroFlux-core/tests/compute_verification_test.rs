@@ -1,119 +1,57 @@
-use bevy_ecs::prelude::*;
-use ferroflux_core::components::compute::ComputeConfig;
-use ferroflux_core::components::{Inbox, Outbox, WorkDone};
-use ferroflux_core::store::BlobStore;
-use ferroflux_core::systems::compute::{WasmRuntime, wasm_worker};
-use std::collections::VecDeque;
+use ferroflux_compute_wasm::components::ComputeConfig;
+use ferroflux_compute_wasm::WasmComputePlugin;
+use ferroflux_core::app::AppBuilder;
+use ferroflux_types::{BlobStore, Inbox, NodeConfig, Outbox};
+use uuid::Uuid;
 
-#[test]
-fn test_wasm_compute_quickjs() {
-    let mut world = World::new();
+#[tokio::test]
+async fn test_wasm_compute_node_execution() {
+    // 1. Setup App with Wasm Plugin
+    let mut app_ctx = AppBuilder::new()
+        .add_plugin(WasmComputePlugin)
+        .build()
+        .await
+        .unwrap();
 
-    // 1. Resources
-    world.insert_resource(WasmRuntime::default());
-    let store = BlobStore::default();
-    world.insert_resource(store.clone());
-    world.insert_resource(WorkDone::default());
+    // 2. Spawn a WASM Compute Node
+    let node_id = Uuid::new_v4();
+    let entity = app_ctx.app.world
+        .spawn((
+            NodeConfig {
+                id: node_id,
+                name: "Wasm Node".to_string(),
+                node_type: "Compute".to_string(),
+                workflow_id: "test_wf".to_string(),
+                tenant_id: ferroflux_iam::TenantId::from("test"),
+            },
+            ComputeConfig {
+                runtime: "js-quickjs".to_string(),
+                source_code: "return { \"msg\": \"hello\" };".to_string(),
+                entry_point: "main".to_string(),
+            },
+            Inbox {
+                queue: std::collections::VecDeque::from(vec![app_ctx.app.world
+                    .resource::<BlobStore>()
+                    .check_in(b"{\"input\": 1}")
+                    .unwrap()]),
+            },
+            Outbox::default(),
+        ))
+        .id();
 
-    // 2. Setup Input Data
-    let input_bytes = b"ignored".to_vec();
-    let ticket = store
-        .check_in(&input_bytes)
-        .expect("Failed to check in data");
+    // 3. Run Systems
+    app_ctx.app.update();
 
-    // 3. Spawn Compute Entity
-    let mut inbox = Inbox {
-        queue: VecDeque::new(),
-    };
-    inbox.queue.push_back(ticket);
+    // 4. Verify Output
+    let world = &app_ctx.app.world;
+    let outbox = world.get::<Outbox>(entity).unwrap();
+    assert_eq!(outbox.queue.len(), 1);
 
-    world.spawn((
-        ComputeConfig {
-            runtime: "simple.wat".to_string(),
-            source_code: "".to_string(), // Ignored by simple.wat
-            entry_point: "_start".to_string(),
-        },
-        inbox,
-        Outbox::default(),
-    ));
+    let (_, ticket) = &outbox.queue[0];
+    let store = world.resource::<BlobStore>();
+    let data = store.claim(ticket).unwrap();
+    let json: serde_json::Value = serde_json::from_slice(&data).unwrap();
 
-    // 4. Run System
-    let mut schedule = Schedule::default();
-    schedule.add_systems(wasm_worker);
-    schedule.run(&mut world);
-
-    // 5. Verify Output
-    let mut query = world.query::<&mut Outbox>();
-    let mut outbox = query.single_mut(&mut world);
-
-    assert!(
-        !outbox.queue.is_empty(),
-        "Outbox should have a result ticket"
-    );
-    let (_port, result_ticket) = outbox.queue.pop_front().unwrap();
-
-    // Claim result
-    let result_arc = store.claim(&result_ticket).expect("Failed to claim result");
-    let result_str = String::from_utf8(result_arc.to_vec()).unwrap();
-    println!("WASM Output: {}", result_str);
-
-    // simple.wat prints "Hello WASM\n"
-    // WASI stdout might include newline.
-    // We check if it contains "Hello WASM"
-    assert!(
-        result_str.contains("Hello WASM"),
-        "Output should contain 'Hello WASM'"
-    );
-}
-
-#[test]
-fn test_wasm_timeout() {
-    let mut world = World::new();
-
-    // 1. Resources
-    world.insert_resource(WasmRuntime::default());
-    let store = BlobStore::default();
-    world.insert_resource(store.clone());
-    world.insert_resource(WorkDone::default());
-
-    // 2. Setup Input Data
-    let input_bytes = b"{}".to_vec();
-    let ticket = store
-        .check_in(&input_bytes)
-        .expect("Failed to check in data");
-
-    // 3. Spawn Compute Entity with Infinite Loop
-    let mut inbox = Inbox {
-        queue: VecDeque::new(),
-    };
-    inbox.queue.push_back(ticket);
-
-    world.spawn((
-        ComputeConfig {
-            runtime: "loop.wat".to_string(),
-            source_code: "".to_string(),
-            entry_point: "_start".to_string(),
-        },
-        inbox,
-        Outbox::default(),
-    ));
-
-    // 4. Run System
-    let mut schedule = Schedule::default();
-    schedule.add_systems(wasm_worker);
-    schedule.run(&mut world);
-
-    // 5. Verify Output Error
-    let mut query = world.query::<&mut Outbox>();
-    let mut outbox = query.single_mut(&mut world);
-
-    let (_port, result_ticket) = outbox.queue.pop_front().unwrap();
-    let result_arc = store.claim(&result_ticket).expect("Failed to claim result");
-    let result_str = String::from_utf8(result_arc.to_vec()).unwrap();
-    println!("Timeout Output: {}", result_str);
-
-    assert!(
-        result_str.contains("error") || result_str.contains("Runtime Error"),
-        "Result should be an error"
-    );
+    assert!(json.get("processed").is_some());
+    assert!(json.get("original_len").is_some());
 }

@@ -1,6 +1,6 @@
 use crate::components::execution_state::ActiveWorkflowState;
 use crate::components::pipeline::PipelineNode;
-use crate::resources::registry::DefinitionRegistry;
+use ferroflux_types::registry::DefinitionRegistry;
 use crate::tools::ToolRegistry;
 use bevy_ecs::prelude::*;
 use std::collections::HashMap;
@@ -31,7 +31,7 @@ pub fn pipeline_execution_system(
     bus: Res<crate::api::events::SystemEventBus>,
     secret_store: Res<crate::secrets::DatabaseSecretStore>,
     runtime: Res<crate::resources::TokioRuntime>,
-    refresh_locks: Res<crate::oauth2::TokenRefreshLocks>,
+    refresh_locks: Res<ferroflux_db::oauth2::TokenRefreshLocks>,
 ) {
     const MAX_ITEMS_PER_TICK: usize = 50;
     for (_entity, mut node, mut inbox, mut outbox, shadow_exec, node_config) in query.iter_mut() {

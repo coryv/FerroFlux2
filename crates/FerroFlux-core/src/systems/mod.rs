@@ -2,8 +2,6 @@ use bevy_ecs::prelude::*;
 
 pub mod agent;
 pub mod api_worker;
-pub mod compute;
-pub mod connectors;
 pub mod control;
 pub mod execution;
 pub mod gateway;
@@ -39,17 +37,8 @@ pub fn register_core_systems(schedule: &mut Schedule) {
         transport::update_graph_topology, // Optimization: Needs to run before transport
         transport::transport_worker,
         janitor::janitor_worker,
-        compute::wasm_worker,
         observability::telemetry_worker,
     ));
 
-    schedule.add_systems((
-        manipulation::window_worker,
-        control::checkpoint_worker,
-        connectors::rss_worker,
-        connectors::xml_worker,
-        connectors::ftp_worker,
-        connectors::ssh_worker,
-        connectors::sse_trigger_system,
-    ));
+    schedule.add_systems((manipulation::window_worker, control::checkpoint_worker));
 }
