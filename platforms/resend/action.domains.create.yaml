@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.resend.com"]
   id: resend.domains.create
   name: Create Domain
   category: Domains

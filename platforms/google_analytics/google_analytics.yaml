@@ -1,3 +1,6 @@
+meta:
+  permissions: ["network:analyticsdata.googleapis.com"]
+
 name: "google_analytics"
 icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/googleanalytics.svg"
 base_url: "https://analyticsdata.googleapis.com/v1beta"

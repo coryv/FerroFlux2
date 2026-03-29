@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:generativelanguage.googleapis.com"]
   id: gemini.ai.get_file
   name: Get File
   category: AI

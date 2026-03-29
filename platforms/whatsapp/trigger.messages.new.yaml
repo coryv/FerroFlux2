@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:graph.facebook.com"]
   id: whatsapp.messages.new
   name: New Incoming Message
   category: Messages

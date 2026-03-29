@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.salesforce.com"]
   id: salesforce.records.delete
   name: Delete Record
   category: Records

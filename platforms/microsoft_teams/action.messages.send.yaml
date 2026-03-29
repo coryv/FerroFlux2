@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:graph.microsoft.com"]
   id: microsoft_teams.messages.send
   name: Send Channel Message
   category: Messages

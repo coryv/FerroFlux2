@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.resend.com"]
   id: resend.domains.list
   name: List Domains
   category: Domains

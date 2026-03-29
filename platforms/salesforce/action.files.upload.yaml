@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.salesforce.com"]
   id: salesforce.files.upload
   name: Upload File
   category: Files

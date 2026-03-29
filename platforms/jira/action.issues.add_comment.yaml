@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.atlassian.net"]
   id: jira.issues.add_comment
   name: Add Comment
   category: Issues

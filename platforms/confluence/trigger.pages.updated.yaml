@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.atlassian.net"]
   id: confluence.trigger.pages.updated
   name: Page Updated
   category: Pages

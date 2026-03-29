@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.supabase.co"]
   id: supabase.rows.update
   name: Update Rows
   category: Rows

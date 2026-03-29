@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:graph.microsoft.com"]
   id: excel
   name: Microsoft Excel
   type: Platform

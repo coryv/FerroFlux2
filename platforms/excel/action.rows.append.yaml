@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:graph.microsoft.com"]
   id: excel.rows.append
   name: Append Row
   category: Rows

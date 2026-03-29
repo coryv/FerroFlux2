@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.myshopify.com"]
   id: shopify.customers.new
   name: New Customer
   category: Customers

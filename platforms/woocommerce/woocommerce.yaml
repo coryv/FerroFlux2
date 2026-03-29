@@ -1,3 +1,6 @@
+meta:
+  permissions: ["network:*"]
+
 name: "woocommerce"
 icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/woocommerce.svg"
 base_url: "https://{{ store_url }}/wp-json/wc/v3"

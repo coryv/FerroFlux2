@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:sheets.googleapis.com"]
   id: google_sheets.values.clear
   name: Clear Sheet Values
   category: Values

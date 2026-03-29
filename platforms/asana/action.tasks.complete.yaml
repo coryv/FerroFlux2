@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:app.asana.com"]
   id: asana.tasks.complete
   name: Complete Task
   category: Tasks

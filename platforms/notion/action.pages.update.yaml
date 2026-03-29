@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.notion.com"]
   id: notion.pages.update
   name: Update Page
   category: Pages

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.atlassian.net"]
   id: jira.issues.search
   name: Search Issues
   category: Issues

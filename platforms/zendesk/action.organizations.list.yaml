@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.zendesk.com"]
   id: zendesk.organizations.list
   name: List Organizations
   category: Organizations

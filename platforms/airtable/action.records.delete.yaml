@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.airtable.com"]
   id: airtable.records.delete
   name: Delete Record
   category: Records

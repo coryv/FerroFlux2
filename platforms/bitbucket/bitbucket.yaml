@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.bitbucket.org"]
   id: bitbucket
   name: Bitbucket
   type: Platform

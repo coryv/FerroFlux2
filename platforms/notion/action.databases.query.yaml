@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.notion.com"]
   id: notion.databases.query
   name: Query Database
   category: Databases

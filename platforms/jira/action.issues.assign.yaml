@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.atlassian.net"]
   id: jira.issues.assign
   name: Assign Issue
   category: Issues

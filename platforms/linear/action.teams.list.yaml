@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.linear.app"]
   id: linear.teams.list
   name: List Teams
   category: Teams

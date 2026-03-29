@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.supabase.co"]
   id: supabase.rows.insert
   name: Insert Row
   category: Rows

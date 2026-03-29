@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:graph.microsoft.com"]
   id: outlook.messages.create_draft
   name: Create Draft
   category: Messages

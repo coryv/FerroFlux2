@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.dropboxapi.com"]
   id: dropbox.files.list
   name: List Files
   category: Files

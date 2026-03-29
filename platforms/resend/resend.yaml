@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.resend.com"]
   id: resend
   name: Resend
   type: Platform

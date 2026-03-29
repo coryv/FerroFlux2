@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.api.mailchimp.com"]
   id: mailchimp.tags.add
   name: Add Tag
   category: Subscribers

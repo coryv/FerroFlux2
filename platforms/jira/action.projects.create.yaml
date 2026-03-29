@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.atlassian.net"]
   id: jira.projects.create
   name: Create Project
   category: Projects

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:graph.facebook.com"]
   id: whatsapp
   name: WhatsApp Business
   type: Platform

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.github.com"]
   id: github.issues.create
   name: Create Issue
   category: Issues

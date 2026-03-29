@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.resend.com"]
   id: resend.emails.send
   name: Send Email
   category: Emails

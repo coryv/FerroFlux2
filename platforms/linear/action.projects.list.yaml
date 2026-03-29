@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.linear.app"]
   id: linear.projects.list
   name: List Projects
   category: Projects

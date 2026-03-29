@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:gmail.googleapis.com"]
   id: gmail.emails.mark_unread
   name: Mark as Unread
   category: Emails

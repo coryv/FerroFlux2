@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:graph.microsoft.com"]
   id: outlook.messages.get
   name: Get Message
   category: Messages

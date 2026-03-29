@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.ollama.com"]
   id: ollama_cloud.ai.chat
   name: Chat
   category: AI

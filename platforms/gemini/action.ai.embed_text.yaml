@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:generativelanguage.googleapis.com"]
   id: gemini.ai.embed_text
   name: Embed Text
   category: AI

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.telegram.org"]
   id: telegram.interaction.send_poll
   name: Send Poll
   category: Interaction

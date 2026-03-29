@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:smtp"]
   id: smtp
   name: SMTP
   type: Platform

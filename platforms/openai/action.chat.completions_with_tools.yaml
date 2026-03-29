@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.openai.com"]
   id: openai.chat.completion.with_tools
   name: Chat Completion with Tools
   category: AI/ML

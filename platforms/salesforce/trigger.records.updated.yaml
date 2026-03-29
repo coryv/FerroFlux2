@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.salesforce.com"]
   id: salesforce.records.updated
   name: Updated Record
   category: Records

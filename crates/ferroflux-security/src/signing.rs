@@ -7,13 +7,14 @@ use serde::{Deserialize, Serialize};
 /// For YAML integrations, we hash the entire normalized content (excluding the signature field itself).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IntegrationSignature {
+    pub key_version: String,
     pub public_key: String, // Hex encoded
     pub signature: String,  // Hex encoded
     pub signer_name: String,
 }
 
 /// Signs a canonical representation of an integration's YAML content.
-pub fn sign_content(content: &serde_json::Value, private_key_hex: &str) -> Result<IntegrationSignature> {
+pub fn sign_content(content: &serde_json::Value, private_key_hex: &str, key_version: &str) -> Result<IntegrationSignature> {
     let key_bytes = hex::decode(private_key_hex).context("Invalid private key hex")?;
     if key_bytes.len() != 32 {
         return Err(anyhow!("Private key must be 32 bytes"));
@@ -28,9 +29,10 @@ pub fn sign_content(content: &serde_json::Value, private_key_hex: &str) -> Resul
     let signature = signing_key.sign(&canonical_bytes);
     
     Ok(IntegrationSignature {
+        key_version: key_version.to_string(),
         public_key: hex::encode(verifying_key.to_bytes()),
         signature: hex::encode(signature.to_bytes()),
-        signer_name: "FerroFlux Developer".to_string(), // In practice, this would be retrieved from profile
+        signer_name: "FerroFlux Official".to_string(),
     })
 }
 
@@ -54,8 +56,10 @@ pub fn verify_content(content: &serde_json::Value, signature_info: &IntegrationS
 }
 
 /// A trusted registry of public keys allowed to sign "Official" or "Verified" integrations.
-pub fn is_trusted_key(public_key_hex: &str) -> bool {
-    // In a production system, this would be a dynamic list or baked-in roots of trust.
-    const OFFICIAL_ROOT: &str = "0000000000000000000000000000000000000000000000000000000000000000"; // Placeholder
-    public_key_hex == OFFICIAL_ROOT
+pub fn is_trusted_key(public_key_hex: &str, version: &str) -> bool {
+    // In production, this would be a map of versions to allowed public keys.
+    match version {
+        "v1" => public_key_hex == "0000000000000000000000000000000000000000000000000000000000000000", // Placeholder
+        _ => false,
+    }
 }

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.monday.com"]
   id: monday.columns.update_value
   name: Update Column Value
   category: Columns

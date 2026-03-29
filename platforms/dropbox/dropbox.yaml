@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.dropboxapi.com"]
   id: dropbox
   name: Dropbox
   type: Platform

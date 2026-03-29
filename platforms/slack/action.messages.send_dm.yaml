@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.slack.com"]
   id: slack.messages.send_dm
   name: Send Direct Message
   category: Messages

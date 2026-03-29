@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.api.mailchimp.com"]
   id: mailchimp.campaigns.report
   name: Get Campaign Report
   category: Campaigns

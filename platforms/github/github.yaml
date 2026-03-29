@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.github.com"]
   id: github
   name: GitHub
   type: Platform

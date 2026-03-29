@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:discord.com"]
   id: discord
   name: Discord
   type: Platform

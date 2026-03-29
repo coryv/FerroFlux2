@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.open-meteo.com"]
   id: open-meteo.historical.get
   name: Get Historical Weather
   category: Historical

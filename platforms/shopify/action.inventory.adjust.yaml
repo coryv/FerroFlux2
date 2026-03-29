@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.myshopify.com"]
   id: shopify.inventory.adjust
   name: Adjust Inventory Level
   category: Inventory

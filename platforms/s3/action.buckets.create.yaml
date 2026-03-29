@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.amazonaws.com"]
   id: s3.buckets.create
   name: Create Bucket
   category: Buckets

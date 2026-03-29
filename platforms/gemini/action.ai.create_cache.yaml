@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:generativelanguage.googleapis.com"]
   id: gemini.ai.create_cache
   name: Create Context Cache
   category: AI

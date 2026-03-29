@@ -1,3 +1,6 @@
+meta:
+  permissions: ["network:api.sendgrid.com"]
+
 name: "sendgrid"
 icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/sendgrid.svg"
 base_url: "https://api.sendgrid.com/v3"

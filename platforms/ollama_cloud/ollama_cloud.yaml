@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.ollama.com"]
   id: ollama_cloud
   name: Ollama Cloud
   type: Platform

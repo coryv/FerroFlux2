@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.monday.com"]
   id: monday.items.update
   name: Update Item
   category: Items

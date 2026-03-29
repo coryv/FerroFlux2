@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:graph.microsoft.com"]
   id: outlook.calendar.update
   name: Update Calendar Event
   category: Calendar

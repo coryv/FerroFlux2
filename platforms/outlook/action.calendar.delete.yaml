@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:graph.microsoft.com"]
   id: outlook.calendar.delete
   name: Delete Calendar Event
   category: Calendar

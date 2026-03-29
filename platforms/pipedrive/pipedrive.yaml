@@ -1,3 +1,6 @@
+meta:
+  permissions: ["network:api.pipedrive.com"]
+
 name: "pipedrive"
 icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/pipedrive.svg"
 base_url: "https://api.pipedrive.com/v1"

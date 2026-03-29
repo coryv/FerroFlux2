@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.zendesk.com"]
   id: zendesk.tickets.updated
   name: Updated Ticket
   category: Tickets

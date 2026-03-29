@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:generativelanguage.googleapis.com"]
   id: gemini.ai.list_files
   name: List Files
   category: AI

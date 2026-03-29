@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:app.asana.com"]
   id: asana.tasks.create
   name: Create Task
   category: Tasks

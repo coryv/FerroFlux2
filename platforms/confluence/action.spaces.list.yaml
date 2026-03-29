@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.atlassian.net"]
   id: confluence.spaces.list
   name: List Spaces
   category: Spaces

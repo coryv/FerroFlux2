@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:docs.googleapis.com"]
   id: google_docs.documents.create
   name: Create Document
   category: Documents

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.atlassian.net"]
   id: jira.issues.delete
   name: Delete Issue
   category: Issues

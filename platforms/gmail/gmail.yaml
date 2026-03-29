@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:gmail.googleapis.com"]
   id: gmail
   name: Gmail
   type: Platform

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.atlassian.net"]
   id: confluence.pages.get
   name: Get Page
   category: Pages

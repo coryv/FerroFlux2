@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.slack.com"]
   id: slack.action.channels.list
   name: List Channels
   category: Channels

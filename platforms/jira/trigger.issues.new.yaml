@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.atlassian.net"]
   id: jira.trigger.issues.new
   name: New Issue
   category: Issues

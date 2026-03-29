@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:smtp"]
   id: smtp.email.send
   name: Send Email
   category: Email

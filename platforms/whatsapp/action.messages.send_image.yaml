@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:graph.facebook.com"]
   id: whatsapp.messages.send_image
   name: Send Image Message
   category: Messages

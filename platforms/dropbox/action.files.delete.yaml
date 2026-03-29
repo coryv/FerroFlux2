@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.dropboxapi.com"]
   id: dropbox.files.delete
   name: Delete File
   category: Files

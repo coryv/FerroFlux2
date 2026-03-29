@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.openai.azure.com"]
   id: azure-openai.deployments.list
   name: List Deployments
   category: Deployments

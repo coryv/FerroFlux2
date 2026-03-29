@@ -1,3 +1,6 @@
+meta:
+  permissions: ["network:*.amazonaws.com"]
+
 name: "aws"
 icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/amazonaws.svg"
 base_url: "https://{{ service }}.{{ region }}.amazonaws.com"

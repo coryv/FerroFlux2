@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.atlassian.net"]
   id: jira.sprints.start
   name: Start Sprint
   category: Board

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:graph.microsoft.com"]
   id: outlook.calendar.new
   name: New Calendar Event
   category: Calendar

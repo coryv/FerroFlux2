@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.bitbucket.org"]
   id: bitbucket.issues.create
   name: Create Issue
   category: Issues

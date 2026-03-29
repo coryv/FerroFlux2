@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:gitlab.com"]
   id: gitlab
   name: GitLab
   type: Platform

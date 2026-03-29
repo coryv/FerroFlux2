@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.hubapi.com"]
   id: hubspot
   name: HubSpot
   type: Platform

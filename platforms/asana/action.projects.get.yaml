@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:app.asana.com"]
   id: asana.projects.get
   name: Get Project
   category: Projects

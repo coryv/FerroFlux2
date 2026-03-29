@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.zendesk.com"]
   id: zendesk.tickets.delete
   name: Delete Ticket
   category: Tickets

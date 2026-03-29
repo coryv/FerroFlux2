@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:app.asana.com"]
   id: asana.tasks.get
   name: Get Task
   category: Tasks

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.telegram.org"]
   id: telegram.media.send_document
   name: Send Document
   category: Media

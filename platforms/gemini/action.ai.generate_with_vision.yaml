@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:generativelanguage.googleapis.com"]
   id: gemini.ai.generate_with_vision
   name: Generate with Vision
   category: AI

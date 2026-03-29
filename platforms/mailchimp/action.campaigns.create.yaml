@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.api.mailchimp.com"]
   id: mailchimp.campaigns.create
   name: Create Campaign
   category: Campaigns

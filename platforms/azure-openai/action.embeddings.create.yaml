@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.openai.azure.com"]
   id: azure-openai.embeddings.create
   name: Create Embeddings
   category: Embeddings

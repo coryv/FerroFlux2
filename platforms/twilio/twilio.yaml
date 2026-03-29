@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.twilio.com"]
   id: twilio
   name: Twilio
   type: Platform

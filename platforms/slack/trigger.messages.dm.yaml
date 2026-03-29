@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.slack.com"]
   id: slack.trigger.messages.dm
   name: New Direct Message
   category: Messages

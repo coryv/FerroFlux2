@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.telegram.org"]
   id: telegram.interaction.inline_query
   name: New Inline Query
   category: Interaction

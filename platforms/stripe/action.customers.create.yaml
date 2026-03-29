@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.stripe.com"]
   id: stripe.customers.create
   name: Create Customer
   category: Customers

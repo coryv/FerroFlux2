@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.resend.com"]
   id: resend.emails.send_batch
   name: Send Batch Emails
   category: Emails

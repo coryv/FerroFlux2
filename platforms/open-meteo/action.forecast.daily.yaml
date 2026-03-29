@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.open-meteo.com"]
   id: open-meteo.forecast.daily
   name: Get Daily Forecast
   category: Forecast

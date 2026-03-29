@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:app.asana.com"]
   id: asana.tasks.delete
   name: Delete Task
   category: Tasks

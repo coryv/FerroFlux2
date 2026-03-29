@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.amazonaws.com"]
   id: aws.action.s3.list_objects
   name: List S3 Objects
   category: Cloud

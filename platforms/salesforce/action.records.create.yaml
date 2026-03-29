@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.salesforce.com"]
   id: salesforce.records.create
   name: Create Record
   category: Records

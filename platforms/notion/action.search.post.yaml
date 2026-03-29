@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.notion.com"]
   id: notion.search.post
   name: Search
   category: Search

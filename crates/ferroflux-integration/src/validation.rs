@@ -277,10 +277,10 @@ pub fn validate_node(def: &NodeDefinition) -> ValidationResult {
         
         match verify_content(&content, sig) {
             Ok(_) => {
-                if !is_trusted_key(&sig.public_key) {
+                if !is_trusted_key(&sig.public_key, &sig.key_version) {
                     result.diagnostics.push(ValidationDiagnostic::warning(
                         "untrusted-signer",
-                        format!("Node is signed by an untrusted developer ({})", sig.signer_name),
+                        format!("Node is signed by an untrusted developer ({} @ {})", sig.signer_name, sig.key_version),
                     ));
                 }
             }

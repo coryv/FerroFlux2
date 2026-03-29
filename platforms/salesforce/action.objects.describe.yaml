@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.salesforce.com"]
   id: salesforce.objects.describe
   name: Get Fields (Describe)
   category: Objects

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.linear.app"]
   id: linear.issues.create
   name: Create Issue
   category: Issues

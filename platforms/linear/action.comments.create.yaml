@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.linear.app"]
   id: linear.comments.create
   name: Create Comment
   category: Comments

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.slack.com"]
   id: slack.trigger.reactions.new
   name: New Reaction Added
   category: Reactions

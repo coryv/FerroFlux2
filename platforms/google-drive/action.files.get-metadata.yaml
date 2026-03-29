@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:www.googleapis.com"]
   id: google-drive.files.get-metadata
   name: Get File Metadata
   category: Cloud Storage & Files

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.zendesk.com"]
   id: zendesk.tickets.list
   name: List Tickets
   category: Tickets

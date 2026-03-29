@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.telegram.org"]
   id: telegram.messages.command
   name: New Command
   category: Messages

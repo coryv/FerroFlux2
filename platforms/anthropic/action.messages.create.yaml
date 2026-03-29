@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.anthropic.com"]
   id: anthropic.messages.create
   name: Create Message
   category: AI/ML

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.myshopify.com"]
   id: shopify.orders.update
   name: Update Order
   category: Orders

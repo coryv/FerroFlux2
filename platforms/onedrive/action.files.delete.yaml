@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:graph.microsoft.com"]
   id: onedrive.files.delete
   name: Delete File
   category: Files

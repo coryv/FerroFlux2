@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.clickup.com"]
   id: clickup.tasks.create
   name: Create Task
   category: Tasks

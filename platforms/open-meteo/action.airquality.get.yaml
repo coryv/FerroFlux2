@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.open-meteo.com"]
   id: open-meteo.airquality.get
   name: Get Air Quality
   category: Air Quality

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:discord.com"]
   id: discord.messages.send_dm
   name: Send Direct Message
   category: Messages

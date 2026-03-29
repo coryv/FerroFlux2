@@ -1,3 +1,6 @@
+meta:
+  permissions: ["network:api-m.paypal.com"]
+
 name: "paypal"
 icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/paypal.svg"
 base_url: "https://api-m.paypal.com"

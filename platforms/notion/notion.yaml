@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.notion.com"]
   id: notion
   name: Notion
   type: Platform

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.slack.com"]
   id: slack.action.users.get
   name: Get User Info
   category: Users

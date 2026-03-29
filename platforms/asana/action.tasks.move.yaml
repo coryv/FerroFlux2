@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:app.asana.com"]
   id: asana.tasks.move
   name: Move Task to Section
   category: Tasks

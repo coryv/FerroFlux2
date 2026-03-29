@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.supabase.co"]
   id: supabase
   name: Supabase
   type: Platform

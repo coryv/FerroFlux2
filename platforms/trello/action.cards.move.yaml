@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.trello.com"]
   id: trello.cards.move
   name: Move Card
   category: Cards

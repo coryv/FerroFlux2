@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.anthropic.com"]
   id: anthropic.messages.stream
   name: Stream Message
   category: AI/ML

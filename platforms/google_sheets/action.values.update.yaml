@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:sheets.googleapis.com"]
   id: google_sheets.values.update
   name: Update Sheet Values
   category: Values

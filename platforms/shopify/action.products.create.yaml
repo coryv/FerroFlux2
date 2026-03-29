@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.myshopify.com"]
   id: shopify.products.create
   name: Create Product
   category: Products

@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.telegram.org"]
   id: telegram.interaction.pin
   name: Pin Message
   category: Interaction

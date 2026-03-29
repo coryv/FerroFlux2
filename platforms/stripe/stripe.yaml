@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.stripe.com"]
   id: stripe
   name: Stripe
   type: Platform

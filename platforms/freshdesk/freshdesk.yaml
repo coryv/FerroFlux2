@@ -1,3 +1,6 @@
+meta:
+  permissions: ["network:*.freshdesk.com"]
+
 name: "freshdesk"
 icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/freshdesk.svg"
 base_url: "https://{{ domain }}.freshdesk.com/api/v2"

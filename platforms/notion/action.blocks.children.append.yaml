@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:api.notion.com"]
   id: notion.blocks.children.append
   name: Append Block Children
   category: Blocks

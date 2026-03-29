@@ -1,4 +1,5 @@
 meta:
+  permissions: ["network:*.openai.azure.com"]
   id: azure-openai.chat.completion_vision
   name: Chat Completion with Vision
   category: Chat
