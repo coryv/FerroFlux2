@@ -1,0 +1,69 @@
+meta:
+  id: core.utils.text
+  name: Advanced Text
+  category: Utilities
+  type: Action
+  platform: core
+  description: "Regex match/replace, slugify, and truncate text."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: text
+      type: string
+  outputs:
+    - name: Exec
+      type: flow
+    - name: Error
+      type: flow
+    - name: result
+      type: any
+
+  settings:
+    - name: operation
+      label: Operation
+      type: string
+      required: true
+      options:
+        - label: Regex Match
+          value: match
+        - label: Regex Replace
+          value: replace
+        - label: Slugify
+          value: slugify
+        - label: Truncate
+          value: truncate
+    - name: pattern
+      label: Regex Pattern
+      type: string
+    - name: replacement
+      label: Replacement Text
+      type: string
+    - name: length
+      label: Truncate Length
+      type: number
+
+execution:
+  - id: process
+    tool: core.utils.text
+    params:
+      operation: "{{ settings.operation }}"
+      text: "{{ inputs.text }}"
+      pattern: "{{ settings.pattern }}"
+      replacement: "{{ settings.replacement }}"
+      length: "{{ settings.length }}"
+    returns:
+      result: processed
+
+  - id: emit_res
+    tool: emit
+    params:
+      port: result
+      value: "{{ steps.process.result }}"
+
+  - id: done
+    tool: emit
+    params:
+      port: Exec

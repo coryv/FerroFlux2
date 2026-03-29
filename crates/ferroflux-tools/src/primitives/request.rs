@@ -15,7 +15,6 @@ use url::Url;
 use std::io::{BufRead, BufReader};
 
 use ipnet::IpNet;
-use reqwest::Method;
 use serde_json::Value;
 use std::env;
 use std::net::ToSocketAddrs;

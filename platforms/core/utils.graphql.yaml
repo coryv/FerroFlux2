@@ -1,0 +1,88 @@
+meta:
+  id: core.utils.graphql
+  name: GraphQL Client
+  category: Utilities
+  type: Action
+  platform: core
+  description: "Execute a GraphQL query or mutation."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: url
+      type: string
+    - name: query
+      type: string
+    - name: variables
+      type: object
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: data
+      type: any
+    - name: errors
+      type: any
+
+  settings:
+    - name: url
+      label: API URL
+      type: string
+      required: true
+    - name: query
+      label: Query / Mutation
+      type: code
+      required: true
+      description: "GraphQL query string."
+    - name: operation_name
+      label: Operation Name
+      type: string
+      description: "Optional operation name."
+    - name: headers
+      label: Custom Headers (JSON)
+      type: textarea
+      description: "JSON object of headers, e.g. { \"Authorization\": \"Bearer ...\" }"
+
+execution:
+  - id: call
+    tool: core.utils.graphql
+    params:
+      url: "{{ settings.url }}"
+      query: "{{ settings.query }}"
+      variables: "{{ inputs.variables }}"
+      operation_name: "{{ settings.operation_name }}"
+      headers: "{{ settings.headers }}"
+    returns:
+      status: status
+      data: data
+      errors: errors
+
+  - id: check_status
+    tool: logic
+    params:
+      data: "{{ steps.call.status }}"
+      rules:
+        - condition: "val < 400"
+          output: Success
+        - condition: "default"
+          output: Error
+
+  - id: emit_data
+    tool: emit
+    params:
+      port: data
+      value: "{{ steps.call.data }}"
+
+  - id: emit_errors
+    tool: emit
+    params:
+      port: errors
+      value: "{{ steps.call.errors }}"
+
+  - id: emit_signal
+    tool: emit
+    params:
+      port: "{{ steps.check_status.match }}"

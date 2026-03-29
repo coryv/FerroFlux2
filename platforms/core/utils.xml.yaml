@@ -1,0 +1,41 @@
+meta:
+  id: core.utils.xml
+  name: XML Parser
+  category: Utilities
+  type: Action
+  platform: core
+  description: "Converts XML strings to JSON."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: xml
+      type: string
+  outputs:
+    - name: Exec
+      type: flow
+    - name: Error
+      type: flow
+    - name: result
+      type: any
+
+execution:
+  - id: parse
+    tool: core.utils.xml
+    params:
+      xml: "{{ inputs.xml }}"
+    returns:
+      result: xml_result
+
+  - id: emit_res
+    tool: emit
+    params:
+      port: result
+      value: "{{ steps.parse.result }}"
+
+  - id: done
+    tool: emit
+    params:
+      port: Exec

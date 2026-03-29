@@ -1,0 +1,68 @@
+meta:
+  id: core.utils.date
+  name: DateTime Processor
+  category: Utilities
+  type: Action
+  platform: core
+  description: "Parse, format, diff, and timezone conversion for dates."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+  outputs:
+    - name: Exec
+      type: flow
+    - name: Error
+      type: flow
+    - name: result
+      type: any
+
+  settings:
+    - name: operation
+      label: Operation
+      type: string
+      required: true
+      options:
+        - label: Now
+          value: now
+        - label: Parse
+          value: parse
+        - label: Diff
+          value: diff
+    - name: date
+      label: Date String (for Parse)
+      type: string
+    - name: date1
+      label: Date 1 (for Diff)
+      type: string
+    - name: date2
+      label: Date 2 (for Diff)
+      type: string
+    - name: format
+      label: Format (e.g. %Y-%m-%d)
+      type: string
+
+execution:
+  - id: process
+    tool: core.utils.date
+    params:
+      operation: "{{ settings.operation }}"
+      date: "{{ settings.date }}"
+      date1: "{{ settings.date1 }}"
+      date2: "{{ settings.date2 }}"
+      format: "{{ settings.format }}"
+    returns:
+      result: processed
+
+  - id: emit_res
+    tool: emit
+    params:
+      port: result
+      value: "{{ steps.process.result }}"
+
+  - id: done
+    tool: emit
+    params:
+      port: Exec

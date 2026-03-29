@@ -1,0 +1,50 @@
+meta:
+  id: mongodb.document.delete
+  name: Delete Documents
+  category: Documents
+  type: Action
+  platform: mongodb
+  description: "Deletes documents matching a filter from a collection. Automatically participates in any active session for the current flow."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: collection
+      type: string
+      description: "The name of the collection to delete from."
+    - name: filter
+      type: object
+      description: "The filter to apply (e.g. { status: 'inactive' })."
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: deleted_count
+      type: number
+
+execution:
+  - id: delete
+    tool: mongo_query
+    params:
+      operation: delete
+      connection_string: "{{ get 'settings.connection_string' }}"
+      database: "{{ get 'settings.database' }}"
+      collection: "{{ get 'inputs.collection' }}"
+      filter: "{{ get 'inputs.filter' }}"
+    returns:
+      deleted_count: deleted_count
+
+routing:
+  match: success
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: deleted_count
+          value: "{{ steps.delete.deleted_count }}"

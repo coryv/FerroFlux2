@@ -1,6 +1,14 @@
 # Mysql — Integration Gaps
 
-## All Database Operations
-- **Why omitted:** Database drivers use custom binary TCP protocols rather than HTTP. FerroFlux's `http_client` primitive is built for REST APIs.
-- **Value:** High.
-- **Unblocked by:** Creation of dedicated `sql_client` or `mongo_client` primitives.
+## Resolved
+- **Binary TCP Protocol:** Resolved by dedicated `sql_query` tool primitive using `sqlx`.
+- **Transaction Support:** Resolved with `begin`, `commit`, and `rollback` nodes.
+
+## Remaining Gaps
+- **Numeric Type Mapping:** Currently, all database columns are mapped to JSON Strings.
+  - **Impact:** Low (users must cast in scripts).
+  - **Proposed Fix:** Update `sql_query.rs` to map `AnyTypeInfo` to `serde_json::Value` (Number/Bool/etc).
+- **Advanced Connection Pooling:** No UI to configure max connections or idle timeouts.
+
+## System-Level Gaps
+- Refer to `SYSTEM_GAPS.md` for global engine limitations.

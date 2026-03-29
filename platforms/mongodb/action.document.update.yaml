@@ -1,0 +1,61 @@
+meta:
+  id: mongodb.document.update
+  name: Update Documents
+  category: Documents
+  type: Action
+  platform: mongodb
+  description: "Updates documents matching a filter in a collection. Automatically participates in any active session for the current flow."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: collection
+      type: string
+      description: "The name of the collection to update."
+    - name: filter
+      type: object
+      description: "The filter to apply."
+    - name: update
+      type: object
+      description: "The update operation (e.g. { '$set': { status: 'active' } })."
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: matched_count
+      type: number
+    - name: modified_count
+      type: number
+
+execution:
+  - id: update
+    tool: mongo_query
+    params:
+      operation: update
+      connection_string: "{{ get 'settings.connection_string' }}"
+      database: "{{ get 'settings.database' }}"
+      collection: "{{ get 'inputs.collection' }}"
+      filter: "{{ get 'inputs.filter' }}"
+      update: "{{ get 'inputs.update' }}"
+    returns:
+      matched_count: matched_count
+      modified_count: modified_count
+
+routing:
+  match: success
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: matched_count
+          value: "{{ steps.update.matched_count }}"
+      - tool: emit
+        params:
+          port: modified_count
+          value: "{{ steps.update.modified_count }}"

@@ -1,0 +1,50 @@
+meta:
+  id: mongodb.document.find
+  name: Find Documents
+  category: Documents
+  type: Action
+  platform: mongodb
+  description: "Finds documents matching a filter in a collection. Automatically participates in any active session for the current flow."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: collection
+      type: string
+      description: "The name of the collection to search."
+    - name: filter
+      type: object
+      description: "Optional. The filter to apply (e.g. { age: { '$gt': 25 } })."
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: documents
+      type: array
+
+execution:
+  - id: find
+    tool: mongo_query
+    params:
+      operation: find
+      connection_string: "{{ get 'settings.connection_string' }}"
+      database: "{{ get 'settings.database' }}"
+      collection: "{{ get 'inputs.collection' }}"
+      filter: "{{ get 'inputs.filter' }}"
+    returns:
+      documents: documents
+
+routing:
+  match: success
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: documents
+          value: "{{ steps.find.documents }}"

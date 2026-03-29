@@ -1,0 +1,52 @@
+meta:
+  id: core.utils.html
+  name: HTML Selector
+  category: Utilities
+  type: Action
+  platform: core
+  description: "Extract data from HTML using CSS selectors."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: html
+      type: string
+  outputs:
+    - name: Exec
+      type: flow
+    - name: Error
+      type: flow
+    - name: result
+      type: any
+
+  settings:
+    - name: selector
+      label: CSS Selector
+      type: string
+      required: true
+    - name: attr
+      label: Attribute (optional)
+      type: string
+
+execution:
+  - id: extract
+    tool: core.utils.html
+    params:
+      html: "{{ inputs.html }}"
+      selector: "{{ settings.selector }}"
+      attr: "{{ settings.attr }}"
+    returns:
+      result: extracted
+
+  - id: emit_res
+    tool: emit
+    params:
+      port: result
+      value: "{{ steps.extract.result }}"
+
+  - id: done
+    tool: emit
+    params:
+      port: Exec

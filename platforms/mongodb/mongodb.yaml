@@ -3,22 +3,27 @@ meta:
   name: MongoDB
   category: Database
   type: Platform
-  description: "Direct connection to MongoDB databases."
+  description: "Direct connection to MongoDB clusters via binary protocol."
   version: "1.0.0"
 
-config: {}
+config:
+  driver: mongodb
+  base_url: "mongodb://localhost" # Placeholder for database platforms
+  headers: {}                  # Placeholder for database platforms
 
 settings:
-
   - name: connection_string
-    label: "Connection String (e.g. mongodb://user:pass@host:27017)"
+    label: "Connection String"
     type: string
     required: true
     secret: true
+    placeholder: "mongodb+srv://user:password@cluster.mongodb.net/dbname"
+    description: "The full connection URI for your MongoDB cluster."
   - name: database
     label: "Default Database"
     type: string
     required: true
+    description: "The name of the database to use by default."
 
 interface:
   inputs: []

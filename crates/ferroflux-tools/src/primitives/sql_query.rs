@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use ferroflux_types::tool::{Tool, ToolContext};
 use once_cell::sync::Lazy;
 use serde_json::{json, Value};
-use sqlx::{AnyConnection, AnyPool, any::AnyPoolOptions, Column, Row, Connection};
+use sqlx::{AnyConnection, AnyPool, any::AnyPoolOptions, Column, Row};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use tokio::runtime::Handle;

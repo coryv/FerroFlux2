@@ -524,25 +524,25 @@ Each entry lists:
 **Triggers:** New Feed Item
 **Actions:** Get Feed, Parse Feed (returns items)
 
-### HTML Parser / Web Scraper *(Tier 2)*
+### ✅ HTML Parser / Web Scraper *(Tier 2)*
 **Actions:** Extract from HTML (CSS selector), Extract Links, Extract Images, Get Page HTML
 
-### XML Parser *(Tier 1)*
+### ✅ XML Parser *(Tier 1)*
 **Actions:** Parse XML to Object, Object to XML, XPath Query
 
-### PDF *(Tier 2)*
+### ✅ PDF *(Tier 2)*
 **Actions:** Extract Text, Merge PDFs, Split PDF, Convert HTML to PDF
 
-### JSON Utilities *(Tier 1)*
+### ✅ JSON Utilities *(Tier 1)*
 **Actions:** JSONata Transform, JSON Schema Validate, Flatten Object, Deep Merge Objects
 
-### Crypto / Hashing *(Tier 2)*
+### ✅ Crypto / Hashing *(Tier 2)*
 **Actions:** Hash (MD5/SHA1/SHA256/SHA512), HMAC, Base64 Encode/Decode, UUID Generate, Generate Random String
 
-### Date / Time *(Tier 1)*
+### ✅ Date / Time *(Tier 1)*
 **Actions:** Format Date, Parse Date, Add/Subtract Duration, Convert Timezone, Diff Dates, Is Before/After, Start/End of Day/Week/Month
 
-### Text *(Tier 1)*
+### ✅ Text *(Tier 1)*
 **Actions:** Trim, Split, Replace, Substring, Regex Match, Regex Replace, Lowercase, Uppercase, Truncate, Slugify, Count Words, Pad String
 
 ---
@@ -553,7 +553,7 @@ Each entry lists:
 **Triggers:** Receive Webhook (any HTTP method), Receive & Validate (HMAC signature)
 **Actions:** — (handled by core HTTP action)
 
-### GraphQL Client *(Tier 1)*
+### ✅ GraphQL Client *(Tier 1)*
 **Actions:** Execute Query, Execute Mutation, Execute Subscription (streaming), Introspect Schema
 
 ### WebSocket Client *(Tier 2)*
@@ -598,13 +598,15 @@ Each entry lists:
 24. ~~GitLab~~
 25. ~~Bitbucket~~
 26. ~~Telegram~~
-27. XML Parser
-
-27. JSON Utilities
-28. ~~Microsoft Outlook~~
-29. ~~SMTP~~
-30. ~~Monday.com~~
-31. ~~ClickUp~~
-32. GraphQL Client
-
-
+27. ~~XML Parser~~
+28. ~~JSON Utilities~~
+29. ~~Date / Time~~
+30. ~~Text~~
+31. ~~HTML Parser / Web Scraper~~
+32. ~~PDF (Read/Write)~~
+33. ~~Crypto / Hashing~~
+34. ~~Microsoft Outlook~~
+35. ~~SMTP~~
+36. ~~Monday.com~~
+37. ~~ClickUp~~
+38. ~~GraphQL Client~~

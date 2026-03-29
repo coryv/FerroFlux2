@@ -1,0 +1,41 @@
+meta:
+  id: core.utils.pdf_read
+  name: PDF Text Extractor
+  category: Utilities
+  type: Action
+  platform: core
+  description: "Extract text from PDF Blobs or Base64 strings."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: pdf_base64
+      type: string
+  outputs:
+    - name: Exec
+      type: flow
+    - name: Error
+      type: flow
+    - name: result
+      type: string
+
+execution:
+  - id: read
+    tool: core.utils.pdf_read
+    params:
+      pdf_base64: "{{ inputs.pdf_base64 }}"
+    returns:
+      result: text_content
+
+  - id: emit_res
+    tool: emit
+    params:
+      port: result
+      value: "{{ steps.read.result }}"
+
+  - id: done
+    tool: emit
+    params:
+      port: Exec

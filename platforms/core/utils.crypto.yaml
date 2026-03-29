@@ -1,0 +1,60 @@
+meta:
+  id: core.utils.crypto
+  name: Crypto Utility
+  category: Utilities
+  type: Action
+  platform: core
+  description: "Hashing, HMAC, and UUID generation."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+  outputs:
+    - name: Exec
+      type: flow
+    - name: Error
+      type: flow
+    - name: result
+      type: string
+
+  settings:
+    - name: operation
+      label: Operation
+      type: string
+      required: true
+      options:
+        - label: SHA-256 Hash
+          value: hash
+        - label: HMAC-SHA256
+          value: hmac
+        - label: UUID v4
+          value: uuid
+    - name: input
+      label: Input Data
+      type: string
+    - name: key
+      label: HMAC Key
+      type: string
+
+execution:
+  - id: crypto
+    tool: core.utils.crypto
+    params:
+      operation: "{{ settings.operation }}"
+      input: "{{ settings.input }}"
+      key: "{{ settings.key }}"
+    returns:
+      result: crypto_res
+
+  - id: emit_res
+    tool: emit
+    params:
+      port: result
+      value: "{{ steps.crypto.result }}"
+
+  - id: done
+    tool: emit
+    params:
+      port: Exec

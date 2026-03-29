@@ -1,0 +1,37 @@
+meta:
+  id: mongodb.transaction.commit
+  name: Commit Transaction
+  category: Transaction
+  type: Action
+  platform: mongodb
+  description: "Commits the active MongoDB transaction for the current execution flow."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+
+execution:
+  - id: commit
+    tool: mongo_query
+    params:
+      operation: commit_transaction
+      connection_string: "{{ get 'settings.connection_string' }}"
+      database: "{{ get 'settings.database' }}"
+      collection: "_" # Unused for this op
+    returns:
+      status: status
+
+routing:
+  match: success
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success

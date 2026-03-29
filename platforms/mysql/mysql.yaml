@@ -3,18 +3,22 @@ meta:
   name: MySQL
   category: Database
   type: Platform
-  description: "Direct connection to MySQL databases."
+  description: "Direct connection to MySQL databases via binary TCP protocol."
   version: "1.0.0"
 
-config: {}
+config:
+  driver: mysql
+  base_url: "tcp://localhost" # Placeholder for database platforms
+  headers: {}                # Placeholder for database platforms
 
 settings:
-
   - name: connection_string
-    label: "Connection String (e.g. mysql://user:pass@host:3306/db)"
+    label: "Connection String"
     type: string
     required: true
     secret: true
+    placeholder: "mysql://user:password@localhost:3306/dbname"
+    description: "The full connection URI for your MySQL database."
 
 interface:
   inputs: []

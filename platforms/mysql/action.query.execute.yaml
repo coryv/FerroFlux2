@@ -1,10 +1,10 @@
 meta:
   id: mysql.query.execute
   name: Execute Query
-  category: Database
+  category: Query
   type: Action
   platform: mysql
-  description: "Execute a custom SQL query on a MySQL database."
+  description: "Executes a SQL query against the database. Automatically participates in any active transaction for the current flow. Use '?' for parameter placeholders."
   version: "1.0.0"
 
 interface:
@@ -13,8 +13,10 @@ interface:
       type: flow
     - name: query
       type: string
+      description: "The SQL query to execute (e.g. SELECT * FROM users WHERE id = ?)."
     - name: bind
       type: array
+      description: "Optional. Array of values to bind to parameters in the query."
   outputs:
     - name: Success
       type: flow
@@ -22,30 +24,27 @@ interface:
       type: flow
     - name: rows
       type: array
+      description: "The result sets returned by the query."
 
 execution:
-  - id: sql
+  - id: execute
     tool: sql_query
     params:
-      connection_string: "{{ settings.connection_string }}"
+      operation: execute
+      connection_string: "{{ get 'settings.connection_string' }}"
       query: "{{ get 'inputs.query' }}"
       bind: "{{ get 'inputs.bind' }}"
     returns:
       rows: rows
 
 routing:
-  match: "{{ steps.sql.status }}"
+  match: success
   cases:
-    "error":
-      - tool: emit
-        params:
-          port: Error
-          value: "{{ steps.sql.error }}"
-    default:
+    success:
       - tool: emit
         params:
           port: Success
       - tool: emit
         params:
           port: rows
-          value: "{{ steps.sql.rows }}"
+          value: "{{ steps.execute.rows }}"

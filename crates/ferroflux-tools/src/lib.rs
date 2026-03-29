@@ -34,5 +34,14 @@ pub fn register_core_tools(registry: &mut ToolRegistry) {
     registry.register(SqlTool);
     registry.register(MongoTool);
     registry.register(RedisTool);
+    registry.register(XmlTool);
+    registry.register(JsonTransformTool);
+    registry.register(DateTool);
+    registry.register(TextTool);
+    registry.register(HtmlTool);
+    registry.register(PdfReadTool);
+    registry.register(PdfWriteTool);
+    registry.register(CryptoTool);
+    registry.register(GraphQlTool);
 }
 

@@ -1,0 +1,47 @@
+meta:
+  id: core.utils.pdf_write
+  name: PDF Generator
+  category: Utilities
+  type: Action
+  platform: core
+  description: "Create simple PDFs from text."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: content
+      type: string
+  outputs:
+    - name: Exec
+      type: flow
+    - name: Error
+      type: flow
+    - name: result
+      type: string
+
+  settings:
+    - name: title
+      label: PDF Title
+      type: string
+
+execution:
+  - id: write
+    tool: core.utils.pdf_write
+    params:
+      title: "{{ settings.title }}"
+      content: "{{ inputs.content }}"
+    returns:
+      result: pdf_base64
+
+  - id: emit_res
+    tool: emit
+    params:
+      port: result
+      value: "{{ steps.write.result }}"
+
+  - id: done
+    tool: emit
+    params:
+      port: Exec

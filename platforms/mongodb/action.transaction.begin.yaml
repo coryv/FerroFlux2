@@ -1,0 +1,37 @@
+meta:
+  id: mongodb.transaction.begin
+  name: Begin Transaction
+  category: Transaction
+  type: Action
+  platform: mongodb
+  description: "Starts a new session and transaction for the current execution flow. Requires a replica set or sharded cluster."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+
+execution:
+  - id: begin
+    tool: mongo_query
+    params:
+      operation: begin_transaction
+      connection_string: "{{ get 'settings.connection_string' }}"
+      database: "{{ get 'settings.database' }}"
+      collection: "_" # Unused for this op
+    returns:
+      status: status
+
+routing:
+  match: success
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success

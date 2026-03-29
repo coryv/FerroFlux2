@@ -1,0 +1,50 @@
+meta:
+  id: mongodb.document.insert
+  name: Insert Document
+  category: Documents
+  type: Action
+  platform: mongodb
+  description: "Inserts a document into a collection. Automatically participates in any active session for the current flow."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+    - name: collection
+      type: string
+      description: "The name of the collection to insert into."
+    - name: document
+      type: object
+      description: "The document to insert."
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+    - name: inserted_id
+      type: string
+
+execution:
+  - id: insert
+    tool: mongo_query
+    params:
+      operation: insert
+      connection_string: "{{ get 'settings.connection_string' }}"
+      database: "{{ get 'settings.database' }}"
+      collection: "{{ get 'inputs.collection' }}"
+      document: "{{ get 'inputs.document' }}"
+    returns:
+      inserted_id: inserted_id
+
+routing:
+  match: success
+  cases:
+    success:
+      - tool: emit
+        params:
+          port: Success
+      - tool: emit
+        params:
+          port: inserted_id
+          value: "{{ steps.insert.inserted_id }}"
