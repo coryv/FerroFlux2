@@ -1,0 +1,121 @@
+name: "intercom"
+icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/intercom.svg"
+base_url: "https://api.intercom.io"
+auth_type: "oauth2"
+auth:
+  type: "bearer"
+connection_schema:
+  - name: "access_token"
+    type: "string"
+    required: true
+    is_secret: true
+
+actions:
+  create_conversation:
+    name: "Create Conversation"
+    category: "Support"
+    subcategory: "Conversations"
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/conversations"
+        body_template: |
+          {
+            "from": { "type": "user", "id": "{{ user_id }}" },
+            "body": "{{ body }}"
+          }
+    inputs:
+      - name: "user_id"
+        type: "string"
+        required: true
+      - name: "body"
+        type: "string"
+        required: true
+
+  reply_to_conversation:
+    name: "Reply to Conversation"
+    category: "Support"
+    subcategory: "Conversations"
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/conversations/{{ id }}/reply"
+        body_template: |
+          {
+            "message_type": "comment",
+            "type": "{{ default type 'admin' }}",
+            "admin_id": "{{ admin_id }}",
+            "body": "{{ body }}"
+          }
+    inputs:
+      - name: "id"
+        label: "Conversation ID"
+        type: "string"
+        required: true
+      - name: "admin_id"
+        type: "string"
+      - name: "body"
+        type: "string"
+        required: true
+      - name: "type"
+        type: "string"
+        default: "admin"
+
+  create_contact:
+    name: "Create Contact"
+    category: "Support"
+    subcategory: "Contacts"
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/contacts"
+        body_template: |
+          {
+            "role": "user",
+            "email": "{{ email }}",
+            "name": "{{ name }}",
+            "phone": "{{ phone }}"
+          }
+    inputs:
+      - name: "email"
+        type: "string"
+      - name: "name"
+        type: "string"
+      - name: "phone"
+        type: "string"
+
+  list_contacts:
+    name: "List Contacts"
+    category: "Support"
+    subcategory: "Contacts"
+    implementation:
+      type: "http"
+      config:
+        method: "GET"
+        path: "/contacts"
+        query_params:
+          per_page: "{{ limit }}"
+    inputs:
+      - name: "limit"
+        type: "integer"
+        default: 50
+
+triggers:
+  new_conversation:
+    name: "New Conversation"
+    category: "Support"
+    subcategory: "Conversations"
+    description: "Triggers when a new conversation is started or updated."
+    implementation:
+      type: "polling"
+      config:
+        path: "/conversations/search"
+        method: "POST"
+        body:
+          query: { "field": "updated_at", "operator": ">", "value": "{{ LAST_TIMESTAMP }}" }
+          sort: [{ "field": "updated_at", "order": "descending" }]
+        deduplication_key: "id"
+        interval: "15m"

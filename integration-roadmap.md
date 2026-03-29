@@ -121,7 +121,7 @@ Each entry lists:
 **Triggers:** New Event, Event Starting, Event Updated, Event Deleted
 **Actions:** Create Event, Update Event, Delete Event, Get Event, List Events, Search Events, Create Calendar, List Calendars, Add Attendee, Get Free/Busy Info
 
-### Microsoft Outlook Calendar *(Tier 1)*
+### ✅ Microsoft Outlook Calendar *(Tier 1)*
 **Triggers:** New Event, Event Starting, Event Updated
 **Actions:** Create Event, Update Event, Delete Event, Get Event, List Events, Accept Event, Decline Event, List Calendars
 
@@ -141,11 +141,11 @@ Each entry lists:
 **Triggers:** New Contact, Updated Contact, New Deal, Deal Stage Changed, New Company, Form Submitted, New Ticket
 **Actions:** Create Contact, Update Contact, Delete Contact, Get Contact, Search Contacts, Create Deal, Update Deal, Get Deal, List Deals, Create Company, Get Company, Create Ticket, Update Ticket, Add Note, Create Engagement, Associate Objects, List Properties, Create Property
 
-### Salesforce *(Tier 1)* ✅
+### ✅ Salesforce *(Tier 1)*
 **Triggers:** New Record, Updated Record (any object), New Lead, New Opportunity, Opportunity Stage Changed
 **Actions:** Create Record, Update Record, Delete Record, Get Record, Query Records (SOQL), Search Records, Create Lead, Convert Lead, Create Opportunity, Create Case, Add Note, Upload File, Get Fields
 
-### Pipedrive *(Tier 1)*
+### ✅ Pipedrive *(Tier 1)*
 **Triggers:** New Deal, Updated Deal, Deal Stage Changed, New Person, New Organization, New Activity
 **Actions:** Create Deal, Update Deal, Delete Deal, Get Deal, List Deals, Create Person, Update Person, Get Person, Create Organization, Create Activity, Get Activity, Add Note, Search Deals, Search Persons
 
@@ -259,15 +259,15 @@ Each entry lists:
 **Triggers:** Payment Succeeded, Payment Failed, Subscription Created, Subscription Updated, Subscription Cancelled, Customer Created, Invoice Created, Invoice Paid, Checkout Session Completed, Refund Created
 **Actions:** Create Customer, Update Customer, Get Customer, Delete Customer, Create Charge, Capture Charge, Refund Charge, Create Payment Intent, Confirm Payment Intent, Create Subscription, Update Subscription, Cancel Subscription, Create Invoice, Finalize Invoice, Pay Invoice, Create Price, Create Product, List Customers, List Charges, List Subscriptions, Create Checkout Session, Retrieve Balance
 
-### PayPal *(Tier 1)*
+### ✅ PayPal *(Tier 1)*
 **Triggers:** Payment Completed, Subscription Activated, Subscription Cancelled
 **Actions:** Create Order, Capture Order, Get Order, Create Subscription, Suspend Subscription, Cancel Subscription, List Subscriptions, Get Subscription, Create Invoice, Send Invoice, List Payments
 
-### Shopify *(Tier 1)* ✅
+### ✅ Shopify *(Tier 1)* ✅
 **Triggers:** New Order, Order Updated, Order Paid, Order Fulfilled, Order Cancelled, New Customer, Customer Updated, New Product, Product Updated, New Refund, Abandoned Checkout, New Draft Order
 **Actions:** Create Order, Update Order, Cancel Order, Fulfill Order, Create Product, Update Product, Delete Product, Get Product, List Products, Create Customer, Update Customer, Get Customer, List Customers, Create Discount, Apply Discount, Get Inventory Level, Adjust Inventory, Create Metafield
 
-### WooCommerce *(Tier 1)*
+### ✅ WooCommerce *(Tier 1)*
 **Triggers:** New Order, Order Status Updated, New Customer, New Product
 **Actions:** Create Order, Update Order, Get Order, List Orders, Create Product, Update Product, Delete Product, Get Product, Create Customer, Update Customer, Get Customer, List Customers, Get Order Item
 
@@ -279,11 +279,11 @@ Each entry lists:
 
 ## Marketing
 
-### Mailchimp *(Tier 1)* ✅
+### ✅ Mailchimp *(Tier 1)*
 **Triggers:** New Subscriber, Unsubscribe, Profile Updated, Campaign Sent
 **Actions:** Add/Update Subscriber, Remove Subscriber, Get Subscriber, List Subscribers, Create Campaign, Send Campaign, Schedule Campaign, Add Tag, Remove Tag, Create List, List Audiences, Add Note, Get Campaign Report
 
-### SendGrid *(Tier 1)*
+### ✅ SendGrid *(Tier 1)*
 **Triggers:** Email Bounced, Email Opened, Email Clicked, Unsubscribe
 **Actions:** Send Email, Send Template Email, Add Contact, Update Contact, Delete Contact, List Contacts, Add to List, Remove from List, Create List, Get Contact, Search Contacts
 
@@ -303,15 +303,15 @@ Each entry lists:
 
 ## Customer Support
 
-### Zendesk *(Tier 1)* ✅
+### ✅ Zendesk *(Tier 1)*
 **Triggers:** New Ticket, Ticket Updated, Ticket Status Changed, New Comment
 **Actions:** Create Ticket, Update Ticket, Delete Ticket, Get Ticket, List Tickets, Add Comment, Get Comments, Assign Ticket, Set Ticket Status, Create User, Get User, List Organizations
 
-### Intercom *(Tier 1)*
+### ✅ Intercom *(Tier 1)*
 **Triggers:** New Conversation, New Message, New User, User Event Triggered
 **Actions:** Create Conversation, Reply to Conversation, Assign Conversation, Close Conversation, Snooze Conversation, Create Note, Create User (Contact), Update User, Delete User, Get User, List Users, Tag User, Untag User, Send Event
 
-### Freshdesk *(Tier 1)*
+### ✅ Freshdesk *(Tier 1)*
 **Triggers:** New Ticket, Ticket Updated, New Reply
 **Actions:** Create Ticket, Update Ticket, Delete Ticket, Get Ticket, List Tickets, Add Reply, Add Note, Create Contact, Get Contact, List Contacts, List Agents
 
@@ -378,7 +378,7 @@ Each entry lists:
 
 ## Analytics
 
-### Google Analytics 4 *(Tier 1)*
+### ✅ Google Analytics 4 *(Tier 1)*
 **Actions:** Run Report, Run Realtime Report, Get Property, List Properties, Get Audience List, Create Audience List
 
 ### Mixpanel *(Tier 2)*
@@ -605,8 +605,15 @@ Each entry lists:
 31. ~~HTML Parser / Web Scraper~~
 32. ~~PDF (Read/Write)~~
 33. ~~Crypto / Hashing~~
-34. ~~Microsoft Outlook~~
+34. ~~Microsoft Outlook (Mail + Calendar)~~
 35. ~~SMTP~~
 36. ~~Monday.com~~
 37. ~~ClickUp~~
 38. ~~GraphQL Client~~
+39. ~~Pipedrive~~
+40. ~~PayPal~~
+41. ~~WooCommerce~~
+42. ~~SendGrid~~
+43. ~~Intercom~~
+44. ~~Freshdesk~~
+45. ~~Google Analytics 4~~

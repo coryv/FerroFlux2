@@ -1,0 +1,125 @@
+name: "freshdesk"
+icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/freshdesk.svg"
+base_url: "https://{{ domain }}.freshdesk.com/api/v2"
+auth_type: "basic"
+auth:
+  type: "basic"
+connection_schema:
+  - name: "domain"
+    type: "string"
+    required: true
+  - name: "api_key"
+    type: "string"
+    required: true
+    is_secret: true
+
+# --- TEMPLATES ---
+_templates:
+  ticket_fields: &ticket_fields
+    - name: "subject"
+      type: "string"
+      required: true
+    - name: "description"
+      type: "string"
+      required: true
+    - name: "email"
+      type: "string"
+      required: true
+    - name: "status"
+      type: "integer"
+      default: 2
+    - name: "priority"
+      type: "integer"
+      default: 1
+
+actions:
+  create_ticket:
+    name: "Create Ticket"
+    category: "Support"
+    subcategory: "Tickets"
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/tickets"
+        body_template: |
+          {
+            "subject": "{{ subject }}",
+            "description": "{{ description }}",
+            "email": "{{ email }}",
+            "status": {{ default status 2 }},
+            "priority": {{ default priority 1 }}
+          }
+    inputs: *ticket_fields
+
+  update_ticket:
+    name: "Update Ticket"
+    category: "Support"
+    subcategory: "Tickets"
+    implementation:
+      type: "http"
+      config:
+        method: "PUT"
+        path: "/tickets/{{ id }}"
+        body_template: |
+          {
+            "status": {{ default status "null" }},
+            "priority": {{ default priority "null" }}
+          }
+    inputs:
+      - name: "id"
+        label: "Ticket ID"
+        type: "integer"
+        required: true
+      - name: "status"
+        type: "integer"
+      - name: "priority"
+        type: "integer"
+
+  get_ticket:
+    name: "Get Ticket"
+    category: "Support"
+    subcategory: "Tickets"
+    implementation:
+      type: "http"
+      config:
+        method: "GET"
+        path: "/tickets/{{ id }}"
+    inputs:
+      - name: "id"
+        label: "Ticket ID"
+        type: "integer"
+        required: true
+
+  list_tickets:
+    name: "List Tickets"
+    category: "Support"
+    subcategory: "Tickets"
+    implementation:
+      type: "http"
+      config:
+        method: "GET"
+        path: "/tickets"
+        query_params:
+          per_page: "{{ limit }}"
+    inputs:
+      - name: "limit"
+        type: "integer"
+        default: 30
+
+triggers:
+  new_ticket:
+    name: "New Ticket"
+    category: "Support"
+    subcategory: "Tickets"
+    description: "Triggers when a new ticket is created."
+    implementation:
+      type: "polling"
+      config:
+        path: "/tickets"
+        query_params:
+          order_by: "created_at"
+          order_type: "desc"
+          per_page: 10
+        deduplication_key: "id"
+        interval: "15m"

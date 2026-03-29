@@ -1,0 +1,191 @@
+name: "paypal"
+icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/paypal.svg"
+base_url: "https://api-m.paypal.com"
+auth_type: "oauth2"
+auth:
+  type: "bearer"
+connection_schema:
+  - name: "client_id"
+    type: "string"
+    required: true
+  - name: "client_secret"
+    type: "string"
+    required: true
+    is_secret: true
+
+# --- TEMPLATES ---
+_templates:
+  order_fields: &order_fields
+    - name: "intent"
+      label: "Intent"
+      type: "select"
+      options: ["CAPTURE", "AUTHORIZE"]
+      default: "CAPTURE"
+    - name: "currency_code"
+      label: "Currency"
+      type: "string"
+      default: "USD"
+    - name: "value"
+      label: "Amount"
+      type: "string"
+      required: true
+    - name: "return_url"
+      label: "Return URL"
+      type: "string"
+    - name: "cancel_url"
+      label: "Cancel URL"
+      type: "string"
+
+actions:
+  create_order:
+    name: "Create Order"
+    category: "Payments"
+    subcategory: "Orders"
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/v2/checkout/orders"
+        body_template: |
+          {
+            "intent": "{{ intent }}",
+            "purchase_units": [
+              {
+                "amount": {
+                  "currency_code": "{{ currency_code }}",
+                  "value": "{{ value }}"
+                }
+              }
+            ],
+            "application_context": {
+              "return_url": "{{ return_url }}",
+              "cancel_url": "{{ cancel_url }}"
+            }
+          }
+    inputs: *order_fields
+
+  capture_order:
+    name: "Capture Order"
+    category: "Payments"
+    subcategory: "Orders"
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/v2/checkout/orders/{{ id }}/capture"
+    inputs:
+      - name: "id"
+        label: "Order ID"
+        type: "string"
+        required: true
+
+  get_order:
+    name: "Get Order"
+    category: "Payments"
+    subcategory: "Orders"
+    implementation:
+      type: "http"
+      config:
+        method: "GET"
+        path: "/v2/checkout/orders/{{ id }}"
+    inputs:
+      - name: "id"
+        label: "Order ID"
+        type: "string"
+        required: true
+
+  create_subscription:
+    name: "Create Subscription"
+    category: "Payments"
+    subcategory: "Subscriptions"
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/v1/billing/subscriptions"
+        body_template: |
+          {
+            "plan_id": "{{ plan_id }}",
+            "quantity": "{{ default quantity '1' }}",
+            "subscriber": {
+              "name": {
+                "given_name": "{{ first_name }}",
+                "surname": "{{ last_name }}"
+              },
+              "email_address": "{{ email }}"
+            },
+            "application_context": {
+              "return_url": "{{ return_url }}",
+              "cancel_url": "{{ cancel_url }}"
+            }
+          }
+    inputs:
+      - name: "plan_id"
+        label: "Plan ID"
+        type: "string"
+        required: true
+      - name: "first_name"
+        type: "string"
+      - name: "last_name"
+        type: "string"
+      - name: "email"
+        type: "string"
+      - name: "quantity"
+        type: "string"
+      - name: "return_url"
+        type: "string"
+      - name: "cancel_url"
+        type: "string"
+
+  cancel_subscription:
+    name: "Cancel Subscription"
+    category: "Payments"
+    subcategory: "Subscriptions"
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/v1/billing/subscriptions/{{ id }}/cancel"
+        body_template: |
+          { "reason": "{{ reason }}" }
+    inputs:
+      - name: "id"
+        label: "Subscription ID"
+        type: "string"
+        required: true
+      - name: "reason"
+        label: "Reason"
+        type: "string"
+
+  get_subscription:
+    name: "Get Subscription"
+    category: "Payments"
+    subcategory: "Subscriptions"
+    implementation:
+      type: "http"
+      config:
+        method: "GET"
+        path: "/v1/billing/subscriptions/{{ id }}"
+    inputs:
+      - name: "id"
+        label: "Subscription ID"
+        type: "string"
+        required: true
+
+triggers:
+  payment_completed:
+    name: "Payment Completed"
+    category: "Payments"
+    subcategory: "Transactions"
+    description: "Triggers when a payment is completed."
+    implementation:
+      type: "polling"
+      config:
+        path: "/v1/reporting/transactions"
+        query_params:
+          # Note: start_date/end_date should be dynamically handled by the engine for polling
+          # This is a simplified example
+          transaction_status: "S" # Successful
+          page_size: 10
+        deduplication_key: "transaction_info.transaction_id"
+        interval: "15m"

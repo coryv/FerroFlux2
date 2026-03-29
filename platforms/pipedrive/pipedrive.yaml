@@ -1,0 +1,217 @@
+name: "pipedrive"
+icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/pipedrive.svg"
+base_url: "https://api.pipedrive.com/v1"
+auth_type: "oauth2"
+auth:
+  type: "bearer"
+connection_schema:
+  - name: "api_token"
+    type: "string"
+    required: false
+    is_secret: true
+    description: "Personal API Token (can be used as api_token param)"
+
+# --- TEMPLATES ---
+_templates:
+  deal_fields: &deal_fields
+    - name: "title"
+      label: "Deal Title"
+      type: "string"
+      required: true
+    - name: "value"
+      label: "Value"
+      type: "number"
+    - name: "currency"
+      label: "Currency"
+      type: "string"
+      default: "USD"
+    - name: "user_id"
+      label: "User ID (Owner)"
+      type: "integer"
+    - name: "person_id"
+      label: "Person ID"
+      type: "integer"
+    - name: "org_id"
+      label: "Organization ID"
+      type: "integer"
+    - name: "stage_id"
+      label: "Stage ID"
+      type: "integer"
+    - name: "status"
+      label: "Status"
+      type: "select"
+      options: ["open", "won", "lost", "deleted"]
+      default: "open"
+
+actions:
+  create_deal:
+    name: "Create Deal"
+    category: "CRM"
+    subcategory: "Deals"
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/deals"
+        body_template: |
+          {
+            "title": "{{ title }}",
+            "value": {{ default value 0 }},
+            "currency": "{{ default currency 'USD' }}",
+            "user_id": {{ default user_id "null" }},
+            "person_id": {{ default person_id "null" }},
+            "org_id": {{ default org_id "null" }},
+            "stage_id": {{ default stage_id "null" }},
+            "status": "{{ default status 'open' }}"
+          }
+    inputs: *deal_fields
+
+  update_deal:
+    name: "Update Deal"
+    category: "CRM"
+    subcategory: "Deals"
+    implementation:
+      type: "http"
+      config:
+        method: "PUT"
+        path: "/deals/{{ id }}"
+        body_template: |
+          {
+            "title": "{{ title }}",
+            "value": {{ default value "null" }},
+            "currency": "{{ currency }}",
+            "status": "{{ status }}"
+          }
+    inputs:
+      - name: "id"
+        label: "Deal ID"
+        type: "integer"
+        required: true
+      - *deal_fields
+
+  get_deal:
+    name: "Get Deal"
+    category: "CRM"
+    subcategory: "Deals"
+    implementation:
+      type: "http"
+      config:
+        method: "GET"
+        path: "/deals/{{ id }}"
+    inputs:
+      - name: "id"
+        label: "Deal ID"
+        type: "integer"
+        required: true
+
+  list_deals:
+    name: "List Deals"
+    category: "CRM"
+    subcategory: "Deals"
+    implementation:
+      type: "http"
+      config:
+        method: "GET"
+        path: "/deals"
+        query_params:
+          status: "{{ status }}"
+          start: "{{ start }}"
+          limit: "{{ limit }}"
+    inputs:
+      - name: "status"
+        type: "string"
+        default: "all_not_deleted"
+      - name: "start"
+        type: "integer"
+        default: 0
+      - name: "limit"
+        type: "integer"
+        default: 100
+
+  search_deals:
+    name: "Search Deals"
+    category: "CRM"
+    subcategory: "Deals"
+    implementation:
+      type: "http"
+      config:
+        method: "GET"
+        path: "/itemSearch"
+        query_params:
+          term: "{{ term }}"
+          item_types: "deal"
+    inputs:
+      - name: "term"
+        label: "Search Term"
+        type: "string"
+        required: true
+
+  create_person:
+    name: "Create Person"
+    category: "CRM"
+    subcategory: "Contacts"
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/persons"
+        body_template: |
+          {
+            "name": "{{ name }}",
+            "email": ["{{ email }}"],
+            "phone": ["{{ phone }}"],
+            "org_id": {{ default org_id "null" }}
+          }
+    inputs:
+      - name: "name"
+        label: "Name"
+        type: "string"
+        required: true
+      - name: "email"
+        label: "Email"
+        type: "string"
+      - name: "phone"
+        label: "Phone"
+        type: "string"
+      - name: "org_id"
+        label: "Organization ID"
+        type: "integer"
+
+  create_organization:
+    name: "Create Organization"
+    category: "CRM"
+    subcategory: "Companies"
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/organizations"
+        body_template: |
+          {
+            "name": "{{ name }}",
+            "owner_id": {{ default owner_id "null" }}
+          }
+    inputs:
+      - name: "name"
+        label: "Name"
+        type: "string"
+        required: true
+      - name: "owner_id"
+        label: "Owner ID"
+        type: "integer"
+
+triggers:
+  new_deal:
+    name: "New Deal"
+    category: "CRM"
+    subcategory: "Deals"
+    description: "Triggers when a new deal is created."
+    implementation:
+      type: "polling"
+      config:
+        path: "/deals"
+        query_params:
+          sort: "add_time DESC"
+          limit: 10
+        deduplication_key: "id"
+        interval: "15m"
