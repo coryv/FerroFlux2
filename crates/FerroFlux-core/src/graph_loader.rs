@@ -7,8 +7,8 @@ use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EdgeBlueprint {
-    pub source_id: Uuid,
-    pub target_id: Uuid,
+    pub source_id: String,
+    pub target_id: String,
     pub label: Option<String>,
     pub source_handle: Option<String>,
     pub target_handle: Option<String>,
@@ -17,6 +17,11 @@ pub struct EdgeBlueprint {
 /// The structure of the YAML file.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WorkflowBlueprint {
+    pub id: Option<String>,
+    pub name: String,
+    pub description: Option<String>,
+    /// List of triggers (optional section for semantic grouping).
+    pub triggers: Option<Vec<NodeBlueprint>>,
     /// List of nodes to spawn.
     pub nodes: Vec<NodeBlueprint>,
     /// List of connections between nodes.
@@ -25,13 +30,24 @@ pub struct WorkflowBlueprint {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NodeBlueprint {
-    pub id: Uuid,
+    pub id: String,
     pub name: String,
     #[serde(rename = "type")]
     pub node_type: String,
     pub config: serde_json::Value,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<SecretConfig>,
+}
+
+fn get_stable_uuid(id_str: &str) -> Uuid {
+    // Attempt to parse as UUID first
+    if let Ok(u) = Uuid::parse_str(id_str) {
+        u
+    } else {
+        // Fallback to stable namespaced v5 UUID
+        let namespace = Uuid::NAMESPACE_DNS;
+        Uuid::new_v5(&namespace, id_str.as_bytes())
+    }
 }
 
 pub fn load_graph(world: &mut World, tenant: TenantId, path: &str) -> anyhow::Result<()> {
@@ -89,9 +105,14 @@ pub fn load_graph_from_str(world: &mut World, tenant: TenantId, yaml: &str) -> a
         }
     }
 
-    // 1. Spawn Nodes
-    for node_bp in blueprint.nodes {
-        let node_id = node_bp.id;
+    // 1. Spawn Nodes (including triggers)
+    let mut all_nodes = blueprint.nodes;
+    if let Some(mut triggers) = blueprint.triggers {
+        all_nodes.append(&mut triggers);
+    }
+
+    for node_bp in all_nodes {
+        let node_id = get_stable_uuid(&node_bp.id);
         let node_name = node_bp.name.clone();
         let node_type = node_bp.node_type.clone();
 
@@ -136,12 +157,15 @@ pub fn load_graph_from_str(world: &mut World, tenant: TenantId, yaml: &str) -> a
 
     // 2. Spawn Edges
     for edge_bp in blueprint.edges {
+        let source_uuid = get_stable_uuid(&edge_bp.source_id);
+        let target_uuid = get_stable_uuid(&edge_bp.target_id);
+
         let source = *uuid_map
-            .get(&edge_bp.source_id)
-            .ok_or_else(|| anyhow::anyhow!("Edge source UUID not found: {}", edge_bp.source_id))?;
+            .get(&source_uuid)
+            .ok_or_else(|| anyhow::anyhow!("Edge source ID not found: {}", edge_bp.source_id))?;
         let target = *uuid_map
-            .get(&edge_bp.target_id)
-            .ok_or_else(|| anyhow::anyhow!("Edge target UUID not found: {}", edge_bp.target_id))?;
+            .get(&target_uuid)
+            .ok_or_else(|| anyhow::anyhow!("Edge target ID not found: {}", edge_bp.target_id))?;
 
         let mut edge_cmds = world.spawn(Edge {
             source,
@@ -196,7 +220,7 @@ pub fn save_graph(world: &mut World, path: &str) -> anyhow::Result<()> {
         );
 
         nodes.push(NodeBlueprint {
-            id: node_config.id,
+            id: node_config.id.to_string(),
             name: node_config.name,
             node_type: node_config.node_type,
             config: config_json,
@@ -212,8 +236,8 @@ pub fn save_graph(world: &mut World, path: &str) -> anyhow::Result<()> {
 
         if let (Some(source_id), Some(target_id)) = (get_uuid(edge.source), get_uuid(edge.target)) {
             edges.push(EdgeBlueprint {
-                source_id,
-                target_id,
+                source_id: source_id.to_string(),
+                target_id: target_id.to_string(),
                 label: label.map(|l| l.0.clone()),
                 source_handle: edge.source_handle.clone(),
                 target_handle: edge.target_handle.clone(),
@@ -221,7 +245,14 @@ pub fn save_graph(world: &mut World, path: &str) -> anyhow::Result<()> {
         }
     }
 
-    let blueprint = WorkflowBlueprint { nodes, edges };
+    let blueprint = WorkflowBlueprint {
+        id: Some("exported_workflow".to_string()),
+        name: "exported_workflow".to_string(),
+        description: Some("Generated from ECS runtime".to_string()),
+        triggers: None,
+        nodes,
+        edges,
+    };
     let file = std::fs::File::create(path)?;
     serde_yaml::to_writer(file, &blueprint)?;
 

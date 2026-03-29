@@ -37,7 +37,7 @@ pub fn pipeline_execution_system(
     for (_entity, mut node, mut inbox, mut outbox, shadow_exec, node_config) in query.iter_mut() {
         let mut processed_count = 0;
         while processed_count < MAX_ITEMS_PER_TICK {
-            let ticket = match inbox.queue.pop_front() {
+            let (target_port, ticket) = match inbox.queue.pop_front() {
                 Some(t) => t,
                 None => break,
             };
@@ -50,33 +50,74 @@ pub fn pipeline_execution_system(
                     // Fallback: Assume raw input payload (e.g. from Webhook)
                     let mut s = ActiveWorkflowState::new();
                     if let Ok(val) = serde_json::from_slice::<serde_json::Value>(&data) {
-                        s.merge(val);
+                        // If it came in on a specific port, put it there!
+                        if let Some(ref p) = target_port {
+                            let mut map = serde_json::Map::new();
+                            map.insert(p.clone(), val);
+                            s.merge(serde_json::Value::Object(map));
+                        } else {
+                            s.merge(val);
+                        }
                     }
                     s
                 };
 
+                // Explicitly map the current ticket's data to the target_port in the state
+                if let Ok(val) = serde_json::from_slice::<serde_json::Value>(&data) {
+                    // Special Case: If the value looks like an ActiveWorkflowState, merge its context
+                    if let Some(obj) = val.as_object() && obj.contains_key("context") && obj.contains_key("history") {
+                         if let Ok(incoming_state) = serde_json::from_value::<ActiveWorkflowState>(val.clone()) {
+                             for (k, v) in incoming_state.context {
+                                 if let Some(ref p) = target_port {
+                                     state.set_ref(&format!("{}.{}", p, k), v.clone());
+                                     if p == "body" {
+                                         state.set_ref(&k, v);
+                                     }
+                                 } else {
+                                     state.set_ref(&k, v);
+                                 }
+                             }
+                         }
+                    } else if let Some(ref p) = target_port {
+                         state.set(p, val);
+                    } else {
+                         state.merge(val);
+                    }
+                }
+
                 // 2. Execute
                 let mut memory = HashMap::new(); // Global memory stub
                 // 3. Output
-                let active_ports = match execute_pipeline_node(
-                    &mut node,
-                    &mut state,
-                    &node_registry,
-                    &tool_registry,
-                    &mut memory,
-                    ticket.metadata.get("trace_id").cloned().unwrap_or_default(),
-                    Some(bus.clone()),
-                    Some(&store),
-                    shadow_exec,
-                    node_config,
-                    Some(&secret_store),
-                    Some(&runtime),
-                    Some(&refresh_locks),
-                ) {
+                // We use block_in_place because the pipeline execution might call blocking tools
+                // (like HttpClientTool) and we are likely running inside a Tokio worker thread
+                // during tests or in some production environments.
+                let active_ports = tokio::task::block_in_place(|| {
+                    execute_pipeline_node(
+                        &mut node,
+                        &mut state,
+                        &node_registry,
+                        &tool_registry,
+                        &mut memory,
+                        ticket.metadata.get("trace_id").cloned().unwrap_or_default(),
+                        Some(bus.clone()),
+                        Some(&store),
+                        shadow_exec,
+                        node_config,
+                        Some(&secret_store),
+                        Some(&runtime),
+                        Some(&refresh_locks),
+                    )
+                })
+                .map_err(|e| {
+                    let t_id = ticket.metadata.get("trace_id").cloned().unwrap_or_default();
+                    tracing::error!(trace_id = %t_id, "Pipeline execution failed: {}", e);
+                    e
+                });
+
+                let t_id = ticket.metadata.get("trace_id").cloned().unwrap_or_default();
+                let active_ports = match active_ports {
                     Ok(ports) => ports,
                     Err(e) => {
-                        let t_id = ticket.metadata.get("trace_id").cloned().unwrap_or_default();
-                        tracing::error!(trace_id = %t_id, "Pipeline execution failed: {}", e);
 
                         // Emit NodeError if we have a bus and trace_id
                         if !t_id.is_empty() {

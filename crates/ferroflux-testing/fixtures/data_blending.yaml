@@ -1,0 +1,44 @@
+name: "Data Blending Workflow"
+description: "Webhook -> Slack User -> Mock DB -> Log"
+triggers:
+  - id: "webhook_in"
+    name: "Incoming Webhook"
+    type: "core.trigger.webhook"
+    config:
+        path: "/data-blend"
+nodes:
+  - id: "get_slack_user"
+    name: "Fetch Slack User"
+    type: "slack.action.users.get"
+    config:
+      user_id: "{{ get 'body.user_id' }}"
+  
+  - id: "query_db"
+    name: "Query Mock DB"
+    type: "core.action.http"
+    config:
+      method: "GET"
+      url: "{{ platform.core.base_url }}/mock_db?email={{ get 'user.profile.email' }}"
+      
+  - id: "log_out"
+    name: "Log Blended Data"
+    type: "core.action.log"
+    config:
+      level: "INFO"
+      message: "Blended Result: {{ get 'body' }}"
+
+edges:
+  - source_id: "webhook_in"
+    source_handle: "body"
+    target_id: "get_slack_user"
+    target_handle: "body"
+    
+  - source_id: "get_slack_user"
+    source_handle: "user"
+    target_id: "query_db"
+    target_handle: "user"
+    
+  - source_id: "query_db"
+    source_handle: "body"
+    target_id: "log_out"
+    target_handle: "body"

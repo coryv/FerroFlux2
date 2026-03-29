@@ -1,0 +1,26 @@
+name: "slack"
+base_url: "https://api.slack.com"
+auth:
+  type: "bearer"
+actions:
+  post_message:
+    implementation:
+      type: "http"
+      config:
+        path: "/chat.postMessage"
+        method: "POST"
+        body_template: |
+          {
+            "channel": "{{ channel }}",
+            "text": "{{ text }}"
+          }
+    inputs:
+      - name: "channel"
+        type: "string"
+        required: true
+      - name: "text"
+        type: "string"
+        required: true
+    outputs:
+      - name: "ok"
+        type: "boolean"

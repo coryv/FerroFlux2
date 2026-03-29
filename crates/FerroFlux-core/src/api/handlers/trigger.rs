@@ -36,14 +36,14 @@ pub fn handle_trigger_node(
 
                 if is_source {
                     if let Some(mut outbox) = world.get_mut::<Outbox>(e) {
-                        outbox.queue.push_back((None, ticket));
+                        outbox.queue.push_back((Some("body".to_string()), ticket));
                         tracing::info!(entity = ?e, "Trigger sent to OUTBOX (Source Node)");
                         if let Some(mut wd) = world.get_resource_mut::<WorkDone>() {
                             wd.0 = true;
                         }
                     }
                 } else if let Some(mut inbox) = world.get_mut::<Inbox>(e) {
-                    inbox.queue.push_back(ticket);
+                    inbox.queue.push_back((None, ticket));
                     tracing::info!(entity = ?e, "Trigger sent to INBOX");
                     if let Some(mut wd) = world.get_resource_mut::<WorkDone>() {
                         wd.0 = true;
@@ -95,7 +95,7 @@ pub fn handle_trigger_workflow(
                         }
                     }
                 } else if let Some(mut inbox) = world.get_mut::<Inbox>(e) {
-                    inbox.queue.push_back(ticket);
+                    inbox.queue.push_back((None, ticket));
                     tracing::info!(entity = ?e, "Workflow trigger sent to INBOX");
                     if let Some(mut wd) = world.get_resource_mut::<WorkDone>() {
                         wd.0 = true;

@@ -32,7 +32,7 @@ pub struct Edge {
 /// Holds incoming data packets waiting to be processed.
 #[derive(Component, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Inbox {
-    pub queue: VecDeque<SecureTicket>,
+    pub queue: VecDeque<(Option<String>, SecureTicket)>,
 }
 
 /// Holds outgoing data packets waiting to be routed to the next node.

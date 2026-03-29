@@ -102,7 +102,7 @@ impl DefinitionRegistry {
                     }
                 }
                 Err(e) => {
-                    anyhow::bail!("Failed to parse node definition {:?}: {e}", path);
+                    tracing::error!("Failed to parse node definition {:?}: {e}", path);
                 }
             }
         } else {
@@ -120,7 +120,7 @@ impl DefinitionRegistry {
                     self.platforms.insert(def.meta.id.clone(), def);
                 }
                 Err(e) => {
-                    anyhow::bail!("Failed to parse platform definition {:?}: {e}", path);
+                    tracing::error!("Failed to parse platform definition {:?}: {e}", path);
                 }
             }
         }

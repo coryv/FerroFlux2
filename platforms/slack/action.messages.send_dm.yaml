@@ -33,7 +33,7 @@ execution:
         users: "{{ get 'inputs.user_id' }}"
     returns:
       status: status_code
-      body: response_body
+      body: body
 
   - id: send_message
     tool: http_client
@@ -42,11 +42,11 @@ execution:
       url: "{{ platform.base_url }}/chat.postMessage"
       headers: "{{ platform.headers }}"
       body:
-        channel: "{{ steps.open_dm.response_body.channel.id }}"
+        channel: "{{ steps.open_dm.body.channel.id }}"
         text: "{{ get 'inputs.text' }}"
     returns:
       status: status_code
-      body: response_body
+      body: body
 
 routing:
   match: "{{ steps.send_message.status_code }}"
@@ -59,4 +59,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.send_message.response_body }}"
+          value: "{{ steps.send_message.body }}"

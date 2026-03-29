@@ -39,7 +39,7 @@ pub fn update_graph_topology(
                 .adjacency
                 .entry(edge.source)
                 .or_default()
-                .push((edge.source_handle.clone(), edge.target));
+                .push((edge.source_handle.clone(), edge.target, edge.target_handle.clone()));
         }
     }
 }
@@ -83,14 +83,14 @@ pub fn transport_worker(
             let items: Vec<(Option<String>, SecureTicket)> = outbox.queue.drain(..).collect();
 
             for (port, ticket) in items {
-                for (edge_handle, target_entity) in targets {
+                for (source_handle, target_entity, target_handle) in targets {
                     // Exact match on port name (handle).
                     // If outbox says "Success", only edges from "Success" fire.
-                    if edge_handle == &port
+                    if source_handle == &port
                         && let Ok(mut inbox) = inbox_query.get_mut(*target_entity)
                     {
-                        inbox.queue.push_back(ticket.clone());
-                        tracing::debug!(source = ?source, target = ?target_entity, port = ?port, "Moved ticket");
+                        inbox.queue.push_back((target_handle.clone(), ticket.clone()));
+                        tracing::debug!(source = ?source, target = ?target_entity, port = ?port, target_handle = ?target_handle, "Moved ticket");
 
                         let target_uuid = node_map.get(target_entity).cloned().unwrap_or_default();
 

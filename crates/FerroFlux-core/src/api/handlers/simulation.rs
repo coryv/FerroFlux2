@@ -40,7 +40,7 @@ pub fn handle_simulate_node(
 
         // Prepare Input
         let mut inbox = crate::components::Inbox::default();
-        inbox.queue.push_back(ticket);
+        inbox.queue.push_back((None, ticket));
 
         // Spawn
         world.spawn((

@@ -28,7 +28,7 @@ pub fn window_worker(
     let event_tx = event_bus.0.clone();
 
     for (config, node_config, mut state, mut inbox, mut outbox) in query.iter_mut() {
-        while let Some(ticket) = inbox.queue.pop_front() {
+        while let Some((_port, ticket)) = inbox.queue.pop_front() {
             let start = Instant::now();
             let trace_id = ticket
                 .metadata

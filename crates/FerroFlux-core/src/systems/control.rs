@@ -17,7 +17,7 @@ pub fn checkpoint_worker(
     let event_tx = event_bus.0.clone();
 
     for (_config, node_config, mut inbox) in query.iter_mut() {
-        while let Some(ticket) = inbox.queue.pop_front() {
+        while let Some((_port, ticket)) = inbox.queue.pop_front() {
             let trace_id = ticket
                 .metadata
                 .get("trace_id")

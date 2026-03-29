@@ -50,7 +50,7 @@ pub fn agent_prep(
 
         // Check for Pinned Output
         if let Some(pinned) = pinned_opt {
-            while let Some(_ticket) = inbox.queue.pop_front() {
+            while let Some(_) = inbox.queue.pop_front() {
                 tracing::info!(entity = ?entity, "Node is PINNED. Skipping execution.");
                 outbox.queue.push_back((None, pinned.0.clone()));
                 ctx.work_done.0 = true;
@@ -58,7 +58,7 @@ pub fn agent_prep(
             continue;
         }
 
-        if let Some(ticket) = inbox.queue.pop_front() {
+        if let Some((_port, ticket)) = inbox.queue.pop_front() {
             ctx.work_done.0 = true;
 
             let trace_id = ticket

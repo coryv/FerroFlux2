@@ -1,0 +1,23 @@
+[package]
+name = "ferroflux-testing"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.100"
+bevy_ecs = "0.13.0"
+ferroflux_core = { path = "../FerroFlux-core" }
+ferroflux-types = { path = "../ferroflux-types" }
+ferroflux-db = { path = "../ferroflux-db" }
+ferroflux-iam = { path = "../ferroflux-iam" }
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = "1.0.114"
+serde_yaml = "0.9.32"
+tokio = { version = "1.36.0", features = ["full"] }
+uuid = { version = "1.7.0", features = ["serde", "v4"] }
+wiremock = "0.6"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+async-channel = "2.3.1"
+ferroflux-tools = { path = "../ferroflux-tools" }
+ferroflux-integration = { path = "../ferroflux-integration" }

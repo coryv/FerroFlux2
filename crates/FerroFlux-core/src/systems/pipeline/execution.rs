@@ -122,7 +122,10 @@ pub fn execute_pipeline_node(
                     if let Some(mut current) = resolved_root {
                         // 3. Traverse remaining parts in the resolved Value
                         for part in &parts[1..] {
-                            if let Some(next) = current.get(part) {
+                            // NEW: If the current value is an ActiveWorkflowState, look inside its context
+                            if let Some(ctx) = current.get("context") && let Some(val) = ctx.get(part) {
+                                current = val.clone();
+                            } else if let Some(next) = current.get(part) {
                                 current = next.clone();
                             } else {
                                 // Path not found
@@ -143,17 +146,46 @@ pub fn execute_pipeline_node(
         ),
     );
 
+    // Materialize context for Handlebars (Resolves DataRefs)
+    let mut materialized = serde_json::Map::new();
+    for (k, v) in &ctx_map {
+        if let Some(val) = resolve_dataref_to_value(v, store) {
+            materialized.insert(k.clone(), val);
+        }
+    }
+    
+    // Resolve and Inject Inputs from Node Config
+    let mut resolved_inputs = serde_json::Map::new();
+    let h_ctx_temp = Value::Object(materialized.clone());
+    for (k, v) in &node.config {
+        let res = resolve_recursive(&v, &h_ctx_temp, &handlebars, store)?;
+        resolved_inputs.insert(k.clone(), res);
+    }
+    
+    let inputs_val = Value::Object(resolved_inputs);
+    ctx_map.insert("inputs".to_string(), DataRef::Inline(inputs_val.clone()));
+    materialized.insert("inputs".to_string(), inputs_val);
+
+    let mut h_ctx = Value::Object(materialized);
+
     // Inject and Pre-render Platform Config
     if let Some(platform_id) = &def.meta.platform {
         if let Some(platform) = definitions.platforms.get(platform_id) {
             let platform_val = serde_json::to_value(&platform.config).unwrap_or(serde_json::json!({}));
-            let rendered_platform = resolve_recursive(&platform_val, &ctx_map, &handlebars, store).unwrap_or(platform_val);
+            
+            // Re-render platform config with current context (materialized)
+            let rendered_platform = resolve_recursive(&platform_val, &h_ctx, &handlebars, store).unwrap_or(platform_val);
+            
             ctx_map.insert(
                 "platform".to_string(),
-                DataRef::Inline(rendered_platform),
+                DataRef::Inline(rendered_platform.clone()),
             );
+            
+            // Update h_ctx for subsequent renderings
+            if let Some(obj) = h_ctx.as_object_mut() {
+                obj.insert("platform".to_string(), rendered_platform);
+            }
         } else {
-            // Warn? Or Fail? For now, just log and continue (might use default)
             eprintln!("WARN: Platform definition not found: {}", platform_id);
         }
     }
@@ -162,7 +194,7 @@ pub fn execute_pipeline_node(
     if let Some(ctx_defs) = &def.context {
         for (key, template) in ctx_defs {
             let rendered = handlebars
-                .render_template(template, &ctx_map)
+                .render_template(template, &h_ctx)
                 .unwrap_or_else(|_| template.clone());
             // Attempt to parse as JSON if possible, else string
             let val = serde_json::from_str(&rendered).unwrap_or(Value::String(rendered));
@@ -180,9 +212,13 @@ pub fn execute_pipeline_node(
             .get(&step.tool)
             .ok_or_else(|| anyhow::anyhow!("Tool not found: {}", step.tool))?;
 
-        // Resolve Params (Templating)
-        // Resolve Params (Templating) & Type Preservation
-        let resolved_params = resolve_recursive(&step.params, &ctx_map, &handlebars, store)?;
+        // Render template using h_ctx (materialized)
+        let resolved_params = if let Some(s) = step.params.as_str() {
+             let rendered = handlebars.render_template(s, &h_ctx)?;
+             resolve_recursive(&serde_json::from_str(&rendered).unwrap_or(Value::String(rendered)), &h_ctx, &handlebars, store)?
+        } else {
+             resolve_recursive(&step.params, &h_ctx, &handlebars, store)?
+        };
 
         // Resolve default mask reference
         let default_masks = std::collections::HashMap::new();
@@ -232,13 +268,22 @@ pub fn execute_pipeline_node(
                 ctx_map.insert(var_name.clone(), DataRef::Inline(val.clone()));
             }
         }
+
+        // --- NEW: Update h_ctx for the next step ---
+        let mut next_materialized = serde_json::Map::new();
+        for (k, v) in &ctx_map {
+            if let Some(val) = resolve_dataref_to_value(v, store) {
+                next_materialized.insert(k.clone(), val);
+            }
+        }
+        h_ctx = Value::Object(next_materialized);
     }
 
     // 3. Routing (Optional)
     if let Some(routing) = &def.routing {
         // Evaluate Match Expression
         let match_expr_str = &routing.match_expr;
-        let resolved_match = handlebars.render_template(match_expr_str, &ctx_map)?;
+        let resolved_match = handlebars.render_template(match_expr_str, &h_ctx)?;
 
         // Find matching case
         if let Some(actions) = routing.cases.get(&resolved_match) {
@@ -248,7 +293,7 @@ pub fn execute_pipeline_node(
                     .ok_or_else(|| anyhow::anyhow!("Tool not found: {}", action.tool))?;
 
                 let resolved_params =
-                    resolve_recursive(&action.params, &ctx_map, &handlebars, store)?;
+                    resolve_recursive(&action.params, &h_ctx, &handlebars, store)?;
 
                 // Resolve default mask reference
                 let default_masks = std::collections::HashMap::new();

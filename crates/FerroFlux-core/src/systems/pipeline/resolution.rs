@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 pub fn resolve_recursive(
     value: &Value,
-    ctx: &HashMap<String, DataRef>,
+    ctx: &Value,
     reg: &Handlebars,
     store: Option<&BlobStore>,
 ) -> Result<Value> {
@@ -46,27 +46,25 @@ pub fn resolve_recursive(
 }
 
 pub fn lookup_path(
-    ctx: &HashMap<String, DataRef>,
+    ctx: &Value,
     path: &str,
-    store: Option<&BlobStore>,
+    _store: Option<&BlobStore>, // No longer need store here as ctx is materialized
 ) -> Option<Value> {
     let parts: Vec<&str> = path.split('.').collect();
     if parts.is_empty() {
         return None;
     }
 
-    // Resolve first part from manifest
-    let root_ref = ctx.get(parts[0])?;
-    let mut current = resolve_dataref_to_value(root_ref, store)?;
+    let mut current = ctx;
 
-    for part in &parts[1..] {
+    for part in &parts {
         match current {
             Value::Object(map) => {
-                current = map.get(*part)?.clone();
+                current = map.get(*part)?;
             }
             Value::Array(arr) => {
                 if let Ok(idx) = part.parse::<usize>() {
-                    current = arr.get(idx)?.clone();
+                    current = arr.get(idx)?;
                 } else {
                     return None;
                 }
@@ -74,7 +72,7 @@ pub fn lookup_path(
             _ => return None,
         }
     }
-    Some(current)
+    Some(current.clone())
 }
 
 pub fn resolve_dataref_to_value(data: &DataRef, store: Option<&BlobStore>) -> Option<Value> {
