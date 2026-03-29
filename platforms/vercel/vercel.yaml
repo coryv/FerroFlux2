@@ -1,89 +1,21 @@
 meta:
-  permissions: ["network:api.vercel.com"]
+  id: vercel
+  name: Vercel
+  type: Platform
+  category: Developer Tools
+  description: "Connects to the Vercel API for deployment management."
+  version: "1.0.0"
+  permissions:
+    - "network:api.vercel.com"
 
-name: "vercel"
-icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/vercel.svg"
-base_url: "https://api.vercel.com"
-auth_type: "api_key"
-verify_endpoint: "/v6/deployments?limit=1"
-auth:
-  type: "bearer"
-connection_schema:
-  - name: "api_key"
-    type: "string"
+config:
+  base_url: "https://api.vercel.com"
+  headers:
+    Content-Type: "application/json"
+    Authorization: "Bearer PASTE_YOUR_API_TOKEN_HERE"
+
+settings:
+  - name: api_key
+    label: "API Token"
+    type: string
     required: true
-    is_secret: true
-    description: "Vercel API Token"
-
-actions:
-  list_deployments:
-    name: "List Deployments"
-    category: "DevOps"
-    subcategory: "Deployments"
-    documentation: "List all deployments for the authenticated user or team."
-    inputs:
-      - name: "app"
-        type: "string"
-        description: "Filter deployments by app name."
-      - name: "limit"
-        type: "integer"
-        default: 20
-    implementation:
-      type: "http"
-      config:
-        method: "GET"
-        path: "/v6/deployments"
-        query_params:
-          app: "{{app}}"
-          limit: "{{limit}}"
-    output_transform:
-      deployments: "deployments"
-
-  get_deployment:
-    name: "Get Deployment"
-    category: "DevOps"
-    subcategory: "Deployments"
-    documentation: "Get detailed information for a specific deployment."
-    inputs:
-      - name: "id"
-        label: "Deployment ID or Host"
-        type: "string"
-        required: true
-    implementation:
-      type: "http"
-      config:
-        method: "GET"
-        path: "/v13/deployments/{{id}}"
-    output_transform:
-      deployment: "$"
-
-  create_deployment:
-    name: "Create Deployment"
-    category: "DevOps"
-    subcategory: "Deployments"
-    documentation: "Create a new deployment for a project."
-    inputs:
-      - name: "name"
-        label: "Project Name"
-        type: "string"
-        required: true
-      - name: "git_source"
-        label: "Git Source (Optional)"
-        type: "object"
-        description: "e.g., { type: 'github', repo: 'org/repo', ref: 'main' }"
-    implementation:
-      type: "http"
-      config:
-        method: "POST"
-        path: "/v13/deployments"
-        headers:
-          Content-Type: "application/json"
-        body_template: |
-          {
-            "name": "{{name}}",
-            {{#if git_source}}
-            "gitSource": {{json git_source}}
-            {{/if}}
-          }
-    output_transform:
-      deployment: "$"

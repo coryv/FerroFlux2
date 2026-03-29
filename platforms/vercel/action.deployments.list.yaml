@@ -1,44 +1,41 @@
 meta:
-  id: whatsapp.messages.send_image
-  name: Send Image
-  category: WhatsApp
+  id: vercel.deployments.list
+  name: List Deployments
+  category: Deployments
   type: Action
-  platform: whatsapp
-  description: "Send an image to a user via URL."
+  platform: vercel
+  description: "List all deployments for the authenticated user or team."
   version: "1.0.0"
   permissions:
-    - "network:graph.facebook.com"
+    - "network:api.vercel.com"
 
 interface:
   inputs:
     - name: Exec
       type: flow
-    - name: to
+    - name: app
       type: string
-    - name: image_url
-      type: string
-    - name: caption
-      type: string
+    - name: limit
+      type: number
+      default: 20
   outputs:
     - name: Success
       type: flow
     - name: Error
       type: flow
-    - name: message_id
-      type: string
+    - name: deployments
+      type: array
 
 execution:
   - id: request
     tool: http_client
     params:
-      method: POST
-      url: "{{ platform.base_url }}/{{ settings.phone_number_id }}/messages"
+      method: GET
+      url: "{{ platform.base_url }}/v6/deployments"
       headers: "{{ platform.headers }}"
-      body:
-        messaging_product: "whatsapp"
-        to: "{{ get 'inputs.to' }}"
-        type: "image"
-        image: { "link": "{{ get 'inputs.image_url' }}", "caption": "{{ get 'inputs.caption' }}" }
+      query:
+        app: "{{ get 'inputs.app' }}"
+        limit: "{{ get 'inputs.limit' }}"
     returns:
       status: status_code
       body: response_body
@@ -53,14 +50,6 @@ execution:
         - condition: default
           output: error
 
-  - id: extract_id
-    tool: json_query
-    params:
-      json: "{{ steps.request.response_body }}"
-      path: "/messages/0/id"
-    returns:
-      result: mid
-
 routing:
   match: "{{ steps.check_status.branch }}"
   cases:
@@ -70,8 +59,8 @@ routing:
           port: Success
       - tool: emit
         params:
-          port: message_id
-          value: "{{ steps.extract_id.mid }}"
+          port: deployments
+          value: "{{ steps.request.response_body.deployments }}"
     error:
       - tool: emit
         params:

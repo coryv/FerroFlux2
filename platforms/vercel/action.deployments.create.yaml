@@ -1,44 +1,40 @@
 meta:
-  id: whatsapp.messages.send_image
-  name: Send Image
-  category: WhatsApp
+  id: vercel.deployments.create
+  name: Create Deployment
+  category: Deployments
   type: Action
-  platform: whatsapp
-  description: "Send an image to a user via URL."
+  platform: vercel
+  description: "Create a new deployment for a project."
   version: "1.0.0"
   permissions:
-    - "network:graph.facebook.com"
+    - "network:api.vercel.com"
 
 interface:
   inputs:
     - name: Exec
       type: flow
-    - name: to
+    - name: name
       type: string
-    - name: image_url
-      type: string
-    - name: caption
-      type: string
+    - name: git_source
+      type: object
   outputs:
     - name: Success
       type: flow
     - name: Error
       type: flow
-    - name: message_id
-      type: string
+    - name: deployment
+      type: object
 
 execution:
   - id: request
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/{{ settings.phone_number_id }}/messages"
+      url: "{{ platform.base_url }}/v13/deployments"
       headers: "{{ platform.headers }}"
       body:
-        messaging_product: "whatsapp"
-        to: "{{ get 'inputs.to' }}"
-        type: "image"
-        image: { "link": "{{ get 'inputs.image_url' }}", "caption": "{{ get 'inputs.caption' }}" }
+        name: "{{ get 'inputs.name' }}"
+        gitSource: "{{ inputs.git_source }}"
     returns:
       status: status_code
       body: response_body
@@ -50,16 +46,10 @@ execution:
       cases:
         - condition: "200"
           output: success
+        - condition: "201"
+          output: success
         - condition: default
           output: error
-
-  - id: extract_id
-    tool: json_query
-    params:
-      json: "{{ steps.request.response_body }}"
-      path: "/messages/0/id"
-    returns:
-      result: mid
 
 routing:
   match: "{{ steps.check_status.branch }}"
@@ -70,8 +60,8 @@ routing:
           port: Success
       - tool: emit
         params:
-          port: message_id
-          value: "{{ steps.extract_id.mid }}"
+          port: deployment
+          value: "{{ steps.request.response_body }}"
     error:
       - tool: emit
         params:

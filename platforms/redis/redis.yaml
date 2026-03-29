@@ -1,76 +1,16 @@
 meta:
-  permissions: ["network:*"]
+  id: redis
+  name: Redis
+  type: Platform
+  category: Database
+  description: "Connects to Redis instances for high-speed caching and state management."
+  version: "1.0.0"
 
-name: "redis"
-icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/redis.svg"
-base_url: ""
-auth_type: "none"
-connection_schema:
-  - name: "connection_string"
-    type: "string"
+config:
+  driver: redis
+
+settings:
+  - name: connection
+    label: "Redis Connection"
+    type: connection_select
     required: true
-    is_secret: true
-    description: "Redis Connection String (e.g., redis://localhost:6379)"
-
-actions:
-  get:
-    name: "Get Key"
-    category: "Database"
-    documentation: "Retrieve the value of a key from Redis."
-    inputs:
-      - name: "key"
-        type: "string"
-        required: true
-    implementation:
-      type: "tool"
-      config:
-        tool: "redis_query"
-        operation: "get"
-        key: "{{key}}"
-        connection_string: "{{connection_string}}"
-    output_transform:
-      value: "value"
-
-  set:
-    name: "Set Key"
-    category: "Database"
-    documentation: "Set the value of a key in Redis."
-    inputs:
-      - name: "key"
-        type: "string"
-        required: true
-      - name: "value"
-        type: "string"
-        required: true
-      - name: "ex"
-        type: "integer"
-        description: "Expiry in seconds (optional)."
-    implementation:
-      type: "tool"
-      config:
-        tool: "redis_query"
-        operation: "set"
-        key: "{{key}}"
-        value: "{{value}}"
-        ex: "{{ex}}"
-        connection_string: "{{connection_string}}"
-    output_transform:
-      status: "status"
-
-  delete:
-    name: "Delete Key"
-    category: "Database"
-    documentation: "Delete a key from Redis."
-    inputs:
-      - name: "key"
-        type: "string"
-        required: true
-    implementation:
-      type: "tool"
-      config:
-        tool: "redis_query"
-        operation: "del"
-        key: "{{key}}"
-        connection_string: "{{connection_string}}"
-    output_transform:
-      count: "count"
