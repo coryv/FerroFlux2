@@ -142,7 +142,7 @@ export class CanvasState {
         let newSelection = new Set<string>();
         
         // Find center of clipboard items to paste at mouse position, or just offset 40,40
-        for (const node of this.clipboard) {
+        await Promise.all(this.clipboard.map(async (node) => {
             // Backend currently only takes template ID and position
             const newId = await this.backend.addNode(
                 node.data, 
@@ -157,7 +157,7 @@ export class CanvasState {
                 ));
             }
             newSelection.add(newId);
-        }
+        }));
         
         await this.refreshGraph();
         this.selectedNodes = newSelection;
@@ -179,7 +179,7 @@ export class CanvasState {
         const nodesList = data.nodes ? Object.values(data.nodes) : [];
         const uuidMap = new Map<string, string>(); // oldId -> newId
 
-        for (const n of nodesList as any[]) {
+        await Promise.all((nodesList as any[]).map(async (n) => {
             const newId = await this.backend.addNode(n.data, n.position.x, n.position.y);
             uuidMap.set(n.id, newId);
             
@@ -188,7 +188,7 @@ export class CanvasState {
                     this.backend.updateNodeConfig(newId, k, v)
                 ));
             }
-        }
+        }));
 
         // Reconnect edges
         const connections = data.connections || [];
