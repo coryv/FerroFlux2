@@ -46,7 +46,7 @@ impl ClickHouseStore {
 
     pub async fn init_schema(&self) -> Result<()> {
         let schema_sql =
-            std::fs::read_to_string("assets/sql/analytics_clickhouse.sql").or_else(|_| {
+            tokio::fs::read_to_string("assets/sql/analytics_clickhouse.sql").await.or_else(|_| {
                 Ok::<String, anyhow::Error>(
                     include_str!("../assets/sql/analytics_clickhouse.sql").to_string(),
                 )
