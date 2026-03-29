@@ -699,7 +699,7 @@ impl Tool for HttpClientTool {
         let connection_slug = params.get("connection").and_then(|v| v.as_str());
         let aws_auth = params.get("aws_auth");
 
-        let aws_config = aws_auth.and_then(|v| {
+        let mut aws_config = aws_auth.and_then(|v| {
             let service = v.get("service")?.as_str()?.to_string();
             let region = v.get("region")?.as_str()?.to_string();
             let access_key = v.get("access_key")?.as_str()?.to_string();
@@ -707,10 +707,33 @@ impl Tool for HttpClientTool {
             Some(AwsSigV4Config { service, region, access_key, secret_key })
         });
 
-
         // 1. Connection Resolution (Auth + Base URL)
         let (resolved_url, dynamic_headers) =
             resolve_connection_auth(url, connection_slug, context)?;
+
+        // Fallback to connection-based AWS auth if not explicitly provided
+        if aws_config.is_none() {
+            if let Some(slug) = connection_slug {
+                if let Some(resolver) = context.secrets {
+                    // Note: using hardcoded default_tenant to match resolve_connection_auth helper internal logic
+                    let tenant = ferroflux_iam::TenantId::from("default_tenant");
+                    if let Ok(conn_data) = resolver.resolve_connection(&tenant, slug) {
+                        if let Some("aws_sigv4") = conn_data.get("auth_type").and_then(|v| v.as_str()) {
+                            let service = params.get("aws_service").and_then(|v| v.as_str()).unwrap_or("s3").to_string();
+                            let region = conn_data.get("region").and_then(|v| v.as_str())
+                                .or_else(|| params.get("aws_region").and_then(|v| v.as_str()))
+                                .unwrap_or("us-east-1").to_string();
+                            let access_key = conn_data.get("access_key").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                            let secret_key = conn_data.get("secret_key").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                            
+                            if !access_key.is_empty() && !secret_key.is_empty() {
+                                aws_config = Some(AwsSigV4Config { service, region, access_key, secret_key });
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         // 2. SSRF Protection
         check_ssrf(&resolved_url)?;

@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use ferroflux_types::tool::{Tool, ToolContext};
 use once_cell::sync::Lazy;
 use serde_json::{json, Value};
-use sqlx::{AnyConnection, AnyPool, any::AnyPoolOptions, Column, Row};
+use sqlx::{AnyConnection, AnyPool, any::AnyPoolOptions, Column, Row, TypeInfo};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use tokio::runtime::Handle;
@@ -114,10 +114,19 @@ impl SqlTool {
             let mut map = serde_json::Map::new();
             for col in row.columns() {
                 let name = col.name();
-                // TODO: Apply proper numeric type mapping here (refer to result mapping task)
-                let val: Value = row.try_get::<String, _>(name)
-                    .map(Value::String)
-                    .unwrap_or(Value::Null);
+                let type_name = col.type_info().name().to_uppercase();
+                
+                let val: Value = if type_name.contains("INT") {
+                    row.try_get::<i64, _>(name).map(Value::from).unwrap_or_else(|_| {
+                        row.try_get::<i32, _>(name).map(Value::from).unwrap_or(Value::Null)
+                    })
+                } else if type_name.contains("FLOAT") || type_name.contains("DOUBLE") || type_name.contains("REAL") || type_name.contains("NUMERIC") || type_name.contains("DECIMAL") {
+                    row.try_get::<f64, _>(name).map(Value::from).unwrap_or(Value::Null)
+                } else if type_name.contains("BOOL") || type_name.contains("BOOLEAN") {
+                    row.try_get::<bool, _>(name).map(Value::from).unwrap_or(Value::Null)
+                } else {
+                    row.try_get::<String, _>(name).map(Value::String).unwrap_or(Value::Null)
+                };
                 map.insert(name.to_string(), val);
             }
             Value::Object(map)
