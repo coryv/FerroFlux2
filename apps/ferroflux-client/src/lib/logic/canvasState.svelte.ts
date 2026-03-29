@@ -152,10 +152,9 @@ export class CanvasState {
             
             // Re-apply configs
             if (node.config) {
-                const configPromises = Object.entries(node.config).map(([k, v]) =>
+                await Promise.all(Object.entries(node.config).map(([k, v]) =>
                     this.backend.updateNodeConfig(newId, k, v)
-                );
-                await Promise.all(configPromises);
+                ));
             }
             newSelection.add(newId);
         }));
@@ -185,10 +184,9 @@ export class CanvasState {
             uuidMap.set(n.id, newId);
             
             if (n.config) {
-                const configPromises = Object.entries(n.config).map(([k, v]) =>
+                await Promise.all(Object.entries(n.config).map(([k, v]) =>
                     this.backend.updateNodeConfig(newId, k, v)
-                );
-                await Promise.all(configPromises);
+                ));
             }
         }));
 
