@@ -1,0 +1,89 @@
+meta:
+  permissions: ["network:app.posthog.com"]
+
+name: "posthog"
+icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/posthog.svg"
+base_url: "https://app.posthog.com"
+auth_type: "api_key"
+verify_endpoint: "/api/users/@me/"
+auth:
+  type: "bearer"
+connection_schema:
+  - name: "api_key"
+    type: "string"
+    required: true
+    is_secret: true
+    description: "PostHog Personal API Key"
+
+actions:
+  capture_event:
+    name: "Capture Event"
+    category: "Analytics"
+    subcategory: "Events"
+    documentation: "Capture an event for a specific user."
+    inputs:
+      - name: "api_key"
+        type: "string"
+        required: true
+        description: "The Project API Key (Write Key)."
+      - name: "event"
+        type: "string"
+        required: true
+        description: "The name of the event."
+      - name: "distinct_id"
+        type: "string"
+        required: true
+        description: "The unique identifier for the user."
+      - name: "properties"
+        type: "object"
+        description: "Optional properties for the event."
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/capture"
+        headers:
+          Content-Type: "application/json"
+        body_template: |
+          {
+            "api_key": "{{api_key}}",
+            "event": "{{event}}",
+            "distinct_id": "{{distinct_id}}",
+            "properties": {{json properties}}
+          }
+    output_transform:
+      status: "status"
+
+  identify_user:
+    name: "Identify User"
+    category: "Analytics"
+    subcategory: "Users"
+    documentation: "Identify a user and update their properties."
+    inputs:
+      - name: "api_key"
+        type: "string"
+        required: true
+        description: "The Project API Key (Write Key)."
+      - name: "distinct_id"
+        type: "string"
+        required: true
+        description: "The unique identifier for the user."
+      - name: "properties"
+        type: "object"
+        description: "Properties to set for the user."
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/capture"
+        headers:
+          Content-Type: "application/json"
+        body_template: |
+          {
+            "api_key": "{{api_key}}",
+            "event": "$identify",
+            "distinct_id": "{{distinct_id}}",
+            "$set": {{json properties}}
+          }
+    output_transform:
+      status: "status"

@@ -1,21 +1,76 @@
 meta:
-  id: redis
-  name: Redis
-  category: Database
-  type: Platform
-  description: "Direct connection to Redis database."
-  version: "1.0.0"
+  permissions: ["network:*"]
 
-config: {}
-
-settings:
-
-  - name: connection_string
-    label: "Connection String (e.g. redis://host:6379)"
-    type: string
+name: "redis"
+icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/redis.svg"
+base_url: ""
+auth_type: "none"
+connection_schema:
+  - name: "connection_string"
+    type: "string"
     required: true
-    secret: true
+    is_secret: true
+    description: "Redis Connection String (e.g., redis://localhost:6379)"
 
-interface:
-  inputs: []
-  outputs: []
+actions:
+  get:
+    name: "Get Key"
+    category: "Database"
+    documentation: "Retrieve the value of a key from Redis."
+    inputs:
+      - name: "key"
+        type: "string"
+        required: true
+    implementation:
+      type: "tool"
+      config:
+        tool: "redis_query"
+        operation: "get"
+        key: "{{key}}"
+        connection_string: "{{connection_string}}"
+    output_transform:
+      value: "value"
+
+  set:
+    name: "Set Key"
+    category: "Database"
+    documentation: "Set the value of a key in Redis."
+    inputs:
+      - name: "key"
+        type: "string"
+        required: true
+      - name: "value"
+        type: "string"
+        required: true
+      - name: "ex"
+        type: "integer"
+        description: "Expiry in seconds (optional)."
+    implementation:
+      type: "tool"
+      config:
+        tool: "redis_query"
+        operation: "set"
+        key: "{{key}}"
+        value: "{{value}}"
+        ex: "{{ex}}"
+        connection_string: "{{connection_string}}"
+    output_transform:
+      status: "status"
+
+  delete:
+    name: "Delete Key"
+    category: "Database"
+    documentation: "Delete a key from Redis."
+    inputs:
+      - name: "key"
+        type: "string"
+        required: true
+    implementation:
+      type: "tool"
+      config:
+        tool: "redis_query"
+        operation: "del"
+        key: "{{key}}"
+        connection_string: "{{connection_string}}"
+    output_transform:
+      count: "count"

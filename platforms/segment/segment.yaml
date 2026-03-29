@@ -1,0 +1,153 @@
+meta:
+  permissions: ["network:api.segment.io"]
+
+name: "segment"
+icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/segment.svg"
+base_url: "https://api.segment.io/v1"
+auth_type: "api_key"
+verify_endpoint: "/"
+auth:
+  type: "basic"
+connection_schema:
+  - name: "write_key"
+    type: "string"
+    required: true
+    is_secret: true
+    description: "Segment Source Write Key"
+
+actions:
+  identify:
+    name: "Identify"
+    category: "Analytics"
+    subcategory: "Users"
+    documentation: "Tie a user to their actions and record traits about them."
+    inputs:
+      - name: "userId"
+        type: "string"
+        description: "The unique identifier for the user."
+      - name: "anonymousId"
+        type: "string"
+        description: "The anonymous ID if userId is not known."
+      - name: "traits"
+        type: "object"
+        description: "Dictionary of traits like email or name."
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/identify"
+        headers:
+          Content-Type: "application/json"
+        body_template: |
+          {
+            {{#if userId}}"userId": "{{userId}}",{{/if}}
+            {{#if anonymousId}}"anonymousId": "{{anonymousId}}",{{/if}}
+            "traits": {{json traits}},
+            "timestamp": "{{now}}"
+          }
+    output_transform:
+      success: "success"
+
+  track:
+    name: "Track"
+    category: "Analytics"
+    subcategory: "Events"
+    documentation: "Record any actions your users perform."
+    inputs:
+      - name: "event"
+        type: "string"
+        required: true
+        description: "The name of the event."
+      - name: "userId"
+        type: "string"
+      - name: "anonymousId"
+        type: "string"
+      - name: "properties"
+        type: "object"
+        description: "Free-form dictionary of properties."
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/track"
+        headers:
+          Content-Type: "application/json"
+        body_template: |
+          {
+            "event": "{{event}}",
+            {{#if userId}}"userId": "{{userId}}",{{/if}}
+            {{#if anonymousId}}"anonymousId": "{{anonymousId}}",{{/if}}
+            "properties": {{json properties}},
+            "timestamp": "{{now}}"
+          }
+    output_transform:
+      success: "success"
+
+  group:
+    name: "Group"
+    category: "Analytics"
+    subcategory: "Users"
+    documentation: "Associate an identified user with a group."
+    inputs:
+      - name: "groupId"
+        type: "string"
+        required: true
+        description: "The unique identifier for the group."
+      - name: "userId"
+        type: "string"
+      - name: "anonymousId"
+        type: "string"
+      - name: "traits"
+        type: "object"
+        description: "Dictionary of traits for the group."
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/group"
+        headers:
+          Content-Type: "application/json"
+        body_template: |
+          {
+            "groupId": "{{groupId}}",
+            {{#if userId}}"userId": "{{userId}}",{{/if}}
+            {{#if anonymousId}}"anonymousId": "{{anonymousId}}",{{/if}}
+            "traits": {{json traits}},
+            "timestamp": "{{now}}"
+          }
+    output_transform:
+      success: "success"
+
+  page:
+    name: "Page"
+    category: "Analytics"
+    subcategory: "Events"
+    documentation: "Record whenever a user sees a page of your website."
+    inputs:
+      - name: "name"
+        type: "string"
+        description: "The name of the page."
+      - name: "userId"
+        type: "string"
+      - name: "anonymousId"
+        type: "string"
+      - name: "properties"
+        type: "object"
+        description: "Dictionary of properties for the page."
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/page"
+        headers:
+          Content-Type: "application/json"
+        body_template: |
+          {
+            {{#if name}}"name": "{{name}}",{{/if}}
+            {{#if userId}}"userId": "{{userId}}",{{/if}}
+            {{#if anonymousId}}"anonymousId": "{{anonymousId}}",{{/if}}
+            "properties": {{json properties}},
+            "timestamp": "{{now}}"
+          }
+    output_transform:
+      success: "success"

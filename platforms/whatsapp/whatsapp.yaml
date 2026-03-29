@@ -1,26 +1,117 @@
-meta:
-  permissions: ["network:graph.facebook.com"]
-  id: whatsapp
-  name: WhatsApp Business
-  type: Platform
-  category: Communication
-  description: "Connects to the WhatsApp Business API."
-  version: "1.0.0"
-
-config:
-  base_url: "https://graph.facebook.com"
-  headers:
-    Content-Type: "application/json"
-    Authorization: "Bearer PASTE_YOUR_KEY_HERE"
-
-settings:
-  - name: api_key
-    label: "API Key"
-    type: string
+name: "whatsapp"
+icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/whatsapp.svg"
+base_url: "https://graph.facebook.com/v21.0"
+auth_type: "api_key"
+auth:
+  type: "bearer"
+connection_schema:
+  - name: "access_token"
+    type: "string"
     required: true
-
-  - name: phone_number_id
-    label: "Phone Number ID"
-    type: string
+    is_secret: true
+  - name: "phone_number_id"
+    type: "string"
     required: true
-    description: "The unique ID for the phone number from which you want to send messages."
+    description: "The unique ID for your WhatsApp phone number."
+
+# --- TEMPLATES ---
+_templates:
+  common_meta: &common_meta
+    permissions: ["network:graph.facebook.com"]
+
+actions:
+  send_text_message:
+    name: "Send Text Message"
+    category: "Communication"
+    subcategory: "WhatsApp"
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/{{ settings.phone_number_id }}/messages"
+        body_template: |
+          {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": "{{ to }}",
+            "type": "text",
+            "text": { "body": "{{ body }}" }
+          }
+    inputs:
+      - name: "to"
+        label: "To (Phone Number)"
+        type: "string"
+        required: true
+      - name: "body"
+        label: "Message Body"
+        type: "string"
+        required: true
+
+  send_template_message:
+    name: "Send Template Message"
+    category: "Communication"
+    subcategory: "WhatsApp"
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/{{ settings.phone_number_id }}/messages"
+        body_template: |
+          {
+            "messaging_product": "whatsapp",
+            "to": "{{ to }}",
+            "type": "template",
+            "template": {
+              "name": "{{ template_name }}",
+              "language": { "code": "{{ default language_code 'en_US' }}" },
+              "components": {{ default components "[]" }}
+            }
+          }
+    inputs:
+      - name: "to"
+        type: "string"
+        required: true
+      - name: "template_name"
+        type: "string"
+        required: true
+      - name: "language_code"
+        type: "string"
+      - name: "components"
+        type: "array"
+
+  send_image:
+    name: "Send Image"
+    category: "Communication"
+    subcategory: "WhatsApp"
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/{{ settings.phone_number_id }}/messages"
+        body_template: |
+          {
+            "messaging_product": "whatsapp",
+            "to": "{{ to }}",
+            "type": "image",
+            "image": { "link": "{{ image_url }}", "caption": "{{ caption }}" }
+          }
+    inputs:
+      - name: "to"
+        type: "string"
+        required: true
+      - name: "image_url"
+        type: "string"
+        required: true
+      - name: "caption"
+        type: "string"
+
+triggers:
+  new_message:
+    name: "New Message (Webhook)"
+    category: "Communication"
+    subcategory: "WhatsApp"
+    description: "Triggers when a new message is received (Requires Inbound Webhooks)."
+    implementation:
+      type: "webhook" # Placeholder for future webhook support
+      config:
+        path: "/webhooks/whatsapp"

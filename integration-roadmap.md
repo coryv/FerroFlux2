@@ -62,7 +62,7 @@ Each entry lists:
 **Triggers:** New SMS Received, New Call Received, New WhatsApp Message
 **Actions:** Send SMS, Send MMS, Make Call, Send WhatsApp Message, Look Up Phone Number, Create Verification, Check Verification Code
 
-### WhatsApp Business *(Tier 2)*
+### ✅ WhatsApp Business *(Tier 2)*
 **Triggers:** New Message, Message Status Update
 **Actions:** Send Text Message, Send Template Message, Send Image, Send Document, Send Audio
 
@@ -169,7 +169,7 @@ Each entry lists:
 **Triggers:** New Push, New Pull Request, Pull Request Merged, New Issue
 **Actions:** Create Issue, Get Issue, List Issues, Create Pull Request, Merge Pull Request, List Repos, Get Repository, List Branches, Create Branch, Get File Contents
 
-### Vercel *(Tier 2)*
+### ✅ Vercel *(Tier 2)*
 **Triggers:** Deployment Created, Deployment Succeeded, Deployment Failed
 **Actions:** List Deployments, Get Deployment, Delete Deployment, List Projects, Get Project, Create Deployment, List Domains, Add Domain
 
@@ -181,7 +181,7 @@ Each entry lists:
 **Triggers:** Workflow Completed, Job Completed
 **Actions:** Trigger Pipeline, Get Pipeline, List Pipelines, Get Workflow, Cancel Workflow, Get Job, List Jobs, Get Artifacts
 
-### Sentry *(Tier 2)*
+### ✅ Sentry *(Tier 2)*
 **Triggers:** New Issue, Issue Resolved, New Error
 **Actions:** Create Issue, Resolve Issue, Assign Issue, Get Issue, List Issues, List Projects, Get Project, Get Organization
 
@@ -206,7 +206,7 @@ Each entry lists:
 ### ✅ MongoDB *(Tier 1)*
 **Actions:** Insert Document, Update Document, Delete Document, Find Documents, Find One, Aggregate, Count Documents, Create Index, Drop Collection
 
-### Redis *(Tier 2)*
+### ✅ Redis *(Tier 2)*
 **Actions:** Get, Set, Delete, Expire, List Push, List Pop, List Range, Hash Get, Hash Set, Publish, Increment, Decrement
 
 ### ✅ Supabase *(Tier 1)*
@@ -343,10 +343,10 @@ Each entry lists:
 ### ✅ Google Gemini *(Tier 1)*
 **Actions:** Generate Content, Generate Content with Tools (function calling), Chat, Generate with Vision, Embed Text, Count Tokens, List Models
 
-### Mistral *(Tier 2)*
+### ✅ Mistral *(Tier 2)*
 **Actions:** Chat Completion, Chat Completion with Tools (function calling), Embedding, List Models
 
-### Groq *(Tier 2)*
+### ✅ Groq *(Tier 2)*
 **Actions:** Chat Completion, Chat Completion with Tools (function calling), Transcribe Audio (Whisper)
 
 ### Cohere *(Tier 2)*
@@ -387,10 +387,10 @@ Each entry lists:
 ### Amplitude *(Tier 2)*
 **Actions:** Track Event, Identify User, Set User Properties, Get Cohort, Export Events
 
-### Segment *(Tier 2)*
+### ✅ Segment *(Tier 2)*
 **Actions:** Track Event, Identify User, Group User, Alias User, Page View, Screen View
 
-### PostHog *(Tier 2)*
+### ✅ PostHog *(Tier 2)*
 **Actions:** Capture Event, Identify User, Group Identify, Feature Flag Enabled, Get Feature Flag, List Feature Flags
 
 ---
@@ -506,7 +506,7 @@ Each entry lists:
 
 ## Monitoring & Observability
 
-### Sentry *(Tier 2)* — see Developer Tools above
+### ✅ Sentry *(Tier 2)* — see Developer Tools above
 
 ### New Relic *(Tier 2)*
 **Triggers:** New Alert Incident
@@ -617,3 +617,11 @@ Each entry lists:
 43. ~~Intercom~~
 44. ~~Freshdesk~~
 45. ~~Google Analytics 4~~
+46. ~~Mistral~~
+47. ~~Groq~~
+48. ~~Vercel~~
+49. ~~Sentry~~
+50. ~~Redis~~
+51. ~~PostHog~~
+52. ~~Segment~~
+53. ~~WhatsApp Business~~

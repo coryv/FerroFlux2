@@ -1,0 +1,90 @@
+meta:
+  permissions: ["network:api.groq.com"]
+
+name: "groq"
+icon_url: "https://groq.com/wp-content/uploads/2023/12/groq-logo.svg"
+base_url: "https://api.groq.com/openai/v1"
+auth_type: "api_key"
+verify_endpoint: "/models"
+auth:
+  type: "bearer"
+connection_schema:
+  - name: "api_key"
+    type: "string"
+    required: true
+    is_secret: true
+    description: "Groq API Key"
+
+# --- TEMPLATES ---
+_templates:
+  chat_inputs: &chat_inputs
+    - name: "model"
+      type: "string"
+      required: true
+      default: "llama3-8b-8192"
+    - name: "temperature"
+      type: "number"
+      default: 0.7
+    - name: "max_tokens"
+      type: "integer"
+      default: 4096
+
+  chat_implementation: &chat_implementation
+    type: "http"
+    config:
+      method: "POST"
+      path: "/chat/completions"
+      headers:
+        Content-Type: "application/json"
+      body_template: |
+        {
+          "model": "{{model}}",
+          "messages": [
+            {{#if system_instruction}}
+            { "role": "system", "content": {{json system_instruction}} },
+            {{/if}}
+            { "role": "user", "content": {{json user_prompt}} }
+          ],
+          "temperature": {{temperature}},
+          "max_tokens": {{max_tokens}}
+        }
+
+actions:
+  chat_completion:
+    name: "Chat Completion"
+    category: "AI"
+    subcategory: "LLM"
+    documentation: "Generate text using Groq's high-speed inference."
+    inputs: *chat_inputs
+    implementation: *chat_implementation
+    output_transform:
+      text: "choices[0].message.content"
+
+  transcribe_audio:
+    name: "Transcribe Audio"
+    category: "AI"
+    subcategory: "Audio"
+    documentation: "Transcribe audio files into text."
+    inputs:
+      - name: "model"
+        type: "string"
+        required: true
+        default: "whisper-large-v3"
+      - name: "file_path"
+        type: "string"
+        required: true
+        description: "Local path to the audio file."
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/audio/transcriptions"
+        headers:
+          Content-Type: "multipart/form-data"
+        body_template: |
+          {
+            "model": "{{model}}",
+            "file": "@/{{{file_path}}}"
+          }
+    output_transform:
+      text: "text"

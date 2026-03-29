@@ -1,0 +1,90 @@
+meta:
+  permissions: ["network:api.mistral.ai"]
+
+name: "mistral"
+icon_url: "https://mistral.ai/images/logo_black.svg"
+base_url: "https://api.mistral.ai/v1"
+auth_type: "api_key"
+verify_endpoint: "/models"
+auth:
+  type: "bearer"
+connection_schema:
+  - name: "api_key"
+    type: "string"
+    required: true
+    is_secret: true
+    description: "Mistral API Key"
+
+# --- TEMPLATES ---
+_templates:
+  chat_inputs: &chat_inputs
+    - name: "model"
+      type: "string"
+      required: true
+      default: "mistral-tiny"
+    - name: "temperature"
+      type: "number"
+      default: 0.7
+    - name: "max_tokens"
+      type: "integer"
+      default: 4096
+
+  chat_implementation: &chat_implementation
+    type: "http"
+    config:
+      method: "POST"
+      path: "/chat/completions"
+      headers:
+        Content-Type: "application/json"
+      body_template: |
+        {
+          "model": "{{model}}",
+          "messages": [
+            {{#if system_instruction}}
+            { "role": "system", "content": {{json system_instruction}} },
+            {{/if}}
+            { "role": "user", "content": {{json user_prompt}} }
+          ],
+          "temperature": {{temperature}},
+          "max_tokens": {{max_tokens}}
+        }
+
+actions:
+  chat_completion:
+    name: "Chat Completion"
+    category: "AI"
+    subcategory: "LLM"
+    documentation: "Generate text using Mistral models."
+    inputs: *chat_inputs
+    implementation: *chat_implementation
+    output_transform:
+      text: "choices[0].message.content"
+
+  embeddings:
+    name: "Embeddings"
+    category: "AI"
+    subcategory: "Embeddings"
+    documentation: "Generate embeddings for a given input text."
+    inputs:
+      - name: "model"
+        type: "string"
+        required: true
+        default: "mistral-embed"
+      - name: "input"
+        type: "array"
+        required: true
+        description: "The input text to embed."
+    implementation:
+      type: "http"
+      config:
+        method: "POST"
+        path: "/embeddings"
+        headers:
+          Content-Type: "application/json"
+        body_template: |
+          {
+            "model": "{{model}}",
+            "input": {{json input}}
+          }
+    output_transform:
+      embeddings: "data[*].embedding"
