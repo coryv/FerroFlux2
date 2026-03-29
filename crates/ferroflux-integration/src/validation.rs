@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 use std::path::PathBuf;
+use ferroflux_security::signing::{verify_content, is_trusted_key};
+use serde_json::json;
 
 use crate::definition::{NodeDefinition, PlatformDefinition};
 
@@ -261,6 +263,64 @@ pub fn validate_node(def: &NodeDefinition) -> ValidationResult {
     // Rule 9: template syntax — every {{ must have a matching }}
     for step in &def.execution {
         check_template_syntax(&step.params, &step.id, &mut result);
+    }
+
+    // Rule 10: Signature Verification (Integrity & Trust)
+    if let Some(sig) = &def.meta.signature {
+        // Strip the signature from the content before verifying
+        let mut content = json!(def);
+        if let Some(obj) = content.as_object_mut() {
+            if let Some(meta) = obj.get_mut("meta").and_then(|m| m.as_object_mut()) {
+                meta.remove("signature");
+            }
+        }
+        
+        match verify_content(&content, sig) {
+            Ok(_) => {
+                if !is_trusted_key(&sig.public_key) {
+                    result.diagnostics.push(ValidationDiagnostic::warning(
+                        "untrusted-signer",
+                        format!("Node is signed by an untrusted developer ({})", sig.signer_name),
+                    ));
+                }
+            }
+            Err(e) => {
+                result.diagnostics.push(ValidationDiagnostic::error(
+                    "invalid-signature",
+                    format!("Cryptographic signature is invalid: {}", e),
+                ));
+            }
+        }
+    } else {
+        result.diagnostics.push(ValidationDiagnostic::warning(
+            "unsigned-node",
+            "Node is not signed; its authenticity and integrity cannot be guaranteed",
+        ));
+    }
+
+    // Rule 11: Permission Auditing
+    for step in &def.execution {
+        if step.tool == "http_client" {
+            if let Some(url) = step.params.get("url").and_then(|v| v.as_str()) {
+                // If it's a hardcoded external URL (not using platform.base_url)
+                if (url.starts_with("http://") || url.starts_with("https://")) 
+                    && !url.contains("platform.base_url") 
+                {
+                    let domain = url.split('/').nth(2).unwrap_or("");
+                    let required_perm = format!("network:{}", domain);
+                    
+                    if !def.meta.permissions.contains(&required_perm) {
+                        result.diagnostics.push(ValidationDiagnostic::error(
+                            "missing-permission",
+                            format!(
+                                "step '{}' accesses external domain '{}' which is not in declared permissions",
+                                step.id, domain
+                            ),
+                        ));
+                    }
+                }
+            }
+        }
     }
 
     result

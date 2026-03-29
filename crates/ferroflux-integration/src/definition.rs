@@ -35,6 +35,11 @@ pub struct NodeMeta {
     /// Structural subtype for nodes that deviate from the standard Exec→Success/Error pattern.
     /// Recognised values: Router, Iterator, Accumulator, Terminus
     pub node_subtype: Option<String>,
+    /// Cryptographic signature for verifying the integrity and authorship of the integration.
+    pub signature: Option<ferroflux_security::signing::IntegrationSignature>,
+    /// Explicitly declared permissions/capabilities required by this node (e.g. "network:api.slack.com").
+    #[serde(default)]
+    pub permissions: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
