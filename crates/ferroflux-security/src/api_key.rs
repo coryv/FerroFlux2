@@ -2,6 +2,9 @@ use anyhow::{Context, Result};
 use std::env;
 use std::fs;
 use std::path::Path;
+#[cfg(unix)]
+use std::os::unix::fs::OpenOptionsExt;
+use std::io::Write;
 
 /// Retrieves the API key.
 ///
@@ -34,7 +37,17 @@ pub fn get_or_create_api_key() -> Result<String> {
     tracing::info!("Generating new API key -> 'ferroflux.api.key'");
     let key = uuid::Uuid::new_v4().to_string();
 
-    fs::write(key_path, &key).context("Failed to write ferroflux.api.key")?;
+    let mut options = fs::OpenOptions::new();
+    options.write(true).create_new(true);
+
+    #[cfg(unix)]
+    options.mode(0o600);
+
+    let mut file = options.open(key_path)
+        .context("Failed to open ferroflux.api.key with secure permissions")?;
+
+    file.write_all(key.as_bytes())
+        .context("Failed to write ferroflux.api.key")?;
 
     Ok(key)
 }
