@@ -441,6 +441,117 @@ pub fn parse_link_header_next(headers: &HashMap<String, String>) -> Option<Strin
     None
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    #[test]
+    fn test_parse_link_header_next_basic() {
+        let mut headers = HashMap::new();
+        headers.insert("link".to_string(), "<https://api.example.com/items?page=2>; rel=\"next\"".to_string());
+        assert_eq!(
+            parse_link_header_next(&headers),
+            Some("https://api.example.com/items?page=2".to_string())
+        );
+    }
+
+    #[test]
+    fn test_parse_link_header_next_single_quotes() {
+        let mut headers = HashMap::new();
+        headers.insert("link".to_string(), "<https://api.example.com/items?page=2>; rel='next'".to_string());
+        assert_eq!(
+            parse_link_header_next(&headers),
+            Some("https://api.example.com/items?page=2".to_string())
+        );
+    }
+
+    #[test]
+    fn test_parse_link_header_next_multiple() {
+        let mut headers = HashMap::new();
+        headers.insert(
+            "link".to_string(),
+            "<https://api.example.com/items?page=1>; rel=\"prev\", <https://api.example.com/items?page=3>; rel=\"next\"".to_string()
+        );
+        assert_eq!(
+            parse_link_header_next(&headers),
+            Some("https://api.example.com/items?page=3".to_string())
+        );
+    }
+
+    #[test]
+    fn test_parse_link_header_next_case_insensitive_key() {
+        let mut headers = HashMap::new();
+        headers.insert("Link".to_string(), "<https://api.example.com/items?page=2>; rel=\"next\"".to_string());
+        assert_eq!(
+            parse_link_header_next(&headers),
+            Some("https://api.example.com/items?page=2".to_string())
+        );
+    }
+
+    #[test]
+    fn test_parse_link_header_next_missing_next() {
+        let mut headers = HashMap::new();
+        headers.insert("link".to_string(), "<https://api.example.com/items?page=1>; rel=\"prev\"".to_string());
+        assert_eq!(parse_link_header_next(&headers), None);
+    }
+
+    #[test]
+    fn test_parse_link_header_next_malformed_part() {
+        let mut headers = HashMap::new();
+        headers.insert("link".to_string(), "<https://api.example.com/items?page=2>".to_string());
+        assert_eq!(parse_link_header_next(&headers), None);
+    }
+
+    #[test]
+    fn test_parse_link_header_next_empty_header() {
+        let mut headers = HashMap::new();
+        headers.insert("link".to_string(), "".to_string());
+        assert_eq!(parse_link_header_next(&headers), None);
+    }
+
+    #[test]
+    fn test_parse_link_header_next_no_header() {
+        let headers = HashMap::new();
+        assert_eq!(parse_link_header_next(&headers), None);
+    }
+
+    #[test]
+    fn test_parse_link_header_next_extra_whitespace() {
+        let mut headers = HashMap::new();
+        headers.insert(
+            "link".to_string(),
+            "  <https://api.example.com/items?page=3>  ;  rel=\"next\"  ,  <https://api.example.com/items?page=1> ; rel=\"prev\" ".to_string()
+        );
+        assert_eq!(
+            parse_link_header_next(&headers),
+            Some("https://api.example.com/items?page=3".to_string())
+        );
+    }
+
+    #[test]
+    fn test_parse_link_header_next_no_brackets() {
+        let mut headers = HashMap::new();
+        headers.insert("link".to_string(), "https://api.example.com/items?page=2; rel=\"next\"".to_string());
+        assert_eq!(
+            parse_link_header_next(&headers),
+            Some("https://api.example.com/items?page=2".to_string())
+        );
+    }
+
+    #[test]
+    fn test_parse_link_header_next_rel_contains_next_in_string() {
+        let mut headers = HashMap::new();
+        headers.insert("link".to_string(), "<https://api.example.com/items?page=2>; rel=\"not-next\"".to_string());
+        assert_eq!(parse_link_header_next(&headers), None);
+
+        // Note: the current implementation uses .contains("rel=\"next\"") which is quite specific.
+        // It would NOT match rel="next-page" because "next-page\"" does not contain "next\"".
+        headers.insert("link".to_string(), "<https://api.example.com/items?page=2>; rel=\"next-page\"".to_string());
+        assert_eq!(parse_link_header_next(&headers), None);
+    }
+}
+
 /// Builds a `multipart/form-data` form from a JSON `parts` array.
 ///
 /// Each element in `parts` must have a `name` field and exactly one content source:
