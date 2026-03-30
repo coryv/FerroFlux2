@@ -27,9 +27,16 @@ pub fn handle_trigger_node(
     if let Some(e) = target_entity {
         if let Some(store) = world.get_resource::<BlobStore>().cloned() {
             let payload_bytes = serde_json::to_vec(&payload).unwrap_or_else(|_| b"{}".to_vec());
-            if let Ok(ticket) = store.check_in(&payload_bytes) {
+            
+            let mut metadata = std::collections::HashMap::new();
+            metadata.insert("trace_id".to_string(), uuid::Uuid::new_v4().to_string());
+
+            if let Ok(ticket) = store.check_in_with_metadata(&payload_bytes, metadata) {
                 let is_source = if let Some(conf) = world.get::<NodeConfig>(e) {
-                    conf.node_type == "Webhook" || conf.node_type == "Cron"
+                    conf.node_type == "Webhook"
+                        || conf.node_type == "Cron"
+                        || conf.node_type.ends_with("trigger.webhook")
+                        || conf.node_type.ends_with("trigger.cron")
                 } else {
                     false
                 };
@@ -79,9 +86,16 @@ pub fn handle_trigger_workflow(
     if let Some(e) = target_entity {
         if let Some(store) = world.get_resource::<BlobStore>().cloned() {
             let payload_bytes = serde_json::to_vec(&payload).unwrap_or_else(|_| b"{}".to_vec());
-            if let Ok(ticket) = store.check_in(&payload_bytes) {
+            
+            let mut metadata = std::collections::HashMap::new();
+            metadata.insert("trace_id".to_string(), uuid::Uuid::new_v4().to_string());
+
+            if let Ok(ticket) = store.check_in_with_metadata(&payload_bytes, metadata) {
                 let is_source = if let Some(conf) = world.get::<NodeConfig>(e) {
-                    conf.node_type == "Webhook" || conf.node_type == "Cron"
+                    conf.node_type == "Webhook"
+                        || conf.node_type == "Cron"
+                        || conf.node_type.ends_with("trigger.webhook")
+                        || conf.node_type.ends_with("trigger.cron")
                 } else {
                     false
                 };

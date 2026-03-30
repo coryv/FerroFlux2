@@ -15,7 +15,7 @@ async fn test_data_blending_workflow() -> anyhow::Result<()> {
     unsafe { std::env::set_var("FERROFLUX_ALLOW_INTERNAL_IPS", "true"); }
 
     // 2. Setup Harness
-    let mut harness = TestHarness::new().await?;
+    let mut harness = TestHarness::new().await;
     let mock_uri = harness.mock_server().uri();
     
     // 3. Mock Slack API - users.info
@@ -52,18 +52,16 @@ async fn test_data_blending_workflow() -> anyhow::Result<()> {
     harness.set_platform_config("core", "base_url", json!(mock_uri))?; // route mock_db HTTP actions here
 
     // 6. Load Workflow WAML
-    let workflow_yaml = std::fs::read_to_string("fixtures/data_blending.yaml")?;
+    let yaml_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("fixtures/data_blending.yaml");
+    let workflow_yaml = std::fs::read_to_string(&yaml_path)?;
+    println!("Loaded WAML from {:?}:\n{}", yaml_path, workflow_yaml);
     harness.load_waml(&workflow_yaml)?;
     
     // 7. Trigger the Webhook Node
     let webhook_uuid = uuid::Uuid::new_v5(&uuid::Uuid::NAMESPACE_DNS, b"webhook_in");
     
     harness.trigger_node(webhook_uuid, json!({ 
-        "event": { 
-            "body": { "user_id": "U123" },
-            "headers": {},
-            "query": {}
-        } 
+        "user_id": "U123"
     }))?;
     
     // 8. Execute Engine

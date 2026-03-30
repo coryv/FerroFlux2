@@ -1,100 +1,18 @@
 meta:
+  id: google_analytics
+  name: "Google Analytics"
+  category: "Analytics"
+  type: Platform
+  icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/googleanalytics.svg"
   permissions: ["network:analyticsdata.googleapis.com"]
 
-name: "google_analytics"
-icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/googleanalytics.svg"
-base_url: "https://analyticsdata.googleapis.com/v1beta"
-auth_type: "oauth2"
-auth:
-  type: "bearer"
-connection_schema:
-  - name: "property_id"
-    type: "string"
-    required: true
-    description: "GA4 Property ID"
-
-actions:
-  run_report:
-    name: "Run Report"
-    category: "Analytics"
-    subcategory: "Reports"
-    implementation:
-      type: "http"
-      config:
-        method: "POST"
-        path: "/properties/{{ property_id }}:runReport"
-        body_template: |
-          {
-            "dateRanges": {{ default date_ranges "[{\"startDate\": \"7daysAgo\", \"endDate\": \"today\"}]" }},
-            "dimensions": {{ default dimensions "[]" }},
-            "metrics": {{ default metrics "[]" }},
-            "dimensionFilter": {{ default dimension_filter "null" }},
-            "metricFilter": {{ default metric_filter "null" }},
-            "limit": {{ default limit 100 }}
-          }
-    inputs:
-      - name: "property_id"
-        type: "string"
-        required: true
-      - name: "date_ranges"
-        type: "array"
-      - name: "dimensions"
-        type: "array"
-      - name: "metrics"
-        type: "array"
-      - name: "dimension_filter"
-        type: "object"
-      - name: "metric_filter"
-        type: "object"
-      - name: "limit"
-        type: "integer"
-
-  run_realtime_report:
-    name: "Run Realtime Report"
-    category: "Analytics"
-    subcategory: "Reports"
-    implementation:
-      type: "http"
-      config:
-        method: "POST"
-        path: "/properties/{{ property_id }}:runRealtimeReport"
-        body_template: |
-          {
-            "dimensions": {{ default dimensions "[]" }},
-            "metrics": {{ default metrics "[]" }},
-            "limit": {{ default limit 100 }}
-          }
-    inputs:
-      - name: "property_id"
-        type: "string"
-        required: true
-      - name: "dimensions"
-        type: "array"
-      - name: "metrics"
-        type: "array"
-      - name: "limit"
-        type: "integer"
-
-  get_property:
-    name: "Get Property"
-    category: "Analytics"
-    subcategory: "Management"
-    implementation:
-      type: "http"
-      config:
-        method: "GET"
-        path: "/properties/{{ property_id }}"
-    inputs:
-      - name: "property_id"
-        type: "string"
-        required: true
-
-  list_account_summaries:
-    name: "List Account Summaries"
-    category: "Analytics"
-    subcategory: "Management"
-    implementation:
-      type: "http"
-      config:
-        method: "GET"
-        path: "/accountSummaries"
+config:
+  base_url: "https://analyticsdata.googleapis.com/v1beta"
+  auth_type: "oauth2"
+  auth:
+    type: "bearer"
+  connection_schema:
+    - name: "property_id"
+      type: "string"
+      required: true
+      description: "GA4 Property ID"

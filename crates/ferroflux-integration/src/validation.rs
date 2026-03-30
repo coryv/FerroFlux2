@@ -269,10 +269,10 @@ pub fn validate_node(def: &NodeDefinition) -> ValidationResult {
     if let Some(sig) = &def.meta.signature {
         // Strip the signature from the content before verifying
         let mut content = json!(def);
-        if let Some(obj) = content.as_object_mut() {
-            if let Some(meta) = obj.get_mut("meta").and_then(|m| m.as_object_mut()) {
-                meta.remove("signature");
-            }
+        if let Some(obj) = content.as_object_mut()
+            && let Some(meta) = obj.get_mut("meta").and_then(|m| m.as_object_mut())
+        {
+            meta.remove("signature");
         }
         
         match verify_content(&content, sig) {
@@ -300,24 +300,24 @@ pub fn validate_node(def: &NodeDefinition) -> ValidationResult {
 
     // Rule 11: Permission Auditing
     for step in &def.execution {
-        if step.tool == "http_client" {
-            if let Some(url) = step.params.get("url").and_then(|v| v.as_str()) {
-                // If it's a hardcoded external URL (not using platform.base_url)
-                if (url.starts_with("http://") || url.starts_with("https://")) 
-                    && !url.contains("platform.base_url") 
-                {
-                    let domain = url.split('/').nth(2).unwrap_or("");
-                    let required_perm = format!("network:{}", domain);
-                    
-                    if !def.meta.permissions.contains(&required_perm) {
-                        result.diagnostics.push(ValidationDiagnostic::error(
-                            "missing-permission",
-                            format!(
-                                "step '{}' accesses external domain '{}' which is not in declared permissions",
-                                step.id, domain
-                            ),
-                        ));
-                    }
+        if step.tool == "http_client"
+            && let Some(url) = step.params.get("url").and_then(|v| v.as_str())
+        {
+            // If it's a hardcoded external URL (not using platform.base_url)
+            if (url.starts_with("http://") || url.starts_with("https://")) 
+                && !url.contains("platform.base_url") 
+            {
+                let domain = url.split('/').nth(2).unwrap_or("");
+                let required_perm = format!("network:{}", domain);
+                
+                if !def.meta.permissions.contains(&required_perm) {
+                    result.diagnostics.push(ValidationDiagnostic::error(
+                        "missing-permission",
+                        format!(
+                            "step '{}' accesses external domain '{}' which is not in declared permissions",
+                            step.id, domain
+                        ),
+                    ));
                 }
             }
         }
@@ -430,6 +430,8 @@ mod tests {
                 platform: None,
                 data_strategy: None,
                 node_subtype: None,
+                signature: None,
+                permissions: vec![],
             },
             config,
             settings: vec![],
@@ -454,6 +456,8 @@ mod tests {
                 platform: platform.map(String::from),
                 data_strategy: None,
                 node_subtype: None,
+                signature: None,
+                permissions: vec![],
             },
             interface: Interface { inputs, outputs, settings: vec![] },
             context: None,

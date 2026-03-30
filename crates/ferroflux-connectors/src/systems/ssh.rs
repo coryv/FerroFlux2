@@ -82,7 +82,7 @@ pub fn ssh_worker(
                     if let Ok(bytes) = serde_json::to_vec(&payload)
                         && let Ok(mut t) = store.check_in(&bytes)
                     {
-                        t.metadata = ticket.metadata.clone();
+                        t.metadata = ticket.1.metadata.clone();
                         outbox.queue.push_back((None, t));
                     }
                 }

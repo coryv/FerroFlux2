@@ -80,7 +80,7 @@ fn test_agent_missing_provider_event() {
     // 1. Create Data
     let ticket = store.check_in(b"{}").unwrap();
     let mut inbox = Inbox::default();
-    inbox.queue.push_back(ticket);
+    inbox.queue.push_back((None, ticket));
 
     // 2. Create Agent with INVALID provider
     let node_id = Uuid::new_v4();

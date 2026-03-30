@@ -4,14 +4,242 @@ use anyhow::{Context, Result, anyhow};
 use base64::{Engine as _, engine::general_purpose};
 use serde_json::Value;
 
-use super::request::{
+use crate::primitives::request::{
     build_multipart_form, check_ssrf, execute_binary_request, execute_multipart_request,
     execute_raw_request, execute_request, execute_streaming_request, resolve_connection_auth,
-    AwsSigV4Config,
+    set_query_param, AwsSigV4Config, BlockingRequest,
 };
 
 
 pub struct HttpClientTool;
+
+/// Resolves binary body bytes from params + context.
+///
+/// Accepts one of:
+/// - `body_var`: variable name in `context.local`; resolved from `DataRef::Blob` (BlobStore claim)
+///   or `DataRef::Inline` (string as UTF-8, other JSON values serialized)
+/// - `body_base64`: inline base64-encoded string, decoded to raw bytes
+fn resolve_binary_body(params: &Value, context: &mut ToolContext) -> Result<Vec<u8>> {
+    if let Some(var_name) = params.get("body_var").and_then(|v| v.as_str()) {
+        let data_ref = context
+            .local
+            .get(var_name)
+            .ok_or_else(|| anyhow!("body_var '{}' not found in context", var_name))?;
+
+        let bytes = match data_ref {
+            DataRef::Blob(ticket) => {
+                let store = context
+                    .store
+                    .ok_or_else(|| anyhow!("BlobStore not available to resolve body_var '{}'", var_name))?;
+                store
+                    .claim(ticket)
+                    .with_context(|| format!("Failed to claim blob for body_var '{}'", var_name))?
+            }
+            DataRef::Inline(Value::String(s)) => s.as_bytes().to_vec(),
+            DataRef::Inline(other) => serde_json::to_vec(other)
+                .with_context(|| format!("Failed to serialize inline value for body_var '{}'", var_name))?,
+        };
+
+        return Ok(bytes);
+    }
+
+    if let Some(b64) = params.get("body_base64").and_then(|v| v.as_str()) {
+        return general_purpose::STANDARD
+            .decode(b64)
+            .context("Failed to decode body_base64");
+    }
+
+    Err(anyhow!("Binary body requires either 'body_var' or 'body_base64'"))
+}
+
+impl Tool for HttpClientTool {
+    fn id(&self) -> &'static str {
+        "http_client"
+    }
+
+    fn run(&self, context: &mut ToolContext, params: Value) -> Result<Value> {
+        // Shadow Mode Interception
+        if context.shadow_mode {
+            let mock = context.shadow_masks.get(self.id());
+            tracing::info!(
+                tool = self.id(),
+                mock_found = mock.is_some(),
+                "Shadow Mode: Intercepting HTTP request"
+            );
+
+            if let Some(cfg) = mock {
+                if cfg.delay_ms > 0 {
+                    std::thread::sleep(std::time::Duration::from_millis(cfg.delay_ms));
+                }
+                return Ok(cfg.return_value.clone());
+            }
+
+            return Ok(serde_json::json!({
+                "status": 200,
+                "body": { "message": "Shadow Mode: Request Intercepted" },
+                "headers": {}
+            }));
+        }
+
+        let url = params
+            .get("url")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| anyhow::anyhow!("Missing 'url'"))?;
+
+        let method = params
+            .get("method")
+            .and_then(|v| v.as_str())
+            .unwrap_or("GET");
+
+        let body = params.get("body");
+        let headers_val = params.get("headers");
+        let connection_slug = params.get("connection").and_then(|v| v.as_str()).filter(|s| !s.trim().is_empty());
+        let aws_auth = params.get("aws_auth");
+
+        let mut aws_config = aws_auth.and_then(|v| {
+            let service = v.get("service")?.as_str()?.to_string();
+            let region = v.get("region")?.as_str()?.to_string();
+            let access_key = v.get("access_key")?.as_str()?.to_string();
+            let secret_key = v.get("secret_key")?.as_str()?.to_string();
+            Some(AwsSigV4Config { service, region, access_key, secret_key })
+        });
+
+        // 1. Connection Resolution (Auth + Base URL)
+        let (resolved_url, dynamic_headers) = if let Some(slug) = connection_slug {
+            resolve_connection_auth(url, Some(slug), context)?
+        } else {
+            // Error on relative URL without connection
+            if !url.starts_with("http") {
+                anyhow::bail!("Relative URL '{}' provided but no connection specified", url);
+            }
+            (url.to_string(), Vec::new())
+        };
+
+        // Fallback to connection-based AWS auth if not explicitly provided
+        if aws_config.is_none()
+            && let Some(slug) = connection_slug
+            && let Some(resolver) = context.secrets
+            && let Ok(conn_data) = resolver.resolve_connection(&ferroflux_iam::TenantId::from("default_tenant"), slug)
+            && let Some("aws_sigv4") = conn_data.get("auth_type").and_then(|v| v.as_str())
+        {
+            let service = params.get("aws_service").and_then(|v| v.as_str()).unwrap_or("s3").to_string();
+            let region = conn_data.get("region").and_then(|v| v.as_str())
+                .or_else(|| params.get("aws_region").and_then(|v| v.as_str()))
+                .unwrap_or("us-east-1").to_string();
+            let access_key = conn_data.get("access_key").and_then(|v| v.as_str()).unwrap_or("").to_string();
+            let secret_key = conn_data.get("secret_key").and_then(|v| v.as_str()).unwrap_or("").to_string();
+            
+            if !access_key.is_empty() && !secret_key.is_empty() {
+                aws_config = Some(AwsSigV4Config { service, region, access_key, secret_key });
+            }
+        }
+
+        // 2. SSRF Protection
+        check_ssrf(&resolved_url)?;
+
+        // 2b. Apply Query Params from tool params
+        let mut final_url = resolved_url;
+        if let Some(query_map) = params.get("query").and_then(|v| v.as_object()) {
+            for (k, v) in query_map {
+                let val_str = match v {
+                    Value::String(s) => s.clone(),
+                    Value::Number(n) => n.to_string(),
+                    Value::Bool(b) => b.to_string(),
+                    _ => serde_json::to_string(v).unwrap_or_default(),
+                };
+                final_url = set_query_param(&final_url, k, &val_str)?;
+            }
+        }
+
+        // 3. Execute — branch on stream or body_type
+        let stream = params.get("stream").and_then(|v| v.as_bool()).unwrap_or(false);
+        let body_type = params.get("body_type").and_then(|v| v.as_str()).unwrap_or("json");
+        let client = reqwest::blocking::Client::new();
+
+        if stream {
+            let step_id = params
+                .get("step_id")
+                .and_then(|v| v.as_str())
+                .unwrap_or("http_client");
+
+            let req = BlockingRequest::new(&client, &final_url, method)
+                .with_headers(headers_val, &dynamic_headers)
+                .with_body(body)
+                .with_aws(aws_config.as_ref());
+
+            let (status, headers, body_val) = execute_streaming_request(
+                req,
+                context.event_bus.as_ref(),
+                &context.trace_id,
+                step_id,
+            )?;
+
+            return Ok(serde_json::json!({
+                "status": status,
+                "headers": headers,
+                "body": body_val
+            }));
+        }
+
+        let response_type = params.get("response_type").and_then(|v| v.as_str()).unwrap_or("json");
+
+        let (status, headers, body_val) = if response_type == "blob" {
+            let req = BlockingRequest::new(&client, &final_url, method)
+                .with_headers(headers_val, &dynamic_headers)
+                .with_body(body)
+                .with_aws(aws_config.as_ref());
+
+            let (status, headers, bytes) = execute_raw_request(req)?;
+
+            let store = context
+                .store
+                .ok_or_else(|| anyhow!("BlobStore not available in context"))?;
+            let ticket = store.check_in_with_metadata(&bytes, headers.clone())?;
+            (status, headers, serde_json::to_value(ticket)?)
+        } else if body_type == "multipart" {
+            let parts = params
+                .get("parts")
+                .and_then(|v| v.as_array())
+                .ok_or_else(|| anyhow!("Missing 'parts' array for multipart body"))?;
+            let form = build_multipart_form(parts, context)?;
+
+            execute_multipart_request(
+                &client,
+                &final_url,
+                method,
+                headers_val,
+                &dynamic_headers,
+                form,
+                aws_config.as_ref(),
+            )?
+        } else if body_type == "binary" {
+            let content_type = params
+                .get("content_type")
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| anyhow!("Missing 'content_type' for binary body"))?;
+            let bytes = resolve_binary_body(&params, context)?;
+
+            let req = BlockingRequest::new(&client, &final_url, method)
+                .with_headers(headers_val, &dynamic_headers)
+                .with_aws(aws_config.as_ref());
+
+            execute_binary_request(req, bytes, content_type)?
+        } else {
+            let req = BlockingRequest::new(&client, &final_url, method)
+                .with_headers(headers_val, &dynamic_headers)
+                .with_body(body)
+                .with_aws(aws_config.as_ref());
+
+            execute_request(req)?
+        };
+
+        Ok(serde_json::json!({
+            "status": status,
+            "headers": headers,
+            "body": body_val
+        }))
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -616,222 +844,3 @@ mod tests {
     }
 }
 
-/// Resolves binary body bytes from params + context.
-///
-/// Accepts one of:
-/// - `body_var`: variable name in `context.local`; resolved from `DataRef::Blob` (BlobStore claim)
-///   or `DataRef::Inline` (string as UTF-8, other JSON values serialized)
-/// - `body_base64`: inline base64-encoded string, decoded to raw bytes
-fn resolve_binary_body(params: &Value, context: &mut ToolContext) -> Result<Vec<u8>> {
-    if let Some(var_name) = params.get("body_var").and_then(|v| v.as_str()) {
-        let data_ref = context
-            .local
-            .get(var_name)
-            .ok_or_else(|| anyhow!("body_var '{}' not found in context", var_name))?;
-
-        let bytes = match data_ref {
-            DataRef::Blob(ticket) => {
-                let store = context
-                    .store
-                    .ok_or_else(|| anyhow!("BlobStore not available to resolve body_var '{}'", var_name))?;
-                store
-                    .claim(ticket)
-                    .with_context(|| format!("Failed to claim blob for body_var '{}'", var_name))?
-            }
-            DataRef::Inline(Value::String(s)) => s.as_bytes().to_vec(),
-            DataRef::Inline(other) => serde_json::to_vec(other)
-                .with_context(|| format!("Failed to serialize inline value for body_var '{}'", var_name))?,
-        };
-
-        return Ok(bytes);
-    }
-
-    if let Some(b64) = params.get("body_base64").and_then(|v| v.as_str()) {
-        return general_purpose::STANDARD
-            .decode(b64)
-            .context("Failed to decode body_base64");
-    }
-
-    Err(anyhow!("Binary body requires either 'body_var' or 'body_base64'"))
-}
-
-impl Tool for HttpClientTool {
-    fn id(&self) -> &'static str {
-        "http_client"
-    }
-
-    fn run(&self, context: &mut ToolContext, params: Value) -> Result<Value> {
-        // Shadow Mode Interception
-        if context.shadow_mode {
-            let mock = context.shadow_masks.get(self.id());
-            tracing::info!(
-                tool = self.id(),
-                mock_found = mock.is_some(),
-                "Shadow Mode: Intercepting HTTP request"
-            );
-
-            if let Some(cfg) = mock {
-                if cfg.delay_ms > 0 {
-                    std::thread::sleep(std::time::Duration::from_millis(cfg.delay_ms));
-                }
-                return Ok(cfg.return_value.clone());
-            }
-
-            return Ok(serde_json::json!({
-                "status": 200,
-                "body": { "message": "Shadow Mode: Request Intercepted" },
-                "headers": {}
-            }));
-        }
-
-        let url = params
-            .get("url")
-            .and_then(|v| v.as_str())
-            .ok_or_else(|| anyhow::anyhow!("Missing 'url'"))?;
-
-        let method = params
-            .get("method")
-            .and_then(|v| v.as_str())
-            .unwrap_or("GET");
-
-        let body = params.get("body");
-        let headers_val = params.get("headers");
-        let connection_slug = params.get("connection").and_then(|v| v.as_str());
-        let aws_auth = params.get("aws_auth");
-
-        let mut aws_config = aws_auth.and_then(|v| {
-            let service = v.get("service")?.as_str()?.to_string();
-            let region = v.get("region")?.as_str()?.to_string();
-            let access_key = v.get("access_key")?.as_str()?.to_string();
-            let secret_key = v.get("secret_key")?.as_str()?.to_string();
-            Some(AwsSigV4Config { service, region, access_key, secret_key })
-        });
-
-        // 1. Connection Resolution (Auth + Base URL)
-        let (resolved_url, dynamic_headers) =
-            resolve_connection_auth(url, connection_slug, context)?;
-
-        // Fallback to connection-based AWS auth if not explicitly provided
-        if aws_config.is_none() {
-            if let Some(slug) = connection_slug {
-                if let Some(resolver) = context.secrets {
-                    // Note: using hardcoded default_tenant to match resolve_connection_auth helper internal logic
-                    let tenant = ferroflux_iam::TenantId::from("default_tenant");
-                    if let Ok(conn_data) = resolver.resolve_connection(&tenant, slug) {
-                        if let Some("aws_sigv4") = conn_data.get("auth_type").and_then(|v| v.as_str()) {
-                            let service = params.get("aws_service").and_then(|v| v.as_str()).unwrap_or("s3").to_string();
-                            let region = conn_data.get("region").and_then(|v| v.as_str())
-                                .or_else(|| params.get("aws_region").and_then(|v| v.as_str()))
-                                .unwrap_or("us-east-1").to_string();
-                            let access_key = conn_data.get("access_key").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                            let secret_key = conn_data.get("secret_key").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                            
-                            if !access_key.is_empty() && !secret_key.is_empty() {
-                                aws_config = Some(AwsSigV4Config { service, region, access_key, secret_key });
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // 2. SSRF Protection
-        check_ssrf(&resolved_url)?;
-
-        // 3. Execute — branch on stream or body_type
-        let stream = params.get("stream").and_then(|v| v.as_bool()).unwrap_or(false);
-        let body_type = params.get("body_type").and_then(|v| v.as_str()).unwrap_or("json");
-        let client = reqwest::blocking::Client::new();
-
-        if stream {
-            let step_id = params
-                .get("step_id")
-                .and_then(|v| v.as_str())
-                .unwrap_or("http_client");
-            let (status, headers, body_val) = execute_streaming_request(
-                &client,
-                &resolved_url,
-                method,
-                headers_val,
-                &dynamic_headers,
-                body,
-                context.event_bus.as_ref(),
-                &context.trace_id,
-                step_id,
-                aws_config.as_ref(),
-            )?;
-
-            return Ok(serde_json::json!({
-                "status": status,
-                "headers": headers,
-                "body": body_val
-            }));
-        }
-
-        let response_type = params.get("response_type").and_then(|v| v.as_str()).unwrap_or("json");
-
-        let (status, headers, body_val) = if response_type == "blob" {
-            let (status, headers, bytes) = execute_raw_request(
-                &client,
-                &resolved_url,
-                method,
-                headers_val,
-                &dynamic_headers,
-                body,
-                aws_config.as_ref(),
-            )?;
-            let store = context
-                .store
-                .ok_or_else(|| anyhow!("BlobStore not available in context"))?;
-            let ticket = store.check_in_with_metadata(&bytes, headers.clone())?;
-            (status, headers, serde_json::to_value(ticket)?)
-        } else if body_type == "multipart" {
-            let parts = params
-                .get("parts")
-                .and_then(|v| v.as_array())
-                .ok_or_else(|| anyhow!("Missing 'parts' array for multipart body"))?;
-            let form = build_multipart_form(parts, context)?;
-            execute_multipart_request(
-                &client,
-                &resolved_url,
-                method,
-                headers_val,
-                &dynamic_headers,
-                form,
-                aws_config.as_ref(),
-            )?
-        } else if body_type == "binary" {
-            let content_type = params
-                .get("content_type")
-                .and_then(|v| v.as_str())
-                .ok_or_else(|| anyhow!("Missing 'content_type' for binary body"))?;
-            let bytes = resolve_binary_body(&params, context)?;
-            execute_binary_request(
-                &client,
-                &resolved_url,
-                method,
-                headers_val,
-                &dynamic_headers,
-                bytes,
-                content_type,
-                aws_config.as_ref(),
-            )?
-        } else {
-            execute_request(
-                &client,
-                &resolved_url,
-                method,
-                headers_val,
-                &dynamic_headers,
-                body,
-                aws_config.as_ref(),
-            )?
-        };
-
-        Ok(serde_json::json!({
-            "status": status,
-            "headers": headers,
-            "body": body_val
-        }))
-    }
-}

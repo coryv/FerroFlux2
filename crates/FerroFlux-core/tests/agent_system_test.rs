@@ -180,7 +180,7 @@ fn test_agent_templating_and_generation() {
             .unwrap();
 
         let mut inbox = Inbox::default();
-        inbox.queue.push_back(ticket);
+        inbox.queue.push_back((None, ticket));
 
         let mut schema = HashSet::new();
         schema.insert("response".to_string());
@@ -277,7 +277,7 @@ fn test_agent_tools_payload() {
         let store = world.resource::<BlobStore>().clone();
         let ticket = store.check_in(b"{}").unwrap();
         let mut inbox = Inbox::default();
-        inbox.queue.push_back(ticket);
+        inbox.queue.push_back((None, ticket));
 
         world.spawn((
             AgentConfig {
@@ -350,7 +350,7 @@ fn test_agent_retry_logic() {
         let store = world.resource::<BlobStore>().clone();
         let ticket = store.check_in(b"{}").unwrap();
         let mut inbox = Inbox::default();
-        inbox.queue.push_back(ticket);
+        inbox.queue.push_back((None, ticket));
 
         world.spawn((
             AgentConfig {
@@ -430,7 +430,7 @@ fn test_agent_structured_output() {
         let store = world.resource::<BlobStore>().clone();
         let ticket = store.check_in(b"{}").unwrap();
         let mut inbox = Inbox::default();
-        inbox.queue.push_back(ticket);
+        inbox.queue.push_back((None, ticket));
 
         let mut schema = HashSet::new();
         schema.insert("data".to_string());
@@ -509,7 +509,7 @@ fn test_tracing_propagation() {
         let ticket = store.check_in_with_metadata(b"{}", meta).unwrap();
 
         let mut inbox = Inbox::default();
-        inbox.queue.push_back(ticket);
+        inbox.queue.push_back((None, ticket));
 
         world.spawn((
             AgentConfig {

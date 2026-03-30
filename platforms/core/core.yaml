@@ -1,0 +1,11 @@
+meta:
+  id: core
+  name: Core
+  category: System
+  type: Platform
+  description: "Core primitive actions and utilities."
+  version: "1.0.0"
+
+config:
+  base_url: ""
+  headers: {}

@@ -28,8 +28,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/users.info"
-      headers: "{{ platform.headers }}"
+      url: "{{ platform.slack.base_url }}/users.info"
+      headers: "{{ platform.slack.headers }}"
       query:
         user: "{{ get 'inputs.user_id' }}"
     returns:

@@ -103,9 +103,13 @@ pub struct PipelineStep {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RoutingLogic {
-    #[serde(rename = "match")]
+    #[serde(rename = "match", default = "default_match")]
     pub match_expr: String,
     pub cases: HashMap<String, Vec<RoutingAction>>,
+}
+
+fn default_match() -> String {
+    "success".to_string()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

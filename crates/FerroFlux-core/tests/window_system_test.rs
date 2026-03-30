@@ -46,7 +46,7 @@ fn test_window_rolling_mean() {
         let payload = json!({ "value": val });
         let bytes = serde_json::to_vec(&payload).unwrap();
         let ticket = store.check_in(&bytes).unwrap();
-        inbox.queue.push_back(ticket);
+        inbox.queue.push_back((None, ticket));
     }
 
     let entity = world
@@ -129,7 +129,7 @@ fn test_window_rolling_variance() {
         let payload = json!({ "value": val });
         let bytes = serde_json::to_vec(&payload).unwrap();
         let ticket = store.check_in(&bytes).unwrap();
-        inbox.queue.push_back(ticket);
+        inbox.queue.push_back((None, ticket));
     }
 
     let entity = world

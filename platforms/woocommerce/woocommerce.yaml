@@ -1,173 +1,24 @@
 meta:
+  id: woocommerce
+  name: "WooCommerce"
+  category: "E-commerce"
+  type: Platform
+  icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/woocommerce.svg"
   permissions: ["network:*"]
 
-name: "woocommerce"
-icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/woocommerce.svg"
-base_url: "https://{{ store_url }}/wp-json/wc/v3"
-auth_type: "basic"
-auth:
-  type: "basic"
-connection_schema:
-  - name: "store_url"
-    type: "string"
-    required: true
-  - name: "consumer_key"
-    type: "string"
-    required: true
-  - name: "consumer_secret"
-    type: "string"
-    required: true
-    is_secret: true
-
-# --- TEMPLATES ---
-_templates:
-  order_fields: &order_fields
-    - name: "status"
-      label: "Status"
-      type: "select"
-      options: ["pending", "processing", "on-hold", "completed", "cancelled", "refunded", "failed"]
-    - name: "customer_id"
-      label: "Customer ID"
-      type: "integer"
-    - name: "payment_method"
-      label: "Payment Method"
+config:
+  base_url: "https://{{ store_url }}/wp-json/wc/v3"
+  auth_type: "basic"
+  auth:
+    type: "basic"
+  connection_schema:
+    - name: "store_url"
       type: "string"
-
-actions:
-  create_order:
-    name: "Create Order"
-    category: "E-commerce"
-    subcategory: "Orders"
-    implementation:
-      type: "http"
-      config:
-        method: "POST"
-        path: "/orders"
-        body_template: |
-          {
-            "status": "{{ default status 'pending' }}",
-            "customer_id": {{ default customer_id 0 }},
-            "payment_method": "{{ payment_method }}",
-            "line_items": {{ default line_items "[]" }}
-          }
-    inputs: *order_fields
-
-  update_order:
-    name: "Update Order"
-    category: "E-commerce"
-    subcategory: "Orders"
-    implementation:
-      type: "http"
-      config:
-        method: "PUT"
-        path: "/orders/{{ id }}"
-        body_template: |
-          {
-            "status": "{{ status }}",
-            "customer_id": {{ default customer_id "null" }}
-          }
-    inputs:
-      - name: "id"
-        label: "Order ID"
-        type: "integer"
-        required: true
-      - *order_fields
-
-  get_order:
-    name: "Get Order"
-    category: "E-commerce"
-    subcategory: "Orders"
-    implementation:
-      type: "http"
-      config:
-        method: "GET"
-        path: "/orders/{{ id }}"
-    inputs:
-      - name: "id"
-        label: "Order ID"
-        type: "integer"
-        required: true
-
-  list_orders:
-    name: "List Orders"
-    category: "E-commerce"
-    subcategory: "Orders"
-    implementation:
-      type: "http"
-      config:
-        method: "GET"
-        path: "/orders"
-        query_params:
-          status: "{{ status }}"
-          per_page: "{{ limit }}"
-    inputs:
-      - name: "status"
-        type: "string"
-        default: "any"
-      - name: "limit"
-        type: "integer"
-        default: 10
-
-  create_product:
-    name: "Create Product"
-    category: "E-commerce"
-    subcategory: "Products"
-    implementation:
-      type: "http"
-      config:
-        method: "POST"
-        path: "/products"
-        body_template: |
-          {
-            "name": "{{ name }}",
-            "type": "{{ default type 'simple' }}",
-            "regular_price": "{{ price }}",
-            "description": "{{ description }}"
-          }
-    inputs:
-      - name: "name"
-        label: "Product Name"
-        type: "string"
-        required: true
-      - name: "type"
-        label: "Product Type"
-        type: "string"
-      - name: "price"
-        label: "Regular Price"
-        type: "string"
-      - name: "description"
-        label: "Description"
-        type: "string"
-
-triggers:
-  new_order:
-    name: "New Order"
-    category: "E-commerce"
-    subcategory: "Orders"
-    description: "Triggers when a new order is created."
-    implementation:
-      type: "polling"
-      config:
-        path: "/orders"
-        query_params:
-          orderby: "date"
-          order: "desc"
-          per_page: 10
-        deduplication_key: "id"
-        interval: "15m"
-
-  order_status_updated:
-    name: "Order Status Updated"
-    category: "E-commerce"
-    subcategory: "Orders"
-    description: "Triggers when an order status is updated."
-    implementation:
-      type: "polling"
-      config:
-        path: "/orders"
-        query_params:
-          orderby: "modified"
-          order: "desc"
-          per_page: 10
-        deduplication_key: "id" # We'd actually want to deduplicate by id + status in a real engine
-        interval: "15m"
+      required: true
+    - name: "consumer_key"
+      type: "string"
+      required: true
+    - name: "consumer_secret"
+      type: "string"
+      required: true
+      is_secret: true

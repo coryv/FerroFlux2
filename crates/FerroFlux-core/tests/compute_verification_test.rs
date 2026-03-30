@@ -30,10 +30,15 @@ async fn test_wasm_compute_node_execution() {
                 entry_point: "main".to_string(),
             },
             Inbox {
-                queue: std::collections::VecDeque::from(vec![app_ctx.app.world
-                    .resource::<BlobStore>()
-                    .check_in(b"{\"input\": 1}")
-                    .unwrap()]),
+                queue: std::collections::VecDeque::from(vec![(
+                    None,
+                    app_ctx
+                        .app
+                        .world
+                        .resource::<BlobStore>()
+                        .check_in(b"{\"input\": 1}")
+                        .unwrap(),
+                )]),
             },
             Outbox::default(),
         ))

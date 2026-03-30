@@ -64,6 +64,8 @@ fn test_dataref_blob_templating() {
             platform: None,
             data_strategy: None,
             node_subtype: None,
+            signature: None,
+            permissions: vec![],
         },
         interface: Interface {
             inputs: vec![],
@@ -120,7 +122,7 @@ fn test_dataref_blob_templating() {
 
     // Spawn Node
     let mut inbox = Inbox::default();
-    inbox.queue.push_back(state_ticket);
+    inbox.queue.push_back((None, state_ticket));
 
     world.spawn((
         PipelineNode {

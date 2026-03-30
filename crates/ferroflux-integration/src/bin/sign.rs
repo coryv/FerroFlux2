@@ -46,10 +46,10 @@ fn main() -> Result<()> {
     let signature = sign_content(&content, &args.key, &args.version)?;
 
     // 4. Inject signature back into meta
-    if let Some(obj) = content.as_object_mut() {
-        if let Some(meta) = obj.get_mut("meta").and_then(|m| m.as_object_mut()) {
-            meta.insert("signature".to_string(), serde_json::to_value(signature)?);
-        }
+    if let Some(obj) = content.as_object_mut()
+        && let Some(meta) = obj.get_mut("meta").and_then(|m| m.as_object_mut())
+    {
+        meta.insert("signature".to_string(), serde_json::to_value(signature)?);
     }
 
     // 5. Save back to YAML

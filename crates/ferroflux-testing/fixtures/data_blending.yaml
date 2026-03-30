@@ -16,6 +16,7 @@ nodes:
   - id: "query_db"
     name: "Query Mock DB"
     type: "core.action.http"
+    platform: "core"
     config:
       method: "GET"
       url: "{{ platform.core.base_url }}/mock_db?email={{ get 'user.profile.email' }}"

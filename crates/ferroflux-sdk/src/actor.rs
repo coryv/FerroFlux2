@@ -204,7 +204,7 @@ impl<T: NodeData + Send + 'static> EngineActor<T> {
         let mut query = world.query::<(&NodeConfig, &mut Inbox)>();
         for (config, mut inbox) in query.iter_mut(world) {
             if config.id == node_id {
-                inbox.queue.push_back(ticket);
+                inbox.queue.push_back((None, ticket));
                 return Ok(());
             }
         }

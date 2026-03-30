@@ -22,19 +22,20 @@ pub fn update_graph_topology(
         needs_rebuild = true;
     }
 
+    let edge_count = edge_query.iter().count();
+    if edge_count > 0 && topology.adjacency.is_empty() {
+        needs_rebuild = true;
+    }
+
     if removed_edges.read().count() > 0 {
         needs_rebuild = true;
     }
 
-    // Special case: if topology is empty but there are edges, we must rebuild (handle startup/tests)
-    if topology.adjacency.is_empty() && !edge_query.is_empty() {
-        needs_rebuild = true;
-    }
-
     if needs_rebuild {
-        tracing::debug!("Graph topology changed or uninitialized, rebuilding adjacency cache");
+        tracing::debug!(edge_count = %edge_count, "Graph topology changed or uninitialized, rebuilding adjacency cache");
         topology.adjacency.clear();
         for edge in edge_query.iter() {
+            tracing::debug!(source = ?edge.source, target = ?edge.target, "Cache rebuild: adding edge");
             topology
                 .adjacency
                 .entry(edge.source)
@@ -79,20 +80,41 @@ pub fn transport_worker(
                 continue;
             }
 
+            tracing::trace!(source = ?source, items = outbox.queue.len(), "Transport: outbox has items");
+
             // 3. Broadcast Tickets (Filtering by Port)
             let items: Vec<(Option<String>, SecureTicket)> = outbox.queue.drain(..).collect();
 
             for (port, ticket) in items {
                 for (source_handle, target_entity, target_handle) in targets {
-                    // Exact match on port name (handle).
-                    // If outbox says "Success", only edges from "Success" fire.
-                    if source_handle == &port
-                        && let Ok(mut inbox) = inbox_query.get_mut(*target_entity)
-                    {
+                    tracing::trace!(
+                        port = ?port,
+                        source_handle = ?source_handle,
+                        target = ?target_entity,
+                        "Transport: checking edge"
+                    );
+                    
+                    // Match if:
+                    // 1. Port matches source_handle (both Some and equal, OR both None)
+                    // 2. Outbox port is None (generic broadcast)
+                    let is_match = match (&port, &source_handle) {
+                        (Some(p), Some(sh)) => p == sh,
+                        (None, _) => true, // Generic broadcast from outbox
+                        _ => false,
+                    };
+
+                    if is_match && let Ok(mut inbox) = inbox_query.get_mut(*target_entity) {
                         inbox.queue.push_back((target_handle.clone(), ticket.clone()));
                         tracing::debug!(source = ?source, target = ?target_entity, port = ?port, target_handle = ?target_handle, "Moved ticket");
 
                         let target_uuid = node_map.get(target_entity).cloned().unwrap_or_default();
+
+                        tracing::trace!(
+                            source = ?source,
+                            target = ?target_entity,
+                            trace_id = ?ticket.metadata.get("trace_id"),
+                            "Moved ticket metadata check"
+                        );
 
                         // Update Trace Entity if trace_id exists in ticket
                         if let Some(trace_id_str) = ticket.metadata.get("trace_id")

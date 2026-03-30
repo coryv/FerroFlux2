@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use std::env;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 fn get_api_key_path() -> PathBuf {
     if let Ok(path_str) = env::var("FERROFLUX_API_KEY_PATH") {

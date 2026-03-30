@@ -14,7 +14,7 @@ use serde_json::Value;
 
 use super::request::{
     check_ssrf, execute_request, extract_by_path, parse_link_header_next, resolve_connection_auth,
-    set_query_param, AwsSigV4Config,
+    set_query_param, AwsSigV4Config, BlockingRequest,
 };
 
 
@@ -166,15 +166,12 @@ impl Tool for PaginateTool {
                 "Fetching page"
             );
 
-            let (status, resp_headers, body_val) = execute_request(
-                &client,
-                &page_url,
-                method,
-                headers_val,
-                &dynamic_headers,
-                body,
-                aws_config.as_ref(),
-            )?;
+            let req = BlockingRequest::new(&client, &page_url, method)
+                .with_headers(headers_val, &dynamic_headers)
+                .with_body(body)
+                .with_aws(aws_config.as_ref());
+
+            let (status, resp_headers, body_val) = execute_request(req)?;
 
 
             if status >= 400 {

@@ -35,13 +35,13 @@ pub fn wasm_worker(
     for (config, node_config, mut inbox, mut outbox) in query.iter_mut() {
         while let Some(ticket) = inbox.queue.pop_front() {
             let start = std::time::Instant::now();
-            let trace_id = ticket
+            let trace_id = ticket.1
                 .metadata
                 .get("trace_id")
                 .cloned()
                 .unwrap_or("unknown".into());
 
-            let payload_bytes = match store.claim(&ticket) {
+            let payload_bytes = match store.claim(&ticket.1) {
                 Ok(b) => b,
                 Err(_) => continue,
             };
@@ -64,7 +64,7 @@ pub fn wasm_worker(
                 &serde_json::from_str::<serde_json::Value>(&final_json).unwrap(),
             ) && let Ok(mut new_ticket) = store.check_in(&bytes)
             {
-                new_ticket.metadata = ticket.metadata.clone();
+                new_ticket.metadata = ticket.1.metadata.clone();
                 outbox.queue.push_back((None, new_ticket));
             }
 

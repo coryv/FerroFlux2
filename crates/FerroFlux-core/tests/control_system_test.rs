@@ -46,7 +46,7 @@ async fn test_checkpoint_hibernate() {
     let ticket = store.check_in(input_bytes).unwrap();
 
     let mut inbox = Inbox::default();
-    inbox.queue.push_back(ticket);
+    inbox.queue.push_back((None, ticket));
 
     world.spawn((
         NodeConfig {

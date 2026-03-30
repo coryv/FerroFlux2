@@ -61,7 +61,12 @@ pub async fn run_scenario(yaml: &str) -> anyhow::Result<()> {
     let mut x_cursor = 0.0;
 
     for node_bp in &scenario.blueprint.nodes {
-        let uuid = node_bp.id;
+        let uuid = if let Ok(u) = Uuid::parse_str(&node_bp.id) {
+            u
+        } else {
+            let namespace = Uuid::NAMESPACE_DNS;
+            Uuid::new_v5(&namespace, node_bp.id.as_bytes())
+        };
         name_to_uuid.insert(node_bp.name.clone(), uuid);
 
         // Construct NodeData wrapper
@@ -93,13 +98,26 @@ pub async fn run_scenario(yaml: &str) -> anyhow::Result<()> {
 
     // Edges
     for edge_bp in &scenario.blueprint.edges {
+        let source_uuid = if let Ok(u) = Uuid::parse_str(&edge_bp.source_id) {
+            u
+        } else {
+            let namespace = Uuid::NAMESPACE_DNS;
+            Uuid::new_v5(&namespace, edge_bp.source_id.as_bytes())
+        };
+        let target_uuid = if let Ok(u) = Uuid::parse_str(&edge_bp.target_id) {
+            u
+        } else {
+            let namespace = Uuid::NAMESPACE_DNS;
+            Uuid::new_v5(&namespace, edge_bp.target_id.as_bytes())
+        };
+
         let src_node_id = *graph
             .uuid_index
-            .get(&edge_bp.source_id)
+            .get(&source_uuid)
             .ok_or_else(|| anyhow::anyhow!("Source node not found"))?;
         let tgt_node_id = *graph
             .uuid_index
-            .get(&edge_bp.target_id)
+            .get(&target_uuid)
             .ok_or_else(|| anyhow::anyhow!("Target node not found"))?;
 
         let src_port = graph.add_port(src_node_id, false); // Output
@@ -151,7 +169,8 @@ pub async fn run_scenario(yaml: &str) -> anyhow::Result<()> {
                     .ok_or_else(|| anyhow::anyhow!("Node {} state not found", uuid))?;
 
                 if property.starts_with("outbox.last") {
-                    if let Some((_, ticket)) = state.outbox.queue.back() {
+                    if let Some(entry) = state.outbox.queue.back() {
+                        let ticket = &entry.1;
                         let blob = client.read_blob(ticket.clone()).await?.ok_or_else(|| {
                             anyhow::anyhow!("Blob not found for ticket {:?}", ticket)
                         })?;

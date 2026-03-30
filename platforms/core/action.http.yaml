@@ -7,6 +7,9 @@ meta:
   description: "Make an outgoing HTTP request (JSON/Text)."
   version: "1.0.0"
 
+config:
+  base_url: ""
+
 interface:
   inputs:
     - name: Exec

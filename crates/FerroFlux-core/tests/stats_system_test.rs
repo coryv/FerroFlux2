@@ -54,6 +54,8 @@ async fn test_stats_tool_large_dataset() {
             platform: None,
             data_strategy: None,
             node_subtype: None,
+            signature: None,
+            permissions: vec![],
         },
         interface: Interface {
             inputs: vec![],
@@ -105,7 +107,7 @@ async fn test_stats_tool_large_dataset() {
         .unwrap();
 
     let mut inbox = Inbox::default();
-    inbox.queue.push_back(ticket);
+    inbox.queue.push_back((None, ticket));
 
     // Spawn Node Entity
     // Configuration simulates user settings

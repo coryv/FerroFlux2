@@ -24,21 +24,37 @@ pub use transport::*;
 
 /// Registers all core systems to the schedule.
 pub fn register_core_systems(schedule: &mut Schedule) {
+    // 1. Ingest
     schedule.add_systems((
         scheduler::scheduler_worker,
         gateway::ingest_triggers,
+    ));
+
+    // 2. Topology Rebuild (Must run before transport)
+    schedule.add_systems(
+        transport::update_graph_topology
+            .after(gateway::ingest_triggers)
+    );
+
+    // 3. Transport (Move data from Outbox to Inbox)
+    schedule.add_systems(
+        transport::transport_worker
+            .after(transport::update_graph_topology)
+    );
+
+    // 4. Execution (Process Inbox)
+    schedule.add_systems((
         agent::agent_prep,
         agent::agent_exec,
         agent::agent_post,
         pipeline::pipeline_execution_system,
-    ));
+    ).after(transport::transport_worker));
 
+    // 5. Cleanup/Telemetry
     schedule.add_systems((
-        transport::update_graph_topology, // Optimization: Needs to run before transport
-        transport::transport_worker,
         janitor::janitor_worker,
         observability::telemetry_worker,
-    ));
-
-    schedule.add_systems((manipulation::window_worker, control::checkpoint_worker));
+        manipulation::window_worker,
+        control::checkpoint_worker,
+    ).after(pipeline::pipeline_execution_system));
 }

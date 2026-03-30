@@ -15,6 +15,7 @@ pub mod sleep;
 pub mod smtp;
 pub mod sql_query;
 pub mod stats;
+pub mod switch;
 
 
 pub mod trace;
@@ -42,6 +43,7 @@ pub use self::rhai::RhaiTool;
 pub use self::sleep::SleepTool;
 pub use self::smtp::SmtpTool;
 pub use self::stats::StatsTool;
+pub use self::switch::SwitchTool;
 pub use self::xml::XmlTool;
 pub use self::json_transform::JsonTransformTool;
 pub use self::date::DateTool;

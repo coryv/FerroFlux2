@@ -18,6 +18,7 @@ impl Plugin for ToolsPlugin {
 pub fn register_core_tools(registry: &mut ToolRegistry) {
     use primitives::*;
     registry.register(HttpClientTool);
+    registry.register(SwitchTool);
     registry.register(PaginateTool);
     registry.register(JsonQueryTool);
     registry.register(EmitTool);

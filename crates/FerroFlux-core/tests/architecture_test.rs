@@ -45,6 +45,8 @@ fn default_node_meta(id: &str) -> NodeMeta {
         platform: None,
         data_strategy: None,
         node_subtype: None,
+        signature: None,
+        permissions: vec![],
     }
 }
 fn default_interface() -> Interface {
@@ -148,7 +150,7 @@ async fn test_manifest_pattern_blob_resolution() {
 
     // 3. Spawn Node
     let mut inbox = Inbox::default();
-    inbox.queue.push_back(state_ticket);
+    inbox.queue.push_back((None, state_ticket));
 
     world.spawn((
         PipelineNode {
@@ -197,7 +199,7 @@ async fn test_quota_system() {
 
     let mut inbox = Inbox::default();
     for _ in 0..count {
-        inbox.queue.push_back(ticket.clone());
+        inbox.queue.push_back((None, ticket.clone()));
     }
 
     // Spawn ONE node with 60 items in inbox
@@ -239,7 +241,7 @@ async fn test_error_handling() {
         .unwrap();
 
     let mut inbox = Inbox::default();
-    inbox.queue.push_back(ticket);
+    inbox.queue.push_back((None, ticket));
 
     world.spawn((
         PipelineNode {
@@ -299,7 +301,7 @@ async fn test_memory_spill_strategy() {
     let state_bytes = serde_json::to_vec(&state).unwrap();
     let ticket = store.check_in(&state_bytes).unwrap();
     let mut inbox = Inbox::default();
-    inbox.queue.push_back(ticket);
+    inbox.queue.push_back((None, ticket));
 
     world.spawn((
         PipelineNode {
@@ -378,7 +380,7 @@ async fn test_lazy_loading_get_helper() {
 
     // 4. Spawn Node
     let mut inbox = Inbox::default();
-    inbox.queue.push_back(state_ticket);
+    inbox.queue.push_back((None, state_ticket));
 
     world.spawn((
         PipelineNode {

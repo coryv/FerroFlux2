@@ -32,9 +32,19 @@ pub fn pipeline_execution_system(
     secret_store: Res<crate::secrets::DatabaseSecretStore>,
     runtime: Res<crate::resources::TokioRuntime>,
     refresh_locks: Res<ferroflux_db::oauth2::TokenRefreshLocks>,
+    mut work_done: ResMut<crate::resources::WorkDone>,
 ) {
     const MAX_ITEMS_PER_TICK: usize = 50;
-    for (_entity, mut node, mut inbox, mut outbox, shadow_exec, node_config) in query.iter_mut() {
+    
+    let query_count = query.iter().count();
+    if query_count > 0 {
+        tracing::debug!(count = query_count, "pipeline_execution_system: running query");
+    }
+
+    for (entity, mut node, mut inbox, mut outbox, shadow_exec, node_config) in query.iter_mut() {
+        if !inbox.queue.is_empty() {
+            tracing::info!(entity = ?entity, queue_len = inbox.queue.len(), "Found items in inbox");
+        }
         let mut processed_count = 0;
         while processed_count < MAX_ITEMS_PER_TICK {
             let (target_port, ticket) = match inbox.queue.pop_front() {
@@ -42,6 +52,10 @@ pub fn pipeline_execution_system(
                 None => break,
             };
             processed_count += 1;
+            work_done.0 = true;
+
+            tracing::info!(entity = ?entity, port = ?target_port, ticket_id = ?ticket.id, "Processing inbox item");
+
             // 1. Load Data/Context
             if let Ok(data) = store.claim(&ticket) {
                 let mut state: ActiveWorkflowState = if let Ok(s) = serde_json::from_slice(&data) {

@@ -1,12 +1,13 @@
 use ferroflux_sdk::testing::run_scenario;
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn test_basic_passthrough() -> anyhow::Result<()> {
     let yaml = r#"
 name: "Harness Self-Test"
 timeout_ms: 2000
 
 blueprint:
+  name: "Self-Test Blueprint"
   nodes:
     - id: "fe2e3fd0-fc95-428d-88f8-8460a32166f2"
       type: "core.action.log"

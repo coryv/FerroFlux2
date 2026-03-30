@@ -68,6 +68,8 @@ fn test_unified_pipeline_execution() {
             platform: None,
             data_strategy: None,
             node_subtype: None,
+            signature: None,
+            permissions: vec![],
         },
         interface: Interface {
             inputs: vec![],
@@ -123,7 +125,7 @@ fn test_unified_pipeline_execution() {
 
     // 3. Spawn Node Entity
     let mut inbox = Inbox::default();
-    inbox.queue.push_back(ticket); // Seed with our state ticket
+    inbox.queue.push_back((None, ticket)); // Seed with our state ticket
 
     world.spawn((
         PipelineNode {
@@ -204,6 +206,8 @@ fn test_stats_tool() {
             platform: None,
             data_strategy: None,
             node_subtype: None,
+            signature: None,
+            permissions: vec![],
         },
         interface: Interface {
             inputs: vec![],
@@ -253,7 +257,7 @@ fn test_stats_tool() {
         .unwrap();
 
     let mut inbox = Inbox::default();
-    inbox.queue.push_back(ticket);
+    inbox.queue.push_back((None, ticket));
 
     world.spawn((
         PipelineNode {

@@ -1,145 +1,18 @@
 meta:
+  id: sendgrid
+  name: "SendGrid"
+  category: "Marketing"
+  type: Platform
+  icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/sendgrid.svg"
   permissions: ["network:api.sendgrid.com"]
 
-name: "sendgrid"
-icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/sendgrid.svg"
-base_url: "https://api.sendgrid.com/v3"
-auth_type: "api_key"
-auth:
-  type: "bearer"
-connection_schema:
-  - name: "api_key"
-    type: "string"
-    required: true
-    is_secret: true
-
-actions:
-  send_email:
-    name: "Send Email"
-    category: "Marketing"
-    subcategory: "Email"
-    implementation:
-      type: "http"
-      config:
-        method: "POST"
-        path: "/mail/send"
-        body_template: |
-          {
-            "personalizations": [{ "to": [{ "email": "{{ to }}" }] }],
-            "from": { "email": "{{ from }}" },
-            "subject": "{{ subject }}",
-            "content": [{ "type": "text/plain", "value": "{{ content }}" }]
-          }
-    inputs:
-      - name: "to"
-        type: "string"
-        required: true
-      - name: "from"
-        type: "string"
-        required: true
-      - name: "subject"
-        type: "string"
-        required: true
-      - name: "content"
-        type: "string"
-        required: true
-
-  send_template_email:
-    name: "Send Template Email"
-    category: "Marketing"
-    subcategory: "Email"
-    implementation:
-      type: "http"
-      config:
-        method: "POST"
-        path: "/mail/send"
-        body_template: |
-          {
-            "personalizations": [{ 
-              "to": [{ "email": "{{ to }}" }],
-              "dynamic_template_data": {{ default data "{}" }}
-            }],
-            "from": { "email": "{{ from }}" },
-            "template_id": "{{ template_id }}"
-          }
-    inputs:
-      - name: "to"
-        type: "string"
-        required: true
-      - name: "from"
-        type: "string"
-        required: true
-      - name: "template_id"
-        type: "string"
-        required: true
-      - name: "data"
-        type: "object"
-
-  add_contact:
-    name: "Add/Update Contact"
-    category: "Marketing"
-    subcategory: "Contacts"
-    implementation:
-      type: "http"
-      config:
-        method: "PUT"
-        path: "/marketing/contacts"
-        body_template: |
-          {
-            "contacts": [{
-              "email": "{{ email }}",
-              "first_name": "{{ first_name }}",
-              "last_name": "{{ last_name }}",
-              "custom_fields": {{ default custom_fields "{}" }}
-            }]
-          }
-    inputs:
-      - name: "email"
-        type: "string"
-        required: true
-      - name: "first_name"
-        type: "string"
-      - name: "last_name"
-        type: "string"
-      - name: "custom_fields"
-        type: "object"
-
-  search_contacts:
-    name: "Search Contacts"
-    category: "Marketing"
-    subcategory: "Contacts"
-    implementation:
-      type: "http"
-      config:
-        method: "POST"
-        path: "/marketing/contacts/search"
-        body_template: |
-          {
-            "query": "{{ query }}",
-            "limit": {{ default limit 50 }}
-          }
-    inputs:
-      - name: "query"
-        label: "SGQL Query"
-        type: "string"
-        required: true
-      - name: "limit"
-        type: "integer"
-        default: 50
-
-triggers:
-  new_contact:
-    name: "New Contact"
-    category: "Marketing"
-    subcategory: "Contacts"
-    description: "Triggers when a new contact is added."
-    implementation:
-      type: "polling"
-      config:
-        path: "/marketing/contacts/search"
-        method: "POST"
-        body:
-          query: "ORDER BY created_at DESC"
-          limit: 10
-        deduplication_key: "id"
-        interval: "15m"
+config:
+  base_url: "https://api.sendgrid.com/v3"
+  auth_type: "api_key"
+  auth:
+    type: "bearer"
+  connection_schema:
+    - name: "api_key"
+      type: "string"
+      required: true
+      is_secret: true

@@ -50,7 +50,7 @@ pub fn agent_prep(
 
         // Check for Pinned Output
         if let Some(pinned) = pinned_opt {
-            while let Some(_) = inbox.queue.pop_front() {
+            while inbox.queue.pop_front().is_some() {
                 tracing::info!(entity = ?entity, "Node is PINNED. Skipping execution.");
                 outbox.queue.push_back((None, pinned.0.clone()));
                 ctx.work_done.0 = true;
@@ -361,7 +361,7 @@ mod tests {
             .check_in(br#"{"user_prompt": "Hello World"}"#)
             .unwrap();
         let mut inbox = Inbox::default();
-        inbox.queue.push_back(ticket);
+        inbox.queue.push_back((None, ticket));
 
         let entity = world
             .spawn((

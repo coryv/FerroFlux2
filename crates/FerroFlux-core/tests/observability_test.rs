@@ -57,7 +57,7 @@ fn test_trace_propagation_via_transport() {
 
     // Topology
     let mut topo = world.resource_mut::<GraphTopology>();
-    topo.adjacency.insert(node_a, vec![(None, node_b)]);
+    topo.adjacency.insert(node_a, vec![(None, node_b, None)]);
 
     // Trace Entity
     let trace_id = Uuid::new_v4();

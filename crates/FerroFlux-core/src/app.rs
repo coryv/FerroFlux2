@@ -10,6 +10,7 @@ use crate::systems::janitor::JanitorTimer;
 use bevy_ecs::prelude::*;
 use bevy_ecs::system::SystemState;
 
+use std::path::PathBuf;
 use std::sync::Arc;
 
 /// Output of [`AppBuilder::build`] — all resources the caller needs to drive the runtime.
@@ -46,6 +47,7 @@ pub struct AppBuilder {
     execution_backend: Option<Arc<dyn crate::traits::execution::ExecutionBackend>>,
     trigger_providers: Vec<Box<dyn crate::traits::trigger::TriggerProvider>>,
     plugins: Vec<Box<dyn ferroflux_types::Plugin>>,
+    platforms_path: Option<PathBuf>,
 }
 
 impl Default for AppBuilder {
@@ -73,12 +75,18 @@ impl AppBuilder {
             execution_backend: None,
             trigger_providers: Vec::new(),
             plugins: Vec::new(),
+            platforms_path: None,
         };
         builder.add_plugin(CorePlugin)
     }
 
     pub fn add_plugin<P: ferroflux_types::Plugin + 'static>(mut self, plugin: P) -> Self {
         self.plugins.push(Box::new(plugin));
+        self
+    }
+
+    pub fn with_platforms_path(mut self, path: PathBuf) -> Self {
+        self.platforms_path = Some(path);
         self
     }
 
@@ -130,6 +138,170 @@ impl AppBuilder {
     ) -> Self {
         self.trigger_providers.push(provider);
         self
+    }
+
+    /// Builds the App synchronously, returning an [`App`] that can be manually ticked.
+    /// This skips spawning the background command worker thread.
+    pub fn build_sync(self) -> anyhow::Result<App> {
+        // 1. Channel for API -> ECS (dummy or manual)
+        let (_api_tx, api_rx) = async_channel::unbounded::<ApiCommand>();
+
+        // 2. Event Bus
+        let (event_tx, _) = tokio::sync::broadcast::channel::<crate::api::events::SystemEvent>(100);
+
+        // 3. Store
+        let store = if let Some(s) = self.store {
+            s
+        } else {
+            let url = self.db_url.unwrap_or("sqlite::memory:".to_string());
+            // SAFETY: In sync mode, we assume the caller is in an async runtime (like tokio::test)
+            // or we use block_on. AppBuilder::build is already async.
+            // For build_sync, we'll try to get handle or block.
+            match tokio::runtime::Handle::try_current() {
+                Ok(h) => {
+                    let url_clone = url.clone();
+                    tokio::task::block_in_place(move || h.block_on(PersistentStore::new(&url_clone)))?
+                }
+                Err(_) => tokio::runtime::Runtime::new()?.block_on(PersistentStore::new(&url))?,
+            }
+        };
+
+        // 4. BlobStore
+        let blob_store = BlobStore::default();
+
+        // 5. Integration Registry
+        use crate::integrations::IntegrationRegistry;
+        let mut int_registry = IntegrationRegistry::default();
+        let _ = int_registry.load_from_directory("integrations");
+
+        // 6. Master Key
+        let master_key = self.master_key.unwrap_or_else(|| {
+            ferroflux_security::encryption::get_or_create_master_key()
+                .expect("Failed to get master key")
+        });
+
+        // 8. ECS World Setup
+        let mut world = World::new();
+        let mut schedule = Schedule::default();
+
+        world.insert_resource(blob_store.clone());
+        world.insert_resource(ApiReceiver(api_rx));
+        world.insert_resource(GlobalHttpClient::default());
+        world.insert_resource(crate::resources::AgentResultChannel::default());
+        world.insert_resource(crate::resources::HttpResultChannel::default());
+        world.insert_resource(ferroflux_types::resources::SseTriggerRegistry::default());
+        world.insert_resource(crate::api::events::SystemEventBus(event_tx.clone()));
+
+        // Trigger Protocol Setup
+        let (trigger_tx, trigger_rx) = async_channel::unbounded::<ferroflux_types::trigger::TriggerEvent>();
+        let trigger_sender_res = ferroflux_types::trigger::TriggerSender(trigger_tx.clone());
+        
+        world.insert_resource(trigger_sender_res);
+        // We don't necessarily need receiver in sync app, but good for completeness
+        world.insert_resource(ferroflux_types::trigger::TriggerReceiver(trigger_rx));
+
+        world.insert_resource(store.clone());
+
+        // Use current runtime handle
+        if let Ok(h) = tokio::runtime::Handle::try_current() {
+            world.insert_resource(crate::resources::TokioRuntime(h));
+        }
+
+        // Execution Backend Setup
+        if let Some(backend) = self.execution_backend {
+            world.insert_resource(crate::traits::execution::BackendResource(backend));
+        } else {
+            // Default Local Backend
+            let (tx, rx) = async_channel::unbounded();
+            let backend =
+                std::sync::Arc::new(crate::traits::execution::LocalExecutionBackend::new(tx));
+            world.insert_resource(crate::traits::execution::BackendResource(backend));
+            world.insert_resource(crate::traits::execution::LocalExecutionReceiver(rx));
+        }
+
+        // Registry
+        world.insert_resource(int_registry.clone());
+        world.insert_resource(JanitorTimer::default());
+        world.insert_resource(WorkDone::default());
+        world.insert_resource(crate::resources::NodeRouter::default());
+        world.insert_resource(AgentConcurrency(Arc::new(tokio::sync::Semaphore::new(50))));
+        world.insert_resource(crate::resources::GraphTopology::default());
+        world.insert_resource(crate::resources::templates::TemplateEngine::default());
+        world.insert_resource(crate::resources::PipelineResultChannel::default());
+        
+        let tool_registry = crate::tools::ToolRegistry::default();
+        world.insert_resource(tool_registry);
+
+        world.insert_resource(crate::resources::NodeRegistry::default());
+
+        // 9. YAML Definitions Registry
+        let mut def_registry = crate::resources::DefinitionRegistry::default();
+
+        let platform_path = self.platforms_path.unwrap_or_else(|| {
+            let mut p = std::path::PathBuf::from("platforms");
+            if !p.exists() {
+                let mut curr = std::env::current_dir().unwrap_or_default();
+                for _ in 0..5 {
+                    let candidate = curr.join("platforms");
+                    if candidate.exists() {
+                        p = candidate;
+                        break;
+                    }
+                    if let Some(parent) = curr.parent() {
+                        curr = parent.to_path_buf();
+                    } else {
+                        break;
+                    }
+                }
+            }
+            p
+        });
+
+        if platform_path.exists() {
+            let _ = def_registry.load_from_dir(&platform_path);
+        }
+        world.insert_resource(crate::api::PlatformPath(platform_path.clone()));
+        world.insert_resource(def_registry.clone());
+
+        // 10. Bridge YAML to NodeRegistry
+        {
+            let mut system_state =
+                SystemState::<ResMut<crate::resources::NodeRegistry>>::new(&mut world);
+            let mut registry_res = system_state.get_mut(&mut world);
+
+            register_core_nodes(&mut registry_res);
+
+            for (id, def) in &def_registry.definitions {
+                registry_res.register(
+                    id,
+                    Box::new(crate::nodes::yaml_factory::YamlNodeFactory::new(
+                        def.clone(),
+                    )),
+                );
+            }
+        }
+
+        // Secrets
+        world.insert_resource(crate::secrets::DatabaseSecretStore::new(
+            store.clone(),
+            master_key.clone(),
+        ));
+
+        // OAuth2 Token Refresh Locks
+        world.insert_resource(ferroflux_db::oauth2::TokenRefreshLocks::default());
+
+        // 11. Run Plugins
+        for plugin in self.plugins {
+            plugin.build(&mut world, &mut schedule);
+        }
+
+        // Add flush_local_execution_jobs if local receiver exists
+        if world.contains_resource::<crate::traits::execution::LocalExecutionReceiver>() {
+            schedule.add_systems(crate::traits::execution::flush_local_execution_jobs);
+        }
+        schedule.add_systems(api_command_worker);
+
+        Ok(App { world, schedule })
     }
 
     /// Builds the App and returns a structured [`AppContext`] with all runtime handles.
