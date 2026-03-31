@@ -25,13 +25,13 @@ execution:
     tool: emit
     params:
       port: user_id
-      value: "{{ event.user_id }}"
+      value: event.user_id
 
   - id: emit_time
     tool: emit
     params:
       port: timestamp
-      value: "{{ event.timestamp }}"
+      value: event.timestamp
 
   - id: emit_exec
     tool: emit

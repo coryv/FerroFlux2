@@ -39,13 +39,16 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/v1beta/cachedContents"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/v1beta/cachedContents"
+      headers: platform.headers
       body:
-        model: "models/{{ get 'inputs.model' }}"
-        displayName: "{{ get 'settings.display_name' }}"
-        contents: "{{ get 'inputs.contents' }}"
-        ttl: "{{ get 'settings.ttl_seconds' }}s"
+        model: >
+          "models/" + inputs.model
+        displayName: settings.display_name
+        contents: inputs.contents
+        ttl: >
+          settings.ttl_seconds + "s"
     returns:
       status: status_code
       body: response_body
@@ -53,17 +56,17 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
-        - condition: "201"
+        - condition: 201
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -72,9 +75,9 @@ routing:
       - tool: emit
         params:
           port: cache
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

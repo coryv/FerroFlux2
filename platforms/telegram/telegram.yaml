@@ -8,7 +8,8 @@ meta:
   version: "1.0.0"
 
 config:
-  base_url: "https://api.telegram.org/bot{{ get 'settings.bot_token' }}"
+  base_url: >
+    "https://api.telegram.org/bot" + settings.bot_token
   headers:
     Content-Type: "application/json"
 

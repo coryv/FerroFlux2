@@ -8,10 +8,11 @@ meta:
   version: "1.0.0"
 
 config:
-  base_url: "https://{{ get 'settings.store_name' }}.myshopify.com/admin/api/2024-01"
+  base_url: >
+    "https://" + settings.store_name + ".myshopify.com/admin/api/2024-01"
   headers:
     Content-Type: "application/json"
-    X-Shopify-Access-Token: "{{ get 'settings.access_token' }}"
+    X-Shopify-Access-Token: settings.access_token
 
 settings:
   - name: store_name

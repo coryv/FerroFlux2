@@ -57,8 +57,9 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "https://archive-api.open-meteo.com/v1/archive?latitude={{ get 'inputs.latitude' }}&longitude={{ get 'inputs.longitude' }}&start_date={{ get 'inputs.start_date' }}&end_date={{ get 'inputs.end_date' }}&hourly={{ get 'settings.hourly_variables' }}&temperature_unit={{ get 'settings.temperature_unit' }}&timezone={{ get 'settings.timezone' }}"
-      headers: "{{ platform.headers }}"
+      url: >
+        "https://archive-api.open-meteo.com/v1/archive?latitude=" + inputs.latitude + "&longitude=" + inputs.longitude + "&start_date=" + inputs.start_date + "&end_date=" + inputs.end_date + "&hourly=" + settings.hourly_variables + "&temperature_unit=" + settings.temperature_unit + "&timezone=" + settings.timezone
+      headers: platform.headers
     returns:
       status: status_code
       body: response_body
@@ -66,15 +67,15 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -83,9 +84,9 @@ routing:
       - tool: emit
         params:
           port: historical
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

@@ -11,7 +11,7 @@ config:
   base_url: "https://api.clickup.com/api/v2"
   auth: oauth2
   headers:
-    Authorization: "{{ get 'auth.access_token' }}"
+    Authorization: auth.access_token
     Content-Type: "application/json"
 
 settings:

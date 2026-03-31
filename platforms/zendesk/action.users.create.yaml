@@ -31,19 +31,20 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/users.json"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/users.json"
+      headers: platform.headers
       body:
         user:
-          name: "{{ get 'inputs.name' }}"
-          email: "{{ get 'inputs.email' }}"
-          role: "{{ get 'inputs.role' }}"
+          name: inputs.name
+          email: inputs.email
+          role: inputs.role
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -52,9 +53,9 @@ routing:
       - tool: emit
         params:
           port: user
-          value: "{{ steps.request.response_body.user }}"
+          value: steps.request.response_body.user
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

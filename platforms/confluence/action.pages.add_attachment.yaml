@@ -27,20 +27,23 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "https://{{ get 'settings.domain' }}.atlassian.net/wiki/rest/api/content/{{ get 'inputs.page_id' }}/child/attachment"
+      url: >
+        "https://" + settings.domain + ".atlassian.net/wiki/rest/api/content/" + inputs.page_id + "/child/attachment"
       headers:
-        Authorization: "Bearer {{ get 'settings.connection.access_token' }}"
-        X-Atlassian-Token: "nocheck"
-        Content-Type: "multipart/form-data"
+        Authorization: >
+          "Bearer " + settings.connection.access_token
+        X-Atlassian-Token: nocheck
+        Content-Type: >
+          "multipart/form-data"
       body:
         file:
-          ticket: "{{ get 'inputs.attachment' }}"
+          ticket: inputs.attachment
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -50,4 +53,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

@@ -4,7 +4,7 @@ use serde_json::json;
 
 #[tokio::test]
 async fn test_harness_smoke() -> anyhow::Result<()> {
-    let mut harness = TestHarness::new().await?;
+    let mut harness = TestHarness::new().await;
     
     let node_id = Uuid::new_v4();
     

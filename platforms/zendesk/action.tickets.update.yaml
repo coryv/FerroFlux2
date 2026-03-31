@@ -33,19 +33,20 @@ execution:
     tool: http_client
     params:
       method: PUT
-      url: "{{ platform.base_url }}/tickets/{{ get 'inputs.ticketId' }}.json"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/tickets/" + inputs.ticketId + ".json"
+      headers: platform.headers
       body:
         ticket:
-          subject: "{{ get 'inputs.subject' }}"
-          priority: "{{ get 'inputs.priority' }}"
-          status: "{{ get 'inputs.status' }}"
+          subject: inputs.subject
+          priority: inputs.priority
+          status: inputs.status
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -54,9 +55,9 @@ routing:
       - tool: emit
         params:
           port: ticket
-          value: "{{ steps.request.response_body.ticket }}"
+          value: steps.request.response_body.ticket
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

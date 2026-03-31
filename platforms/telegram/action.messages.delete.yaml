@@ -27,17 +27,18 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/deleteMessage"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/deleteMessage"
+      headers: platform.headers
       body:
-        chat_id: "{{ get 'inputs.chat_id' }}"
-        message_id: "{{ get 'inputs.message_id' }}"
+        chat_id: inputs.chat_id
+        message_id: inputs.message_id
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -47,4 +48,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

@@ -15,7 +15,7 @@ async fn test_simple_etl_integration() -> anyhow::Result<()> {
     unsafe { std::env::set_var("FERROFLUX_ALLOW_INTERNAL_IPS", "true"); }
 
     // 2. Setup Harness
-    let mut harness = TestHarness::new().await?;
+    let mut harness = TestHarness::new().await;
     
     // 3. Load Workflow WAML
     let workflow_yaml = std::fs::read_to_string("fixtures/simple_etl.yaml")?;

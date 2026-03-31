@@ -27,15 +27,16 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/me/drive/items/{{ get 'inputs.file_id' }}/content"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/me/drive/items/" + inputs.file_id + "/content"
+      headers: platform.headers
       response_type: blob
     returns:
       status: status_code
       body: response_blob
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -44,9 +45,9 @@ routing:
       - tool: emit
         params:
           port: file
-          value: "{{ steps.request.response_blob }}"
+          value: steps.request.response_blob
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_blob }}"
+          value: steps.request.response_blob

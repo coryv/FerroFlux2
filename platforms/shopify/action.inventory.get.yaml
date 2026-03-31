@@ -29,17 +29,18 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/inventory_levels.json"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/inventory_levels.json"
+      headers: platform.headers
       query:
-        inventory_item_ids: "{{ get 'inputs.inventoryItemId' }}"
-        location_ids: "{{ get 'inputs.locationId' }}"
+        inventory_item_ids: inputs.inventoryItemId
+        location_ids: inputs.locationId
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -48,9 +49,9 @@ routing:
       - tool: emit
         params:
           port: inventoryLevel
-          value: "{{ steps.request.response_body.inventory_levels }}"
+          value: steps.request.response_body.inventory_levels
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

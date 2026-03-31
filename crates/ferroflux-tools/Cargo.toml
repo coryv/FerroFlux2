@@ -21,7 +21,6 @@ hmac = "0.12"
 sha2 = "0.10"
 sha1 = "0.10"
 hex = "0.4"
-handlebars = "5.1.0"
 evalexpr = "11.3"
 schemars = { version = "0.8", features = ["chrono"] }
 lettre = { version = "0.11.19", features = ["builder"] }

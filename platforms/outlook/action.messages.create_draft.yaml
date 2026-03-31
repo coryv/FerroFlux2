@@ -31,20 +31,22 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/me/messages"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/me/messages"
+      headers: platform.headers
       body:
-        subject: "{{ get 'inputs.subject' }}"
+        subject: inputs.subject
         body:
-          contentType: "HTML"
-          content: "{{ get 'inputs.body' }}"
-        toRecipients: "{{ get 'inputs.to_recipients' '[]' }}"
+          contentType: HTML
+          content: inputs.body
+        toRecipients: >
+          (has(inputs.to_recipients) ? inputs.to_recipients : '[]')
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -53,9 +55,9 @@ routing:
       - tool: emit
         params:
           port: draft
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

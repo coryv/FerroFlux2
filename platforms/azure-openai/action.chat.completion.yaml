@@ -63,16 +63,17 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "https://{{ get 'settings.resource_name' }}.openai.azure.com/openai/deployments/{{ get 'settings.deployment' }}/chat/completions?api-version={{ get 'settings.api_version' }}"
-      headers: "{{ platform.headers }}"
+      url: >
+        "https://" + settings.resource_name + ".openai.azure.com/openai/deployments/" + settings.deployment + "/chat/completions?api-version=" + settings.api_version
+      headers: platform.headers
       body:
         messages:
           - role: system
-            content: "{{ get 'settings.system_prompt' }}"
+            content: settings.system_prompt
           - role: user
-            content: "{{ get 'inputs.user_prompt' }}"
-        temperature: "{{ get 'settings.temperature' }}"
-        max_tokens: "{{ get 'settings.max_tokens' }}"
+            content: inputs.user_prompt
+        temperature: settings.temperature
+        max_tokens: settings.max_tokens
     returns:
       status: status_code
       body: response_body
@@ -80,21 +81,22 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: "{{ steps.request.response_body }}"
-          path: "/choices/0/message/content"
+          json: steps.request.response_body
+          path: >
+            "/choices/0/message/content"
         returns:
           result: content_result
       - tool: emit
@@ -103,13 +105,13 @@ routing:
       - tool: emit
         params:
           port: content
-          value: "{{ content_result }}"
+          value: content_result
       - tool: emit
         params:
           port: response
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

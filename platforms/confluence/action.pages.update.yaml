@@ -31,23 +31,25 @@ execution:
     tool: http_client
     params:
       method: PUT
-      url: "{{ platform.base_url }}/pages/{{ get 'inputs.page_id' }}"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/pages/" + inputs.page_id
+      headers: platform.headers
       body:
-        id: "{{ get 'inputs.page_id' }}"
+        id: inputs.page_id
         version:
-          number: "{{ get 'inputs.version' }}"
-        title: "{{ get 'inputs.title' }}"
+          number: inputs.version
+        title: inputs.title
         body:
           storage:
-            value: "<p>{{ get 'inputs.body' }}</p>"
-            representation: "storage"
+            value: >
+              "<p>" + inputs.body + "</p>"
+            representation: storage
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -57,4 +59,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

@@ -226,7 +226,7 @@ impl AppBuilder {
         world.insert_resource(crate::resources::NodeRouter::default());
         world.insert_resource(AgentConcurrency(Arc::new(tokio::sync::Semaphore::new(50))));
         world.insert_resource(crate::resources::GraphTopology::default());
-        world.insert_resource(crate::resources::templates::TemplateEngine::default());
+        world.insert_resource(crate::resources::templates::CelEngine);
         world.insert_resource(crate::resources::PipelineResultChannel::default());
         
         let tool_registry = crate::tools::ToolRegistry::default();
@@ -413,7 +413,7 @@ impl AppBuilder {
         world.insert_resource(crate::resources::NodeRouter::default());
         world.insert_resource(AgentConcurrency(Arc::new(tokio::sync::Semaphore::new(50))));
         world.insert_resource(crate::resources::GraphTopology::default());
-        world.insert_resource(crate::resources::templates::TemplateEngine::default());
+        world.insert_resource(crate::resources::templates::CelEngine);
         world.insert_resource(crate::resources::PipelineResultChannel::default());
         // Create and register ToolRegistry
         let tool_registry = crate::tools::ToolRegistry::default();

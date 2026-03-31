@@ -34,29 +34,31 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/issue"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/issue"
+      headers: platform.headers
       body:
         fields:
           project:
-            key: "{{ get 'inputs.project_key' }}"
-          summary: "{{ get 'inputs.summary' }}"
+            key: inputs.project_key
+          summary: inputs.summary
           description:
-            type: "doc"
+            type: doc
             version: 1
             content:
-              - type: "paragraph"
+              - type: paragraph
                 content:
-                  - type: "text"
-                    text: "{{ get 'inputs.description' }}"
+                  - type: text
+                    text: inputs.description
           issuetype:
-            name: "{{ get 'inputs.issue_type' 'Task' }}"
+            name: >
+              (has(inputs.issue_type) ? inputs.issue_type : 'Task')
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -65,9 +67,9 @@ routing:
       - tool: emit
         params:
           port: issue
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

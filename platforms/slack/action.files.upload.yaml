@@ -36,17 +36,18 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/files.upload"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/files.upload"
+      headers: platform.headers
       body_type: multipart
       parts:
         - name: file
-          content_var: "inputs.file"
-          filename: "{{ get 'inputs.filename' }}"
+          content_var: inputs.file
+          filename: inputs.filename
         - name: channels
-          content: "{{ get 'inputs.channels' }}"
+          content: inputs.channels
         - name: initial_comment
-          content: "{{ get 'inputs.initial_comment' }}"
+          content: inputs.initial_comment
     returns:
       status: status_code
       body: response_body
@@ -54,15 +55,15 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.upload.status_code }}"
+      value: steps.upload.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -71,9 +72,9 @@ routing:
       - tool: emit
         params:
           port: file_info
-          value: "{{ steps.upload.response_body.file }}"
+          value: steps.upload.response_body.file
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.upload.response_body }}"
+          value: steps.upload.response_body

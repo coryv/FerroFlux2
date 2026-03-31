@@ -25,8 +25,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}"
-      headers: "{{ platform.headers }}"
+      url: platform.base_url
+      headers: platform.headers
       body:
         query: |
           mutation ($itemId: ID!) {
@@ -35,13 +35,13 @@ execution:
             }
           }
         variables:
-          itemId: "{{ get 'inputs.item_id' }}"
+          itemId: inputs.item_id
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -51,4 +51,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

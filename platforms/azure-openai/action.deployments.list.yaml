@@ -37,8 +37,9 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "https://{{ get 'settings.resource_name' }}.openai.azure.com/openai/deployments?api-version={{ get 'settings.api_version' }}"
-      headers: "{{ platform.headers }}"
+      url: >
+        "https://" + settings.resource_name + ".openai.azure.com/openai/deployments?api-version=" + settings.api_version
+      headers: platform.headers
     returns:
       status: status_code
       body: response_body
@@ -46,21 +47,22 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: "{{ steps.request.response_body }}"
-          path: "/data"
+          json: steps.request.response_body
+          path: >
+            "/data"
         returns:
           result: deployments_result
       - tool: emit
@@ -69,9 +71,9 @@ routing:
       - tool: emit
         params:
           port: deployments
-          value: "{{ deployments_result }}"
+          value: deployments_result
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

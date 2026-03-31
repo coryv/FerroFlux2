@@ -35,11 +35,11 @@ execution:
     tool: mongo_query
     params:
       operation: update
-      connection_string: "{{ get 'settings.connection_string' }}"
-      database: "{{ get 'settings.database' }}"
-      collection: "{{ get 'inputs.collection' }}"
-      filter: "{{ get 'inputs.filter' }}"
-      update: "{{ get 'inputs.update' }}"
+      connection_string: settings.connection_string
+      database: settings.database
+      collection: inputs.collection
+      filter: inputs.filter
+      update: inputs.update
     returns:
       matched_count: matched_count
       modified_count: modified_count
@@ -54,8 +54,8 @@ routing:
       - tool: emit
         params:
           port: matched_count
-          value: "{{ steps.update.matched_count }}"
+          value: steps.update.matched_count
       - tool: emit
         params:
           port: modified_count
-          value: "{{ steps.update.modified_count }}"
+          value: steps.update.modified_count

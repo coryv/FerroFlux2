@@ -29,18 +29,19 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/lists/{{ get 'inputs.listId' }}/members/{{ get 'inputs.subscriberHash' }}/tags"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/lists/" + inputs.listId + "/members/" + inputs.subscriberHash + "/tags"
+      headers: platform.headers
       body:
         tags:
-          - name: "{{ get 'inputs.tagName' }}"
-            status: "active"
+          - name: inputs.tagName
+            status: active
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -50,4 +51,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

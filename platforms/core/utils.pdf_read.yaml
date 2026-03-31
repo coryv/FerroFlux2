@@ -25,7 +25,7 @@ execution:
   - id: read
     tool: core.utils.pdf_read
     params:
-      pdf_base64: "{{ inputs.pdf_base64 }}"
+      pdf_base64: inputs.pdf_base64
     returns:
       result: text_content
 
@@ -33,7 +33,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: "{{ steps.read.result }}"
+      value: steps.read.result
 
   - id: done
     tool: emit

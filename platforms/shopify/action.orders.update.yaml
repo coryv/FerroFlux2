@@ -31,19 +31,20 @@ execution:
     tool: http_client
     params:
       method: PUT
-      url: "{{ platform.base_url }}/orders/{{ get 'inputs.orderId' }}.json"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/orders/" + inputs.orderId + ".json"
+      headers: platform.headers
       body:
         order:
-          id: "{{ get 'inputs.orderId' }}"
-          note: "{{ get 'inputs.note' }}"
-          email: "{{ get 'inputs.email' }}"
+          id: inputs.orderId
+          note: inputs.note
+          email: inputs.email
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -52,9 +53,9 @@ routing:
       - tool: emit
         params:
           port: order
-          value: "{{ steps.request.response_body.order }}"
+          value: steps.request.response_body.order
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

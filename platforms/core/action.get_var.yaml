@@ -29,7 +29,7 @@ execution:
   - id: get
     tool: get_var
     params:
-      name: "{{ settings.variable_name }}"
+      name: settings.variable_name
     returns:
       value: var_val
 
@@ -37,7 +37,7 @@ execution:
     tool: emit
     params:
       port: value
-      value: "{{ steps.get.value }}"
+      value: steps.get.value
 
   - id: done
     tool: emit

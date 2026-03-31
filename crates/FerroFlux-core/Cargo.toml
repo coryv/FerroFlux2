@@ -34,9 +34,9 @@ ferroflux-security = { path = "../ferroflux-security" }
 ferroflux-types = { path = "../ferroflux-types" }
 ferroflux-db = { path = "../ferroflux-db" }
 tracing = "0.1"
-handlebars = "5.1.0"
 jmespath = "0.4.0"
 schemars = { version = "0.8", features = ["chrono"] }
+cel-interpreter = { version = "0.10.0", features = ["json"] }
 
 [dev-dependencies]
 wiremock = "0.6"

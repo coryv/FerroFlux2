@@ -41,12 +41,13 @@ execution:
   - id: request
     tool: http_client
     params:
-      url: "https://lambda.{{ settings.region }}.amazonaws.com/2015-03-31/functions/{{ default settings.function_name inputs.function_name }}/invocations"
+      url: >
+        "https://lambda." + settings.region + ".amazonaws.com/2015-03-31/functions/" + (has(settings.function_name) ? settings.function_name : 'inputs.function_name') + "/invocations"
       method: POST
-      connection: "{{ settings.connection }}"
+      connection: settings.connection
       aws_service: lambda
-      aws_region: "{{ settings.region }}"
-      body: "{{ inputs.payload }}"
+      aws_region: settings.region
+      body: inputs.payload
     returns:
       body: response_body
       status: response_status
@@ -54,20 +55,21 @@ execution:
   - id: check_status
     tool: logic
     params:
-      data: "{{ steps.request.response_status }}"
+      data: steps.request.response_status
       rules:
-        - condition: "val < 400"
+        - condition: >
+          "val < 400"
           output: Success
-        - condition: "default"
+        - condition: default
           output: Error
 
   - id: emit_data
     tool: emit
     params:
       port: response
-      value: "{{ steps.request.response_body }}"
+      value: steps.request.response_body
 
   - id: emit_signal
     tool: emit
     params:
-      port: "{{ steps.check_status.match }}"
+      port: steps.check_status.match

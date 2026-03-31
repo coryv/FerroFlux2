@@ -29,16 +29,16 @@ execution:
   - id: mongo
     tool: mongo_query
     params:
-      connection_string: "{{ settings.connection_string }}"
-      database: "{{ settings.database }}"
-      collection: "{{ get 'inputs.collection' }}"
-      operation: "insert"
-      document: "{{ get 'inputs.document' }}"
+      connection_string: settings.connection_string
+      database: settings.database
+      collection: inputs.collection
+      operation: insert
+      document: inputs.document
     returns:
       inserted_id: inserted_id
 
 routing:
-  match: "{{ steps.mongo.status }}"
+  match: steps.mongo.status
   cases:
     default:
       - tool: emit
@@ -47,4 +47,4 @@ routing:
       - tool: emit
         params:
           port: inserted_id
-          value: "{{ steps.mongo.inserted_id }}"
+          value: steps.mongo.inserted_id

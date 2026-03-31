@@ -29,22 +29,25 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart"
-      headers: "{{ platform.headers }}"
+      url: >
+        "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart"
+      headers: platform.headers
       body_type: multipart
       parts:
         - name: metadata
-          content_json: 
-            name: "{{ get 'inputs.name' }}"
-          content_type: "application/json"
+          content_json: >
+            ""
+            name: inputs.name
+          content_type: >
+            "application/json"
         - name: file
-          content_var: "inputs.file"
+          content_var: inputs.file
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -53,7 +56,7 @@ routing:
       - tool: emit
         params:
           port: file
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     "201":
       - tool: emit
         params:
@@ -61,9 +64,9 @@ routing:
       - tool: emit
         params:
           port: file
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

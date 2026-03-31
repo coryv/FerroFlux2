@@ -44,13 +44,15 @@ interface:
       label: Test Webhook URL
       type: url
       read_only: true
-      default: "{{ system.webhook_base }}/test/{{ workflow.id }}{{ settings.path }}"
+      default: >
+        system.webhook_base + "/test/" + workflow.id + settings.path
 
     - name: webhook_url_prod
       label: Production Webhook URL
       type: url
       read_only: true
-      default: "{{ system.webhook_base }}/prod/{{ workflow.id }}{{ settings.path }}"
+      default: >
+        system.webhook_base + "/prod/" + workflow.id + settings.path
 
 execution:
   # Runner injects `event` containing body, headers, query
@@ -58,25 +60,25 @@ execution:
     tool: emit
     params:
       port: body
-      value: "{{ event.body }}"
+      value: event.body
 
   - id: emit_headers
     tool: emit
     params:
       port: headers
-      value: "{{ event.headers }}"
+      value: event.headers
 
   - id: emit_query
     tool: emit
     params:
       port: query
-      value: "{{ event.query }}"
+      value: event.query
 
   - id: emit_raw_body
     tool: emit
     params:
       port: raw_body
-      value: "{{ event.raw_body }}"
+      value: event.raw_body
 
   - id: emit_exec
     tool: emit

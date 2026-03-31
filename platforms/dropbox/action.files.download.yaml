@@ -33,20 +33,22 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "https://content.dropboxapi.com/2/files/download"
+      url: >
+        "https://content.dropboxapi.com/2/files/download"
       headers:
-        Dropbox-API-Arg: "{\"path\": \"{{ get 'inputs.path' }}\"}"
+        Dropbox-API-Arg: >
+          "{\\"path\\": \\"" + inputs.path + "\\"}"
 
 
 
-        Authorization: "{{ platform.headers.Authorization }}"
+        Authorization: platform.headers.Authorization
       response_type: blob
     returns:
       status: status_code
       body: response_blob
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -55,10 +57,11 @@ routing:
       - tool: emit
         params:
           port: file
-          value: "{{ steps.request.response_blob }}"
+          value: steps.request.response_blob
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_blob }}"
-        # Note: when response_type is blob, the body contains the ticket to the error response bytes or XML/JSON error.
+          value: steps.request.response_blob
+        # Note: >
+          "when response_type is blob, the body contains the ticket to the error response bytes or XML/JSON error."

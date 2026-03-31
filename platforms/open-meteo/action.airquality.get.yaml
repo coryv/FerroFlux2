@@ -58,8 +58,9 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "https://air-quality-api.open-meteo.com/v1/air-quality?latitude={{ get 'inputs.latitude' }}&longitude={{ get 'inputs.longitude' }}&current={{ get 'settings.current_variables' }}&hourly={{ get 'settings.hourly_variables' }}&forecast_days={{ get 'settings.forecast_days' }}&timezone={{ get 'settings.timezone' }}"
-      headers: "{{ platform.headers }}"
+      url: >
+        "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=" + inputs.latitude + "&longitude=" + inputs.longitude + "&current=" + settings.current_variables + "&hourly=" + settings.hourly_variables + "&forecast_days=" + settings.forecast_days + "&timezone=" + settings.timezone
+      headers: platform.headers
     returns:
       status: status_code
       body: response_body
@@ -67,27 +68,29 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: "{{ steps.request.response_body }}"
-          path: "/current"
+          json: steps.request.response_body
+          path: >
+            "/current"
         returns:
           result: current_aq
       - tool: json_query
         params:
-          json: "{{ steps.request.response_body }}"
-          path: "/hourly"
+          json: steps.request.response_body
+          path: >
+            "/hourly"
         returns:
           result: hourly_aq
       - tool: emit
@@ -96,13 +99,13 @@ routing:
       - tool: emit
         params:
           port: current_air_quality
-          value: "{{ steps.request.current_aq }}"
+          value: steps.request.current_aq
       - tool: emit
         params:
           port: hourly_air_quality
-          value: "{{ steps.request.hourly_aq }}"
+          value: steps.request.hourly_aq
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

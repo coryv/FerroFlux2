@@ -31,18 +31,19 @@ execution:
     tool: http_client
     params:
       method: PUT
-      url: "{{ platform.base_url }}/tasks/{{ get 'inputs.taskGid' }}"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/tasks/" + inputs.taskGid
+      headers: platform.headers
       body:
         data:
-          name: "{{ get 'inputs.name' }}"
-          notes: "{{ get 'inputs.notes' }}"
+          name: inputs.name
+          notes: inputs.notes
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -51,9 +52,9 @@ routing:
       - tool: emit
         params:
           port: task
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

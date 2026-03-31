@@ -11,7 +11,7 @@ config:
   base_url: "https://api.anthropic.com/v1"
   headers:
     Content-Type: "application/json"
-    x-api-key: "{{ get 'settings.api_key' }}"
+    x-api-key: settings.api_key
     anthropic-version: "2023-06-01"
 
 settings:

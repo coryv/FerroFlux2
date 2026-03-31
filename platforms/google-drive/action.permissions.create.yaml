@@ -33,18 +33,19 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/files/{{ get 'inputs.fileId' }}/permissions"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/files/" + inputs.fileId + "/permissions"
+      headers: platform.headers
       body:
-        role: "{{ get 'inputs.role' }}"
-        type: "{{ get 'inputs.type' }}"
-        emailAddress: "{{ get 'inputs.emailAddress' }}"
+        role: inputs.role
+        type: inputs.type
+        emailAddress: inputs.emailAddress
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -53,9 +54,9 @@ routing:
       - tool: emit
         params:
           port: permission
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

@@ -31,7 +31,8 @@ interface:
     - name: prompt
       label: Prompt
       type: textarea
-      default: "Summarize this: {{ body }}"
+      default: >
+        "Summarize this: " + body
       
     - name: output_var
       label: Output Variable
@@ -47,18 +48,18 @@ execution:
   - id: llm
     tool: agent
     params:
-      provider: "{{ settings.provider }}"
-      model: "{{ settings.model }}"
-      system: "{{ settings.system_instruction }}"
-      prompt: "{{ settings.prompt }}"
+      provider: settings.provider
+      model: settings.model
+      system: settings.system_instruction
+      prompt: settings.prompt
     returns:
       result: response_text
 
   - id: emit_res
     tool: emit
     params:
-      port: "{{ settings.output_var }}"
-      value: "{{ steps.llm.response_text }}"
+      port: settings.output_var
+      value: steps.llm.response_text
 
   - id: emit_exec
     tool: emit

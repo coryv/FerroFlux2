@@ -30,17 +30,19 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/answerCallbackQuery"
+      url: >
+        platform.base_url + "/answerCallbackQuery"
       body:
-        callback_query_id: "{{ get 'inputs.callback_query_id' }}"
-        text: "{{ get 'inputs.text' }}"
-        show_alert: "{{ get 'inputs.show_alert' 'false' }}"
+        callback_query_id: inputs.callback_query_id
+        text: inputs.text
+        show_alert: >
+          (has(inputs.show_alert) ? inputs.show_alert : 'false')
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -50,4 +52,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

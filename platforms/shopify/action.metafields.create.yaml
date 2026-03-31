@@ -33,20 +33,21 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/metafields.json"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/metafields.json"
+      headers: platform.headers
       body:
         metafield:
-          namespace: "{{ get 'inputs.namespace' }}"
-          key: "{{ get 'inputs.key' }}"
-          value: "{{ get 'inputs.value' }}"
-          type: "{{ get 'inputs.type' }}"
+          namespace: inputs.namespace
+          key: inputs.key
+          value: inputs.value
+          type: inputs.type
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -55,9 +56,9 @@ routing:
       - tool: emit
         params:
           port: metafield
-          value: "{{ steps.request.response_body.metafield }}"
+          value: steps.request.response_body.metafield
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

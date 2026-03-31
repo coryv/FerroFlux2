@@ -32,12 +32,13 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/objects/contacts/search"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/objects/contacts/search"
+      headers: platform.headers
       body:
-        filterGroups: "{{ get 'inputs.filterGroups' }}"
-        sorts: "{{ get 'inputs.sorts' }}"
-        properties: "{{ get 'inputs.properties' }}"
+        filterGroups: inputs.filterGroups
+        sorts: inputs.sorts
+        properties: inputs.properties
     returns:
       status: status_code
       body: response_body
@@ -45,9 +46,9 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
@@ -55,13 +56,14 @@ execution:
   - id: extract
     tool: json_query
     params:
-      json: "{{ steps.request.response_body }}"
-      path: "/results"
+      json: steps.request.response_body
+      path: >
+        "/results"
     returns:
       result: contacts
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -70,9 +72,9 @@ routing:
       - tool: emit
         params:
           port: contacts
-          value: "{{ steps.extract.contacts }}"
+          value: steps.extract.contacts
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

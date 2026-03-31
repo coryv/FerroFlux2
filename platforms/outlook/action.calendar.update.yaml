@@ -31,22 +31,23 @@ execution:
     tool: http_client
     params:
       method: PATCH
-      url: "{{ platform.base_url }}/me/events/{{ get 'inputs.event_id' }}"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/me/events/" + inputs.event_id
+      headers: platform.headers
       body:
-        subject: "{{ get 'inputs.subject' }}"
+        subject: inputs.subject
         start:
-          dateTime: "{{ get 'inputs.start_time' }}"
-          timeZone: "UTC"
+          dateTime: inputs.start_time
+          timeZone: UTC
         end:
-          dateTime: "{{ get 'inputs.end_time' }}"
-          timeZone: "UTC"
+          dateTime: inputs.end_time
+          timeZone: UTC
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -56,4 +57,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

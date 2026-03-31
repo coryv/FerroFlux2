@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use std::path::PathBuf;
 use ferroflux_security::signing::{verify_content, is_trusted_key};
 use serde_json::json;
+use cel_interpreter::Program;
 
 use crate::definition::{NodeDefinition, PlatformDefinition};
 
@@ -209,20 +210,21 @@ pub fn validate_node(def: &NodeDefinition) -> ValidationResult {
         }
     }
 
-    // Rule 6 (warning): http_client URL should use {{ platform.base_url }}, not a hardcoded domain
+    // Rule 6 (warning): http_client URL should use platform.base_url, not a hardcoded domain
     for step in &def.execution {
         if step.tool == "http_client"
             && let Some(url) = step.params.get("url").and_then(|v| v.as_str())
-            && (url.starts_with("http://") || url.starts_with("https://"))
-            && !url.contains("platform.base_url")
         {
-            result.diagnostics.push(ValidationDiagnostic::warning(
-                "hardcoded-url",
-                format!(
-                    "step '{}' uses a hardcoded URL '{url}'; use '{{{{ platform.base_url }}}}' instead",
-                    step.id
-                ),
-            ));
+            // If it's a hardcoded URL string (contains protocol but not platform.base_url)
+            if (url.contains("http://") || url.contains("https://")) && !url.contains("platform.base_url") {
+                result.diagnostics.push(ValidationDiagnostic::warning(
+                    "hardcoded-url",
+                    format!(
+                        "step '{}' uses a hardcoded URL '{url}'; use 'platform.base_url' instead",
+                        step.id
+                    ),
+                ));
+            }
         }
     }
 
@@ -260,9 +262,30 @@ pub fn validate_node(def: &NodeDefinition) -> ValidationResult {
         }
     }
 
-    // Rule 9: template syntax — every {{ must have a matching }}
+    // Rule 9: CEL syntax validation
     for step in &def.execution {
-        check_template_syntax(&step.params, &step.id, &mut result);
+        // Skip CEL validation for 'code'/'script' blocks in script-like tools
+        if (step.tool == "rhai" || step.tool == "script") && (step.params.get("code").is_some() || step.params.get("script").is_some()) {
+            // Validate other parameters but skip 'code' and 'script'
+            if let Some(obj) = step.params.as_object() {
+                for (k, v) in obj {
+                    if k != "code" && k != "script" {
+                        check_cel_syntax(v, &step.id, &mut result);
+                    }
+                }
+            }
+        } else if step.tool == "http_client" {
+            // Skip 'query' and 'body' for http_client as they often contain non-CEL templates (GraphQL, etc.)
+            if let Some(obj) = step.params.as_object() {
+                for (k, v) in obj {
+                    if k != "query" && k != "body" {
+                        check_cel_syntax(v, &step.id, &mut result);
+                    }
+                }
+            }
+        } else {
+            check_cel_syntax(&step.params, &step.id, &mut result);
+        }
     }
 
     // Rule 10: Signature Verification (Integrity & Trust)
@@ -304,20 +327,28 @@ pub fn validate_node(def: &NodeDefinition) -> ValidationResult {
             && let Some(url) = step.params.get("url").and_then(|v| v.as_str())
         {
             // If it's a hardcoded external URL (not using platform.base_url)
-            if (url.starts_with("http://") || url.starts_with("https://")) 
+            if (url.contains("http://") || url.contains("https://")) 
                 && !url.contains("platform.base_url") 
             {
-                let domain = url.split('/').nth(2).unwrap_or("");
-                let required_perm = format!("network:{}", domain);
-                
-                if !def.meta.permissions.contains(&required_perm) {
-                    result.diagnostics.push(ValidationDiagnostic::error(
-                        "missing-permission",
-                        format!(
-                            "step '{}' accesses external domain '{}' which is not in declared permissions",
-                            step.id, domain
-                        ),
-                    ));
+                // Heuristic to extract domain from hardcoded URL or CEL string
+                let domain = if url.starts_with('\'') || url.starts_with('"') {
+                    // Extract from quoted string
+                    url.trim_matches(|c| c == '\'' || c == '"').split('/').nth(2).unwrap_or("")
+                } else {
+                    url.split('/').nth(2).unwrap_or("")
+                };
+
+                if !domain.is_empty() {
+                    let required_perm = format!("network:{}", domain);
+                    if !def.meta.permissions.contains(&required_perm) {
+                        result.diagnostics.push(ValidationDiagnostic::error(
+                            "missing-permission",
+                            format!(
+                                "step '{}' accesses external domain '{}' which is not in declared permissions",
+                                step.id, domain
+                            ),
+                        ));
+                    }
                 }
             }
         }
@@ -326,34 +357,36 @@ pub fn validate_node(def: &NodeDefinition) -> ValidationResult {
     result
 }
 
-/// Recursively scan JSON values for unmatched Handlebars template braces.
-fn check_template_syntax(
+/// Recursively scan JSON values for CEL syntax errors.
+fn check_cel_syntax(
     value: &serde_json::Value,
     step_id: &str,
     result: &mut ValidationResult,
 ) {
     match value {
         serde_json::Value::String(s) => {
-            let opens = s.matches("{{").count();
-            let closes = s.matches("}}").count();
-            if opens != closes {
+            let trimmed = s.trim();
+            // Only validate if it looks like an expression to avoid false positives on simple literals
+            if (trimmed.contains('.') || trimmed.contains('+') || trimmed.contains('(') || trimmed.contains('[') || trimmed.contains("==")) 
+                && let Err(e) = Program::compile(trimmed) 
+            {
                 result.diagnostics.push(ValidationDiagnostic::error(
-                    "malformed-template",
+                    "malformed-cel",
                     format!(
-                        "step '{}': unmatched template braces ({} '{{{{' vs {} '}}}}')",
-                        step_id, opens, closes
+                        "step '{}': CEL syntax error: {}",
+                        step_id, e
                     ),
                 ));
             }
         }
         serde_json::Value::Object(map) => {
             for v in map.values() {
-                check_template_syntax(v, step_id, result);
+                check_cel_syntax(v, step_id, result);
             }
         }
         serde_json::Value::Array(arr) => {
             for v in arr {
-                check_template_syntax(v, step_id, result);
+                check_cel_syntax(v, step_id, result);
             }
         }
         _ => {}
@@ -535,7 +568,7 @@ mod tests {
             Some("test_platform"),
             vec![exec_port()],
             vec![flow_port("Success"), flow_port("Error")],
-            vec![http_step("call", "{{ platform.base_url }}/endpoint", true)],
+            vec![http_step("call", "platform.base_url + '/endpoint'", true)],
         );
         assert!(validate_node(&node).is_ok());
     }
@@ -605,7 +638,7 @@ mod tests {
             Some("test_platform"),
             vec![exec_port()],
             vec![flow_port("Success"), flow_port("Error")],
-            vec![http_step("call", "{{ platform.base_url }}/ep", false)],
+            vec![http_step("call", "platform.base_url + '/ep'", false)],
         );
         let r = validate_node(&node);
         assert!(r.diagnostics.iter().any(|d| d.rule == "missing-returns"));
@@ -618,7 +651,7 @@ mod tests {
             Some("test_platform"),
             vec![exec_port()],
             vec![flow_port("Success"), flow_port("Error")],
-            vec![http_step("call", "https://api.example.com/endpoint", true)],
+            vec![http_step("call", "'https://api.example.com/endpoint'", true)],
         );
         let r = validate_node(&node);
         let hardcoded = r.diagnostics.iter().find(|d| d.rule == "hardcoded-url");
@@ -647,7 +680,7 @@ mod tests {
         let step = PipelineStep {
             id: "bad".into(),
             tool: "httpp_client".into(), // typo
-            params: json!({ "url": "{{ platform.base_url }}/ep", "method": "GET" }),
+            params: json!({ "url": "platform.base_url + '/ep'", "method": "GET" }),
             returns: [("status".into(), "status_code".into()), ("body".into(), "body".into())].into(),
         };
         let node = make_node(
@@ -665,7 +698,7 @@ mod tests {
 
     #[test]
     fn node_known_tools_no_warning() {
-        let step = http_step("call", "{{ platform.base_url }}/ep", true);
+        let step = http_step("call", "platform.base_url + '/ep'", true);
         let node = make_node(
             "Action",
             Some("test_platform"),
@@ -680,11 +713,11 @@ mod tests {
     // Template syntax validation tests
 
     #[test]
-    fn node_malformed_template_missing_close() {
+    fn node_malformed_cel_error() {
         let step = PipelineStep {
             id: "call".into(),
             tool: "http_client".into(),
-            params: json!({ "url": "{{ platform.base_url }/endpoint", "method": "GET" }),
+            params: json!({ "url": "platform.base_url + (invalid syntax", "method": "GET" }),
             returns: [("status".into(), "status_code".into()), ("body".into(), "body".into())].into(),
         };
         let node = make_node(
@@ -696,14 +729,14 @@ mod tests {
         );
         let r = validate_node(&node);
         assert!(
-            r.diagnostics.iter().any(|d| d.rule == "malformed-template"),
-            "Expected malformed-template error"
+            r.diagnostics.iter().any(|d| d.rule == "malformed-cel"),
+            "Expected malformed-cel error"
         );
     }
 
     #[test]
-    fn node_valid_template_no_error() {
-        let step = http_step("call", "{{ platform.base_url }}/endpoint", true);
+    fn node_valid_cel_no_error() {
+        let step = http_step("call", "platform.base_url + '/endpoint'", true);
         let node = make_node(
             "Action",
             Some("test_platform"),
@@ -712,7 +745,7 @@ mod tests {
             vec![step],
         );
         let r = validate_node(&node);
-        assert!(!r.diagnostics.iter().any(|d| d.rule == "malformed-template"));
+        assert!(!r.diagnostics.iter().any(|d| d.rule == "malformed-cel"));
     }
 
     // Cross-validation tests

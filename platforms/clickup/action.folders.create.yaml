@@ -29,16 +29,17 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/space/{{ get 'inputs.space_id' }}/folder"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/space/" + inputs.space_id + "/folder"
+      headers: platform.headers
       body:
-        name: "{{ get 'inputs.name' }}"
+        name: inputs.name
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -47,9 +48,9 @@ routing:
       - tool: emit
         params:
           port: folder
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

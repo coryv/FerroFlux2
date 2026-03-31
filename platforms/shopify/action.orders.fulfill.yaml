@@ -31,18 +31,19 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/orders/{{ get 'inputs.orderId' }}/fulfillments.json"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/orders/" + inputs.orderId + "/fulfillments.json"
+      headers: platform.headers
       body:
         fulfillment:
-          location_id: "{{ get 'inputs.locationId' }}"
-          tracking_number: "{{ get 'inputs.trackingNumber' }}"
+          location_id: inputs.locationId
+          tracking_number: inputs.trackingNumber
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -51,9 +52,9 @@ routing:
       - tool: emit
         params:
           port: fulfillment
-          value: "{{ steps.request.response_body.fulfillment }}"
+          value: steps.request.response_body.fulfillment
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

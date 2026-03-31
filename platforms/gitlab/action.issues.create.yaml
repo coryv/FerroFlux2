@@ -32,11 +32,12 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/projects/{{ get 'inputs.projectId' }}/issues"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/projects/" + inputs.projectId + "/issues"
+      headers: platform.headers
       body:
-        title: "{{ get 'inputs.title' }}"
-        description: "{{ get 'inputs.description' }}"
+        title: inputs.title
+        description: inputs.description
     returns:
       status: status_code
       body: response_body
@@ -44,15 +45,15 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "201"
+        - condition: 201
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -61,9 +62,9 @@ routing:
       - tool: emit
         params:
           port: issue
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

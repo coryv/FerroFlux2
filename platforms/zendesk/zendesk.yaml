@@ -8,7 +8,8 @@ meta:
   version: "1.0.0"
 
 config:
-  base_url: "https://{{ get 'settings.domain' }}.zendesk.com/api/v2"
+  base_url: >
+    "https://" + settings.domain + ".zendesk.com/api/v2"
   headers:
     Content-Type: "application/json"
     Accept: "application/json"

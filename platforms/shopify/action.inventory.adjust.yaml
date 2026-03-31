@@ -31,18 +31,19 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/inventory_levels/adjust.json"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/inventory_levels/adjust.json"
+      headers: platform.headers
       body:
-        inventory_item_id: "{{ get 'inputs.inventoryItemId' }}"
-        location_id: "{{ get 'inputs.locationId' }}"
-        available_adjustment: "{{ get 'inputs.availableAdjustment' }}"
+        inventory_item_id: inputs.inventoryItemId
+        location_id: inputs.locationId
+        available_adjustment: inputs.availableAdjustment
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -51,9 +52,9 @@ routing:
       - tool: emit
         params:
           port: inventoryLevel
-          value: "{{ steps.request.response_body.inventory_level }}"
+          value: steps.request.response_body.inventory_level
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

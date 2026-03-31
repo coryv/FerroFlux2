@@ -50,11 +50,11 @@ execution:
   - id: call
     tool: core.utils.graphql
     params:
-      url: "{{ settings.url }}"
-      query: "{{ settings.query }}"
-      variables: "{{ inputs.variables }}"
-      operation_name: "{{ settings.operation_name }}"
-      headers: "{{ settings.headers }}"
+      url: settings.url
+      query: settings.query
+      variables: inputs.variables
+      operation_name: settings.operation_name
+      headers: settings.headers
     returns:
       status: status
       data: data
@@ -63,26 +63,27 @@ execution:
   - id: check_status
     tool: logic
     params:
-      data: "{{ steps.call.status }}"
+      data: steps.call.status
       rules:
-        - condition: "val < 400"
+        - condition: >
+          "val < 400"
           output: Success
-        - condition: "default"
+        - condition: default
           output: Error
 
   - id: emit_data
     tool: emit
     params:
       port: data
-      value: "{{ steps.call.data }}"
+      value: steps.call.data
 
   - id: emit_errors
     tool: emit
     params:
       port: errors
-      value: "{{ steps.call.errors }}"
+      value: steps.call.errors
 
   - id: emit_signal
     tool: emit
     params:
-      port: "{{ steps.check_status.match }}"
+      port: steps.check_status.match

@@ -9,7 +9,8 @@ meta:
   signature: null
 
 config:
-  base_url: "https://{{ domain }}.freshdesk.com/api/v2"
+  base_url: >
+    "https://" + domain + ".freshdesk.com/api/v2"
   auth_type: "basic"
   icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/freshdesk.svg"
 

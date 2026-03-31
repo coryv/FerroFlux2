@@ -30,11 +30,14 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/search"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/search"
+      headers: platform.headers
       body:
-        jql: "project = '{{ get 'settings.project_key' }}' AND updated > '{{ get 'event.cursor' '1970-01-01 00:00' }}' ORDER BY updated ASC"
-        maxResults: "{{ get 'settings.limit' '50' }}"
+        jql: >
+          "project = '" + settings.project_key + "' AND updated > '" + (has(event.cursor) ? event.cursor : '1970-01-01 00:00') + "' ORDER BY updated ASC"
+        maxResults: >
+          (has(settings.limit) ? settings.limit : '50')
     returns:
       status: status_code
       body: response_body
@@ -42,19 +45,20 @@ execution:
   - id: extract_issues
     tool: json_query
     params:
-      json: "{{ steps.request.response_body }}"
-      path: "/issues"
+      json: steps.request.response_body
+      path: >
+        "/issues"
     returns:
       issues: issues_array
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: "{{ steps.extract_issues.issues_array }}"
-          cursor_key: "fields.updated"
+          items: steps.extract_issues.issues_array
+          cursor_key: fields.updated
           port: issue
       - tool: emit
         params:
@@ -63,4 +67,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

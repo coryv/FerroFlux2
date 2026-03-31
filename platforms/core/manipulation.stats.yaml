@@ -2,14 +2,15 @@ context: null
 execution:
   - id: analyze
     params:
-      data: "{{ inputs }}"
-      detect_outliers: "{{ settings.detect_outliers }}"
-      enrichment_key: "{{ settings.enrichment_key }}"
-      target_field: "{{ settings.target_field }}"
-      threshold: "{{ settings.threshold }}"
+      data: inputs
+      detect_outliers: settings.detect_outliers
+      enrichment_key: settings.enrichment_key
+      target_field: settings.target_field
+      threshold: settings.threshold
     returns:
       stats: stats_result
-    tool: ferroflux:stats
+    tool: >
+      "ferroflux:stats"
 interface:
   inputs:
     - name: Exec

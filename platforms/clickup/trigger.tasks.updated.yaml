@@ -26,11 +26,12 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/list/{{ get 'settings.list_id' }}/task"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/list/" + settings.list_id + "/task"
+      headers: platform.headers
       query:
-        order_by: "updated"
-        reverse: "true"
+        order_by: updated
+        reverse: true
     returns:
       status: status_code
       body: response_body
@@ -38,19 +39,20 @@ execution:
   - id: extract_tasks
     tool: json_query
     params:
-      json: "{{ steps.request.response_body }}"
-      path: "/tasks"
+      json: steps.request.response_body
+      path: >
+        "/tasks"
     returns:
       tasks: tasks_array
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: "{{ steps.extract_tasks.tasks_array }}"
-          cursor_key: "date_updated"
+          items: steps.extract_tasks.tasks_array
+          cursor_key: date_updated
           port: task
       - tool: emit
         params:
@@ -59,4 +61,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

@@ -26,8 +26,9 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/conversations.list?types=im&limit=100"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/conversations.list?types=im&limit=100"
+      headers: platform.headers
     returns:
       status: status_code
       body: response_body
@@ -35,19 +36,21 @@ execution:
   - id: extract_ims
     tool: json_query
     params:
-      json: "{{ steps.list_ims.response_body }}"
-      path: "/channels"
+      json: steps.list_ims.response_body
+      path: >
+        "/channels"
     returns:
       channels: channels_array
 
 routing:
-  match: "{{ steps.list_ims.status_code }}"
+  match: steps.list_ims.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: "{{ steps.extract_ims.channels_array }}"
-          cursor_key: "last_read" # Slack uses timestamps for cursors
+          items: steps.extract_ims.channels_array
+          cursor_key: >
+            "\"last_read\" # Slack uses timestamps for cursors"
           port: message
       - tool: emit
         params:
@@ -56,4 +59,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.list_ims.response_body }}"
+          value: steps.list_ims.response_body

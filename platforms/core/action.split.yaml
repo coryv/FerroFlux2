@@ -23,7 +23,7 @@ execution:
   - id: split_op
     tool: split
     params:
-      array: "{{ inputs.array }}"
+      array: inputs.array
     returns:
       item: current_item
       done: is_done
@@ -32,12 +32,13 @@ execution:
     tool: emit
     params:
       port: item
-      value: "{{ steps.split_op.current_item }}"
+      value: steps.split_op.current_item
     
   - id: check_done
     tool: logic
     params:
-      data: "{{ steps.split_op.is_done }}"
+      data: steps.split_op.is_done
       rules:
-        - condition: "val == true"
+        - condition: >
+          "val == true"
           output: Done

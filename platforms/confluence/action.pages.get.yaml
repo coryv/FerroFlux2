@@ -27,14 +27,15 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/pages/{{ get 'inputs.page_id' }}"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/pages/" + inputs.page_id
+      headers: platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -43,9 +44,9 @@ routing:
       - tool: emit
         params:
           port: page
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

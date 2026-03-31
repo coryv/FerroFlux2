@@ -36,18 +36,19 @@ execution:
   - id: check
     tool: logic
     params:
-      data: "{{ inputs.a }}"
+      data: inputs.a
       rules:
-        - output: "True"
+        - output: True
           condition:
-            field: ""
-            operator: "{{ settings.operator }}"
-            value: "{{ inputs.b }}"
+            field: >
+              ""
+            operator: settings.operator
+            value: inputs.b
     returns:
       match: branch_name
 
   - id: route
     tool: emit
     params:
-      port: "{{ steps.check.match }}" 
-      value: "{{ inputs.a }}" 
+      port: steps.check.match
+      value: inputs.a

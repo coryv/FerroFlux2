@@ -25,14 +25,15 @@ execution:
     tool: http_client
     params:
       method: DELETE
-      url: "{{ platform.base_url }}/labels/{{ get 'inputs.label_id' }}"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/labels/" + inputs.label_id
+      headers: platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -42,4 +43,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

@@ -28,13 +28,13 @@ execution:
   - id: redis
     tool: redis_query
     params:
-      connection_string: "{{ settings.connection_string }}"
-      operation: "set"
-      key: "{{ get 'inputs.key' }}"
-      value: "{{ get 'inputs.value' }}"
+      connection_string: settings.connection_string
+      operation: set
+      key: inputs.key
+      value: inputs.value
 
 routing:
-  match: "{{ steps.redis.status }}"
+  match: steps.redis.status
   cases:
     default:
       - tool: emit

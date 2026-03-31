@@ -22,7 +22,7 @@ execution:
     tool: sql_query
     params:
       operation: begin
-      connection_string: "{{ get 'settings.connection_string' }}"
+      connection_string: settings.connection_string
     returns:
       status: status
 

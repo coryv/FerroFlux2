@@ -26,13 +26,17 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/me/messages"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/me/messages"
+      headers: platform.headers
       query:
-        "$filter": "receivedDateTime gt {{ get 'event.cursor' '1970-01-01T00:00:00Z' }}"
-        "$orderby": "receivedDateTime asc"
-        "$top": "{{ get 'settings.limit' }}"
-        "$select": "id,subject,bodyPreview,from,receivedDateTime,body"
+        "$filter": >
+          "receivedDateTime gt " + (has(event.cursor) ? event.cursor : '1970-01-01T00:00:00Z')
+        "$orderby": >
+          "receivedDateTime asc"
+        "$top": settings.limit
+        "$select": >
+          "id,subject,bodyPreview,from,receivedDateTime,body"
     returns:
       status: status_code
       body: response_body
@@ -40,9 +44,9 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
@@ -50,19 +54,20 @@ execution:
   - id: extract_messages
     tool: json_query
     params:
-      json: "{{ steps.request.response_body }}"
-      path: "/value"
+      json: steps.request.response_body
+      path: >
+        "/value"
     returns:
       emails: emails_array
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: iterate
         params:
-          items: "{{ steps.extract_messages.emails_array }}"
-          cursor_key: "receivedDateTime"
+          items: steps.extract_messages.emails_array
+          cursor_key: receivedDateTime
           # Graph API receivedDateTime is a string, but the engine usually handles string cursors for 'gt' comparisons.
           port: email
       - tool: emit
@@ -72,4 +77,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

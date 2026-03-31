@@ -23,7 +23,7 @@ fn setup_world() -> World {
         tokio::sync::Semaphore::new(10),
     )));
     world.insert_resource(ferroflux_core::resources::GlobalHttpClient::default());
-    world.insert_resource(ferroflux_core::resources::templates::TemplateEngine::default());
+    world.insert_resource(ferroflux_core::resources::templates::CelEngine::default());
     world.insert_resource(ferroflux_core::resources::PipelineResultChannel::default());
     world.insert_resource(ferroflux_core::resources::PipelineResultChannel::default());
     let (tx, _) = tokio::sync::broadcast::channel(100);
@@ -87,9 +87,9 @@ fn test_agent_missing_provider_event() {
     world.spawn((
         AgentConfig {
             model: "gpt-4".to_string(),
-            system_instruction: "You are a test agent.".to_string(),
+            system_instruction: "'You are a test agent.'".to_string(),
             provider: "invalid_provider".to_string(), // <--- ERROR SOURCE
-            user_prompt_template: "{{user_prompt}}".to_string(),
+            user_prompt_template: "user_prompt".to_string(),
             tools: vec![],
             tool_choice: ferroflux_core::components::agent::ToolChoice::Auto,
             output_mode: OutputMode::Text,

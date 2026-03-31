@@ -48,11 +48,11 @@ execution:
   - id: process
     tool: core.utils.date
     params:
-      operation: "{{ settings.operation }}"
-      date: "{{ settings.date }}"
-      date1: "{{ settings.date1 }}"
-      date2: "{{ settings.date2 }}"
-      format: "{{ settings.format }}"
+      operation: settings.operation
+      date: settings.date
+      date1: settings.date1
+      date2: settings.date2
+      format: settings.format
     returns:
       result: processed
 
@@ -60,7 +60,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: "{{ steps.process.result }}"
+      value: steps.process.result
 
   - id: done
     tool: emit

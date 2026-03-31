@@ -25,8 +25,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}"
-      headers: "{{ platform.headers }}"
+      url: platform.base_url
+      headers: platform.headers
       body:
         query: |
           query {
@@ -40,7 +40,7 @@ execution:
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -49,9 +49,9 @@ routing:
       - tool: emit
         params:
           port: boards
-          value: "{{ steps.request.response_body.data.boards }}"
+          value: steps.request.response_body.data.boards
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

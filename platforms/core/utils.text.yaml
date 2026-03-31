@@ -49,11 +49,11 @@ execution:
   - id: process
     tool: core.utils.text
     params:
-      operation: "{{ settings.operation }}"
-      text: "{{ inputs.text }}"
-      pattern: "{{ settings.pattern }}"
-      replacement: "{{ settings.replacement }}"
-      length: "{{ settings.length }}"
+      operation: settings.operation
+      text: inputs.text
+      pattern: settings.pattern
+      replacement: settings.replacement
+      length: settings.length
     returns:
       result: processed
 
@@ -61,7 +61,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: "{{ steps.process.result }}"
+      value: steps.process.result
 
   - id: done
     tool: emit

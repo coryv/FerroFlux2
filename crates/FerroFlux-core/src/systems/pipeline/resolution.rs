@@ -1,61 +1,63 @@
 use crate::components::execution_state::DataRef;
 use crate::store::BlobStore;
+use crate::systems::io::templating::{cel_to_json, json_to_cel};
 use anyhow::Result;
-use handlebars::Handlebars;
+use cel_interpreter::{Context, Program};
 use serde_json::Value;
 
 pub fn resolve_recursive(
     value: &Value,
     ctx: &Value,
-    reg: &Handlebars,
-    store: Option<&BlobStore>,
+    _reg: &Option<()>, // Placeholder for now, previously Handlebars
+    _store: Option<&BlobStore>,
 ) -> Result<Value> {
     match value {
         Value::String(s) => {
             let trimmed = s.trim();
             
-            // 1. Shortcut Check: If the string is EXACTLY one tag, we can extract the raw object/value.
-            if trimmed.starts_with("{{") && trimmed.ends_with("}}") {
-                let inner_raw = &trimmed[2..trimmed.len() - 2];
-                if !inner_raw.contains("{{") && !inner_raw.contains("}}") {
-                    let inner = inner_raw.trim();
-                    if !inner.starts_with("get ") {
-                        if let Some(val) = lookup_path(ctx, inner, store) {
-                            return Ok(val);
+            // Try to evaluate as CEL
+            let mut context = Context::default();
+            
+            // Inject variables from context
+            if let Some(obj) = ctx.as_object() {
+                for (k, v) in obj {
+                    let _ = context.add_variable(k, json_to_cel(v.clone()));
+                }
+
+            }
+
+            match Program::compile(trimmed) {
+                Ok(program) => {
+                    match program.execute(&context) {
+                        Ok(cel_val) => {
+                            let json_val = cel_to_json(cel_val);
+                            Ok(json_val)
+                        }
+                        Err(_) => {
+                            // If it fails to execute (e.g. undefined variable), 
+                            // maybe it was intended as a literal string.
+                            Ok(Value::String(s.clone()))
                         }
                     }
                 }
-            }
-
-            // 2. Full Render: If not a shortcut, or lookup failed, use Handlebars.
-            let mut flat_ctx = ctx.clone();
-            if let Some(obj) = flat_ctx.as_object_mut() {
-                // If we have a 'platform' object, merge its keys into the root if they don't collide
-                let p_obj_opt = obj.get("platform").and_then(|v| v.as_object()).cloned();
-                if let Some(p_obj) = p_obj_opt {
-                    for (pk, pv) in p_obj {
-                        if !obj.contains_key(&pk) {
-                            obj.insert(pk, pv);
-                        }
-                    }
+                Err(_) => {
+                    // Not valid CEL, treat as literal
+                    Ok(Value::String(s.clone()))
                 }
             }
-
-            let rendered = reg.render_template(s, &flat_ctx)?;
-            Ok(Value::String(rendered))
         }
 
         Value::Array(arr) => {
             let mut new_arr = Vec::new();
             for v in arr {
-                new_arr.push(resolve_recursive(v, ctx, reg, store)?);
+                new_arr.push(resolve_recursive(v, ctx, &None, _store)?);
             }
             Ok(Value::Array(new_arr))
         }
         Value::Object(obj) => {
             let mut new_obj = serde_json::Map::new();
             for (k, v) in obj {
-                new_obj.insert(k.clone(), resolve_recursive(v, ctx, reg, store)?);
+                new_obj.insert(k.clone(), resolve_recursive(v, ctx, &None, _store)?);
             }
             Ok(Value::Object(new_obj))
         }

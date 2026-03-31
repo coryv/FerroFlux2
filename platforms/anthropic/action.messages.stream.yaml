@@ -52,23 +52,24 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/messages"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/messages"
+      headers: platform.headers
       stream: true
-      step_id: "llm_stream"
+      step_id: llm_stream
       body:
-        model: "{{ get 'settings.model' }}"
-        messages: "{{ get 'inputs.messages' }}"
-        system: "{{ get 'inputs.system' }}"
-        max_tokens: "{{ get 'settings.max_tokens' }}"
-        temperature: "{{ get 'settings.temperature' }}"
+        model: settings.model
+        messages: inputs.messages
+        system: inputs.system
+        max_tokens: settings.max_tokens
+        temperature: settings.temperature
         stream: true
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -77,9 +78,9 @@ routing:
       - tool: emit
         params:
           port: message
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

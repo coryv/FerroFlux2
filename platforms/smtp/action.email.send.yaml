@@ -36,23 +36,23 @@ execution:
   - id: send
     tool: smtp
     params:
-      host: "{{ get 'settings.host' }}"
-      port: "{{ get 'settings.port' }}"
-      username: "{{ get 'settings.username' }}"
-      password: "{{ get 'settings.password' }}"
-      encryption: "{{ get 'settings.encryption' }}"
+      host: settings.host
+      port: settings.port
+      username: settings.username
+      password: settings.password
+      encryption: settings.encryption
 
-      from: "{{ get 'inputs.from' }}"
-      to: "{{ get 'inputs.to' }}"
-      subject: "{{ get 'inputs.subject' }}"
-      body_text: "{{ get 'inputs.body_text' }}"
-      body_html: "{{ get 'inputs.body_html' }}"
-      attachments: "{{ get 'inputs.attachments' }}"
+      from: inputs.from
+      to: inputs.to
+      subject: inputs.subject
+      body_text: inputs.body_text
+      body_html: inputs.body_html
+      attachments: inputs.attachments
     returns:
       result: response_body
 
 routing:
-  match: "{{ steps.send.response_body.status }}"
+  match: steps.send.response_body.status
   cases:
     "sent":
       - tool: emit
@@ -61,9 +61,9 @@ routing:
       - tool: emit
         params:
           port: result
-          value: "{{ steps.send.response_body }}"
+          value: steps.send.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.send.response_body }}"
+          value: steps.send.response_body

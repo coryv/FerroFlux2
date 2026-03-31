@@ -60,18 +60,19 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/chat/completions"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/chat/completions"
+      headers: platform.headers
       body:
-        model: "{{ get 'settings.model' }}"
+        model: settings.model
         messages:
           - role: system
-            content: "{{ get 'settings.system_prompt' }}"
+            content: settings.system_prompt
           - role: user
-            content: "{{ get 'inputs.user_prompt' }}"
-        tools: "{{ get 'inputs.tools' }}"
-        tool_choice: "{{ get 'settings.tool_choice' }}"
-        parallel_tool_calls: "{{ get 'settings.parallel_tool_calls' }}"
+            content: inputs.user_prompt
+        tools: inputs.tools
+        tool_choice: settings.tool_choice
+        parallel_tool_calls: settings.parallel_tool_calls
     returns:
       status: status_code
       body: response_body
@@ -79,15 +80,15 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -96,29 +97,31 @@ routing:
       - tool: emit
         params:
           port: response
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
       - tool: json_query
         params:
-          json: "{{ steps.request.response_body }}"
-          path: "/choices/0/message/tool_calls"
+          json: steps.request.response_body
+          path: >
+            "/choices/0/message/tool_calls"
         returns:
           result: tool_calls_result
       - tool: emit
         params:
           port: tool_calls
-          value: "{{ tool_calls_result }}"
+          value: tool_calls_result
       - tool: json_query
         params:
-          json: "{{ steps.request.response_body }}"
-          path: "/choices/0/message/content"
+          json: steps.request.response_body
+          path: >
+            "/choices/0/message/content"
         returns:
           result: content_result
       - tool: emit
         params:
           port: content
-          value: "{{ content_result }}"
+          value: content_result
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

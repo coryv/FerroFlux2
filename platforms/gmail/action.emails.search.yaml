@@ -30,17 +30,19 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/messages"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/messages"
+      headers: platform.headers
       query:
-        q: "{{ get 'inputs.query' }}"
-        maxResults: "{{ get 'inputs.limit' '10' }}"
+        q: inputs.query
+        maxResults: >
+          (has(inputs.limit) ? inputs.limit : '10')
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -49,9 +51,9 @@ routing:
       - tool: emit
         params:
           port: messages
-          value: "{{ steps.request.response_body.messages }}"
+          value: steps.request.response_body.messages
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

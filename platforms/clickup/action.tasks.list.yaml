@@ -30,16 +30,18 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/list/{{ get 'inputs.list_id' }}/task"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/list/" + inputs.list_id + "/task"
+      headers: platform.headers
       query:
-        archived: "{{ get 'inputs.archived' 'false' }}"
+        archived: >
+          (has(inputs.archived) ? inputs.archived : 'false')
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -48,9 +50,9 @@ routing:
       - tool: emit
         params:
           port: tasks
-          value: "{{ steps.request.response_body.tasks }}"
+          value: steps.request.response_body.tasks
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

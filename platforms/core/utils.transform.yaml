@@ -25,8 +25,9 @@ interface:
     - name: template
       label: Template (Handlebars)
       type: code
-      description: "Use {{ inputs.data }} to access input."
-      default: "{{ inputs.data }}"
+      description: >
+        "Use " + inputs.data + " to access input."
+      default: inputs.data
 
 execution:
   # Just emits the resolved template string/value.
@@ -38,7 +39,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: "{{ settings.template }}"
+      value: settings.template
 
   - id: done
     tool: emit

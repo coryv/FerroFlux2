@@ -30,13 +30,14 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/capture"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/capture"
+      headers: platform.headers
       body:
-        api_key: "{{ settings.project_api_key }}"
-        event: "{{ get 'inputs.event' }}"
-        distinct_id: "{{ get 'inputs.distinct_id' }}"
-        properties: "{{ inputs.properties }}"
+        api_key: settings.project_api_key
+        event: inputs.event
+        distinct_id: inputs.distinct_id
+        properties: inputs.properties
     returns:
       status: status_code
       body: response_body
@@ -44,15 +45,15 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -62,4 +63,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

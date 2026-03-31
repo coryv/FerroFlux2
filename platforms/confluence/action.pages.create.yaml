@@ -33,22 +33,24 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/pages"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/pages"
+      headers: platform.headers
       body:
-        spaceId: "{{ get 'inputs.space_id' }}"
-        title: "{{ get 'inputs.title' }}"
-        parentId: "{{ get 'inputs.parent_id' }}"
+        spaceId: inputs.space_id
+        title: inputs.title
+        parentId: inputs.parent_id
         body:
           storage:
-            value: "<p>{{ get 'inputs.body' }}</p>" # Simple HTML wrapper
-            representation: "storage"
+            value: >
+              "\"<p>" + inputs.body + "</p>\" # Simple HTML wrapper"
+            representation: storage
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -57,9 +59,9 @@ routing:
       - tool: emit
         params:
           port: page
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

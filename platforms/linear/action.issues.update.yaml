@@ -31,20 +31,21 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}"
-      headers: "{{ platform.headers }}"
+      url: platform.base_url
+      headers: platform.headers
       body:
-        query: "mutation IssueUpdate($id: String!, $title: String, $stateId: String) { issueUpdate(id: $id, input: { title: $title, stateId: $stateId }) { success issue { id title state { name } } } }"
+        query: >
+          "mutation IssueUpdate($id: String!, $title: String, $stateId: String) { issueUpdate(id: $id, input: { title: $title, stateId: $stateId }) { success issue { id title state { name } } } }"
         variables:
-          id: "{{ get 'inputs.id' }}"
-          title: "{{ get 'inputs.title' }}"
-          stateId: "{{ get 'inputs.stateId' }}"
+          id: inputs.id
+          title: inputs.title
+          stateId: inputs.stateId
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -53,9 +54,9 @@ routing:
       - tool: emit
         params:
           port: issue
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

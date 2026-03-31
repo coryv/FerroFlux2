@@ -41,15 +41,16 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/chat/completions"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/chat/completions"
+      headers: platform.headers
       body:
-        model: "{{ settings.model }}"
+        model: settings.model
         messages:
           - role: system
-            content: "{{ settings.system_prompt }}"
+            content: settings.system_prompt
           - role: user
-            content: "{{ inputs.user_prompt }}"
+            content: inputs.user_prompt
     returns:
       status: status_code
       body: response_body
@@ -57,21 +58,22 @@ execution:
   - id: check_error
     tool: switch
     params:
-      value: "{{ steps.req.status }}"
+      value: steps.req.status
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_error.branch }}"
+  match: steps.check_error.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: "{{ steps.req.body }}"
-          path: "/choices/0/message/content"
+          json: steps.req.body
+          path: >
+            "/choices/0/message/content"
         returns:
            result: final_content
       - tool: emit
@@ -80,12 +82,12 @@ routing:
       - tool: emit
         params:
           port: response
-          value: "{{ final_content }}"
+          value: final_content
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.req.body }}"
+          value: steps.req.body
 
 context:
-  model: "{{ settings.model }}"
+  model: settings.model

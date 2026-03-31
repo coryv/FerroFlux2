@@ -27,15 +27,17 @@ execution:
     tool: paginate
     params:
       method: GET
-      url: "https://{{ get 'settings.domain' }}.atlassian.net/rest/api/3/search"
-      headers: "{{ platform.headers }}"
+      url: >
+        "https://" + settings.domain + ".atlassian.net/rest/api/3/search"
+      headers: platform.headers
       strategy: offset
-      offset_param: "startAt"
-      limit_param: "maxResults"
+      offset_param: startAt
+      limit_param: maxResults
       per_page: 50
-      items_path: "/issues"
+      items_path: >
+        "/issues"
       query:
-        jql: "{{ get 'inputs.jql' }}"
+        jql: inputs.jql
     returns:
       items: all_items
 
@@ -49,4 +51,4 @@ routing:
       - tool: emit
         params:
           port: issues
-          value: "{{ steps.request.all_items }}"
+          value: steps.request.all_items

@@ -31,11 +31,13 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/files.list"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/files.list"
+      headers: platform.headers
       query:
-        channel: "{{ get 'settings.channel' }}"
-        limit: "{{ get 'settings.limit' '10' }}"
+        channel: settings.channel
+        limit: >
+          (has(settings.limit) ? settings.limit : '10')
     returns:
       status: status_code
       body: response_body
@@ -43,19 +45,20 @@ execution:
   - id: extract_files
     tool: json_query
     params:
-      json: "{{ steps.fetch.response_body }}"
-      path: "/files"
+      json: steps.fetch.response_body
+      path: >
+        "/files"
     returns:
       files: files_array
 
 routing:
-  match: "{{ steps.fetch.status_code }}"
+  match: steps.fetch.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: "{{ steps.extract_files.files_array }}"
-          cursor_key: "timestamp"
+          items: steps.extract_files.files_array
+          cursor_key: timestamp
           port: file
       - tool: emit
         params:
@@ -64,4 +67,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.fetch.response_body }}"
+          value: steps.fetch.response_body

@@ -4,7 +4,6 @@ use crate::resources::DefinitionRegistry;
 use crate::tools::ToolContext;
 use crate::tools::ToolRegistry;
 use anyhow::Result;
-use handlebars::{Context, Handlebars, Helper, HelperResult, Output, RenderContext};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::time::Instant;
@@ -35,9 +34,12 @@ pub fn execute_pipeline_node(
 
     tracing::trace!(node_id = %node.definition_id, "Executing pipeline node");
 
-    // 1. Initialize Context Root
+    // 1. Initialize Context Map
     let mut ctx_map = workflow_state.context.clone();
     
+    // Inject Settings
+    ctx_map.insert("settings".to_string(), DataRef::Inline(serde_json::to_value(&node.config)?));
+
     // Materialize initial context for rendering
     let mut materialized = serde_json::Map::new();
     for (k, v) in &ctx_map {
@@ -46,54 +48,6 @@ pub fn execute_pipeline_node(
         }
     }
 
-    // Prepare Handlebars
-    let mut handlebars = Handlebars::new();
-    handlebars.register_escape_fn(handlebars::no_escape);
-    
-    let store_ref = store.cloned();
-    handlebars.register_helper("get", Box::new(move |h: &Helper, _: &Handlebars, ctx: &Context, _: &mut RenderContext, out: &mut dyn Output| -> HelperResult {
-        let path = h.param(0).and_then(|v| v.value().as_str()).ok_or(handlebars::RenderErrorReason::Other("Invalid path".to_string()))?;
-        let root = ctx.data();
-        
-        let parts: Vec<&str> = path.split('.').collect();
-        if parts.is_empty() { return Ok(()); }
-        
-        let mut current = root.get(parts[0]).cloned().unwrap_or(Value::Null);
-        
-        // Handle DataRef objects if they are raw in the context
-        if let Some(obj) = current.as_object() {
-            if let Some(inline) = obj.get("Inline") {
-                current = inline.clone();
-            } else if let Some(blob_ticket_val) = obj.get("Blob") {
-                if let Some(store) = &store_ref {
-                    if let Ok(ticket) = serde_json::from_value(blob_ticket_val.clone()) {
-                        if let Ok(bytes) = store.claim(&ticket) {
-                            current = serde_json::from_slice(&bytes).unwrap_or(Value::Null);
-                        }
-                    }
-                }
-            }
-        }
-
-        for part in &parts[1..] {
-            if let Some(map) = current.as_object() {
-                if let Some(next) = map.get(*part) {
-                    current = next.clone();
-                } else if let Some(ctx) = map.get("context") && let Some(val) = ctx.get(part) {
-                    current = val.clone();
-                } else {
-                    return Ok(());
-                }
-            } else {
-                return Ok(());
-            }
-        }
-
-        if let Some(s) = current.as_str() { out.write(s)?; }
-        else { out.write(&current.to_string())?; }
-        Ok(())
-    }));
-
     // 2. Platform Injection - Merge into root materialized map FIRST
     let mut platform_root = serde_json::Map::new();
     for (id, platform) in &definitions.platforms {
@@ -101,38 +55,35 @@ pub fn execute_pipeline_node(
         platform_root.insert(id.clone(), platform_val.clone());
         
         // If this is the active platform for the node, merge its keys into root context
-        if Some(id) == def.meta.platform.as_ref() {
-            if let Some(obj) = platform_val.as_object() {
-                for (rk, rv) in obj {
-                    materialized.insert(rk.clone(), rv.clone());
-                }
+        if Some(id) == def.meta.platform.as_ref() && let Some(obj) = platform_val.as_object() {
+            for (rk, rv) in obj {
+                materialized.insert(rk.clone(), rv.clone());
             }
         }
     }
     materialized.insert("platform".to_string(), Value::Object(platform_root));
-    
-    // settings
-    materialized.insert("settings".to_string(), serde_json::to_value(&node.config)?);
+    materialized.insert("trace_id".to_string(), Value::String(trace_id.clone()));
 
     let mut h_ctx = Value::Object(materialized);
 
-    // 3. Resolve Node Inputs
+    // 3. Resolve Node Inputs (Fully Hydrated for Tool Use)
     let mut resolved_inputs = serde_json::Map::new();
     for (k, v) in &node.config {
-        let res = resolve_recursive(v, &h_ctx, &handlebars, store)?;
+        let res = resolve_recursive(v, &h_ctx, &None, store)?;
         resolved_inputs.insert(k.clone(), res);
     }
-    let inputs_val = Value::Object(resolved_inputs);
-    ctx_map.insert("inputs".to_string(), DataRef::Inline(inputs_val.clone()));
+    let inputs_val = Value::Object(resolved_inputs.clone());
+    
+    // Inject inputs into context for steps to see
     if let Some(obj) = h_ctx.as_object_mut() {
-        obj.insert("inputs".to_string(), inputs_val);
+        obj.insert("inputs".to_string(), inputs_val.clone());
     }
+    ctx_map.insert("inputs".to_string(), DataRef::Inline(inputs_val));
 
     // 4. Resolve explicit context
     if let Some(ctx_defs) = &def.context {
         for (key, template) in ctx_defs {
-            let rendered = handlebars.render_template(template, &h_ctx).unwrap_or_else(|_| template.clone());
-            let val = serde_json::from_str(&rendered).unwrap_or(Value::String(rendered));
+            let val = resolve_recursive(&Value::String(template.clone()), &h_ctx, &None, store)?;
             ctx_map.insert(key.clone(), DataRef::Inline(val.clone()));
             if let Some(obj) = h_ctx.as_object_mut() {
                 obj.insert(key.clone(), val);
@@ -151,7 +102,7 @@ pub fn execute_pipeline_node(
 
     for step in &def.execution {
         let tool = tools.get(&step.tool).ok_or_else(|| anyhow::anyhow!("Tool not found: {}", step.tool))?;
-        let resolved_params = resolve_recursive(&step.params, &h_ctx, &handlebars, store)?;
+        let resolved_params = resolve_recursive(&step.params, &h_ctx, &None, store)?;
 
         let default_masks = std::collections::HashMap::new();
         let masks_ref = shadow_exec.map(|s| &s.mocked_tools).unwrap_or(&default_masks);
@@ -213,11 +164,13 @@ pub fn execute_pipeline_node(
 
     // 6. Routing
     if let Some(routing) = &def.routing {
-        let resolved_match = handlebars.render_template(&routing.match_expr, &h_ctx)?;
+        let res = resolve_recursive(&Value::String(routing.match_expr.clone()), &h_ctx, &None, store)?;
+        let resolved_match = res.as_str().unwrap_or("").to_string();
+        
         if let Some(actions) = routing.cases.get(&resolved_match) {
             for action in actions {
                 let tool = tools.get(&action.tool).ok_or_else(|| anyhow::anyhow!("Tool not found: {}", action.tool))?;
-                let resolved_params = resolve_recursive(&action.params, &h_ctx, &handlebars, store)?;
+                let resolved_params = resolve_recursive(&action.params, &h_ctx, &None, store)?;
                 
                 let mut tool_ctx = ToolContext {
                     local: &mut ctx_map,
@@ -231,10 +184,8 @@ pub fn execute_pipeline_node(
                 };
                 
                 let result = tool.run(&mut tool_ctx, resolved_params)?;
-                if action.tool == "emit" {
-                    if let Some(port) = result.get("port").and_then(|v| v.as_str()) {
-                        active_ports.push(port.to_string());
-                    }
+                if action.tool == "emit" && let Some(port) = result.get("port").and_then(|v| v.as_str()) {
+                    active_ports.push(port.to_string());
                 }
             }
         }

@@ -26,21 +26,22 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/customers.json"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/customers.json"
+      headers: platform.headers
       query:
-        created_at_min: "{{ get 'state.last_poll' }}"
+        created_at_min: state.last_poll
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.query.status_code }}"
+  match: steps.query.status_code
   cases:
     "200":
       - tool: foreach
         params:
-          items: "{{ get 'steps.query.response_body.customers' }}"
+          items: steps.query.response_body.customers
           action:
             - tool: emit
               params:
@@ -48,4 +49,4 @@ routing:
             - tool: emit
               params:
                 port: customer
-                value: "{{ item }}"
+                value: item

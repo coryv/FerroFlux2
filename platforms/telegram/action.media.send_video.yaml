@@ -35,23 +35,25 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/sendVideo"
+      url: >
+        platform.base_url + "/sendVideo"
       headers:
-        Content-Type: "multipart/form-data"
+        Content-Type: >
+          "multipart/form-data"
       body:
-        chat_id: "{{ get 'inputs.chat_id' }}"
+        chat_id: inputs.chat_id
         video:
-          ticket: "{{ get 'inputs.video' }}"
-        caption: "{{ get 'inputs.caption' }}"
-        width: "{{ get 'inputs.width' }}"
-        height: "{{ get 'inputs.height' }}"
-        duration: "{{ get 'inputs.duration' }}"
+          ticket: inputs.video
+        caption: inputs.caption
+        width: inputs.width
+        height: inputs.height
+        duration: inputs.duration
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -61,4 +63,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

@@ -27,20 +27,22 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/comments"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/comments"
+      headers: platform.headers
       body:
-        pageId: "{{ get 'inputs.page_id' }}"
+        pageId: inputs.page_id
         body:
           storage:
-            value: "<p>{{ get 'inputs.body' }}</p>"
-            representation: "storage"
+            value: >
+              "<p>" + inputs.body + "</p>"
+            representation: storage
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -50,4 +52,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

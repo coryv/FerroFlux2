@@ -30,9 +30,10 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/{{ get 'inputs.calendarId' }}/events"
-      headers: "{{ platform.headers }}"
-      body: "{{ get 'inputs.event_data' }}"
+      url: >
+        platform.base_url + "/" + inputs.calendarId + "/events"
+      headers: platform.headers
+      body: inputs.event_data
     returns:
       status: status_code
       body: response_body
@@ -40,15 +41,15 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -57,9 +58,9 @@ routing:
       - tool: emit
         params:
           port: event
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

@@ -27,8 +27,9 @@ execution:
     tool: paginate
     params:
       method: GET
-      url: "https://{{ get 'settings.domain' }}.atlassian.net/rest/api/3/issue/{{ get 'inputs.issueIdOrKey' }}/comment"
-      headers: "{{ platform.headers }}"
+      url: >
+        "https://" + settings.domain + ".atlassian.net/rest/api/3/issue/" + inputs.issueIdOrKey + "/comment"
+      headers: platform.headers
       strategy: offset
       offset_param: startAt
       limit_param: maxResults
@@ -46,4 +47,4 @@ routing:
       - tool: emit
         params:
           port: comments
-          value: "{{ steps.request.all_items }}"
+          value: steps.request.all_items

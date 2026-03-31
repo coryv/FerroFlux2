@@ -30,7 +30,7 @@ execution:
   - id: script_exec
     tool: rhai
     params:
-      script: "{{ settings.script }}"
+      script: settings.script
 
     returns:
       result: script_result
@@ -39,7 +39,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: "{{ script_result }}"
+      value: script_result
 
   - id: emit_exec
     tool: emit

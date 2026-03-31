@@ -33,18 +33,19 @@ execution:
     tool: http_client
     params:
       method: DELETE
-      url: "https://{{ get 'inputs.bucket' }}.s3.{{ get 'settings.region' }}.amazonaws.com/{{ get 'inputs.key' }}"
+      url: >
+        "https://" + inputs.bucket + ".s3." + settings.region + ".amazonaws.com/" + inputs.key
       aws_auth:
-        service: "s3"
-        region: "{{ get 'settings.region' }}"
-        access_key: "{{ get 'settings.access_key' }}"
-        secret_key: "{{ get 'settings.secret_key' }}"
+        service: s3
+        region: settings.region
+        access_key: settings.access_key
+        secret_key: settings.secret_key
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -54,4 +55,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

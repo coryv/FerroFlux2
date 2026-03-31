@@ -27,16 +27,17 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/cards/{{ get 'inputs.idCard' }}/idLabels"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/cards/" + inputs.idCard + "/idLabels"
+      headers: platform.headers
       query:
-        value: "{{ get 'inputs.idLabel' }}"
+        value: inputs.idLabel
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -46,4 +47,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

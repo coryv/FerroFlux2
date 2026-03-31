@@ -33,18 +33,19 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "https://{{ get 'settings.domain' }}.atlassian.net/rest/agile/1.0/sprint/{{ get 'inputs.sprintId' }}"
-      headers: "{{ platform.headers }}"
+      url: >
+        "https://" + settings.domain + ".atlassian.net/rest/agile/1.0/sprint/" + inputs.sprintId
+      headers: platform.headers
       body:
-        state: "{{ get 'inputs.state' }}"
-        startDate: "{{ get 'inputs.startDate' }}"
-        endDate: "{{ get 'inputs.endDate' }}"
+        state: inputs.state
+        startDate: inputs.startDate
+        endDate: inputs.endDate
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -53,9 +54,9 @@ routing:
       - tool: emit
         params:
           port: sprint
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

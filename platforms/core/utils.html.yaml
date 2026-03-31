@@ -34,9 +34,9 @@ execution:
   - id: extract
     tool: core.utils.html
     params:
-      html: "{{ inputs.html }}"
-      selector: "{{ settings.selector }}"
-      attr: "{{ settings.attr }}"
+      html: inputs.html
+      selector: settings.selector
+      attr: settings.attr
     returns:
       result: extracted
 
@@ -44,7 +44,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: "{{ steps.extract.result }}"
+      value: steps.extract.result
 
   - id: done
     tool: emit

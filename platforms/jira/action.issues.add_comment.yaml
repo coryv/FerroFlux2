@@ -30,10 +30,11 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "https://{{ get 'settings.domain' }}.atlassian.net/rest/api/3/issue/{{ get 'inputs.issueIdOrKey' }}/comment"
-      headers: "{{ platform.headers }}"
+      url: >
+        "https://" + settings.domain + ".atlassian.net/rest/api/3/issue/" + inputs.issueIdOrKey + "/comment"
+      headers: platform.headers
       body:
-        body: "{{ get 'inputs.body' }}"
+        body: inputs.body
     returns:
       status: status_code
       body: response_body
@@ -41,15 +42,15 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "201"
+        - condition: 201
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -58,9 +59,9 @@ routing:
       - tool: emit
         params:
           port: comment
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

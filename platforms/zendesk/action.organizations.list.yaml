@@ -25,12 +25,16 @@ execution:
     tool: paginate
     params:
       method: GET
-      url: "{{ platform.base_url }}/organizations.json"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/organizations.json"
+      headers: platform.headers
       strategy: cursor
-      cursor_path: "/meta/after_cursor"
-      cursor_param: "page[after]"
-      items_path: "/organizations"
+      cursor_path: >
+        "/meta/after_cursor"
+      cursor_param: >
+        "page[after]"
+      items_path: >
+        "/organizations"
     returns:
       items: all_items
 
@@ -44,4 +48,4 @@ routing:
       - tool: emit
         params:
           port: organizations
-          value: "{{ steps.request.all_items }}"
+          value: steps.request.all_items

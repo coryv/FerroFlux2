@@ -34,13 +34,14 @@ execution:
     tool: paginate
     params:
       method: GET
-      url: "{{ platform.base_url }}/{{ get 'inputs.base_id' }}/{{ get 'inputs.table_id_or_name' }}"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/" + inputs.base_id + "/" + inputs.table_id_or_name
+      headers: platform.headers
       strategy: cursor
-      cursor_param: "offset"
+      cursor_param: offset
       query:
-        filterByFormula: "{{ get 'inputs.filterByFormula' }}"
-        maxRecords: "{{ get 'inputs.maxRecords' }}"
+        filterByFormula: inputs.filterByFormula
+        maxRecords: inputs.maxRecords
     returns:
       items: records
       total_pages: page_count
@@ -49,13 +50,13 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "200"
+      value: 200
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -64,4 +65,4 @@ routing:
       - tool: emit
         params:
           port: records
-          value: "{{ steps.request.records }}"
+          value: steps.request.records

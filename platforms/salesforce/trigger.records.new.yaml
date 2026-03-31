@@ -30,21 +30,23 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/query"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/query"
+      headers: platform.headers
       query:
-        q: "SELECT Id FROM {{ get 'settings.sObjectName' }} WHERE CreatedDate > {{ get 'state.last_poll' }} ORDER BY CreatedDate ASC"
+        q: >
+          "SELECT Id FROM " + settings.sObjectName + " WHERE CreatedDate > " + state.last_poll + " ORDER BY CreatedDate ASC"
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.query.status_code }}"
+  match: steps.query.status_code
   cases:
     "200":
       - tool: foreach
         params:
-          items: "{{ get 'steps.query.response_body.records' }}"
+          items: steps.query.response_body.records
           action:
             - tool: emit
               params:
@@ -52,4 +54,4 @@ routing:
             - tool: emit
               params:
                 port: record
-                value: "{{ item }}"
+                value: item

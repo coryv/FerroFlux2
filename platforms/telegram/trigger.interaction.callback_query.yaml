@@ -27,10 +27,13 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/getUpdates"
+      url: >
+        platform.base_url + "/getUpdates"
       query:
-        limit: "{{ get 'settings.limit' '100' }}"
-        allowed_updates: ["callback_query"]
+        limit: >
+          (has(settings.limit) ? settings.limit : '100')
+        allowed_updates: >
+          "[\"callback_query\"]"
     returns:
       status: status_code
       body: response_body
@@ -38,19 +41,20 @@ execution:
   - id: extract_updates
     tool: json_query
     params:
-      json: "{{ steps.request.response_body }}"
-      path: "/result"
+      json: steps.request.response_body
+      path: >
+        "/result"
     returns:
       updates: updates_array
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: "{{ steps.extract_updates.updates_array }}"
-          cursor_key: "update_id"
+          items: steps.extract_updates.updates_array
+          cursor_key: update_id
           port: query
       - tool: emit
         params:
@@ -59,4 +63,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

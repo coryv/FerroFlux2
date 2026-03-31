@@ -25,12 +25,14 @@ execution:
     tool: paginate
     params:
       method: GET
-      url: "{{ platform.base_url }}/products.json"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/products.json"
+      headers: platform.headers
       strategy: cursor
-      cursor_path: "link"
-      cursor_param: "page_info"
-      items_path: "/products"
+      cursor_path: link
+      cursor_param: page_info
+      items_path: >
+        "/products"
     returns:
       items: all_items
 
@@ -44,4 +46,4 @@ routing:
       - tool: emit
         params:
           port: products
-          value: "{{ steps.request.all_items }}"
+          value: steps.request.all_items

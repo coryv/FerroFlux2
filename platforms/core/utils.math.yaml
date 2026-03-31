@@ -44,9 +44,9 @@ execution:
   - id: calc
     tool: math
     params:
-      a: "{{ inputs.a }}"
-      b: "{{ inputs.b }}"
-      op: "{{ settings.operation }}"
+      a: inputs.a
+      b: inputs.b
+      op: settings.operation
     returns:
       result: math_res
 
@@ -54,7 +54,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: "{{ steps.calc.result }}"
+      value: steps.calc.result
 
   - id: done
     tool: emit

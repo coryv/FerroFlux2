@@ -33,8 +33,9 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/reactions.list?user={{ get 'settings.user_id' }}&limit=10"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/reactions.list?user=" + settings.user_id + "&limit=10"
+      headers: platform.headers
     returns:
       status: status_code
       body: response_body
@@ -42,15 +43,15 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.fetch.status_code }}"
+      value: steps.fetch.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -59,9 +60,9 @@ routing:
       - tool: emit
         params:
           port: reaction
-          value: "{{ steps.fetch.response_body }}"
+          value: steps.fetch.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.fetch.response_body }}"
+          value: steps.fetch.response_body

@@ -29,18 +29,20 @@ execution:
     tool: http_client
     params:
       method: PUT
-      url: "{{ platform.base_url }}/me/drive/root:/{{ get 'inputs.path' }}:/content"
+      url: >
+        platform.base_url + "/me/drive/root:/" + inputs.path + ":/content"
       headers:
-        Authorization: "{{ platform.headers.Authorization }}"
-        Content-Type: "application/octet-stream"
+        Authorization: platform.headers.Authorization
+        Content-Type: >
+          "application/octet-stream"
       body_type: binary
-      body_var: "inputs.file"
+      body_var: inputs.file
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -49,7 +51,7 @@ routing:
       - tool: emit
         params:
           port: item
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     "200":
       - tool: emit
         params:
@@ -57,9 +59,9 @@ routing:
       - tool: emit
         params:
           port: item
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

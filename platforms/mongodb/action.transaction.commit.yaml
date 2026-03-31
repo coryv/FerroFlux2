@@ -22,9 +22,10 @@ execution:
     tool: mongo_query
     params:
       operation: commit_transaction
-      connection_string: "{{ get 'settings.connection_string' }}"
-      database: "{{ get 'settings.database' }}"
-      collection: "_" # Unused for this op
+      connection_string: settings.connection_string
+      database: settings.database
+      collection: >
+        "\"_\" # Unused for this op"
     returns:
       status: status
 

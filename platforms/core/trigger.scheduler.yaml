@@ -59,7 +59,7 @@ execution:
     tool: emit
     params:
       port: timestamp
-      value: "{{ event.timestamp }}"
+      value: event.timestamp
 
   - id: emit_exec
     tool: emit

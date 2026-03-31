@@ -35,19 +35,22 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/sendPoll"
+      url: >
+        platform.base_url + "/sendPoll"
       body:
-        chat_id: "{{ get 'inputs.chat_id' }}"
-        question: "{{ get 'inputs.question' }}"
-        options: "{{ get 'inputs.options' }}"
-        is_anonymous: "{{ get 'inputs.is_anonymous' 'true' }}"
-        type: "{{ get 'inputs.type' 'regular' }}"
+        chat_id: inputs.chat_id
+        question: inputs.question
+        options: inputs.options
+        is_anonymous: >
+          (has(inputs.is_anonymous) ? inputs.is_anonymous : 'true')
+        type: >
+          (has(inputs.type) ? inputs.type : 'regular')
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -57,4 +60,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

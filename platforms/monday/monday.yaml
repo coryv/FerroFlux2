@@ -11,7 +11,8 @@ config:
   base_url: "https://api.monday.com/v2"
   auth: oauth2
   headers:
-    Authorization: "Bearer {{ get 'auth.access_token' }}"
+    Authorization: >
+      "Bearer " + auth.access_token
     Content-Type: "application/json"
     API-Version: "2023-10"
 

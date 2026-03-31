@@ -29,8 +29,8 @@ execution:
   - id: agg
     tool: aggregate
     params:
-      item: "{{ inputs.item }}"
-      limit: "{{ settings.batch_size }}"
+      item: inputs.item
+      limit: settings.batch_size
     returns:
       batch: result_array
       ready: is_ready
@@ -38,13 +38,14 @@ execution:
   - id: check_ready
     tool: logic
     params:
-      data: "{{ steps.agg.is_ready }}"
+      data: steps.agg.is_ready
       rules:
-        - condition: "val == true"
+        - condition: >
+          "val == true"
           output: Exec
 
   - id: emit_batch
     tool: emit
     params:
       port: batch
-      value: "{{ steps.agg.result_array }}"
+      value: steps.agg.result_array

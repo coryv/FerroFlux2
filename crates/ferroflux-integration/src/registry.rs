@@ -174,7 +174,7 @@ execution:
   - id: call
     tool: http_client
     params:
-      url: "{{ platform.base_url }}/things"
+      url: "platform.base_url + '/things'"
       method: GET
     returns:
       status: status_code

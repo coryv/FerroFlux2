@@ -30,17 +30,19 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/pinChatMessage"
+      url: >
+        platform.base_url + "/pinChatMessage"
       body:
-        chat_id: "{{ get 'inputs.chat_id' }}"
-        message_id: "{{ get 'inputs.message_id' }}"
-        disable_notification: "{{ get 'inputs.disable_notification' 'false' }}"
+        chat_id: inputs.chat_id
+        message_id: inputs.message_id
+        disable_notification: >
+          (has(inputs.disable_notification) ? inputs.disable_notification : 'false')
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -50,4 +52,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

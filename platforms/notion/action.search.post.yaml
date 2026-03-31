@@ -32,14 +32,15 @@ execution:
     tool: paginate
     params:
       method: POST
-      url: "{{ platform.base_url }}/search"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/search"
+      headers: platform.headers
       strategy: cursor
-      cursor_param: "start_cursor"
+      cursor_param: start_cursor
       body:
-        query: "{{ get 'inputs.query' }}"
-        filter: "{{ get 'inputs.filter' }}"
-        sort: "{{ get 'inputs.sort' }}"
+        query: inputs.query
+        filter: inputs.filter
+        sort: inputs.sort
     returns:
       items: pages
       total_pages: page_count
@@ -48,13 +49,13 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "200"
+      value: 200
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -63,4 +64,4 @@ routing:
       - tool: emit
         params:
           port: results
-          value: "{{ steps.request.pages }}"
+          value: steps.request.pages

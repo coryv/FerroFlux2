@@ -31,8 +31,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}"
-      headers: "{{ platform.headers }}"
+      url: platform.base_url
+      headers: platform.headers
       body:
         query: |
           mutation ($boardId: ID!, $itemId: ID!, $columnId: String!, $value: JSON!) {
@@ -41,16 +41,16 @@ execution:
             }
           }
         variables:
-          boardId: "{{ get 'inputs.board_id' }}"
-          itemId: "{{ get 'inputs.item_id' }}"
-          columnId: "{{ get 'inputs.column_id' }}"
-          value: "{{ get 'inputs.value' }}"
+          boardId: inputs.board_id
+          itemId: inputs.item_id
+          columnId: inputs.column_id
+          value: inputs.value
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -60,4 +60,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

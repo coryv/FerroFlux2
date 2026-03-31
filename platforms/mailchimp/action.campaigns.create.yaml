@@ -35,22 +35,23 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/campaigns"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/campaigns"
+      headers: platform.headers
       body:
-        type: "{{ get 'inputs.type' }}"
+        type: inputs.type
         recipients:
-          list_id: "{{ get 'inputs.listId' }}"
+          list_id: inputs.listId
         settings:
-          subject_line: "{{ get 'inputs.subjectLine' }}"
-          reply_to: "{{ get 'inputs.replyTo' }}"
-          from_name: "{{ get 'inputs.fromName' }}"
+          subject_line: inputs.subjectLine
+          reply_to: inputs.replyTo
+          from_name: inputs.fromName
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -59,9 +60,9 @@ routing:
       - tool: emit
         params:
           port: campaign
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

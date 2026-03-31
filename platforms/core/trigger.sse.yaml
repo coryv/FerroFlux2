@@ -72,25 +72,25 @@ execution:
     tool: emit
     params:
       port: data
-      value: "{{ event.data }}"
+      value: event.data
 
   - id: emit_raw
     tool: emit
     params:
       port: raw
-      value: "{{ event.raw }}"
+      value: event.raw
 
   - id: emit_event_type
     tool: emit
     params:
       port: event_type
-      value: "{{ event.event_type }}"
+      value: event.event_type
 
   - id: emit_id
     tool: emit
     params:
       port: id
-      value: "{{ event.id }}"
+      value: event.id
 
   - id: emit_exec
     tool: emit

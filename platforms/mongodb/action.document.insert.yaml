@@ -30,10 +30,10 @@ execution:
     tool: mongo_query
     params:
       operation: insert
-      connection_string: "{{ get 'settings.connection_string' }}"
-      database: "{{ get 'settings.database' }}"
-      collection: "{{ get 'inputs.collection' }}"
-      document: "{{ get 'inputs.document' }}"
+      connection_string: settings.connection_string
+      database: settings.database
+      collection: inputs.collection
+      document: inputs.document
     returns:
       inserted_id: inserted_id
 
@@ -47,4 +47,4 @@ routing:
       - tool: emit
         params:
           port: inserted_id
-          value: "{{ steps.insert.inserted_id }}"
+          value: steps.insert.inserted_id

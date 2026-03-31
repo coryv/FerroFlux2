@@ -58,27 +58,29 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/messages"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/messages"
+      headers: platform.headers
       body:
-        model: "{{ get 'settings.model' }}"
-        messages: "{{ get 'inputs.messages' }}"
-        system: "{{ get 'inputs.system' }}"
-        tools: "{{ get 'inputs.tools' }}"
-        max_tokens: "{{ get 'settings.max_tokens' }}"
-        temperature: "{{ get 'settings.temperature' }}"
+        model: settings.model
+        messages: inputs.messages
+        system: inputs.system
+        tools: inputs.tools
+        max_tokens: settings.max_tokens
+        temperature: settings.temperature
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: json_query
         params:
-          json: "{{ steps.request.response_body }}"
-          path: "/content/0/text"
+          json: steps.request.response_body
+          path: >
+            "/content/0/text"
         returns:
           result: message_text
       - tool: emit
@@ -87,13 +89,13 @@ routing:
       - tool: emit
         params:
           port: message
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
       - tool: emit
         params:
           port: text
-          value: "{{ message_text }}"
+          value: message_text
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

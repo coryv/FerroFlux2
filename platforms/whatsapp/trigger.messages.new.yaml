@@ -29,13 +29,15 @@ execution:
   - id: extract_message
     tool: json_query
     params:
-      json: "{{ event.body }}"
-      path: "/entry/0/changes/0/value/messages/0"
+      json: event.body
+      path: >
+        "/entry/0/changes/0/value/messages/0"
     returns:
       result: message_data
 
 routing:
-  match: "{{ steps.extract_message.result != null }}"
+  match: >
+    steps.extract_message.result != null
   cases:
     "true":
       - tool: emit
@@ -44,5 +46,6 @@ routing:
       - tool: emit
         params:
           port: message
-          value: "{{ steps.extract_message.result }}"
-    "false": []
+          value: steps.extract_message.result
+    "false": >
+      "[]"

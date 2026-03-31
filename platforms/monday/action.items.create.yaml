@@ -31,8 +31,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}"
-      headers: "{{ platform.headers }}"
+      url: platform.base_url
+      headers: platform.headers
       body:
         query: |
           mutation ($boardId: ID!, $itemName: String!, $columnValues: JSON!) {
@@ -41,15 +41,16 @@ execution:
             }
           }
         variables:
-          boardId: "{{ get 'inputs.board_id' }}"
-          itemName: "{{ get 'inputs.item_name' }}"
-          columnValues: "{{ get 'inputs.column_values' '{}' }}"
+          boardId: inputs.board_id
+          itemName: inputs.item_name
+          columnValues: >
+            (has(inputs.column_values) ? inputs.column_values : '{}')
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -58,9 +59,9 @@ routing:
       - tool: emit
         params:
           port: item_id
-          value: "{{ steps.request.response_body.data.create_item.id }}"
+          value: steps.request.response_body.data.create_item.id
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

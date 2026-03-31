@@ -27,14 +27,17 @@ execution:
     tool: paginate
     params:
       method: GET
-      url: "{{ platform.base_url }}/query"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/query"
+      headers: platform.headers
       query:
-        q: "{{ get 'inputs.query' }}"
+        q: inputs.query
       strategy: cursor
-      cursor_path: "/nextRecordsUrl"
-      cursor_param: "nextRecordsUrl_full"
-      items_path: "/records"
+      cursor_path: >
+        "/nextRecordsUrl"
+      cursor_param: nextRecordsUrl_full
+      items_path: >
+        "/records"
     returns:
       items: all_items
 
@@ -48,4 +51,4 @@ routing:
       - tool: emit
         params:
           port: records
-          value: "{{ steps.request.all_items }}"
+          value: steps.request.all_items

@@ -27,15 +27,17 @@ execution:
     tool: paginate
     params:
       method: GET
-      url: "{{ platform.base_url }}/projects"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/projects"
+      headers: platform.headers
       query:
-        workspace: "{{ get 'inputs.workspaceGid' }}"
+        workspace: inputs.workspaceGid
       strategy: offset
       offset_param: offset
       limit_param: limit
       per_page: 50
-      items_path: "/data"
+      items_path: >
+        "/data"
     returns:
       items: all_items
 
@@ -49,4 +51,4 @@ routing:
       - tool: emit
         params:
           port: projects
-          value: "{{ steps.request.all_items }}"
+          value: steps.request.all_items

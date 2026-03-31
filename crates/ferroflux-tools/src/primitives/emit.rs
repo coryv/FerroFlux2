@@ -30,6 +30,6 @@ impl Tool for EmitTool {
             out_obj.insert(port.to_string(), value.clone());
         }
 
-        Ok(Value::Null)
+        Ok(serde_json::json!({ "port": port, "value": value }))
     }
 }

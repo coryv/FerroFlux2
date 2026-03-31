@@ -42,16 +42,17 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/chat"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/chat"
+      headers: platform.headers
       body:
-        model: "{{ get 'inputs.model' }}"
-        messages: "{{ get 'inputs.messages' }}"
-        tools: "{{ get 'inputs.tools' }}"
+        model: inputs.model
+        messages: inputs.messages
+        tools: inputs.tools
         stream: false
         options:
-          temperature: "{{ settings.temperature }}"
-          num_predict: "{{ settings.num_predict }}"
+          temperature: settings.temperature
+          num_predict: settings.num_predict
     returns:
       status: status_code
       body: response_body
@@ -59,15 +60,15 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -76,9 +77,9 @@ routing:
       - tool: emit
         params:
           port: response
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

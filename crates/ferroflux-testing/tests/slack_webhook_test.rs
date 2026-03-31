@@ -18,7 +18,7 @@ async fn test_slack_webhook_integration() -> anyhow::Result<()> {
     unsafe { std::env::set_var("FERROFLUX_ALLOW_INTERNAL_IPS", "true"); }
 
     // 2. Setup Harness
-    let mut harness = TestHarness::new().await?;
+    let mut harness = TestHarness::new().await;
     let mock_uri = harness.mock_server().uri();
     
     // 3. Mock Slack API

@@ -35,20 +35,21 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/lists"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/lists"
+      headers: platform.headers
       body:
-        name: "{{ get 'inputs.name' }}"
-        contact: "{{ get 'inputs.contact' }}"
-        permission_reminder: "{{ get 'inputs.permissionReminder' }}"
-        campaign_defaults: "{{ get 'inputs.campaignDefaults' }}"
-        email_type_option: "{{ get 'inputs.emailTypeOption' }}"
+        name: inputs.name
+        contact: inputs.contact
+        permission_reminder: inputs.permissionReminder
+        campaign_defaults: inputs.campaignDefaults
+        email_type_option: inputs.emailTypeOption
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -57,9 +58,9 @@ routing:
       - tool: emit
         params:
           port: audience
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

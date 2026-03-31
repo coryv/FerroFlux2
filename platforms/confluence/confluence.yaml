@@ -8,9 +8,11 @@ meta:
   version: "1.0.0"
 
 config:
-  base_url: "https://{{ get 'settings.domain' }}.atlassian.net/wiki/api/v2"
+  base_url: >
+    "https://" + settings.domain + ".atlassian.net/wiki/api/v2"
   headers:
-    Authorization: "Bearer {{ get 'settings.connection.access_token' }}"
+    Authorization: >
+      "Bearer " + settings.connection.access_token
     Content-Type: "application/json"
     Accept: "application/json"
 

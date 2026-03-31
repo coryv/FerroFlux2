@@ -27,8 +27,9 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/me/drive/{{ if get 'inputs.folder_id' }}items/{{ get 'inputs.folder_id' }}{{ else }}root{{ end }}/children"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/me/drive/" + (inputs.folder_id != '' ? "items/" + inputs.folder_id : root) + "/children"
+      headers: platform.headers
     returns:
       status: status_code
       body: response_body
@@ -36,9 +37,9 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
@@ -46,13 +47,14 @@ execution:
   - id: extract_entries
     tool: json_query
     params:
-      json: "{{ steps.request.response_body }}"
-      path: "/value"
+      json: steps.request.response_body
+      path: >
+        "/value"
     returns:
       result: entries_array
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -61,9 +63,9 @@ routing:
       - tool: emit
         params:
           port: entries
-          value: "{{ steps.extract_entries.entries_array }}"
+          value: steps.extract_entries.entries_array
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

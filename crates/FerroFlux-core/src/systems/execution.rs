@@ -1,13 +1,20 @@
 use crate::integrations::IntegrationRegistry;
 use crate::store::database::PersistentStore;
+use crate::systems::io::templating::{cel_to_json, json_to_cel};
 use ferroflux_iam::TenantId;
-use handlebars::Handlebars;
+use cel_interpreter::{Context, Program, Value as CelValue};
 use serde_json::Value;
+use std::sync::Arc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExecutionMode {
     Live,
     DryRun,
+}
+
+fn json_func(v: CelValue) -> Arc<String> {
+    let json_val = cel_to_json(v);
+    Arc::new(serde_json::to_string(&json_val).unwrap_or_else(|_| "null".to_string()))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -55,7 +62,6 @@ pub async fn execute_integration_action(
     if mode == ExecutionMode::DryRun {
         if let Some(samples_map) = samples {
             // Check for a "default" sample or "success_200"
-            // For now, prioritize "success_200", then "default", then the first available
             if let Some(sample) = samples_map.get("success_200") {
                 return Ok(serde_json::to_string(sample).unwrap_or_default());
             }
@@ -70,62 +76,52 @@ pub async fn execute_integration_action(
         return Err("DryRun: No samples available for this node".to_string());
     }
 
-    // 5. Prepare Execution (Handlebars)
-    let mut handlebars = Handlebars::new();
-    handlebars.register_escape_fn(handlebars::no_escape);
-
-    // Helper for JSON encoding
-    handlebars.register_helper(
-        "json",
-        Box::new(
-            |h: &handlebars::Helper,
-             _: &Handlebars,
-             _: &handlebars::Context,
-             _: &mut handlebars::RenderContext,
-             out: &mut dyn handlebars::Output|
-             -> handlebars::HelperResult {
-                let param = h.param(0).ok_or(handlebars::RenderErrorReason::Other(
-                    "Param 0 required".to_string(),
-                ))?;
-                out.write(&serde_json::to_string(param.value()).map_err(|e| {
-                    handlebars::RenderErrorReason::Other(format!("JSON encode error: {}", e))
-                })?)?;
-                Ok(())
-            },
-        ),
-    );
+    // 5. Prepare CEL Context
+    let mut context = Context::default();
+    
+    // Register custom functions
+    context.add_function("json", json_func);
 
     // Context = Connection Fields + Inputs
-    // We merge connection fields and inputs into a single object
-    let mut context_map = serde_json::Map::new();
-
-    // Add connection fields (e.g. api_key)
     if let Some(obj) = connection_fields.as_object() {
-        context_map.extend(obj.clone());
+        for (k, v) in obj {
+            let _ = context.add_variable(k, json_to_cel(v.clone()));
+        }
     }
 
-    // Add inputs (e.g. id, message)
-    if let Some(inp) = inputs
-        && let Some(obj) = inp.as_object()
-    {
-        context_map.extend(obj.clone());
+    if let Some(inp) = inputs && let Some(obj) = inp.as_object() {
+        for (k, v) in obj {
+            let _ = context.add_variable(k, json_to_cel(v.clone()));
+        }
     }
-
-    let context = Value::Object(context_map);
 
     // Body
     let body_str = if let Some(tpl) = &action_def.implementation.config.body_template {
-        handlebars
-            .render_template(tpl, &context)
-            .map_err(|e| e.to_string())?
+        let program = Program::compile(tpl).map_err(|e| format!("Body Template Error: {}", e))?;
+        let result = program.execute(&context).map_err(|e| format!("Body Execution Error: {}", e))?;
+        match result {
+            CelValue::String(s) => s.to_string(),
+            _ => {
+                let json_val = cel_to_json(result);
+                if json_val.is_string() { json_val.as_str().unwrap().to_string() } else { json_val.to_string() }
+            }
+        }
     } else {
         String::new()
     };
 
     // Path
-    let path_str = handlebars
-        .render_template(&action_def.implementation.config.path, &context)
-        .map_err(|e| e.to_string())?;
+    let path_str = {
+        let program = Program::compile(&action_def.implementation.config.path).map_err(|e| format!("Path Template Error: {}", e))?;
+        let result = program.execute(&context).map_err(|e| format!("Path Execution Error: {}", e))?;
+        match result {
+            CelValue::String(s) => s.to_string(),
+            _ => {
+                let json_val = cel_to_json(result);
+                if json_val.is_string() { json_val.as_str().unwrap().to_string() } else { json_val.to_string() }
+            }
+        }
+    };
 
     let url = format!("{}{}", def.base_url, path_str);
 
@@ -140,7 +136,14 @@ pub async fn execute_integration_action(
     let mut request_builder = client.request(method, &url);
 
     for (k, v) in &action_def.implementation.config.headers {
-        if let Ok(val) = handlebars.render_template(v, &context) {
+        if let Ok(program) = Program::compile(v) && let Ok(result) = program.execute(&context) {
+            let val = match result {
+                CelValue::String(s) => s.to_string(),
+                _ => {
+                    let json_val = cel_to_json(result);
+                    if json_val.is_string() { json_val.as_str().unwrap().to_string() } else { json_val.to_string() }
+                }
+            };
             request_builder = request_builder.header(k, val);
         }
     }
@@ -202,7 +205,7 @@ mod tests {
                 impl_type: "http".to_string(),
                 config: IntegrationConfig {
                     method: "GET".to_string(),
-                    path: "/test".to_string(),
+                    path: "'/test'".to_string(), // CEL literal
                     headers: HashMap::new(),
                     body_template: None,
                 },
@@ -288,7 +291,7 @@ mod tests {
                 impl_type: "http".to_string(),
                 config: IntegrationConfig {
                     method: "GET".to_string(),
-                    path: "/test".to_string(),
+                    path: "'/test'".to_string(),
                     headers: HashMap::new(),
                     body_template: None,
                 },

@@ -30,17 +30,19 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/task/{{ get 'inputs.task_id' }}/comment"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/task/" + inputs.task_id + "/comment"
+      headers: platform.headers
       body:
-        comment_text: "{{ get 'inputs.comment_text' }}"
-        notify_all: "{{ get 'inputs.notify_all' 'true' }}"
+        comment_text: inputs.comment_text
+        notify_all: >
+          (has(inputs.notify_all) ? inputs.notify_all : 'true')
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -50,4 +52,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

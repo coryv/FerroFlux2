@@ -7,7 +7,8 @@ meta:
   permissions: ["network:*.amazonaws.com"]
 
 config:
-  base_url: "https://{{ service }}.{{ region }}.amazonaws.com"
+  base_url: >
+    "https://" + service + "." + region + ".amazonaws.com"
   auth_type: "aws_sigv4"
   connection_schema:
     - name: "access_key"

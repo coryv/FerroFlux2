@@ -52,11 +52,12 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "https://{{ get 'settings.resource_name' }}.openai.azure.com/openai/deployments/{{ get 'settings.deployment' }}/embeddings?api-version={{ get 'settings.api_version' }}"
-      headers: "{{ platform.headers }}"
+      url: >
+        "https://" + settings.resource_name + ".openai.azure.com/openai/deployments/" + settings.deployment + "/embeddings?api-version=" + settings.api_version
+      headers: platform.headers
       body:
-        input: "{{ get 'inputs.input' }}"
-        dimensions: "{{ get 'settings.dimensions' }}"
+        input: inputs.input
+        dimensions: settings.dimensions
     returns:
       status: status_code
       body: response_body
@@ -64,21 +65,22 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: "{{ steps.request.response_body }}"
-          path: "/data/0/embedding"
+          json: steps.request.response_body
+          path: >
+            "/data/0/embedding"
         returns:
           result: embedding_result
       - tool: emit
@@ -87,13 +89,13 @@ routing:
       - tool: emit
         params:
           port: embedding
-          value: "{{ embedding_result }}"
+          value: embedding_result
       - tool: emit
         params:
           port: response
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

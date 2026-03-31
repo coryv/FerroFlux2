@@ -44,10 +44,10 @@ execution:
   - id: transform
     tool: core.utils.json
     params:
-      operation: "{{ settings.operation }}"
-      input: "{{ inputs.input }}"
-      expression: "{{ settings.expression }}"
-      other: "{{ settings.other }}"
+      operation: settings.operation
+      input: inputs.input
+      expression: settings.expression
+      other: settings.other
     returns:
       result: transformed
 
@@ -55,7 +55,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: "{{ steps.transform.result }}"
+      value: steps.transform.result
 
   - id: done
     tool: emit

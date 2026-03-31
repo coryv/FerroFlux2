@@ -42,9 +42,9 @@ execution:
   - id: crypto
     tool: core.utils.crypto
     params:
-      operation: "{{ settings.operation }}"
-      input: "{{ settings.input }}"
-      key: "{{ settings.key }}"
+      operation: settings.operation
+      input: settings.input
+      key: settings.key
     returns:
       result: crypto_res
 
@@ -52,7 +52,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: "{{ steps.crypto.result }}"
+      value: steps.crypto.result
 
   - id: done
     tool: emit

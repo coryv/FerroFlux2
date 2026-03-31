@@ -8,7 +8,8 @@ meta:
   version: "1.0.0"
 
 config:
-  base_url: "smtp://{{ get 'settings.host' }}"
+  base_url: >
+    "smtp://" + settings.host
   auth: none # Credentials handled directly by the smtp tool
 
 settings:

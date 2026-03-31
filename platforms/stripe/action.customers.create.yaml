@@ -30,12 +30,13 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/customers"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/customers"
+      headers: platform.headers
       body_type: form
       body:
-        email: "{{ get 'inputs.email' }}"
-        name: "{{ get 'inputs.name' }}"
+        email: inputs.email
+        name: inputs.name
     returns:
       status: status_code
       body: response_body
@@ -43,15 +44,15 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -60,9 +61,9 @@ routing:
       - tool: emit
         params:
           port: customer
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

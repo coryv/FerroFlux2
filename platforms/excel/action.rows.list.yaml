@@ -29,8 +29,9 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/me/drive/items/{{ get 'inputs.file_id' }}/workbook/worksheets/{{ get 'inputs.sheet_name' }}/usedRange"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/me/drive/items/" + inputs.file_id + "/workbook/worksheets/" + inputs.sheet_name + "/usedRange"
+      headers: platform.headers
     returns:
       status: status_code
       body: response_body
@@ -38,9 +39,9 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
@@ -48,13 +49,14 @@ execution:
   - id: extract_rows
     tool: json_query
     params:
-      json: "{{ steps.request.response_body }}"
-      path: "/values"
+      json: steps.request.response_body
+      path: >
+        "/values"
     returns:
       result: rows_array
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -63,9 +65,9 @@ routing:
       - tool: emit
         params:
           port: rows
-          value: "{{ steps.extract_rows.rows_array }}"
+          value: steps.extract_rows.rows_array
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

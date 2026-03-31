@@ -30,23 +30,24 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/lists/{{ get 'settings.listId' }}/members"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/lists/" + settings.listId + "/members"
+      headers: platform.headers
       query:
-        since_last_changed: "{{ get 'state.last_poll' }}"
-        sort_field: "last_changed"
-        sort_dir: "ASC"
+        since_last_changed: state.last_poll
+        sort_field: last_changed
+        sort_dir: ASC
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: foreach
         params:
-          items: "{{ get 'steps.request.response_body.members' }}"
+          items: steps.request.response_body.members
           action:
             - tool: emit
               params:
@@ -54,4 +55,4 @@ routing:
             - tool: emit
               params:
                 port: subscriber
-                value: "{{ item }}"
+                value: item

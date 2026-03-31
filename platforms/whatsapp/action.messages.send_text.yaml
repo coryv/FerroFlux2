@@ -30,14 +30,16 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/{{ settings.phone_number_id }}/messages"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/" + settings.phone_number_id + "/messages"
+      headers: platform.headers
       body:
-        messaging_product: "whatsapp"
-        recipient_type: "individual"
-        to: "{{ get 'inputs.to' }}"
-        type: "text"
-        text: { "body": "{{ get 'inputs.body' }}" }
+        messaging_product: whatsapp
+        recipient_type: individual
+        to: inputs.to
+        type: text
+        text: >
+          "{ \"body\": \"" + inputs.body + "\" }"
     returns:
       status: status_code
       body: response_body
@@ -45,9 +47,9 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
@@ -55,13 +57,14 @@ execution:
   - id: extract_id
     tool: json_query
     params:
-      json: "{{ steps.request.response_body }}"
-      path: "/messages/0/id"
+      json: steps.request.response_body
+      path: >
+        "/messages/0/id"
     returns:
       result: mid
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -70,9 +73,9 @@ routing:
       - tool: emit
         params:
           port: message_id
-          value: "{{ steps.extract_id.mid }}"
+          value: steps.extract_id.mid
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

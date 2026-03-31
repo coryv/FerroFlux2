@@ -44,7 +44,7 @@ async fn setup_world(mock_server_url: String) -> (World, Schedule) {
     ));
 
     world.insert_resource(GlobalHttpClient::default());
-    world.insert_resource(ferroflux_core::resources::templates::TemplateEngine::default());
+    world.insert_resource(ferroflux_core::resources::templates::CelEngine::default());
     world.insert_resource(ferroflux_core::resources::PipelineResultChannel::default());
     world.insert_resource(ferroflux_core::resources::NodeRouter::default());
     let (tx, _) = tokio::sync::broadcast::channel(100);
@@ -62,7 +62,7 @@ async fn setup_world(mock_server_url: String) -> (World, Schedule) {
     headers.insert("Content-Type".to_string(), "application/json".to_string());
     headers.insert(
         "Authorization".to_string(),
-        "Bearer {{api_key}}".to_string(),
+        "'Bearer ' + api_key".to_string(),
     ); // Mock auth
 
     actions.insert(
@@ -76,12 +76,12 @@ async fn setup_world(mock_server_url: String) -> (World, Schedule) {
             implementation: ActionImplementation {
                 impl_type: "http".to_string(),
                 config: IntegrationConfig {
-                    method: "POST".to_string(),
-                    path: "/chat/completions".to_string(),
+                    method: "'POST'".to_string(),
+                    path: "'/chat/completions'".to_string(),
                     headers,
                     // Simple body template matching OpenAI style
                     body_template: Some(
-                        r#"{"model": "{{model}}", "messages": {{{json messages}}}}"#.to_string(),
+                        r#"{ "model": model, "messages": messages }"#.to_string(),
                     ),
                 },
             },
@@ -189,8 +189,8 @@ fn test_agent_templating_and_generation() {
             AgentConfig {
                 provider: "mock_provider".to_string(),
                 model: "gpt-mock".to_string(),
-                system_instruction: "Hello {{context}}".to_string(),
-                user_prompt_template: "{{user_prompt}}".to_string(),
+                system_instruction: "'Hello ' + context".to_string(),
+                user_prompt_template: "user_prompt".to_string(),
                 generation_settings: GenerationSettings::default(),
                 output_mode: OutputMode::Text,
                 history_config: ferroflux_core::components::agent::HistoryConfig {
@@ -283,8 +283,8 @@ fn test_agent_tools_payload() {
             AgentConfig {
                 provider: "mock_provider".to_string(),
                 model: "gpt-mock".to_string(),
-                system_instruction: "Sys".to_string(),
-                user_prompt_template: "User".to_string(),
+                system_instruction: "'Sys'".to_string(),
+                user_prompt_template: "'User'".to_string(),
                 generation_settings: GenerationSettings::default(),
                 output_mode: OutputMode::Text,
                 history_config: ferroflux_core::components::agent::HistoryConfig { enabled: false, window_size: 0, session_id_key: "".to_string() },
@@ -356,8 +356,8 @@ fn test_agent_retry_logic() {
             AgentConfig {
                 provider: "mock_provider".to_string(),
                 model: "gpt-mock".to_string(),
-                system_instruction: "Sys".to_string(),
-                user_prompt_template: "User".to_string(),
+                system_instruction: "'Sys'".to_string(),
+                user_prompt_template: "'User'".to_string(),
                 generation_settings: GenerationSettings::default(),
                 output_mode: OutputMode::Text,
                 history_config: ferroflux_core::components::agent::HistoryConfig {
@@ -439,8 +439,8 @@ fn test_agent_structured_output() {
             AgentConfig {
                 provider: "mock_provider".to_string(),
                 model: "gpt-mock".to_string(),
-                system_instruction: "Sys".to_string(),
-                user_prompt_template: "User".to_string(),
+                system_instruction: "'Sys'".to_string(),
+                user_prompt_template: "'User'".to_string(),
                 generation_settings: GenerationSettings::default(),
                 output_mode: OutputMode::JsonStrict, // STRICT MODE
                 history_config: ferroflux_core::components::agent::HistoryConfig { enabled: false, window_size: 0, session_id_key: "".to_string() },
@@ -515,8 +515,8 @@ fn test_tracing_propagation() {
             AgentConfig {
                 provider: "mock_provider".to_string(),
                 model: "gpt-mock".to_string(),
-                system_instruction: "Sys".to_string(),
-                user_prompt_template: "User".to_string(),
+                system_instruction: "'Sys'".to_string(),
+                user_prompt_template: "'User'".to_string(),
                 generation_settings: GenerationSettings::default(),
                 output_mode: OutputMode::Text,
                 history_config: ferroflux_core::components::agent::HistoryConfig {

@@ -27,16 +27,17 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/user/search"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/user/search"
+      headers: platform.headers
       query:
-        query: "{{ get 'inputs.email' }}"
+        query: inputs.email
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -45,9 +46,10 @@ routing:
       - tool: emit
         params:
           port: user
-          value: "{{ steps.request.response_body | json_query(\"[0]\") }}"
+          value: >
+            json_query(steps.request.response_body, "[0]")
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

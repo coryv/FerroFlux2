@@ -51,17 +51,18 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/emails"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/emails"
+      headers: platform.headers
       body:
-        from: "{{ get 'settings.from' }}"
-        to: "{{ get 'inputs.to' }}"
-        subject: "{{ get 'inputs.subject' }}"
-        html: "{{ get 'inputs.html' }}"
-        text: "{{ get 'inputs.text' }}"
-        reply_to: "{{ get 'settings.reply_to' }}"
-        cc: "{{ get 'settings.cc' }}"
-        bcc: "{{ get 'settings.bcc' }}"
+        from: settings.from
+        to: inputs.to
+        subject: inputs.subject
+        html: inputs.html
+        text: inputs.text
+        reply_to: settings.reply_to
+        cc: settings.cc
+        bcc: settings.bcc
     returns:
       status: status_code
       body: response_body
@@ -69,17 +70,17 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
-        - condition: "201"
+        - condition: 201
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -88,9 +89,9 @@ routing:
       - tool: emit
         params:
           port: email
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

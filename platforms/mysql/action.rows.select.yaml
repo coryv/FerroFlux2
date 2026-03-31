@@ -29,13 +29,14 @@ execution:
   - id: sql
     tool: sql_query
     params:
-      connection_string: "{{ settings.connection_string }}"
-      query: "SELECT * FROM {{ get 'inputs.table' }} LIMIT {{ get 'inputs.limit' '100' }}"
+      connection_string: settings.connection_string
+      query: >
+        "SELECT * FROM " + inputs.table + " LIMIT " + (has(inputs.limit) ? inputs.limit : '100')
     returns:
       rows: rows
 
 routing:
-  match: "{{ steps.sql.status }}"
+  match: steps.sql.status
   cases:
     default:
       - tool: emit
@@ -44,4 +45,4 @@ routing:
       - tool: emit
         params:
           port: rows
-          value: "{{ steps.sql.rows }}"
+          value: steps.sql.rows

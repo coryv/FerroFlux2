@@ -31,26 +31,28 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/sendPhoto"
+      url: >
+        platform.base_url + "/sendPhoto"
       body_type: multipart
       parts:
         - name: chat_id
           type: string
-          value: "{{ get 'inputs.chat_id' }}"
+          value: inputs.chat_id
         - name: photo
           type: blob
           field: photo
-          # Note: 'field' maps to the key in the multipart form,
+          # Note: >
+            "'field' maps to the key in the multipart form,"
           # and 'photo' is the name of the input port of type blob.
         - name: caption
           type: string
-          value: "{{ get 'inputs.caption' }}"
+          value: inputs.caption
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -59,9 +61,9 @@ routing:
       - tool: emit
         params:
           port: message
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

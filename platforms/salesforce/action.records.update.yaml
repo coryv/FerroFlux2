@@ -29,15 +29,16 @@ execution:
     tool: http_client
     params:
       method: PATCH
-      url: "{{ platform.base_url }}/sobjects/{{ get 'inputs.sObjectName' }}/{{ get 'inputs.recordId' }}"
-      headers: "{{ platform.headers }}"
-      body: "{{ get 'inputs.fields' }}"
+      url: >
+        platform.base_url + "/sobjects/" + inputs.sObjectName + "/" + inputs.recordId
+      headers: platform.headers
+      body: inputs.fields
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -47,4 +48,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

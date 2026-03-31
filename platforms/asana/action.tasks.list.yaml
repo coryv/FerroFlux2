@@ -27,16 +27,19 @@ execution:
     tool: paginate
     params:
       method: GET
-      url: "{{ platform.base_url }}/tasks"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/tasks"
+      headers: platform.headers
       query:
-        project: "{{ get 'inputs.projectGid' }}"
-        opt_fields: "name,notes,completed"
+        project: inputs.projectGid
+        opt_fields: >
+          "name,notes,completed"
       strategy: offset
       offset_param: offset
       limit_param: limit
       per_page: 50
-      items_path: "/data"
+      items_path: >
+        "/data"
     returns:
       items: all_items
 
@@ -50,4 +53,4 @@ routing:
       - tool: emit
         params:
           port: tasks
-          value: "{{ steps.request.all_items }}"
+          value: steps.request.all_items

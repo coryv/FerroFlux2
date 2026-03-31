@@ -29,17 +29,18 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/banChatMember"
+      url: >
+        platform.base_url + "/banChatMember"
       body:
-        chat_id: "{{ get 'inputs.chat_id' }}"
-        user_id: "{{ get 'inputs.user_id' }}"
-        until_date: "{{ get 'inputs.until_date' }}"
+        chat_id: inputs.chat_id
+        user_id: inputs.user_id
+        until_date: inputs.until_date
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -49,4 +50,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

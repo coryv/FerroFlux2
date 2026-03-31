@@ -22,4 +22,4 @@ execution:
     tool: emit
     params:
       port: _subflow_return
-      value: "{{ inputs.result }}"
+      value: inputs.result

@@ -37,23 +37,25 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/price_rules.json"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/price_rules.json"
+      headers: platform.headers
       body:
         price_rule:
-          title: "{{ get 'inputs.title' }}"
-          target_type: "{{ get 'inputs.targetType' }}"
-          target_selection: "{{ get 'inputs.targetSelection' }}"
-          allocation_method: "{{ get 'inputs.allocationMethod' }}"
-          value_type: "{{ get 'inputs.valueType' }}"
-          value: "{{ get 'inputs.value' }}"
-          starts_at: "2024-01-01T00:00:00Z"
+          title: inputs.title
+          target_type: inputs.targetType
+          target_selection: inputs.targetSelection
+          allocation_method: inputs.allocationMethod
+          value_type: inputs.valueType
+          value: inputs.value
+          starts_at: >
+            "2024-01-01T00:00:00Z"
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -62,9 +64,9 @@ routing:
       - tool: emit
         params:
           port: priceRule
-          value: "{{ steps.request.response_body.price_rule }}"
+          value: steps.request.response_body.price_rule
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

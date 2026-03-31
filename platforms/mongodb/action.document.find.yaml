@@ -30,10 +30,10 @@ execution:
     tool: mongo_query
     params:
       operation: find
-      connection_string: "{{ get 'settings.connection_string' }}"
-      database: "{{ get 'settings.database' }}"
-      collection: "{{ get 'inputs.collection' }}"
-      filter: "{{ get 'inputs.filter' }}"
+      connection_string: settings.connection_string
+      database: settings.database
+      collection: inputs.collection
+      filter: inputs.filter
     returns:
       documents: documents
 
@@ -47,4 +47,4 @@ routing:
       - tool: emit
         params:
           port: documents
-          value: "{{ steps.find.documents }}"
+          value: steps.find.documents

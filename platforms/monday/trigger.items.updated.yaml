@@ -26,8 +26,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}"
-      headers: "{{ platform.headers }}"
+      url: platform.base_url
+      headers: platform.headers
       body:
         query: |
           query ($boardId: ID!) {
@@ -40,7 +40,7 @@ execution:
             }
           }
         variables:
-          boardId: "{{ get 'settings.board_id' }}"
+          boardId: settings.board_id
     returns:
       status: status_code
       body: response_body
@@ -48,19 +48,20 @@ execution:
   - id: extract_items
     tool: json_query
     params:
-      json: "{{ steps.request.response_body }}"
-      path: "/data/boards/0/items"
+      json: steps.request.response_body
+      path: >
+        "/data/boards/0/items"
     returns:
       items: items_array
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: "{{ steps.extract_items.items_array }}"
-          cursor_key: "updated_at"
+          items: steps.extract_items.items_array
+          cursor_key: updated_at
           port: item
       - tool: emit
         params:
@@ -69,4 +70,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

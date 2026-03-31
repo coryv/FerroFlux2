@@ -27,15 +27,16 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/getChat"
+      url: >
+        platform.base_url + "/getChat"
       body:
-        chat_id: "{{ get 'inputs.chat_id' }}"
+        chat_id: inputs.chat_id
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -44,9 +45,9 @@ routing:
       - tool: emit
         params:
           port: chat
-          value: "{{ steps.request.response_body.result }}"
+          value: steps.request.response_body.result
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

@@ -33,18 +33,19 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/folder/{{ get 'inputs.folder_id' }}/list"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/folder/" + inputs.folder_id + "/list"
+      headers: platform.headers
       body:
-        name: "{{ get 'inputs.name' }}"
-        content: "{{ get 'inputs.content' }}"
-        status: "{{ get 'inputs.status' }}"
+        name: inputs.name
+        content: inputs.content
+        status: inputs.status
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -53,9 +54,9 @@ routing:
       - tool: emit
         params:
           port: list
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

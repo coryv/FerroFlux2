@@ -27,10 +27,11 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/users/@me/channels"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/users/@me/channels"
+      headers: platform.headers
       body:
-        recipient_id: "{{ get 'inputs.recipient_id' }}"
+        recipient_id: inputs.recipient_id
     returns:
       status: status_code
       body: response_body
@@ -39,16 +40,17 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/channels/{{ steps.create_dm.response_body.id }}/messages"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/channels/" + steps.create_dm.response_body.id + "/messages"
+      headers: platform.headers
       body:
-        content: "{{ get 'inputs.content' }}"
+        content: inputs.content
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.send_message.status_code }}"
+  match: steps.send_message.status_code
   cases:
     "200":
       - tool: emit
@@ -58,4 +60,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.send_message.response_body }}"
+          value: steps.send_message.response_body

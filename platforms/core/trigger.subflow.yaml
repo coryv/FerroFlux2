@@ -21,7 +21,7 @@ execution:
     tool: emit
     params:
       port: payload
-      value: "{{ event.payload }}"
+      value: event.payload
 
   - id: emit_exec
     tool: emit

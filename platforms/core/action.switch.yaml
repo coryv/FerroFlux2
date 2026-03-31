@@ -35,13 +35,13 @@ execution:
   - id: check
     tool: logic
     params:
-      data: "{{ inputs.data }}"
-      rules: "{{ settings.rules }}"
+      data: inputs.data
+      rules: settings.rules
     returns:
       match: target_port
 
   - id: route_data
     tool: emit
     params:
-      port: "{{ steps.check.match }}"
-      value: "{{ inputs.data }}"
+      port: steps.check.match
+      value: inputs.data

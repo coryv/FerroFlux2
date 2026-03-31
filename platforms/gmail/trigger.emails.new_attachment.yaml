@@ -26,11 +26,14 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/messages"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/messages"
+      headers: platform.headers
       query:
-        q: "has:attachment"
-        maxResults: "{{ get 'settings.limit' '10' }}"
+        q: >
+          "has:attachment"
+        maxResults: >
+          (has(settings.limit) ? settings.limit : '10')
     returns:
       status: status_code
       body: response_body
@@ -38,19 +41,20 @@ execution:
   - id: extract_messages
     tool: json_query
     params:
-      json: "{{ steps.request.response_body }}"
-      path: "/messages"
+      json: steps.request.response_body
+      path: >
+        "/messages"
     returns:
       messages: messages_array
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: "{{ steps.extract_messages.messages_array }}"
-          cursor_key: "id"
+          items: steps.extract_messages.messages_array
+          cursor_key: id
           port: message
       - tool: emit
         params:
@@ -59,4 +63,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

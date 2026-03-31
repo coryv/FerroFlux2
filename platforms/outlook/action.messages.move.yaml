@@ -28,16 +28,18 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/me/messages/{{ get 'inputs.message_id' }}/move"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/me/messages/" + inputs.message_id + "/move"
+      headers: platform.headers
       body:
-        destinationId: "{{ get 'inputs.destination_id' 'deleteditems' }}"
+        destinationId: >
+          (has(inputs.destination_id) ? inputs.destination_id : 'deleteditems')
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -47,4 +49,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

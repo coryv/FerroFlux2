@@ -33,22 +33,24 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/sendAudio"
+      url: >
+        platform.base_url + "/sendAudio"
       headers:
-        Content-Type: "multipart/form-data"
+        Content-Type: >
+          "multipart/form-data"
       body:
-        chat_id: "{{ get 'inputs.chat_id' }}"
+        chat_id: inputs.chat_id
         audio:
-          ticket: "{{ get 'inputs.audio' }}"
-        caption: "{{ get 'inputs.caption' }}"
-        title: "{{ get 'inputs.title' }}"
-        performer: "{{ get 'inputs.performer' }}"
+          ticket: inputs.audio
+        caption: inputs.caption
+        title: inputs.title
+        performer: inputs.performer
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -58,4 +60,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

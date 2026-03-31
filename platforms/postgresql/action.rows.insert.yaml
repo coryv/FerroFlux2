@@ -49,11 +49,12 @@ execution:
     tool: sql_query
     params:
       operation: execute
-      connection_string: "{{ get 'settings.connection_string' }}"
-      query: "{{ steps.build_query.query }}"
-      bind: "{{ steps.build_query.bind' }}"
+      connection_string: settings.connection_string
+      query: steps.build_query.query
+      bind: steps.build_query.bind
     returns:
-      result: rows[0]
+      result: >
+        "rows[0]"
 
 routing:
   match: success
@@ -65,4 +66,4 @@ routing:
       - tool: emit
         params:
           port: result
-          value: "{{ steps.execute.result }}"
+          value: steps.execute.result

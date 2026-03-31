@@ -31,9 +31,9 @@ execution:
     tool: sql_query
     params:
       operation: execute
-      connection_string: "{{ get 'settings.connection_string' }}"
-      query: "{{ get 'inputs.query' }}"
-      bind: "{{ get 'inputs.bind' }}"
+      connection_string: settings.connection_string
+      query: inputs.query
+      bind: inputs.bind
     returns:
       rows: rows
 
@@ -47,4 +47,4 @@ routing:
       - tool: emit
         params:
           port: rows
-          value: "{{ steps.execute.rows }}"
+          value: steps.execute.rows

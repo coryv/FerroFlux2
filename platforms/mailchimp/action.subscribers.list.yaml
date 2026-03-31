@@ -27,13 +27,15 @@ execution:
     tool: paginate
     params:
       method: GET
-      url: "{{ platform.base_url }}/lists/{{ get 'inputs.listId' }}/members"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/lists/" + inputs.listId + "/members"
+      headers: platform.headers
       strategy: offset
       offset_param: offset
       limit_param: count
       per_page: 50
-      items_path: "/members"
+      items_path: >
+        "/members"
     returns:
       items: all_items
 
@@ -47,4 +49,4 @@ routing:
       - tool: emit
         params:
           port: members
-          value: "{{ steps.request.all_items }}"
+          value: steps.request.all_items

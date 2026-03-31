@@ -27,8 +27,8 @@ execution:
   - id: set
     tool: set_var
     params:
-      name: "{{ settings.variable_name }}"
-      value: "{{ inputs.value }}"
+      name: settings.variable_name
+      value: inputs.value
 
   - id: done
     tool: emit

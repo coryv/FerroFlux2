@@ -25,7 +25,7 @@ execution:
   - id: parse
     tool: core.utils.xml
     params:
-      xml: "{{ inputs.xml }}"
+      xml: inputs.xml
     returns:
       result: xml_result
 
@@ -33,7 +33,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: "{{ steps.parse.result }}"
+      value: steps.parse.result
 
   - id: done
     tool: emit

@@ -27,10 +27,11 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/conversations.open"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/conversations.open"
+      headers: platform.headers
       body:
-        users: "{{ get 'inputs.user_id' }}"
+        users: inputs.user_id
     returns:
       status: status_code
       body: body
@@ -39,17 +40,18 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/chat.postMessage"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/chat.postMessage"
+      headers: platform.headers
       body:
-        channel: "{{ steps.open_dm.body.channel.id }}"
-        text: "{{ get 'inputs.text' }}"
+        channel: steps.open_dm.body.channel.id
+        text: inputs.text
     returns:
       status: status_code
       body: body
 
 routing:
-  match: "{{ steps.send_message.status_code }}"
+  match: steps.send_message.status_code
   cases:
     "200":
       - tool: emit
@@ -59,4 +61,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.send_message.body }}"
+          value: steps.send_message.body

@@ -43,9 +43,9 @@ execution:
                   body;
         base64_url_encode(msg)
       input:
-        to: "{{ get 'inputs.to' }}"
-        subject: "{{ get 'inputs.subject' }}"
-        body: "{{ get 'inputs.body' }}"
+        to: inputs.to
+        subject: inputs.subject
+        body: inputs.body
     returns:
       result: raw_body
 
@@ -53,10 +53,11 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/users/me/messages/send"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/users/me/messages/send"
+      headers: platform.headers
       body:
-        raw: "{{ steps.prepare_rfc822.raw_body }}"
+        raw: steps.prepare_rfc822.raw_body
     returns:
       status: status_code
       body: response_body
@@ -64,15 +65,15 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.send.status_code }}"
+      value: steps.send.status_code
       cases:
-        - condition: "200"
+        - condition: 200
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -81,9 +82,9 @@ routing:
       - tool: emit
         params:
           port: message_id
-          value: "{{ steps.send.response_body.id }}"
+          value: steps.send.response_body.id
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.send.response_body }}"
+          value: steps.send.response_body

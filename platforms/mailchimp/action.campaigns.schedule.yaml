@@ -27,10 +27,11 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/campaigns/{{ get 'inputs.campaignId' }}/actions/schedule"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/campaigns/" + inputs.campaignId + "/actions/schedule"
+      headers: platform.headers
       body:
-        schedule_time: "{{ get 'inputs.scheduleTime' }}"
+        schedule_time: inputs.scheduleTime
         timewarp: false
         batch_delivery: null
     returns:
@@ -38,7 +39,7 @@ execution:
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -48,4 +49,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

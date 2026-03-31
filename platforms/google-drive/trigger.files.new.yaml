@@ -28,25 +28,30 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/files"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/files"
+      headers: platform.headers
       query:
-        orderBy: "createdTime desc"
-        q: "createdTime > '{{ get 'event.cursor' }}' and trashed = false"
+        orderBy: >
+          "createdTime desc"
+        q: >
+          "createdTime > '" + event.cursor + "' and trashed = false"
         pageSize: 10
-        fields: "files(id,name,mimeType,createdTime)"
+        fields: >
+          "files(id,name,mimeType,createdTime)"
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: json_query
         params:
-          json: "{{ steps.request.response_body }}"
-          path: "/files"
+          json: steps.request.response_body
+          path: >
+            "/files"
         returns:
           result: files_array
       - tool: emit
@@ -55,4 +60,4 @@ routing:
       - tool: emit
         params:
           port: file
-          value: "{{ files_array }}"
+          value: files_array

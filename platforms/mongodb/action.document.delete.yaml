@@ -30,10 +30,10 @@ execution:
     tool: mongo_query
     params:
       operation: delete
-      connection_string: "{{ get 'settings.connection_string' }}"
-      database: "{{ get 'settings.database' }}"
-      collection: "{{ get 'inputs.collection' }}"
-      filter: "{{ get 'inputs.filter' }}"
+      connection_string: settings.connection_string
+      database: settings.database
+      collection: inputs.collection
+      filter: inputs.filter
     returns:
       deleted_count: deleted_count
 
@@ -47,4 +47,4 @@ routing:
       - tool: emit
         params:
           port: deleted_count
-          value: "{{ steps.delete.deleted_count }}"
+          value: steps.delete.deleted_count

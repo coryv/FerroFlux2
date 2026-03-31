@@ -4,7 +4,7 @@ use crate::components::{
     AgentConfig, ExpectedOutput, Inbox, NodeConfig, Outbox, PinnedOutput, WorkDone,
 };
 use crate::integrations::registry::IntegrationRegistry;
-use crate::resources::templates::TemplateEngine;
+use crate::resources::templates::CelEngine;
 use crate::secrets::{DatabaseSecretStore, SecretStore};
 use crate::store::BlobStore;
 use bevy_ecs::prelude::*;
@@ -16,7 +16,7 @@ use uuid::Uuid;
 pub struct AgentContext<'w> {
     store: Res<'w, BlobStore>,
     registry: Res<'w, IntegrationRegistry>,
-    template_engine: Res<'w, TemplateEngine>,
+    cel_engine: Res<'w, CelEngine>,
     secret_store: Res<'w, DatabaseSecretStore>,
     work_done: ResMut<'w, WorkDone>,
     event_bus: Res<'w, crate::api::events::SystemEventBus>,
@@ -104,15 +104,9 @@ pub fn agent_prep(
             let tenant = node_config.tenant_id.clone();
 
             // Resolve Secret (Async -> Sync block)
-            // Resolve Secret (Async -> Sync block)
             let rt = ctx.runtime.clone();
             let ss = ctx.secret_store.clone();
             let t_clone = tenant.clone();
-            // We need to clone capture data that is moved into async block if convenient,
-            // but references should work with block_on if we dont use async move?
-            // However, config is reference from query.
-            // integration_def is reference from registry.
-            // Let's use async block.
 
             let api_key = tokio::task::block_in_place(move || {
                 rt.0.block_on(async {
@@ -145,7 +139,7 @@ pub fn agent_prep(
                 .and_then(|v| v.as_str())
                 .unwrap_or(&config.user_prompt_template);
             let user_prompt = ctx
-                .template_engine
+                .cel_engine
                 .render(user_prompt_template, &input_json)
                 .unwrap_or_else(|_| user_prompt_template.to_string());
 
@@ -163,7 +157,7 @@ pub fn agent_prep(
 
                 // Render system instruction
                 let mut system_instruction = ctx
-                    .template_engine
+                    .cel_engine
                     .render(&config.system_instruction, &input_json)
                     .unwrap_or_else(|_| config.system_instruction.clone());
 
@@ -206,7 +200,7 @@ pub fn agent_prep(
 
             // Message Transform
             let history_string = if let Some(transform_template) = &action_def.message_transform {
-                ctx.template_engine
+                ctx.cel_engine
                     .render(transform_template, &context_json)
                     .unwrap_or_else(|_| json!(messages).to_string())
             } else {
@@ -218,7 +212,7 @@ pub fn agent_prep(
 
             // Render Body, Path, Headers
             let body = if let Some(tpl) = &action_def.implementation.config.body_template {
-                ctx.template_engine
+                ctx.cel_engine
                     .render(tpl, &context_json)
                     .unwrap_or_else(|_| "{}".to_string())
             } else {
@@ -226,14 +220,14 @@ pub fn agent_prep(
             };
 
             let path = ctx
-                .template_engine
+                .cel_engine
                 .render(&action_def.implementation.config.path, &context_json)
                 .unwrap_or_else(|_| action_def.implementation.config.path.clone());
             let url = format!("{}{}", integration_def.base_url, path);
 
             let mut headers = std::collections::HashMap::new();
             for (k, v) in &action_def.implementation.config.headers {
-                if let Ok(val) = ctx.template_engine.render(v, &context_json) {
+                if let Ok(val) = ctx.cel_engine.render(v, &context_json) {
                     headers.insert(k.clone(), val);
                 }
             }
@@ -276,7 +270,7 @@ mod tests {
         ActionImplementation, AuthType, IntegrationAction, IntegrationConfig, IntegrationDef,
         IntegrationRegistry,
     };
-    use crate::resources::templates::TemplateEngine;
+    use crate::resources::templates::CelEngine;
     use crate::secrets::DatabaseSecretStore;
     use crate::store::BlobStore;
     use crate::store::database::PersistentStore;
@@ -316,9 +310,9 @@ mod tests {
                 impl_type: "http".to_string(),
                 config: IntegrationConfig {
                     method: "POST".to_string(),
-                    path: "/chat".to_string(),
+                    path: "'/chat'".to_string(),
                     headers: HashMap::new(),
-                    body_template: Some("{\"prompt\": \"{{{user_prompt}}}\"}".to_string()),
+                    body_template: Some("'{\"prompt\": \"' + user_prompt + '\"}'".to_string()),
                 },
             },
         };
@@ -344,7 +338,7 @@ mod tests {
             .insert("test_provider".to_string(), def);
         world.insert_resource(registry);
 
-        world.insert_resource(TemplateEngine::default());
+        world.insert_resource(CelEngine::default());
         world.insert_resource(WorkDone::default());
 
         // Mock Secret Store
@@ -368,7 +362,7 @@ mod tests {
                 AgentConfig {
                     provider: "test_provider".to_string(),
                     model: "test-model".to_string(),
-                    user_prompt_template: "{{user_prompt}}".to_string(),
+                    user_prompt_template: "user_prompt".to_string(),
                     ..Default::default()
                 },
                 NodeConfig {

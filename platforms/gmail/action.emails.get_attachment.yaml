@@ -29,14 +29,15 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/messages/{{ get 'inputs.message_id' }}/attachments/{{ get 'inputs.attachment_id' }}"
-      headers: "{{ platform.headers }}"
+      url: >
+        platform.base_url + "/messages/" + inputs.message_id + "/attachments/" + inputs.attachment_id
+      headers: platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -45,9 +46,10 @@ routing:
       - tool: emit
         params:
           port: blob_id
-          value: "{{ steps.request.response_body.data }}" # This is base64 encoded by Gmail
+          value: >
+            "\"" + steps.request.response_body.data + "\" # This is base64 encoded by Gmail"
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

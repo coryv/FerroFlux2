@@ -30,13 +30,17 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "https://{{ get 'settings.project_ref' }}.supabase.co/rest/v1/{{ get 'inputs.table' }}"
+      url: >
+        "https://" + settings.project_ref + ".supabase.co/rest/v1/" + inputs.table
       headers:
-        Content-Type: "application/json"
-        apikey: "{{ get 'settings.api_key' }}"
-        Authorization: "Bearer {{ get 'settings.api_key' }}"
-        Prefer: "return=representation"
-      body: "{{ get 'inputs.data' }}"
+        Content-Type: >
+          "application/json"
+        apikey: settings.api_key
+        Authorization: >
+          "Bearer " + settings.api_key
+        Prefer: >
+          "return=representation"
+      body: inputs.data
     returns:
       status: status_code
       body: response_body
@@ -44,15 +48,15 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
-        - condition: "201"
+        - condition: 201
           output: success
         - condition: default
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -61,9 +65,9 @@ routing:
       - tool: emit
         params:
           port: result
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

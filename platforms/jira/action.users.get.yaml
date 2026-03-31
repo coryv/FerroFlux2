@@ -27,17 +27,18 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/user"
+      url: >
+        platform.base_url + "/user"
 
-      headers: "{{ platform.headers }}"
+      headers: platform.headers
       query:
-        accountId: "{{ get 'inputs.accountId' }}"
+        accountId: inputs.accountId
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -46,9 +47,9 @@ routing:
       - tool: emit
         params:
           port: user
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body

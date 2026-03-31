@@ -12,7 +12,8 @@ config:
   base_url: "https://api.segment.io/v1"
   headers:
     Content-Type: "application/json"
-    Authorization: "Basic {{ base64 (concat settings.write_key ':') }}"
+    Authorization: >
+      "Basic " + base64 (concat settings.write_key ':')
 
 settings:
   - name: write_key

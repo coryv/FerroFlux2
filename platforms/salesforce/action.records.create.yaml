@@ -29,15 +29,16 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: "{{ platform.base_url }}/sobjects/{{ get 'inputs.sObjectName' }}/"
-      headers: "{{ platform.headers }}"
-      body: "{{ get 'inputs.fields' }}"
+      url: >
+        platform.base_url + "/sobjects/" + inputs.sObjectName + "/"
+      headers: platform.headers
+      body: inputs.fields
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -46,9 +47,9 @@ routing:
       - tool: emit
         params:
           port: record
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
