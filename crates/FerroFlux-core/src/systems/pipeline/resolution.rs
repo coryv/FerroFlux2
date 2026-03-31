@@ -1,47 +1,107 @@
 use crate::components::execution_state::DataRef;
 use crate::store::BlobStore;
-use crate::systems::io::templating::{cel_to_json, json_to_cel};
+use crate::systems::io::templating::{cel_json_func, cel_to_json, json_to_cel};
 use anyhow::Result;
 use cel_interpreter::{Context, Program};
 use serde_json::Value;
+use std::collections::HashMap;
+use tracing::warn;
 
-pub fn resolve_recursive(
-    value: &Value,
-    ctx: &Value,
-    _reg: &Option<()>, // Placeholder for now, previously Handlebars
-    _store: Option<&BlobStore>,
-) -> Result<Value> {
+/// Lazy pipeline execution context.
+///
+/// Instead of materializing all DataRefs upfront, `LazyCtx` holds the raw
+/// DataRef map and a within-node cache. Blobs are only claimed from the store
+/// when a CEL expression actually references them.
+pub struct LazyCtx<'a> {
+    /// The full context map for this node execution -- values may still be Blobs.
+    pub data: &'a HashMap<String, DataRef>,
+    /// BlobStore for claiming Blob variants on demand.
+    pub store: Option<&'a BlobStore>,
+    /// Within-node materialization cache. Once a key is claimed it lives here
+    /// for the duration of this node's execution, avoiding repeat store calls.
+    pub cache: &'a mut HashMap<String, Value>,
+}
+
+impl<'a> LazyCtx<'a> {
+    /// Return the materialized `Value` for `key`, claiming from the BlobStore
+    /// if needed. Returns `None` if the key is not in the context or the Blob
+    /// cannot be claimed/deserialized.
+    pub fn materialize_key(&mut self, key: &str) -> Option<Value> {
+        if let Some(cached) = self.cache.get(key) {
+            return Some(cached.clone());
+        }
+        let val = match self.data.get(key)? {
+            DataRef::Inline(v) => v.clone(),
+            DataRef::Blob(ticket) => {
+                let store = self.store?;
+                let bytes = store.claim(ticket).ok()?;
+                serde_json::from_slice(&bytes).ok()?
+            }
+        };
+        self.cache.insert(key.to_string(), val.clone());
+        Some(val)
+    }
+
+    /// Invalidate a cache entry. Call this after mutating a key in `data` so
+    /// subsequent expressions see the updated value.
+    pub fn invalidate(&mut self, key: &str) {
+        self.cache.remove(key);
+    }
+}
+
+/// Recursively resolve CEL expressions within a JSON value against a lazy context.
+///
+/// - String values are compiled as CEL. If compilation succeeds, only the
+///   top-level variables the expression actually references are materialized.
+/// - Plain literals (e.g. "GET", "application/json") fail CEL compilation and
+///   are returned as-is with no store interaction.
+/// - Arrays and objects are resolved recursively.
+pub fn resolve_recursive(value: &Value, ctx: &mut LazyCtx<'_>) -> Result<Value> {
     match value {
         Value::String(s) => {
             let trimmed = s.trim();
-            
-            // Try to evaluate as CEL
-            let mut context = Context::default();
-            
-            // Inject variables from context
-            if let Some(obj) = ctx.as_object() {
-                for (k, v) in obj {
-                    let _ = context.add_variable(k, json_to_cel(v.clone()));
-                }
 
+            let program = match Program::compile(trimmed) {
+                Ok(p) => p,
+                Err(_) => {
+                    // Not valid CEL -- treat as a literal string.
+                    return Ok(Value::String(s.clone()));
+                }
+            };
+
+            // Determine exactly which top-level variables this expression uses,
+            // then materialize only those -- leaving all other DataRefs untouched.
+            let refs: Vec<String> = program
+                .references()
+                .variables()
+                .into_iter()
+                .map(|s| s.to_string())
+                .collect();
+
+            let mut partial = serde_json::Map::new();
+            for key in &refs {
+                if let Some(val) = ctx.materialize_key(key) {
+                    partial.insert(key.clone(), val);
+                }
             }
 
-            match Program::compile(trimmed) {
-                Ok(program) => {
-                    match program.execute(&context) {
-                        Ok(cel_val) => {
-                            let json_val = cel_to_json(cel_val);
-                            Ok(json_val)
-                        }
-                        Err(_) => {
-                            // If it fails to execute (e.g. undefined variable), 
-                            // maybe it was intended as a literal string.
-                            Ok(Value::String(s.clone()))
-                        }
-                    }
+            let partial_val = Value::Object(partial);
+            let mut cel_ctx = Context::default();
+            cel_ctx.add_function("json", cel_json_func);
+            if let Some(obj) = partial_val.as_object() {
+                for (k, v) in obj {
+                    let _ = cel_ctx.add_variable(k, json_to_cel(v.clone()));
                 }
-                Err(_) => {
-                    // Not valid CEL, treat as literal
+            }
+
+            match program.execute(&cel_ctx) {
+                Ok(cel_val) => Ok(cel_to_json(cel_val)),
+                Err(e) => {
+                    warn!(
+                        expression = trimmed,
+                        error = %e,
+                        "CEL execution failed during resolution, using literal string"
+                    );
                     Ok(Value::String(s.clone()))
                 }
             }
@@ -50,57 +110,21 @@ pub fn resolve_recursive(
         Value::Array(arr) => {
             let mut new_arr = Vec::new();
             for v in arr {
-                new_arr.push(resolve_recursive(v, ctx, &None, _store)?);
+                new_arr.push(resolve_recursive(v, ctx)?);
             }
             Ok(Value::Array(new_arr))
         }
+
         Value::Object(obj) => {
             let mut new_obj = serde_json::Map::new();
             for (k, v) in obj {
-                new_obj.insert(k.clone(), resolve_recursive(v, ctx, &None, _store)?);
+                new_obj.insert(k.clone(), resolve_recursive(v, ctx)?);
             }
             Ok(Value::Object(new_obj))
         }
+
         _ => Ok(value.clone()),
     }
-}
-
-pub fn lookup_path(
-    ctx: &Value,
-    path: &str,
-    _store: Option<&BlobStore>, 
-) -> Option<Value> {
-    let parts: Vec<&str> = path.split('.').collect();
-    if parts.is_empty() {
-        return None;
-    }
-
-    let mut current = ctx;
-
-    for part in &parts {
-        match current {
-            Value::Object(map) => {
-                if let Some(next) = map.get(*part) {
-                    current = next;
-                } else {
-                    return None;
-                }
-            }
-            Value::Array(arr) => {
-                if let Ok(idx) = part.parse::<usize>() {
-                    if let Some(next) = arr.get(idx) {
-                        current = next;
-                    } else {
-                        return None;
-                    }
-                } else {
-                    return None;
-                }
-            }
-            _ => return None,
-        }
-    }
-    Some(current.clone())
 }
 
 pub fn resolve_dataref_to_value(data: &DataRef, store: Option<&BlobStore>) -> Option<Value> {

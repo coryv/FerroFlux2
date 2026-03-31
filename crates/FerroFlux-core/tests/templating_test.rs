@@ -18,12 +18,16 @@ impl Tool for EchoTool {
     fn id(&self) -> &'static str {
         "echo"
     }
-    // We expect params to be already resolved by the engine
     fn run(&self, _ctx: &mut ToolContext, params: Value) -> anyhow::Result<Value> {
         Ok(params)
     }
 }
 
+/// Verifies that a `DataRef::Blob` stored in the workflow context is correctly
+/// resolved via a CEL expression, and that plain literals are left untouched.
+///
+/// This tests the lazy materialization path: the Blob is only claimed when an
+/// expression that references `large_data` is evaluated.
 #[test]
 fn test_dataref_blob_templating() {
     let mut world = World::new();
@@ -31,7 +35,6 @@ fn test_dataref_blob_templating() {
     world.insert_resource(store);
     world.insert_resource(SystemEventBus(broadcast::channel(10).0));
 
-    // Add Runtime and SecretStore to satisfy pipeline requirements
     let runtime = tokio::runtime::Runtime::new().unwrap();
     world.insert_resource(ferroflux_core::resources::TokioRuntime(
         runtime.handle().clone(),
@@ -52,7 +55,10 @@ fn test_dataref_blob_templating() {
 
     let mut def_registry = DefinitionRegistry::default();
 
-    // Define a node that uses the "echo" tool to echo back a templated string
+    // Node with three params:
+    //   "data"    -- CEL identifier referencing the blob → resolves to the JSON object
+    //   "as_json" -- CEL json() call → resolves to a JSON string of the object
+    //   "literal" -- plain string, not valid CEL → returned as-is
     let def = NodeDefinition {
         meta: NodeMeta {
             id: "templater".to_string(),
@@ -75,43 +81,32 @@ fn test_dataref_blob_templating() {
         execution: vec![PipelineStep {
             id: "step1".to_string(),
             tool: "echo".to_string(),
-            // We test two params:
-            // 1. "raw": Direct access {{ large_data }} -> Should result in Blob ticket struct
-            // 2. "resolved": Helper access {{ get "large_data" }} -> Should result in actual content
             params: json!({
-                "raw": "{{ large_data }}",
-                "resolved": "{{ get \"large_data\" }}"
+                "data":    "large_data",
+                "as_json": "json(large_data)",
+                "literal": "GET",
             }),
             returns: HashMap::from([
-                ("raw".to_string(), "res_raw".to_string()),
-                ("resolved".to_string(), "res_resolved".to_string()),
+                ("data".to_string(),    "res_data".to_string()),
+                ("as_json".to_string(), "res_as_json".to_string()),
+                ("literal".to_string(), "res_literal".to_string()),
             ]),
         }],
-        output_transform: Some(HashMap::from([
-            ("final_raw".to_string(), "steps.step1.raw".to_string()),
-            (
-                "final_resolved".to_string(),
-                "steps.step1.resolved".to_string(),
-            ),
-        ])),
+        output_transform: None,
         context: None,
         routing: None,
     };
-    def_registry
-        .definitions
-        .insert("templater".to_string(), def);
+    def_registry.definitions.insert("templater".to_string(), def);
     world.insert_resource(def_registry);
 
-    // Setup State with Large Blob
-    let mut initial_state = ActiveWorkflowState::new();
-    // Create a large object that we force into BlobStore (manually for test)
+    // Store large_data as a Blob in the initial workflow state.
     let large_data = json!({"foo": "bar", "long_string": "a".repeat(100)});
     let store_res = world.resource::<BlobStore>();
     let ticket = store_res
         .check_in(&serde_json::to_vec(&large_data).unwrap())
         .unwrap();
 
-    // Manually insert as Blob to bypass threshold check logic for this specific test setup
+    let mut initial_state = ActiveWorkflowState::new();
     initial_state.context.insert(
         "large_data".to_string(),
         ferroflux_core::components::execution_state::DataRef::Blob(ticket),
@@ -120,7 +115,6 @@ fn test_dataref_blob_templating() {
     let state_bytes = serde_json::to_vec(&initial_state).unwrap();
     let state_ticket = store_res.check_in(&state_bytes).unwrap();
 
-    // Spawn Node
     let mut inbox = Inbox::default();
     inbox.queue.push_back((None, state_ticket));
 
@@ -134,12 +128,11 @@ fn test_dataref_blob_templating() {
         Outbox::default(),
     ));
 
-    // Run System
     let mut schedule = Schedule::default();
     schedule.add_systems(pipeline_execution_system);
     schedule.run(&mut world);
 
-    // Verify
+    // Read final workflow state from the outbox.
     let mut query = world.query::<&mut Outbox>();
     let outbox = query.single(&world);
     let (_port, out_ticket) = outbox.queue.front().unwrap();
@@ -148,28 +141,20 @@ fn test_dataref_blob_templating() {
     let out_data = store_res.claim(out_ticket).unwrap();
     let final_state: ActiveWorkflowState = serde_json::from_slice(&out_data).unwrap();
 
-    // Verification 1: "raw" ({{ large_data }}) should RESOLVE to CONTENT because of resolve_recursive optimization
-    let raw_val = final_state.get("final_raw").unwrap().as_inline().unwrap();
+    // Verification 1: CEL identifier `large_data` resolves to the actual object.
+    let data_val = final_state.get("res_data").unwrap().as_inline().unwrap();
+    let data_obj = data_val.as_object().expect("res_data should be an object");
+    assert_eq!(data_obj["foo"], "bar");
+    assert_eq!(data_obj["long_string"], "a".repeat(100));
 
-    // It should be an OBJECT matching the original data (Auto-resolved)
-    let raw_obj = raw_val
-        .as_object()
-        .expect("Raw (Optimized) result should be the resolved Object");
-    assert_eq!(raw_obj["foo"], "bar");
-    assert_eq!(raw_obj["long_string"], "a".repeat(100));
+    // Verification 2: `json(large_data)` resolves to a JSON string of the object.
+    let json_val = final_state.get("res_as_json").unwrap().as_inline().unwrap();
+    let json_str = json_val.as_str().expect("res_as_json should be a string");
+    let parsed: Value = serde_json::from_str(json_str).expect("res_as_json should be valid JSON");
+    assert_eq!(parsed["foo"], "bar");
+    assert_eq!(parsed["long_string"], "a".repeat(100));
 
-    // Verification 2: "resolved" should contain the actual content
-    let resolved_val = final_state
-        .get("final_resolved")
-        .unwrap()
-        .as_inline()
-        .unwrap();
-    let resolved_str = resolved_val
-        .as_str()
-        .expect("Resolved result should be string");
-
-    // Note: The `get` helper outputs the JSON string representation if it's an object
-    let resolved_obj: Value = serde_json::from_str(resolved_str).expect("Should be valid JSON");
-    assert_eq!(resolved_obj["foo"], "bar");
-    assert_eq!(resolved_obj["long_string"], "a".repeat(100));
+    // Verification 3: Plain literal "GET" is returned unchanged.
+    let literal_val = final_state.get("res_literal").unwrap().as_inline().unwrap();
+    assert_eq!(literal_val.as_str().unwrap(), "GET");
 }

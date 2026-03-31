@@ -366,9 +366,23 @@ fn check_cel_syntax(
     match value {
         serde_json::Value::String(s) => {
             let trimmed = s.trim();
-            // Only validate if it looks like an expression to avoid false positives on simple literals
-            if (trimmed.contains('.') || trimmed.contains('+') || trimmed.contains('(') || trimmed.contains('[') || trimmed.contains("==")) 
-                && let Err(e) = Program::compile(trimmed) 
+            // Only validate if it looks like an expression to avoid false positives on simple literals.
+            // Check for common CEL operators and syntax.
+            let looks_like_expr = trimmed.contains('.')
+                || trimmed.contains('+')
+                || trimmed.contains('-')
+                || trimmed.contains('(')
+                || trimmed.contains('[')
+                || trimmed.contains('!')
+                || trimmed.contains('?')
+                || trimmed.contains('>')
+                || trimmed.contains('<')
+                || trimmed.contains("==")
+                || trimmed.contains("!=")
+                || trimmed.contains("&&")
+                || trimmed.contains("||");
+            if looks_like_expr
+                && let Err(e) = Program::compile(trimmed)
             {
                 result.diagnostics.push(ValidationDiagnostic::error(
                     "malformed-cel",

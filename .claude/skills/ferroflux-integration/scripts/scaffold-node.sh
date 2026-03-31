@@ -123,11 +123,11 @@ execution:
     tool: http_client
     params:
       method: GET            # TODO: GET | POST | PUT | DELETE | PATCH
-      url: "{{ platform.base_url }}/TODO"
-      headers: "{{ platform.headers }}"
+      url: platform.base_url + "/TODO"
+      headers: platform.headers
       # body:                # Uncomment for POST/PUT/PATCH
-      #   field: "{{ get 'inputs.field_name' }}"
-      #   setting: "{{ get 'settings.example_setting' }}"
+      #   field: inputs.field_name
+      #   setting: settings.example_setting
     returns:
       status: status_code
       body: response_body
@@ -135,7 +135,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: "{{ steps.request.status_code }}"
+      value: steps.request.status_code
       cases:
         - condition: "200"   # TODO: add all success codes (201, 202, 204, etc.)
           output: success
@@ -143,7 +143,7 @@ execution:
           output: error
 
 routing:
-  match: "{{ steps.check_status.branch }}"
+  match: steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -152,12 +152,12 @@ routing:
       - tool: emit
         params:
           port: result
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
 YAML
 
 elif [[ "$NODE_TYPE" == "trigger" ]]; then
@@ -191,10 +191,10 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: "{{ platform.base_url }}/TODO"
-      headers: "{{ platform.headers }}"
+      url: platform.base_url + "/TODO"
+      headers: platform.headers
       query:
-        since: "{{ get 'event.cursor' }}"   # Stateful cursor for incremental polling
+        since: event.cursor   # Stateful cursor for incremental polling
         limit: 100
         # TODO: add any filter/scope query params (channel_id, resource_id, etc.)
     returns:
@@ -202,7 +202,7 @@ execution:
       body: response_body
 
 routing:
-  match: "{{ steps.request.status_code }}"
+  match: steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -211,7 +211,7 @@ routing:
       - tool: emit
         params:
           port: result
-          value: "{{ steps.request.response_body }}"
+          value: steps.request.response_body
 YAML
 fi
 
@@ -220,7 +220,7 @@ fi
 echo "✓ Created: $OUT_FILE"
 echo ""
 echo "TODOs to fill in:"
-echo "  1. Replace the URL placeholder: {{ platform.base_url }}/TODO"
+echo "  1. Replace the URL placeholder: platform.base_url + \"/TODO\""
 if [[ "$NODE_TYPE" == "action" ]]; then
   echo "  2. Add inputs to interface.inputs (remove the # from example lines)"
   echo "  3. Add any settings (static config set once in UI)"

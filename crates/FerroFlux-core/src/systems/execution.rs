@@ -1,20 +1,14 @@
 use crate::integrations::IntegrationRegistry;
 use crate::store::database::PersistentStore;
-use crate::systems::io::templating::{cel_to_json, json_to_cel};
+use crate::systems::io::templating::{cel_json_func, cel_value_to_string, json_to_cel};
 use ferroflux_iam::TenantId;
-use cel_interpreter::{Context, Program, Value as CelValue};
+use cel_interpreter::{Context, Program};
 use serde_json::Value;
-use std::sync::Arc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExecutionMode {
     Live,
     DryRun,
-}
-
-fn json_func(v: CelValue) -> Arc<String> {
-    let json_val = cel_to_json(v);
-    Arc::new(serde_json::to_string(&json_val).unwrap_or_else(|_| "null".to_string()))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -77,51 +71,40 @@ pub async fn execute_integration_action(
     }
 
     // 5. Prepare CEL Context
-    let mut context = Context::default();
-    
-    // Register custom functions
-    context.add_function("json", json_func);
-
-    // Context = Connection Fields + Inputs
+    // Namespace inputs separately so user-supplied values cannot shadow connection credentials.
+    let mut cel_data = serde_json::Map::new();
     if let Some(obj) = connection_fields.as_object() {
         for (k, v) in obj {
-            let _ = context.add_variable(k, json_to_cel(v.clone()));
+            cel_data.insert(k.clone(), v.clone());
         }
     }
+    if let Some(inp) = inputs {
+        cel_data.insert("inputs".to_string(), inp);
+    }
+    let cel_json = Value::Object(cel_data);
 
-    if let Some(inp) = inputs && let Some(obj) = inp.as_object() {
-        for (k, v) in obj {
-            let _ = context.add_variable(k, json_to_cel(v.clone()));
+    let eval = |tpl: &str, label: &str| -> Result<String, String> {
+        let program = Program::compile(tpl).map_err(|e| format!("{label} compile error: {e}"))?;
+        let mut ctx = Context::default();
+        ctx.add_function("json", cel_json_func);
+        if let Some(obj) = cel_json.as_object() {
+            for (k, v) in obj {
+                let _ = ctx.add_variable(k, json_to_cel(v.clone()));
+            }
         }
-    }
+        let result = program.execute(&ctx).map_err(|e| format!("{label} execution error: {e}"))?;
+        Ok(cel_value_to_string(result))
+    };
 
     // Body
     let body_str = if let Some(tpl) = &action_def.implementation.config.body_template {
-        let program = Program::compile(tpl).map_err(|e| format!("Body Template Error: {}", e))?;
-        let result = program.execute(&context).map_err(|e| format!("Body Execution Error: {}", e))?;
-        match result {
-            CelValue::String(s) => s.to_string(),
-            _ => {
-                let json_val = cel_to_json(result);
-                if json_val.is_string() { json_val.as_str().unwrap().to_string() } else { json_val.to_string() }
-            }
-        }
+        eval(tpl, "Body template")?
     } else {
         String::new()
     };
 
     // Path
-    let path_str = {
-        let program = Program::compile(&action_def.implementation.config.path).map_err(|e| format!("Path Template Error: {}", e))?;
-        let result = program.execute(&context).map_err(|e| format!("Path Execution Error: {}", e))?;
-        match result {
-            CelValue::String(s) => s.to_string(),
-            _ => {
-                let json_val = cel_to_json(result);
-                if json_val.is_string() { json_val.as_str().unwrap().to_string() } else { json_val.to_string() }
-            }
-        }
-    };
+    let path_str = eval(&action_def.implementation.config.path, "Path template")?;
 
     let url = format!("{}{}", def.base_url, path_str);
 
@@ -130,22 +113,18 @@ pub async fn execute_integration_action(
     let method = match action_def.implementation.config.method.as_str() {
         "GET" => reqwest::Method::GET,
         "POST" => reqwest::Method::POST,
-        _ => reqwest::Method::GET,
+        "PUT" => reqwest::Method::PUT,
+        "PATCH" => reqwest::Method::PATCH,
+        "DELETE" => reqwest::Method::DELETE,
+        "HEAD" => reqwest::Method::HEAD,
+        other => return Err(format!("Unsupported HTTP method: {other}")),
     };
 
     let mut request_builder = client.request(method, &url);
 
     for (k, v) in &action_def.implementation.config.headers {
-        if let Ok(program) = Program::compile(v) && let Ok(result) = program.execute(&context) {
-            let val = match result {
-                CelValue::String(s) => s.to_string(),
-                _ => {
-                    let json_val = cel_to_json(result);
-                    if json_val.is_string() { json_val.as_str().unwrap().to_string() } else { json_val.to_string() }
-                }
-            };
-            request_builder = request_builder.header(k, val);
-        }
+        let val = eval(v, &format!("Header '{k}'"))?;
+        request_builder = request_builder.header(k, val);
     }
 
     if !body_str.is_empty() {

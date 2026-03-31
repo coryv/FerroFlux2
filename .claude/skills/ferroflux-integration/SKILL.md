@@ -24,7 +24,7 @@ Helper scripts live in `.claude/skills/ferroflux-integration/scripts/`. **Always
 | ---------------------- | --------------------------------------------------------------------------------------------------- |
 | `scaffold-platform.sh` | Creating a new platform — generates a structurally-valid `<id>.yaml` skeleton                       |
 | `scaffold-node.sh`     | Creating each node — generates a structurally-valid action or trigger YAML skeleton                 |
-| `pre-lint.sh`          | After editing any YAML — catches `{{ settings.x }}`/`{{ inputs.x }}` bugs                           |
+| `pre-lint.sh`          | After editing any YAML — catches leftover Handlebars `{{ }}` syntax and other common bugs            |
 | `inventory.sh`         | Before expanding an existing platform — shows what nodes already exist                              |
 
 ### Security Tools
@@ -104,6 +104,55 @@ cargo run -p ferroflux-integration --bin ferroflux-sign -- -f platforms/<id>/act
 
 ---
 
+## CEL Expressions
+
+FerroFlux uses [CEL (Common Expression Language)](https://cel.dev) for all variable references in YAML. There is no Handlebars/`{{ }}` syntax.
+
+### Variable Access
+```yaml
+url: platform.base_url + "/v1/users"   # string concat
+headers: platform.headers              # pass object directly
+body:
+  path: inputs.path                    # runtime input
+  mode: settings.mode                  # node setting
+  result: steps.request.response_body  # previous step output
+```
+
+### CEL Operators
+```yaml
+# Ternary
+url: platform.base_url + (settings.version == "v2" ? "/v2" : "/v1") + "/endpoint"
+
+# String concat
+header_val: '"Bearer " + platform.token'
+
+# Comparison and logic
+value: 'inputs.count > 0 && settings.enabled'
+```
+
+### `json()` Function
+Serialize a value to a JSON string (useful in header values):
+```yaml
+headers:
+  X-API-Arg: 'json({"path": inputs.path, "mode": settings.mode})'
+```
+
+### Plain Literals
+Strings that are not valid CEL pass through as-is:
+```yaml
+method: POST            # literal — no quotes needed
+Content-Type: application/octet-stream
+```
+
+### Accessing Platform Config
+The platform object exposes exactly the keys defined in your platform YAML `config:` block, plus a special `headers` key built from `auth`:
+```yaml
+url: platform.base_url + "/endpoint"
+headers: platform.headers              # pre-built auth headers
+```
+
+---
+
 ## Inputs vs Settings — When to Use Each
 
 | Use `inputs`                                                        | Use `settings`                                 |
@@ -120,7 +169,7 @@ cargo run -p ferroflux-integration --bin ferroflux-sign -- -f platforms/<id>/act
 - [ ] Every **action** node has `Exec` as first input (type: flow)
 - [ ] Every action node has both `Success` and `Error` outputs (type: flow)
 - [ ] Every `http_client` step has a `returns:` block with `status` and `body`
-- [ ] Node URLs use `{{ platform.base_url }}` where possible
-- [ ] Settings are accessed as `{{ get 'settings.field_name' }}`
+- [ ] Node URLs use `platform.base_url + "/path"` where possible
+- [ ] Settings accessed as `settings.field_name`, inputs as `inputs.field_name`
 - [ ] `cargo run --bin ferroflux-validate` passes with 0 errors
 - [ ] All files have been signed using `ferroflux-sign` (if a key is available)
