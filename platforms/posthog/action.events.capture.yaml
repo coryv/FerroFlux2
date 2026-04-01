@@ -4,8 +4,24 @@ meta:
   category: Analytics
   type: Action
   platform: posthog
-  description: "Capture an event for a specific user."
+  description: "Captures a single event for a user in PostHog."
   version: "1.0.0"
+  discovery:
+    purpose: "Track user interactions, system events, or business milestones in PostHog."
+    usage_context: "Use this to log specific actions (e.g. 'Button Click', 'Signup') and associate them with properties like 'plan', 'source', or 'version'."
+    agent_hints:
+      - "Requires a 'distinct_id' to identify the user."
+      - "The 'event' name should be descriptive and consistent."
+    waml_examples:
+      - title: "Track New Signup"
+        waml: |
+          - step: log_signup
+            call: posthog.action.events.capture
+            with:
+               distinct_id: "user_123"
+               event: "user_signup"
+               properties:
+                  plan: "enterprise"
   permissions:
     - "network:app.posthog.com"
 

@@ -7,6 +7,19 @@ meta:
   platform: jira
   description: "Gets comments for an issue."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve the content and author of a specific comment on a Jira issue."
+    usage_context: "Use to fetch user feedback for sentiment analysis, archive discussions, or trigger logic based on comment content."
+    agent_hints:
+      - "Requires issueIdOrKey and commentId."
+    waml_examples:
+      - title: "Read Comment"
+        waml: |
+          - step: fetch
+            call: jira.action.comments.get
+            with:
+               issueIdOrKey: "PROJ-123"
+               commentId: "10501"
 
 interface:
   inputs:

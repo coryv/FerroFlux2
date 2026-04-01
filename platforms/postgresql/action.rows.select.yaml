@@ -4,8 +4,23 @@ meta:
   category: Database
   type: Action
   platform: postgresql
-  description: "Retrieve rows from a PostgreSQL table."
+  description: "Executes a SELECT query against a PostgreSQL database."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve rows from a database table using SQL."
+    usage_context: "Use this to fetch records for processing, such as getting a list of pending orders or looking up a user's details. Supports parameterized queries for security."
+    agent_hints:
+      - "The 'query' must be valid PostgreSQL SQL."
+      - "Always use double quotes for case-sensitive identifiers (e.g., SELECT * FROM \"Users\")."
+      - "The 'params' array matches the '$1', '$2' placeholders in your query in order."
+    waml_examples:
+      - title: "Fetch Active Users"
+        waml: |
+          - step: get_users
+            call: postgresql.action.rows.select
+            with:
+               query: "SELECT id, email FROM \"users\" WHERE \"status\" = $1"
+               params: ["active"]
 
 interface:
   inputs:

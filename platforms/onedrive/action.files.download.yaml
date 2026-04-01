@@ -5,8 +5,21 @@ meta:
   category: Files
   type: Action
   platform: onedrive
-  description: "Download a file from OneDrive as a blob."
+  description: "Downloads a file from Microsoft OneDrive and stores it in the BlobStore."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve a file from OneDrive for processing in the workflow."
+    usage_context: "Use this to fetch images, spreadsheets (Excel), or PDFs for further processing steps like OCR or email attachments."
+    agent_hints:
+      - "Requires the explicit 'path' to the file (e.g. '/Archive/report_2023.xlsx')."
+      - "Returns a 'blob_id' which can be sent to other platforms."
+    waml_examples:
+      - title: "Download Excel Template"
+        waml: |
+          - step: fetch_template
+            call: onedrive.action.files.download
+            with:
+               path: "/Templates/Budget.xlsx"
 
 interface:
   inputs:

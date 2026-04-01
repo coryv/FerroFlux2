@@ -5,8 +5,21 @@ meta:
   category: Emails
   type: Trigger
   platform: gmail
-  description: "Polls for new emails that contain attachments."
+  description: "Triggers when a new email containing one or more attachments is received."
   version: "1.0.0"
+  discovery:
+    purpose: "Monitor an inbox for any new message that includes a file attachment."
+    usage_context: "Use this for automated document pipelines, such as saving incoming PDFs to a cloud drive or scanning email attachments for malware. This is a shorthand for a 'matching_search' trigger with 'has:attachment'."
+    agent_hints:
+      - "The 'message' output contains the message ID and thread ID. Use 'gmail.emails.get' to retrieve the list of actual attachments and their IDs."
+    waml_examples:
+      - title: "Monitor All New Attachments"
+        waml: |
+          trigger:
+            id: attachment_listener
+            call: gmail.trigger.emails.new_attachment
+            with:
+               limit: 10
 
 interface:
   inputs: []

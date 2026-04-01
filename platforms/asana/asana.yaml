@@ -6,6 +6,12 @@ meta:
   category: Productivity
   description: "Connects to the Asana API."
   version: "1.0.0"
+  discovery:
+    purpose: "Work management and task tracking platform."
+    usage_context: "Use Asana for orchestrating team workflows, tracking individual tasks, and managing complex project timelines. Ideal for structured collaboration."
+    agent_hints:
+      - "Identifies resources using GIDs (Global IDs, e.g. '1201...')."
+      - "Note that and task can belong to multiple projects simultaneously."
 
 config:
   base_url: "https://app.asana.com/api/1.0"

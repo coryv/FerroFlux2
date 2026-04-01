@@ -6,6 +6,19 @@ meta:
   platform: core
   description: "Advanced JSON path extraction, deep merge, and flattening."
   version: "1.0.0"
+  discovery:
+    purpose: "Parse, manipulate, and validate JSON data structures."
+    usage_context: "Use to extract fields from JSON strings, merge objects, or convert strings to objects."
+    agent_hints:
+      - "Fundamental for working with API response bodies."
+    waml_examples:
+      - title: "Parse String"
+        waml: |
+          - step: parse
+            call: core.utils.json
+            with:
+               action: parse
+               data: "${inputs.raw_string}"
 
 interface:
   inputs:

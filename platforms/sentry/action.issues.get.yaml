@@ -4,8 +4,21 @@ meta:
   category: Errors
   type: Action
   platform: sentry
-  description: "Get detailed information for a specific issue."
+  description: "Retrieves detailed information about a specific Sentry issue."
   version: "1.0.0"
+  discovery:
+    purpose: "Fetch the properties, frequency, and first/last seen data of a specific error issue."
+    usage_context: "Use this to check the severity of an error, read its stack trace, or identify which releases are affected."
+    agent_hints:
+      - "Requires the 'issue_id' (numeric string)."
+      - "Returns metadata like 'culprit', 'culprit_id', and 'status'."
+    waml_examples:
+      - title: "Get Error Details"
+        waml: |
+          - step: read_error
+            call: sentry.action.issues.get
+            with:
+               issue_id: "123456"
   permissions:
     - "network:sentry.io"
 

@@ -7,6 +7,18 @@ meta:
   platform: shopify
   description: "Lists store products."
   version: "1.0.0"
+  discovery:
+    purpose: "Search and retrieve a list of products from the Shopify catalog."
+    usage_context: "Use to fetch product IDs for inventory management or to sync a catalog to an external marketing platform."
+    agent_hints:
+      - "Returns an array of product objects including title, id, and variants."
+    waml_examples:
+      - title: "List Products"
+        waml: |
+          - step: get_products
+            call: shopify.action.products.list
+            with:
+               limit: 20
 
 interface:
   inputs:

@@ -7,6 +7,19 @@ meta:
   platform: slack
   description: "Lists all public and private channels in a workspace."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve a list of available Slack channels."
+    usage_context: "Use this when you need to find a specific channel ID by its name or to provide a user with a list of channels to choose from. Ideal for initial configuration steps in a workflow."
+    agent_hints:
+      - "The 'channels' output contains an array of channel objects. You should search this array for the desired 'name' to get its 'id'."
+      - "Ensure the bot has been invited to private channels if you need them to appear in the list."
+    waml_examples:
+      - title: "List All Public Channels"
+        waml: |
+          - step: get_channels
+            call: slack.action.channels.list
+            with:
+               types: "public_channel"
 
 interface:
   inputs:

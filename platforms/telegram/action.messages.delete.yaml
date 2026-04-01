@@ -7,6 +7,20 @@ meta:
   platform: telegram
   description: "Delete a message from a Telegram chat."
   version: "1.0.0"
+  discovery:
+    purpose: "Permanently remove a specific message from a Telegram chat or group."
+    usage_context: "Use to cleanup bot status messages, remove spam, or manage the visibility of transient updates."
+    agent_hints:
+      - "Requires chat_id and message_id."
+      - "Note that some messages (e.g. from users in private chats) can only be deleted if the bot is an admin."
+    waml_examples:
+      - title: "Delete Message"
+        waml: |
+          - step: cleanup
+            call: telegram.action.messages.delete
+            with:
+               chat_id: "${inputs.chat_id}"
+               message_id: 101
 
 interface:
   inputs:

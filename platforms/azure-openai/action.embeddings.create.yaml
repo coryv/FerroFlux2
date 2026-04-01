@@ -7,6 +7,19 @@ meta:
   platform: azure-openai
   description: "Generate vector embeddings for text using an Azure OpenAI embeddings deployment."
   version: "1.0.0"
+  discovery:
+    purpose: "Convert text strings into numerical vector embeddings for similarity search."
+    usage_context: "Use to build Retrieval Augmented Generation (RAG) systems or semantic search within an Azure-secured environment."
+    agent_hints:
+      - "Requires a deployment of an embedding model (e.g. text-embedding-3-small)."
+    waml_examples:
+      - title: "Create Vector"
+        waml: |
+          - step: vectorize
+            call: azure-openai.action.embeddings.create
+            with:
+               deployment_name: "text-embeddings"
+               input: "Sample text to embed."
 
 interface:
   inputs:

@@ -5,8 +5,22 @@ meta:
   category: Database
   type: Trigger
   platform: notion
-  description: "Polls a Notion database for newly created rows."
+  description: "Triggers when a new row (page) is added to a Notion database."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a new entry appears in a Notion tracking system."
+    usage_context: "Use this to automate actions for new leads, notify team members of new tasks, or sync data to a spreadsheet in real-time."
+    agent_hints:
+      - "Polls the database for new pages based on the 'created_time'."
+      - "Requires the 'database_id'."
+    waml_examples:
+      - title: "Process New Task"
+        waml: |
+          trigger:
+            new_row:
+               call: notion.trigger.database.new_row
+               with:
+                  database_id: "065..."
 
 interface:
   inputs: []

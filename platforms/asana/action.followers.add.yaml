@@ -5,8 +5,22 @@ meta:
   category: Tasks
   type: Action
   platform: asana
-  description: "Adds a follower to a task."
+  description: "Adds followers to an Asana task."
   version: "1.0.0"
+  discovery:
+    purpose: "Subscribe users to updates and notifications for a specific task."
+    usage_context: "Use this to ensure that relevant team members are looped in on a task's progress, even if they aren't the primary assignee."
+    agent_hints:
+      - "Requires the 'task_gid'."
+      - "Followers receive notifications for comments, status changes, and completion."
+    waml_examples:
+      - title: "Loop in Stakeholders"
+        waml: |
+          - step: add_subscribers
+            call: asana.action.followers.add
+            with:
+               task_gid: "1202..."
+               followers: ["1205...", "1208..."]
 
 interface:
   inputs:

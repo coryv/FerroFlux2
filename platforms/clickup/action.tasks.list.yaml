@@ -5,8 +5,22 @@ meta:
   category: Tasks
   type: Action
   platform: clickup
-  description: "Retrieve a list of tasks from a specific list."
+  description: "Lists tasks within a specific ClickUp list."
   version: "1.0.0"
+  discovery:
+    purpose: "Browse and find tasks belonging to a specific list."
+    usage_context: "Use this to fetch all tasks in a 'Backlog' list, sync list items to a spreadsheet, or audit task statuses."
+    agent_hints:
+      - "Requires the numeric 'list_id'."
+      - "Returns a list of task summaries (ID, name, status, etc.)."
+    waml_examples:
+      - title: "List List Tasks"
+        waml: |
+          - step: get_todo
+            call: clickup.action.tasks.list
+            with:
+               list_id: "12345678"
+               archived: false
 
 interface:
   inputs:

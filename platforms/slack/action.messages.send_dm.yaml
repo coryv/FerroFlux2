@@ -7,6 +7,20 @@ meta:
   platform: slack
   description: "Send a direct message to a specific user."
   version: "1.0.0"
+  discovery:
+    purpose: "Send a private message to an individual Slack user."
+    usage_context: "Use this for personalized notifications, private alerts, or starting a one-on-one conversation with a user. This action handles opening the DM conversation automatically."
+    agent_hints:
+      - "The 'user_id' can be retrieved from message triggers or by using 'slack.action.users.get'."
+      - "Sending repeatedly to the same user may be perceived as spam; use sparingly."
+    waml_examples:
+      - title: "Send a Welcome DM"
+        waml: |
+          - step: welcome_user
+            call: slack.action.messages.send_dm
+            with:
+               user_id: "U12345678"
+               text: "Hello! Welcome to the workspace. How can I help you today?"
 
 interface:
   inputs:

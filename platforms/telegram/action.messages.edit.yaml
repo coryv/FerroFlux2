@@ -7,6 +7,21 @@ meta:
   platform: telegram
   description: "Edit a previously sent message in a Telegram chat."
   version: "1.0.0"
+  discovery:
+    purpose: "Modify the text or formatting of a previously sent message from the bot."
+    usage_context: "Use to update live status indicators, correct typos in automated announcements, or change inline buttons in response to interaction."
+    agent_hints:
+      - "Requires chat_id and message_id."
+      - "Only messages sent by the bot can be edited."
+    waml_examples:
+      - title: "Update Progress"
+        waml: |
+          - step: update_msg
+            call: telegram.action.messages.edit
+            with:
+               chat_id: "${inputs.chat_id}"
+               message_id: "${steps.last_msg.output.id}"
+               text: "Status: 100% Complete!"
 
 interface:
   inputs:

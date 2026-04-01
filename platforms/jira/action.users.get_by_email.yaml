@@ -7,6 +7,18 @@ meta:
   platform: jira
   description: "Search for a Jira user by their email address."
   version: "1.0.0"
+  discovery:
+    purpose: "Map an email address to a Jira account ID."
+    usage_context: "Use to find Jira users based on context from other communications tools like Slack or Gmail."
+    agent_hints:
+      - "Returns a user object including accountId."
+    waml_examples:
+      - title: "Find User ID"
+        waml: |
+          - step: find_user
+            call: jira.users.get_by_email
+            with:
+               email: "user@example.com"
 
 interface:
   inputs:

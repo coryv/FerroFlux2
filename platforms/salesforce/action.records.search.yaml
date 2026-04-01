@@ -5,8 +5,21 @@ meta:
   category: Records
   type: Action
   platform: salesforce
-  description: "Executes a SOSL search."
+  description: "Executes a Salesforce SOSL search to find text across multiple objects."
   version: "1.0.0"
+  discovery:
+    purpose: "Perform a global text search across records, objects, and fields."
+    usage_context: "Use this when you have a piece of text (like a name or email) and don't know which object it belongs to, or want to search all objects at once."
+    agent_hints:
+      - "The 'q' parameter must be a valid SOSL string (e.g. 'FIND {Acme} IN ALL FIELDS RETURNING Account(Id, Name), Lead(Id, Name)')."
+      - "SOSL is optimized for text indexing across the entire SObject space."
+    waml_examples:
+      - title: "Global Company Search"
+        waml: |
+          - step: find_acme
+            call: salesforce.action.records.search
+            with:
+               q: "FIND {Acme} IN ALL FIELDS RETURNING Account(Id, Name), Lead(Id, Name)"
 
 interface:
   inputs:

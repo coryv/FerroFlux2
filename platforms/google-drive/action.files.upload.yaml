@@ -5,8 +5,23 @@ meta:
   category: Cloud Storage & Files
   type: Action
   platform: google-drive
-  description: "Uploads a file to Google Drive."
+  description: "Uploads a local file (blob reference) to Google Drive."
   version: "1.0.0"
+  discovery:
+    purpose: "Transfer a local FerroFlux 'blob' to the cloud storage."
+    usage_context: "Use this to upload images, backups, or documents generated within your workflow. For Google Workspace files (Docs/Sheets), the API will attempt auto-conversion."
+    agent_hints:
+      - "The 'file' must be a valid 'blob_id' from a previous step."
+      - "You can provide a 'name' and specify 'parents' (folder IDs) for its destination."
+    waml_examples:
+      - title: "Upload Generated Report"
+        waml: |
+          - step: upload_result
+            call: google-drive.action.files.upload
+            with:
+               file: steps.gen_report.blob_id
+               name: "Report_Final.pdf"
+               parents: ["dest_folder_id_123"]
 
 interface:
   inputs:
@@ -29,17 +44,14 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: >
-        "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart"
+      url: "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart"
       headers: platform.headers
       body_type: multipart
       parts:
         - name: metadata
           content_json: >
-            ""
-            name: inputs.name
-          content_type: >
-            "application/json"
+            "{\"name\": \"" + inputs.name + "\"}"
+          content_type: "application/json"
         - name: file
           content_var: inputs.file
     returns:

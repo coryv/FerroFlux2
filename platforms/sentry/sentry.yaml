@@ -3,8 +3,14 @@ meta:
   name: Sentry
   type: Platform
   category: Developer Tools
-  description: "Connects to the Sentry API for issue tracking and error monitoring."
+  description: "The essential monitoring platform for error tracking and performance metrics."
   version: "1.0.0"
+  discovery:
+    purpose: "Monitor code health, resolve production errors, and optimize frontend performance."
+    usage_context: "Use this to receive real-time alerts on regression bugs, track the impact of new releases, and identify slow API endpoints."
+    agent_hints:
+      - "Requires an Organization slug and Project slug for most operations."
+      - "Integrates well with GitHub/Slack to link errors to code changes and alerts."
   permissions:
     - "network:sentry.io"
 

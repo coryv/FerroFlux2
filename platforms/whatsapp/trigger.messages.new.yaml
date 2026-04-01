@@ -7,6 +7,17 @@ meta:
   platform: whatsapp
   description: "Fires when a new message is received via WhatsApp Webhook."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow whenever a new message is received in the WhatsApp Business account."
+    usage_context: "Use to build WhatsApp chatbots, automate customer support triage, or respond to order status inquiries in real-time."
+    agent_hints:
+      - "Requires a verified webhook configuration for the WhatsApp Business Platform."
+    waml_examples:
+      - title: "Chatbot Trigger"
+        waml: |
+          - step: on_whatsapp_message
+            type: trigger
+            call: whatsapp.trigger.messages.new
 
 interface:
   inputs: []

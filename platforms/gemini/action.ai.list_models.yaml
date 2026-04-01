@@ -7,6 +7,16 @@ meta:
   platform: gemini
   description: "List the models available through the Gemini API."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve a list of available Google Gemini models and their specific capabilities."
+    usage_context: "Use this to dynamically discover supported models (e.g., gemini-1.5-pro vs flash) for different types of LLM workloads."
+    agent_hints:
+      - "Returns a list of model objects including supported generation methods and context limits."
+    waml_examples:
+      - title: "List Models"
+        waml: |
+          - step: get_models
+            call: gemini.action.ai.list_models
 
 interface:
   inputs:

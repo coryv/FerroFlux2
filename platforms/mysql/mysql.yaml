@@ -5,6 +5,13 @@ meta:
   type: Platform
   description: "Direct connection to MySQL databases via binary TCP protocol."
   version: "1.0.0"
+  discovery:
+    purpose: "Relational SQL database for structured tables and high-integrity data."
+    usage_context: "Use MySQL for transactional data, structured application state, or record-keeping that requires strict schemas and ACID compliance. A world-standard for relational workloads."
+    agent_hints:
+      - "Queries must use standard MySQL Dialect (e.g., BACKTICKS for identifiers)."
+      - "Connection URI format: 'mysql://user:password@host:port/dbname'."
+      - "Standard MySQL port is 3306."
 
 config:
   driver: mysql

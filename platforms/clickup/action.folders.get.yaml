@@ -5,8 +5,20 @@ meta:
   category: Folders
   type: Action
   platform: clickup
-  description: "Retrieve all folders within a specific Space."
+  description: "Retrieves detailed information about a ClickUp folder."
   version: "1.0.0"
+  discovery:
+    purpose: "Fetch the properties and lists within a specific ClickUp folder."
+    usage_context: "Use this when you have a Folder ID and need to find its name, status, or the lists it contains."
+    agent_hints:
+      - "Requires the numeric 'folder_id'."
+    waml_examples:
+      - title: "Get Folder Details"
+        waml: |
+          - step: read_folder
+            call: clickup.action.folders.get
+            with:
+               folder_id: "123456"
 
 interface:
   inputs:

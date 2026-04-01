@@ -7,6 +7,20 @@ meta:
   platform: confluence
   description: "Update the title or body of an existing page."
   version: "1.0.0"
+  discovery:
+    purpose: "Modify the title or content of an existing Confluence page."
+    usage_context: "Use to automate ongoing project status updates, append notes, or keep technical documentation in sync with code changes."
+    agent_hints:
+      - "Requires pageId, new title, and updated body content."
+    waml_examples:
+      - title: "Update Page Content"
+        waml: |
+          - step: update_page
+            call: confluence.action.pages.update
+            with:
+               pageId: "123456789"
+               title: "Updated Project Specs"
+               body: "<h1>New Specifications</h1><p>Status: Updated</p>"
 
 interface:
   inputs:

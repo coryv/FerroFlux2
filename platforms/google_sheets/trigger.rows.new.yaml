@@ -7,6 +7,20 @@ meta:
   platform: google_sheets
   description: "Polls a Google Sheet for newly appended rows by tracking row count."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow when a new row is added to a Google Sheet."
+    usage_context: "Use to process new spreadsheet entries, trigger alerts for new log entries, or sync sheet data to an external database."
+    agent_hints:
+      - "Polls for new rows based on the total number of rows in the sheet."
+    waml_examples:
+      - title: "Monitor New Entries"
+        waml: |
+          - step: on_row
+            type: trigger
+            call: google_sheets.trigger.rows.new
+            settings:
+               spreadsheet_id: "12345abcdefg"
+               range: "Sheet1!A1"
 
 interface:
   inputs: []

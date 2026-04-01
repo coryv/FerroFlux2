@@ -7,6 +7,19 @@ meta:
   platform: resend
   description: "Retrieve details of a previously sent email by its ID."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve the details and delivery status of a single email sent via Resend."
+    usage_context: "Use to confirm email delivery, check for bounce errors, or verify the content of a sent notification."
+    agent_hints:
+      - "Requires an email_id."
+      - "Returns the email object with 'delivered', 'bounced', and 'compliant' status."
+    waml_examples:
+      - title: "Check Email Status"
+        waml: |
+          - step: check_status
+            call: resend.action.emails.get
+            with:
+               email_id: "49a3999c-5117-406b-8253-91f1b9dc1031"
 
 interface:
   inputs:

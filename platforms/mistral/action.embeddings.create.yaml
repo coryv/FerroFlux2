@@ -4,8 +4,21 @@ meta:
   category: Embeddings
   type: Action
   platform: mistral
-  description: "Generate embeddings for a given input text."
+  description: "Generates vector embeddings for a given text string using Mistral models."
   version: "1.0.0"
+  discovery:
+    purpose: "Convert text into numerical vectors for semantic search or RAG."
+    usage_context: "Use this to build cross-lingual search engines or find similarities in enterprise datasets. Requires 'input' and 'model'."
+    agent_hints:
+      - "Specify the 'model' (e.g. 'mistral-embed')."
+    waml_examples:
+      - title: "Mistral Embedding"
+        waml: |
+          - step: vectorize
+            call: mistral.action.embeddings.create
+            with:
+               model: "mistral-embed"
+               input: ["Analyze these strings for semantic meaning."]
   permissions:
     - "network:api.mistral.ai"
 

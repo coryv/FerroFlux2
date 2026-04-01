@@ -5,8 +5,21 @@ meta:
   category: Tasks
   type: Action
   platform: asana
-  description: "Get a specific task by ID."
+  description: "Retrieves detailed information about an Asana task."
   version: "1.0.0"
+  discovery:
+    purpose: "Fetch the properties of a specific Asana task."
+    usage_context: "Use this when you have a Task GID and need to find its current status, assignee, or custom field values."
+    agent_hints:
+      - "Requires the 'task_gid'."
+      - "Returns the full task resource object (GID, name, projects, etc.)."
+    waml_examples:
+      - title: "Get Task Details"
+        waml: |
+          - step: read_task
+            call: asana.action.tasks.get
+            with:
+               task_gid: "1202..."
 
 interface:
   inputs:

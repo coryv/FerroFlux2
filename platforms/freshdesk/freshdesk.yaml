@@ -3,8 +3,14 @@ meta:
   name: Freshdesk
   category: Support
   type: Platform
-  description: "Connects to the Freshdesk API for tickets and customer support."
+  description: "Cloud-based customer support software and helpdesk solution."
   version: "1.0.0"
+  discovery:
+    purpose: "Manage customer tickets, track service levels, and automate support across multiple channels."
+    usage_context: "Use this to create tickets from external alerts, manage agent assignments, and sync customer data from CRMs."
+    agent_hints:
+      - "Requires a subdomain and an API Key."
+      - "Use 'requester_id' or 'email' for identifying customers."
   permissions: ["network:*.freshdesk.com"]
   signature: null
 

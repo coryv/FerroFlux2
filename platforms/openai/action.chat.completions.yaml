@@ -5,8 +5,26 @@ meta:
   category: AI/ML
   type: Action
   platform: openai
-  description: "Generate a chat completion"
+  description: "Creates a model response for a given chat conversation."
   version: "1.0.0"
+  discovery:
+    purpose: "Generate text, reasoning, or code responses from OpenAI language models."
+    usage_context: "Use this for general-purpose chat, summarization, translation, or creative writing. Supports 'system', 'user', and 'assistant' message roles."
+    agent_hints:
+      - "Specify the 'model' (e.g. 'gpt-4o', 'gpt-4o-mini')."
+      - "Set 'temperature' and 'max_tokens' to control creativity and length."
+    waml_examples:
+      - title: "Simple Chat Completion"
+        waml: |
+          - step: ask_ai
+            call: openai.action.chat.completions
+            with:
+               model: "gpt-4o-mini"
+               messages:
+                  - role: "system"
+                    content: "You are a helpful assistant."
+                  - role: "user"
+                    content: "Summarize the latest news."
   data_strategy: enrich
 
 interface:

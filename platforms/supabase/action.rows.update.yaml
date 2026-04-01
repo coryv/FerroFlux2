@@ -5,8 +5,24 @@ meta:
   category: Rows
   type: Action
   platform: supabase
-  description: "Updates rows from a table matching a filter using PostgREST."
+  description: "Updates rows in a Supabase table."
   version: "1.0.0"
+  discovery:
+    purpose: "Modify existing records in a Supabase PostgreSQL table."
+    usage_context: "Use this to change values, such as updating a user's profile information or changing an order's status. Requires a 'filter' to target specific rows."
+    agent_hints:
+      - "Filtering uses PostgREST syntax (e.g. 'id=eq.123')."
+      - "The 'body' is a JSON object with the fields to update."
+    waml_examples:
+      - title: "Mark Task Complete"
+        waml: |
+          - step: complete_task
+            call: supabase.action.rows.update
+            with:
+               table: "tasks"
+               filter: "id=eq.101"
+               body:
+                 status: "completed"
 
 interface:
   inputs:

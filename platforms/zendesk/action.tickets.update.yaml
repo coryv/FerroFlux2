@@ -7,6 +7,20 @@ meta:
   platform: zendesk
   description: "Updates an existing ticket."
   version: "1.0.0"
+  discovery:
+    purpose: "Modify an existing Zendesk ticket (status, group, priority, or custom fields)."
+    usage_context: "Use to automate ticket assignment, prioritize urgent queries, or close resolved issues."
+    agent_hints:
+      - "Requires the ticket_id."
+    waml_examples:
+      - title: "Close Ticket"
+        waml: |
+          - step: close
+            call: zendesk.action.tickets.update
+            with:
+               ticket_id: 1024
+               status: "closed"
+               comment: "Issue resolved automatically."
 
 interface:
   inputs:

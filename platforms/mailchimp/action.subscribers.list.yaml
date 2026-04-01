@@ -7,6 +7,20 @@ meta:
   platform: mailchimp
   description: "Lists all subscribers in an audience."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve a list of members from a specific Mailchimp audience (list)."
+    usage_context: "Use to audit list members, identify subscribers for tagging, or export audience data for external analysis."
+    agent_hints:
+      - "Requires list_id."
+      - "Returns an array of member objects (status, email, tags)."
+    waml_examples:
+      - title: "List Members"
+        waml: |
+          - step: fetch
+            call: mailchimp.action.subscribers.list
+            with:
+               list_id: "acb12345"
+               status: "subscribed"
 
 interface:
   inputs:

@@ -5,8 +5,22 @@ meta:
   category: Comments
   type: Action
   platform: linear
-  description: "Creates a comment on an issue."
+  description: "Adds a comment to an existing Linear issue."
   version: "1.0.0"
+  discovery:
+    purpose: "Communicate updates, provide feedback, or link external resources to a Linear issue."
+    usage_context: "Use this to log debugging results, attach deployment URLs, or notify engineers of customer feedback by mentioning them in a comment."
+    agent_hints:
+      - "Requires the 'issueId' (UUID)."
+      - "Supports markdown for formatting."
+    waml_examples:
+      - title: "Post Build Result"
+        waml: |
+          - step: log_result
+            call: linear.action.comments.create
+            with:
+               issueId: "issue_uuid_123"
+               body: "Deployment successful to [Staging](https://staging.example.com)."
 
 interface:
   inputs:

@@ -5,8 +5,22 @@ meta:
   category: Issues
   type: Trigger
   platform: linear
-  description: "Polls Linear for recently updated issues."
+  description: "Triggers when an existing Linear issue is modified (polling)."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever an issue's status, assignee, or priority changes."
+    usage_context: "Use this to notify stakeholders when a bug is fixed, update external project boards, or trigger documentation reviews when a feature is completed."
+    agent_hints:
+      - "Polls Linear for modifications based on the 'updatedAt' field."
+      - "Requires the 'teamId' UUID."
+    waml_examples:
+      - title: "Notify on Resolve"
+        waml: |
+          trigger:
+            bug_fixed:
+               call: linear.trigger.issues.updated
+               with:
+                  teamId: "team_uuid_123"
 
 interface:
   inputs: []

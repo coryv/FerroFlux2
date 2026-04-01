@@ -7,6 +7,20 @@ meta:
   platform: ollama_cloud
   description: "Continue a conversation with a model using message history."
   version: "1.0.0"
+  discovery:
+    purpose: "Generate conversational responses using open-source models hosted in Ollama Cloud."
+    usage_context: "Use to build cost-effective AI assistants, automate text transformation, or perform sentiment analysis using Llama 3 or Mistral."
+    agent_hints:
+      - "Requires a 'model' name (e.g. 'llama3' or 'mistral')."
+      - "Returns a structured chat response object."
+    waml_examples:
+      - title: "Chat with Llama"
+        waml: |
+          - step: chat
+            call: ollama_cloud.action.ai.chat
+            with:
+               model: "llama3"
+               messages: [{ role: "user", content: "Hello!" }]
 
 interface:
   inputs:

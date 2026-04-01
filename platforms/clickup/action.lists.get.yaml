@@ -5,8 +5,20 @@ meta:
   category: Lists
   type: Action
   platform: clickup
-  description: "Retrieve all lists within a specific Folder."
+  description: "Retrieves detailed information about a ClickUp list."
   version: "1.0.0"
+  discovery:
+    purpose: "Fetch the properties and metadata of a specific ClickUp list."
+    usage_context: "Use this when you have a List ID and need to find its name, status, or parent container details."
+    agent_hints:
+      - "Requires the numeric 'list_id'."
+    waml_examples:
+      - title: "Get List Details"
+        waml: |
+          - step: read_list
+            call: clickup.action.lists.get
+            with:
+               list_id: "12345678"
 
 interface:
   inputs:

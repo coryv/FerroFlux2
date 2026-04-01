@@ -5,8 +5,22 @@ meta:
   category: Subscribers
   type: Action
   platform: mailchimp
-  description: "Removes a subscriber from an audience."
+  description: "Permanently deletes a subscriber from an audience."
   version: "1.0.0"
+  discovery:
+    purpose: "Clean up audience lists, remove inactive users, or comply with data deletion requests (e.g. GDPR)."
+    usage_context: "Use this to manage list hygiene by purging bounces or users who haven't opened an email in 6 months."
+    agent_hints:
+      - "Requires 'list_id' and 'subscriber_hash' (MD5 of email)."
+      - "Note that this is irreversible and will remove all history for the subscriber."
+    waml_examples:
+      - title: "Purge Inactive User"
+        waml: |
+          - step: rm_user
+            call: mailchimp.action.subscribers.remove
+            with:
+               list_id: "123..."
+               subscriber_hash: "555..."
 
 interface:
   inputs:

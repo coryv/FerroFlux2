@@ -5,8 +5,22 @@ meta:
   category: Checklists
   type: Action
   platform: trello
-  description: "Marks a checklist item as complete."
+  description: "Marks a checklist item as complete or incomplete."
   version: "1.0.0"
+  discovery:
+    purpose: "Check or uncheck an item in a Trello checklist."
+    usage_context: "Use this to automate task progress tracking as workflow steps succeed."
+    agent_hints:
+      - "Requires the card ID ('idCard'), and 'idCheckItem'."
+    waml_examples:
+      - title: "Check Off Task"
+        waml: |
+          - step: finish_todo
+            call: trello.action.checklists.markComplete
+            with:
+               idCard: "65a..."
+               idCheckItem: "65c..."
+               state: "complete"
 
 interface:
   inputs:

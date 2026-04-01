@@ -5,8 +5,21 @@ meta:
   category: Subscribers
   type: Trigger
   platform: mailchimp
-  description: "Triggers when a new subscriber joins the audience."
+  description: "Triggers when a new member joins a Mailchimp audience."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a new user signs up for a newsletter or is added to a marketing list."
+    usage_context: "Use this to send welcome emails, sync new lead data to a CRM, or notify the team on Slack."
+    agent_hints:
+      - "Polls the audience list for new members based on 'timestamp_signup' or 'timestamp_opt'."
+    waml_examples:
+      - title: "Welcome New Lead"
+        waml: |
+          trigger:
+            new_sub:
+               call: mailchimp.trigger.subscribers.new
+               with:
+                  list_id: "123..."
 
 interface:
   inputs: []

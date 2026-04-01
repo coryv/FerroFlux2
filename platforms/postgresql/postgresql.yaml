@@ -5,6 +5,13 @@ meta:
   type: Platform
   description: "Direct connection to PostgreSQL databases via binary TCP protocol."
   version: "1.0.0"
+  discovery:
+    purpose: "Advanced relational database with strong support for both structured SQL and JSONB data."
+    usage_context: "Use PostgreSQL for mission-critical relational storage, complex join operations, or as a hybrid between SQL and NoSQL using its native JSONB support."
+    agent_hints:
+      - "Standard PostgreSQL port is 5432."
+      - "Always use double quotes for case-sensitive identifiers in queries (e.g., SELECT * FROM \"Users\")."
+      - "Connection URI format: 'postgres://user:password@host:port/dbname'."
 
 config:
   driver: postgres

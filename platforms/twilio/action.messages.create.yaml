@@ -5,8 +5,22 @@ meta:
   category: Messages
   type: Action
   platform: twilio
-  description: "Send an SMS via Twilio."
+  description: "Sends a new SMS or WhatsApp message via Twilio."
   version: "1.0.0"
+  discovery:
+    purpose: "Send automated notifications, alerts, or personal messages to any phone number globally."
+    usage_context: "Use this for two-factor authentication (2FA), shipping alerts, or automated customer support."
+    agent_hints:
+      - "Requires a verified 'From' number or Messaging Service SID."
+      - "Note that messages to WhatsApp require a 'whatsapp:' prefix on numbers."
+    waml_examples:
+      - title: "Send SMS Alert"
+        waml: |
+          - step: notify
+            call: twilio.action.messages.create
+            with:
+               to: "+15550001111"
+               body: "Your order #123 is out for delivery!"
 
 interface:
   inputs:

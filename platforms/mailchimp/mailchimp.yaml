@@ -4,8 +4,14 @@ meta:
   name: Mailchimp
   type: Platform
   category: Marketing & Email
-  description: "Connects to the Mailchimp Marketing API."
+  description: "Leading platform for email marketing, automation, and audience growth."
   version: "1.0.0"
+  discovery:
+    purpose: "Manage subscriber lists, design marketing campaigns, and track audience engagement."
+    usage_context: "Use this to automate newsletter signups, sync customer data from CRMs, and trigger marketing journeys."
+    agent_hints:
+      - "Requires an API Key and Data Center prefix (e.g. 'us19')."
+      - "Strict rate limits apply to batch operations."
 
 config:
   base_url: >

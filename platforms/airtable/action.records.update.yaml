@@ -7,6 +7,21 @@ meta:
   platform: airtable
   description: "Updates a single record in a table."
   version: "1.0.0"
+  discovery:
+    purpose: "Modify one or more fields in an existing Airtable record."
+    usage_context: "Use to update inventory quantities, change the status of a project task, or append notes to a customer record."
+    agent_hints:
+      - "Requires a valid recordId and an object containing the fields to update."
+    waml_examples:
+      - title: "Update Status"
+        waml: |
+          - step: update
+            call: airtable.action.records.update
+            with:
+               baseId: "app12345"
+               tableIdOrName: "Tasks"
+               recordId: "rec12345"
+               fields: { "Status": "Done" }
 
 interface:
   inputs:

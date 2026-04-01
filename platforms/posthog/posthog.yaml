@@ -3,8 +3,14 @@ meta:
   name: PostHog
   type: Platform
   category: Analytics
-  description: "Connects to the PostHog API for product analytics and user tracking."
+  description: "The all-in-one product analytics and data platform for engineers."
   version: "1.0.0"
+  discovery:
+    purpose: "Analyze user behavior, manage feature flags, and run experiments."
+    usage_context: "Use this to track critical user events, gate features for specific cohorts, and monitor product performance."
+    agent_hints:
+      - "Requires a Project/Team ID and a Personal API Key."
+      - "Supports real-time event capture and complex cohort analysis."
   permissions:
     - "network:app.posthog.com"
 

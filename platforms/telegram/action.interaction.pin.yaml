@@ -7,6 +7,19 @@ meta:
   platform: telegram
   description: "Pin a specific message in a chat."
   version: "1.0.0"
+  discovery:
+    purpose: "Pin a specific message in a Telegram chat or group."
+    usage_context: "Use to highlight important alerts, instructions, or current tasks within a chat."
+    agent_hints:
+      - "Requires the chat_id and the message_id."
+    waml_examples:
+      - title: "Pin Alert"
+        waml: |
+          - step: pin_msg
+            call: telegram.action.interaction.pin
+            with:
+               chat_id: "123456789"
+               message_id: 1024
 
 interface:
   inputs:

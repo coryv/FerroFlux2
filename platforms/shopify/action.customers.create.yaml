@@ -7,6 +7,20 @@ meta:
   platform: shopify
   description: "Creates a new customer."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a new customer profile in the Shopify store."
+    usage_context: "Use to synchronize customer data from external marketing tools or CRM systems."
+    agent_hints:
+      - "Requires email and optionally first/last name."
+    waml_examples:
+      - title: "New Customer"
+        waml: |
+          - step: register_user
+            call: shopify.action.customers.create
+            with:
+               email: "john.doe@example.com"
+               first_name: "John"
+               last_name: "Doe"
 
 interface:
   inputs:

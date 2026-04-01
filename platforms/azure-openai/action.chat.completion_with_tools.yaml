@@ -7,6 +7,22 @@ meta:
   platform: azure-openai
   description: "Generate a chat completion with tool/function calling using an Azure OpenAI deployment."
   version: "1.0.0"
+  discovery:
+    purpose: "Generate chat completions while allowing the model to specify tool calls (functions)."
+    usage_context: "Use to build agentic workflows where the LLM decides which external API to call based on user input."
+    agent_hints:
+      - "Requires a deployment of a model supporting function calling (e.g. gpt-4o)."
+    waml_examples:
+      - title: "Agentic Tool Call"
+        waml: |
+          - step: run_agent
+            call: azure-openai.action.chat.completion_with_tools
+            with:
+               deployment_name: "gpt-4o"
+               messages: [{role: "user", content: "What is the weather in SF?"}]
+               tools:
+                 - type: "function"
+                   function: { name: "get_weather", parameters: {...} }
 
 interface:
   inputs:

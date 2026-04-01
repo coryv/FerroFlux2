@@ -4,8 +4,14 @@ meta:
   name: Telegram
   type: Platform
   category: Communication
-  description: "Connects to the Telegram Bot API."
+  description: "Secure, real-time messaging via the Telegram Bot API."
   version: "1.0.0"
+  discovery:
+    purpose: "Broadcast notifications, build interactive bots, and manage chat groups."
+    usage_context: "Use this for high-speed alerts, customer support bots, and real-time community engagement."
+    agent_hints:
+      - "Requires a Bot Token from @BotFather."
+      - "Bots can only message users who have already started a conversation."
 
 config:
   base_url: >

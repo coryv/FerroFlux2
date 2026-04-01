@@ -7,6 +7,17 @@ meta:
   platform: google-drive
   description: "Fires when a file is modified."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow whenever a file or folder in Google Drive is modified."
+    usage_context: "Use to sync updated spreadsheets to a database, notify team members of document changes, or re-parse updated PDFs."
+    agent_hints:
+      - "Polls for recently updated files in the connected account."
+    waml_examples:
+      - title: "Sync Updates"
+        waml: |
+          - step: on_update
+            type: trigger
+            call: google-drive.trigger.files.updated
 
 interface:
   inputs: []

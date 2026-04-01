@@ -5,8 +5,21 @@ meta:
   category: Messages
   type: Action
   platform: outlook
-  description: "Move a specific message to a destination folder."
+  description: "Moves an email message to a different folder in the mailbox."
   version: "1.0.0"
+  discovery:
+    purpose: "Organize inbox items, archive processed emails, or categorize messages into specific project folders."
+    usage_context: "Use this to move processed orders to an 'Orders' folder or archive system notifications after they've been handled."
+    agent_hints:
+      - "Requires 'id' (message_id) and 'destinationId' (folder_id or name like 'archive')."
+    waml_examples:
+      - title: "Archive Email"
+        waml: |
+          - step: archive_mail
+            call: outlook.action.messages.move
+            with:
+               id: "AAMk..."
+               destinationId: "archive"
 
 interface:
   inputs:

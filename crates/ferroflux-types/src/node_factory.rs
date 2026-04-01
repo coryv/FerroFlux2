@@ -21,6 +21,32 @@ pub struct NodeMetadata {
     pub outputs: Vec<PortMetadata>,
     /// JSON Schema for settings — stored as `Value` to avoid circular deps.
     pub settings: Vec<Value>,
+    /// AI Agent discovery and usage guidance.
+    pub discovery: Option<DiscoveryMetadata>,
+}
+
+/// Metadata for AI agents to discover and use this node correctly.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct DiscoveryMetadata {
+    /// High-level purpose of the node for agent reasoning.
+    pub purpose: String,
+    /// Detailed context on when to use this action over others.
+    pub usage_context: String,
+    /// Specific hints or "gotchas" for the agent.
+    #[serde(default)]
+    pub agent_hints: Vec<String>,
+    /// Representative WAML examples for this node.
+    #[serde(default)]
+    pub waml_examples: Vec<WamlExample>,
+}
+
+/// A WAML example for documentation and agent guidance.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct WamlExample {
+    /// Short title for the example.
+    pub title: String,
+    /// The WAML snippet itself.
+    pub waml: String,
 }
 
 /// Trait for creating and serializing node entities in the ECS world.

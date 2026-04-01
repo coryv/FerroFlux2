@@ -7,6 +7,18 @@ meta:
   platform: zendesk
   description: "Lists all organizations."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve a list of organizations registered in Zendesk."
+    usage_context: "Use to fetch organization IDs for mapping customers or creating company-level reports."
+    agent_hints:
+      - "Returns an array of organization objects."
+    waml_examples:
+      - title: "List Organizations"
+        waml: |
+          - step: get_orgs
+            call: zendesk.action.organizations.list
+            with:
+               limit: 50
 
 interface:
   inputs:

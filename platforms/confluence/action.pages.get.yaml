@@ -7,6 +7,19 @@ meta:
   platform: confluence
   description: "Retrieve details for a specific Confluence page."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve the full content and metadata for a specific Confluence page."
+    usage_context: "Use this to fetch current page content for summarization, archiving, or audit purposes."
+    agent_hints:
+      - "Requires a pageId."
+      - "Returns the page object including title, status, and body (Atlas Document Format)."
+    waml_examples:
+      - title: "Fetch Page Content"
+        waml: |
+          - step: get_page
+            call: confluence.action.pages.get
+            with:
+               pageId: "123456789"
 
 interface:
   inputs:

@@ -7,6 +7,21 @@ meta:
   platform: telegram
   description: "Ban a user from a chat, group, or channel."
   version: "1.0.0"
+  discovery:
+    purpose: "Permanently ban a user from a Telegram group or channel."
+    usage_context: "Use to automate moderation, remove users who violate community guidelines, or synchronize bans from an external list."
+    agent_hints:
+      - "Requires chat_id and user_id."
+      - "The bot must have administrator privileges with 'can_restrict_members' permission."
+    waml_examples:
+      - title: "Moderate User"
+        waml: |
+          - step: ban_user
+            call: telegram.action.admin.ban
+            with:
+               chat_id: "${inputs.group_id}"
+               user_id: "${inputs.bad_user_id}"
+               revoke_messages: true
 
 interface:
   inputs:

@@ -7,6 +7,21 @@ meta:
   platform: jira
   description: "Starts a sprint."
   version: "1.0.0"
+  discovery:
+    purpose: "Change the state of a Jira sprint to 'active'."
+    usage_context: "Use to automate the start of a development cycle based on calendar events or team readiness."
+    agent_hints:
+      - "Requires the sprint ID."
+    waml_examples:
+      - title: "Start Sprint"
+        waml: |
+          - step: activate
+            call: jira.sprints.start
+            with:
+               sprint_id: 123
+               name: "Sprint 42"
+               start_date: "2024-04-01T09:00:00.000Z"
+               end_date: "2024-04-15T18:00:00.000Z"
 
 interface:
   inputs:

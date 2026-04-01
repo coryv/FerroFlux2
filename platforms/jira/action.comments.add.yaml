@@ -7,6 +7,19 @@ meta:
   platform: jira
   description: "Add a comment to a specific Jira issue."
   version: "1.0.0"
+  discovery:
+    purpose: "Add a new comment to an existing Jira issue."
+    usage_context: "Use to log progress updates, record results from automated tests, or notify team members of ticket changes."
+    agent_hints:
+      - "Requires the issue key (e.g., PROJ-123) and the comment text."
+    waml_examples:
+      - title: "Post Update"
+        waml: |
+          - step: comment
+            call: jira.comments.add
+            with:
+               issue_id_or_key: "PROJ-123"
+               body: "Deployment successful."
 
 interface:
   inputs:

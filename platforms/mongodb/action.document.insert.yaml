@@ -6,6 +6,21 @@ meta:
   platform: mongodb
   description: "Inserts a document into a collection. Automatically participates in any active session for the current flow."
   version: "1.0.0"
+  discovery:
+    purpose: "Insert a single JSON document into a MongoDB collection."
+    usage_context: "Use to persist application data, log events, or save state for asynchronous processing."
+    agent_hints:
+      - "Requires database, collection, and the document (JSON)."
+      - "The _id field will be automatically generated if not provided."
+    waml_examples:
+      - title: "Log Event"
+        waml: |
+          - step: log
+            call: mongodb.action.document.insert
+            with:
+               database: "analytics"
+               collection: "events"
+               document: { "type": "click", "user": "123", "ts": "${now()}" }
 
 interface:
   inputs:

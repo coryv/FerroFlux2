@@ -4,8 +4,23 @@ meta:
   category: Query
   type: Action
   platform: postgresql
-  description: "Executes a SQL query against the database. Automatically participates in any active transaction for the current flow."
+  description: "Executes an arbitrary SQL query against a PostgreSQL database."
   version: "1.0.0"
+  discovery:
+    purpose: "Perform custom SQL operations (INSERT, UPDATE, DELETE, or DDL)."
+    usage_context: "Use this when specialized SQL is required, such as creating tables, performing complex updates, or using database-specific functions that aren't covered by standard 'select' or 'insert' nodes."
+    agent_hints:
+      - "The 'query' must be valid PostgreSQL SQL."
+      - "Returns the number of affected rows or the result of the query where applicable."
+      - "Use '$1', '$2', etc. for parameters to prevent SQL injection."
+    waml_examples:
+      - title: "Update Many Records"
+        waml: |
+          - step: bulk_update
+            call: postgresql.action.query.execute
+            with:
+               query: "UPDATE \"orders\" SET \"status\" = $1 WHERE \"created_at\" < $2"
+               params: ["archived", "2023-01-01"]
 
 interface:
   inputs:

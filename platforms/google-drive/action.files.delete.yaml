@@ -7,6 +7,19 @@ meta:
   platform: google-drive
   description: "Deletes a file from Google Drive."
   version: "1.0.0"
+  discovery:
+    purpose: "Permanently delete or trash a file/folder in Google Drive."
+    usage_context: "Use to cleanup temporary storage, remove old reports, or manage the lifecycle of ephemeral files."
+    agent_hints:
+      - "Requires a file_id."
+      - "By default, files are moved to the trash."
+    waml_examples:
+      - title: "Delete Temporary PDF"
+        waml: |
+          - step: remove
+            call: google-drive.action.files.delete
+            with:
+               file_id: "12345abcde"
 
 interface:
   inputs:

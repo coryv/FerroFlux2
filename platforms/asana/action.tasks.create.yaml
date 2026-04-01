@@ -5,8 +5,24 @@ meta:
   category: Tasks
   type: Action
   platform: asana
-  description: "Create a new task in Asana."
+  description: "Creates a new task in an Asana project or workspace."
   version: "1.0.0"
+  discovery:
+    purpose: "Add a new task to your team's work tracking."
+    usage_context: "Use this to automate task creation from emails, form submissions, or incident reports. Requires a 'name' and 'workspace' or 'projects' GID."
+    agent_hints:
+      - "Numeric GIDs are required for identifying workspaces and projects."
+      - "Note that custom fields are handled via the 'custom_fields' property mapping."
+    waml_examples:
+      - title: "Create Team Task"
+        waml: |
+          - step: mk_task
+            call: asana.action.tasks.create
+            with:
+               name: "Fix Production Bug"
+               workspace: "123..."
+               projects: ["456..."]
+               notes: "Reported by monitoring system."
 
 interface:
   inputs:

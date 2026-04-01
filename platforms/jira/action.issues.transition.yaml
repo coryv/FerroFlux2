@@ -7,6 +7,19 @@ meta:
   platform: jira
   description: "Perform a status transition on an issue (e.g. Move to Done)."
   version: "1.0.0"
+  discovery:
+    purpose: "Move a Jira issue to a different status (transition)."
+    usage_context: "Use to automate workflow status changes, e.g., moving tickets to 'Done' when a PR is merged."
+    agent_hints:
+      - "Requires the issue key (e.g., PROJ-123) and the transition ID or name (e.g., 'Done')."
+    waml_examples:
+      - title: "Resolve Issue"
+        waml: |
+          - step: resolve
+            call: jira.issues.transition
+            with:
+               issue_id_or_key: "PROJ-123"
+               transition_name: "Done"
 
 interface:
   inputs:

@@ -7,6 +7,22 @@ meta:
   platform: slack
   description: "Uploads a file to a Slack channel using multipart/form-data."
   version: "1.0.0"
+  discovery:
+    purpose: "Upload and share files within a Slack workspace."
+    usage_context: "Use this to share reports, images, or documents generated in a workflow. Requires the file as a 'blob' and a comma-separated list of channel IDs."
+    agent_hints:
+      - "The 'channels' input can be a single ID or a list of IDs. Ensure the bot is a member of the targeted channels."
+      - "The 'file' input must be a valid FerroFlux blob reference."
+    waml_examples:
+      - title: "Upload a Report to a Channel"
+        waml: |
+          - step: share_report
+            call: slack.action.files.upload
+            with:
+               file: steps.generate_pdf.blob
+               filename: "daily_report.pdf"
+               channels: "C12345678"
+               initial_comment: "Here is today's report."
 
 interface:
   inputs:

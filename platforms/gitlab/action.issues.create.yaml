@@ -5,8 +5,23 @@ meta:
   category: Issues
   type: Action
   platform: gitlab
-  description: "Creates a new issue in a project."
+  description: "Creates a new issue in a GitLab project."
   version: "1.0.0"
+  discovery:
+    purpose: "Log a bug, feature request, or task directly into a project's issue tracker."
+    usage_context: "Use this to automate bug reporting from GitLab pipelines, customer support tickets, or development task management. Requires the project 'id' (URL-encoded path or numeric ID) and 'title'."
+    agent_hints:
+      - "Requires the project 'id' string (e.g. 'gitlab-org%2Fgitlab' or '12345')."
+      - "Supports markdown in the 'description' and labels via 'labels' (comma-separated)."
+    waml_examples:
+      - title: "Create Bug Issue"
+        waml: |
+          - step: log_bug
+            call: gitlab.action.issues.create
+            with:
+               id: "group%2Frepo"
+               title: "Broken link in footer"
+               description: "Found by the link checker."
 
 interface:
   inputs:

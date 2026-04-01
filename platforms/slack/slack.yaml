@@ -6,6 +6,13 @@ meta:
   category: Communication
   description: "Connects to the Slack API for messaging, channels, users, and files."
   version: "1.0.0"
+  discovery:
+    purpose: "Real-time communication and workspace collaboration."
+    usage_context: "Use Slack as a notification hub, for interactive user commands, or for gathering user input through DMs and polls. Best for alert-based or person-to-person workflows."
+    agent_hints:
+      - "Prefer Channel IDs (e.g. 'C12345') over channel names for reliability."
+      - "User IDs (e.g. 'U12345') are the most reliable way to target direct messages."
+      - "Automated bot responses should be clear and concise to avoid cluttering human chat channels."
 
 config:
   base_url: "https://slack.com/api"

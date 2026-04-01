@@ -5,6 +5,12 @@ meta:
   category: Analytics
   description: "Connects to the Segment V1 API for unified customer data tracking."
   version: "1.0.0"
+  discovery:
+    purpose: "Customer Data Platform (CDP) for unified tracking and analytics routing."
+    usage_context: "Use Segment to collect customer events, identify users, and sync behavioral data across multiple marketing and analytics tools automatically. The single source of truth for user interactions."
+    agent_hints:
+      - "Uses the Segment Write Key for authentication (Basic Auth)."
+      - "Interactions follow the standard 'identify', 'track', and 'group' patterns."
   permissions:
     - "network:api.segment.io"
 

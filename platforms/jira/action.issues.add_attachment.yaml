@@ -7,6 +7,19 @@ meta:
   platform: jira
   description: "Add a file attachment to an issue."
   version: "1.0.0"
+  discovery:
+    purpose: "Upload and attach a file to a Jira issue."
+    usage_context: "Use to attach screenshots, log files, or PDF reports to relevant bug reports or tasks."
+    agent_hints:
+      - "Requires issueIdOrKey and a file object (URL or multipart stream)."
+    waml_examples:
+      - title: "Attach Log"
+        waml: |
+          - step: upload
+            call: jira.action.issues.add_attachment
+            with:
+               issueIdOrKey: "PROJ-123"
+               file: steps.gen_log.output
 
 interface:
   inputs:

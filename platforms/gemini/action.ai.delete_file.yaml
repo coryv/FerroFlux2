@@ -7,6 +7,18 @@ meta:
   platform: gemini
   description: "Delete a file from the Gemini File API."
   version: "1.0.0"
+  discovery:
+    purpose: "Permanently delete a file from the Gemini File API."
+    usage_context: "Use to manage storage limits and clear sensitive metadata after a generation task is complete."
+    agent_hints:
+      - "Requires a file_id."
+    waml_examples:
+      - title: "Delete Uploaded Video"
+        waml: |
+          - step: cleanup
+            call: gemini.action.ai.delete_file
+            with:
+               file_id: "files/12345"
 
 interface:
   inputs:

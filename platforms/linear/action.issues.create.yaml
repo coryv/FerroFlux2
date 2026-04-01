@@ -5,8 +5,24 @@ meta:
   category: Issues
   type: Action
   platform: linear
-  description: "Creates an issue in Linear using GraphQL."
+  description: "Creates a new issue in a Linear team."
   version: "1.0.0"
+  discovery:
+    purpose: "Add a new bug, feature, or task to a Linear engineering board."
+    usage_context: "Use this to automate issue creation from customer feedback, bug reports, or sprint planning. Requires a 'teamId' and 'title'."
+    agent_hints:
+      - "Uses UUIDs for 'teamId', 'projectId', and 'assigneeId'."
+      - "Returns the new issue object with its ID and identifier (e.g. 'ENG-123')."
+    waml_examples:
+      - title: "Create Bug Issue"
+        waml: |
+          - step: log_bug
+            call: linear.action.issues.create
+            with:
+               teamId: "team_uuid_123"
+               title: "High priority: Fix auth leak"
+               description: "Found in production logs."
+               priority: 1
 
 interface:
   inputs:

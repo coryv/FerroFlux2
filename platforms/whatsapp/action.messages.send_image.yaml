@@ -4,8 +4,23 @@ meta:
   category: WhatsApp
   type: Action
   platform: whatsapp
-  description: "Send an image to a user via URL."
+  description: "Sends an image to a user on WhatsApp."
   version: "1.0.0"
+  discovery:
+    purpose: "Share photos, screenshots, or visual marketing materials via WhatsApp."
+    usage_context: "Use this to send receipts, product photos, or promotional images to customers."
+    agent_hints:
+      - "Requires a 'to' phone number and an 'image_url' or 'file_id'."
+      - "The 'caption' parameter allows adding text alongside the image."
+    waml_examples:
+      - title: "Send Photo"
+        waml: |
+          - step: show_it
+            call: whatsapp.action.messages.send_image
+            with:
+               to: "+15551234567"
+               image_url: "https://example.com/photo.png"
+               caption: "Here is your order photo."
   permissions:
     - "network:graph.facebook.com"
 

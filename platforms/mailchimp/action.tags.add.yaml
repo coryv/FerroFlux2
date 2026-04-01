@@ -5,8 +5,23 @@ meta:
   category: Subscribers
   type: Action
   platform: mailchimp
-  description: "Adds a tag to a subscriber."
+  description: "Adds marketing tags to a specific subscriber."
   version: "1.0.0"
+  discovery:
+    purpose: "Categorize subscribers into custom segments (e.g. 'Influencer', 'VIP', 'Event Attendee')."
+    usage_context: "Use this to trigger automated journeys or filter campaigns based on dynamic subscriber behaviors."
+    agent_hints:
+      - "Requires 'list_id' and 'subscriber_hash' (MD5 of email)."
+      - "Pass an array of 'tags' to be added."
+    waml_examples:
+      - title: "Tag Pro User"
+        waml: |
+          - step: tag_user
+            call: mailchimp.action.tags.add
+            with:
+               list_id: "123..."
+               subscriber_hash: "555..."
+               tags: [{ name: "Tier: Pro", status: "active" }]
 
 interface:
   inputs:

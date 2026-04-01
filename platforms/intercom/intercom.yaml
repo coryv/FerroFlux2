@@ -7,6 +7,14 @@ meta:
   permissions: ["network:api.intercom.io"]
 
 config:
+  description: "Advanced AI-first customer service and engagement platform."
+  version: "1.0.0"
+  discovery:
+    purpose: "Engage customers in real-time, manage support conversations, and segment audience groups."
+    usage_context: "Use this to automate in-app messaging, track user activity, and manage customer support via an AI-powered workspace."
+    agent_hints:
+      - "Requires an API Token and Workspace ID."
+      - "Note the difference between 'Contacts' (Users) and 'Conversations' (Chats)."
   base_url: "https://api.intercom.io"
   auth_type: "oauth2"
   auth:

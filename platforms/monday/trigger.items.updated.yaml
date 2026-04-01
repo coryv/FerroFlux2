@@ -5,8 +5,22 @@ meta:
   category: Items
   type: Trigger
   platform: monday
-  description: "Polls for items that have been recently updated."
+  description: "Triggers when any property of a Monday.com item is modified."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever an item's name, text column, or date changes."
+    usage_context: "Use this for maintaining real-time data syncs between Monday and other tools, or for triggering notifications when important item details are updated."
+    agent_hints:
+      - "Polls for modifications across the entire board based on the 'updated_at' timestamp."
+      - "Requires the numeric 'board_id'."
+    waml_examples:
+      - title: "Sync Item Changes"
+        waml: |
+          trigger:
+            row_changed:
+               call: monday.trigger.items.updated
+               with:
+                  board_id: "1234567"
 
 interface:
   inputs: []

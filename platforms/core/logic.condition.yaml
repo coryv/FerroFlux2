@@ -7,6 +7,18 @@ meta:
   platform: core
   description: "Simple binary condition check."
   version: "1.0.0"
+  discovery:
+    purpose: "Evaluate a boolean condition to branch workflow execution."
+    usage_context: "Use for if/else logic to decide which path the workflow should take."
+    agent_hints:
+      - "The condition is a CEL expression that must return a boolean."
+    waml_examples:
+      - title: "Check Amount"
+        waml: |
+          - step: check_value
+            call: core.logic.condition
+            with:
+              condition: "inputs.amount > 100"
 
 interface:
   inputs:

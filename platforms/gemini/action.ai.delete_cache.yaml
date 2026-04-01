@@ -7,6 +7,18 @@ meta:
   platform: gemini
   description: "Delete a specific context cache."
   version: "1.0.0"
+  discovery:
+    purpose: "Permanently delete a specific context cache from the Gemini API."
+    usage_context: "Use to free up resources and avoid ongoing storage costs for shared context windows."
+    agent_hints:
+      - "Requires a cache_name."
+    waml_examples:
+      - title: "Delete Cache"
+        waml: |
+          - step: delete
+            call: gemini.action.ai.delete_cache
+            with:
+               cache_name: "cachedContents/12345"
 
 interface:
   inputs:

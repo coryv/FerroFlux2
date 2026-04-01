@@ -5,8 +5,28 @@ meta:
   category: Blocks
   type: Action
   platform: notion
-  description: "Creates and appends new children blocks to the specified parent block."
+  description: "Adds child blocks to an existing Notion block (Page or Block)."
   version: "1.0.0"
+  discovery:
+    purpose: "Append content, such as text, images, or todos, to a Notion page or other container."
+    usage_context: "Use this to log activity, add comments to a page, or build up a document dynamically from workflow data."
+    agent_hints:
+      - "Requires the 'block_id' of the parent."
+      - "The 'children' parameter is an array of Notion block objects."
+    waml_examples:
+      - title: "Append Paragraph"
+        waml: |
+          - step: log_line
+            call: notion.action.blocks.children.append
+            with:
+               block_id: "75a..."
+               children:
+                 - object: "block"
+                   type: "paragraph"
+                   paragraph:
+                     rich_text:
+                       - type: "text"
+                         text: { content: "Workflow executed successfully." }
 
 interface:
   inputs:

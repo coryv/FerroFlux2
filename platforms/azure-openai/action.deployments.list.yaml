@@ -7,6 +7,16 @@ meta:
   platform: azure-openai
   description: "List all model deployments in an Azure OpenAI resource."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve a list of all model deployments in the Azure OpenAI resource."
+    usage_context: "Use to dynamically discover which models (GPT-4, Embeddings, Vision) are active and available for use in an Azure environment."
+    agent_hints:
+      - "Returns a list of deployment objects including model name and status."
+    waml_examples:
+      - title: "List Deployments"
+        waml: |
+          - step: get_deployments
+            call: azure-openai.action.deployments.list
 
 interface:
   inputs:

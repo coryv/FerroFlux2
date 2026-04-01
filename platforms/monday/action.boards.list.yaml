@@ -5,8 +5,21 @@ meta:
   category: Boards
   type: Action
   platform: monday
-  description: "Retrieve a list of boards."
+  description: "Lists boards available in your Monday.com workspace."
   version: "1.0.0"
+  discovery:
+    purpose: "Browse and identify boards for project tracking and data storage."
+    usage_context: "Use this to starting a board-specific automation, find a board's ID by its name, or audit workspace layout."
+    agent_hints:
+      - "Can be filtered by 'limit', 'page', and 'state' (active, archived, deleted)."
+      - "Returns a list of board summaries (ID, name, description)."
+    waml_examples:
+      - title: "List Active Boards"
+        waml: |
+          - step: get_boards
+            call: monday.action.boards.list
+            with:
+               limit: 20
 
 interface:
   inputs:

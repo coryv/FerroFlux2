@@ -5,8 +5,23 @@ meta:
   category: AI
   type: Action
   platform: gemini
-  description: "Generate a response from a Gemini model using text and image data."
+  description: "Analyses images and provides content based on visual inputs."
   version: "1.0.0"
+  discovery:
+    purpose: "Extract information from images or provide visual reasoning."
+    usage_context: "Use this to describe photos, identify objects in a scene, or extract data from screenshots and diagrams."
+    agent_hints:
+      - "Requires a 'model' with vision capabilities (e.g. 'gemini-1.5-pro')."
+      - "Pass image data as base64 or via a file URL in the 'parts' array."
+    waml_examples:
+      - title: "Analyze Screenshot"
+        waml: |
+          - step: see_it
+            call: gemini.action.ai.generate_with_vision
+            with:
+               model: "gemini-1.5-pro"
+               prompt: "What is shown in this image?"
+               image_url: "https://example.com/screenshot.png"
 
 interface:
   inputs:

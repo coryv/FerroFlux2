@@ -6,6 +6,12 @@ meta:
   category: Storage
   description: "Connects to the Microsoft OneDrive API."
   version: "1.0.0"
+  discovery:
+    purpose: "Cloud storage within the Microsoft 365 ecosystem."
+    usage_context: "Use OneDrive for managing files that need to be accessible within Excel, Word, or SharePoint. Ideal for enterprise file workflows and Windows-centric environments."
+    agent_hints:
+      - "Uses the Microsoft Graph API (/me/drive/root/children)."
+      - "Pathing follows a nested directory structure similar to a local filesystem."
 
 config:
   base_url: "https://graph.microsoft.com/v1.0"

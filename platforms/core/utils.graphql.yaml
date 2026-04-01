@@ -6,6 +6,19 @@ meta:
   platform: core
   description: "Execute a GraphQL query or mutation."
   version: "1.0.0"
+  discovery:
+    purpose: "Execute GraphQL queries and mutations against any GraphQL API."
+    usage_context: "Use to fetch nested data from platforms like Shopify, GitHub, or custom internal backends."
+    agent_hints:
+      - "Requires url, query (and optionally variables)."
+    waml_examples:
+      - title: "Fetch Product"
+        waml: |
+          - step: gql
+            call: core.utils.graphql
+            with:
+               url: "https://shop.com/api/2023-01/graphql"
+               query: "query { product(id: '1') { title } }"
 
 interface:
   inputs:

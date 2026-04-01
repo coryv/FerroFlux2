@@ -7,6 +7,18 @@ meta:
   platform: jira
   description: "TODO: Describe what this node does."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve details and status for a specific Jira sprint."
+    usage_context: "Use to check sprint goals, verify state (active vs closed), or retrieve sprint boundaries for reporting."
+    agent_hints:
+      - "Requires a sprintId."
+    waml_examples:
+      - title: "Check Sprint Info"
+        waml: |
+          - step: sprint_info
+            call: jira.action.sprints.get
+            with:
+               sprintId: 101
 
 interface:
   inputs:

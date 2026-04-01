@@ -7,6 +7,21 @@ meta:
   platform: telegram
   description: "Send a text message to a Telegram chat."
   version: "1.0.0"
+  discovery:
+    purpose: "Send a text message to a specific Telegram user or group."
+    usage_context: "Use this to send automated notifications, alerts, or bot responses."
+    agent_hints:
+      - "Requires a chat_id (numerical or group username) and message text."
+      - "Supports 'MarkdownV2' and 'HTML' for formatting."
+    waml_examples:
+      - title: "Send Alert"
+        waml: |
+          - step: notify
+            call: telegram.action.messages.send
+            with:
+               chat_id: "123456789"
+               text: "*System Alert:* Error detected"
+               parse_mode: "MarkdownV2"
 
 interface:
   inputs:

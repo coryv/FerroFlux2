@@ -5,8 +5,21 @@ meta:
   category: Emails
   type: Action
   platform: gmail
-  description: "Forward a specific email to a new recipient."
+  description: "Forwards a specific Gmail message to another email address."
   version: "1.0.0"
+  discovery:
+    purpose: "Send an existing email to a new recipient."
+    usage_context: "Use this to escalate support tickets, share incoming leads with a team, or archive specific communications. Requires the original message_id."
+    agent_hints:
+      - "The forwarded message will contain the original content with the standard 'Forwarded message' header."
+    waml_examples:
+      - title: "Forward to Team"
+        waml: |
+          - step: forward_email
+            call: gmail.emails.forward
+            with:
+               message_id: "18e986fe..."
+               to: "team@company.com"
 
 interface:
   inputs:

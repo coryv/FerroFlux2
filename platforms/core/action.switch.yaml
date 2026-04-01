@@ -7,6 +7,23 @@ meta:
   platform: core
   description: "Routes data based on complex conditional rules (Segment-like)."
   version: "1.0.0"
+  discovery:
+    purpose: "Evaluate a value against multiple cases and execute the matching branch."
+    usage_context: "Use to implement conditional branching logic in workflows (e.g., if status is 'done', do X; if 'error', do Y)."
+    agent_hints:
+      - "Works like a programming switch/case statement."
+    waml_examples:
+      - title: "Route by Status"
+        waml: |
+          - step: check_status
+            call: core.action.switch
+            with:
+               value: steps.get_status.output
+               cases:
+                 - match: "SUCCESS"
+                   steps: [...]
+                 - match: "FAILURE"
+                   steps: [...]
 
 interface:
   inputs:

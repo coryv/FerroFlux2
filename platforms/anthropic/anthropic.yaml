@@ -4,8 +4,14 @@ meta:
   name: Anthropic Claude
   type: Platform
   category: AI/ML
-  description: "Connects to the Anthropic Claude API."
+  description: "Advanced AI language models focused on safety and high performance."
   version: "1.0.0"
+  discovery:
+    purpose: "Access Claude 3.5 Sonnet and Haiku for fast, steerable intelligence."
+    usage_context: "Excellent for long-context analysis (up to 200k tokens), complex coding tasks, and nuanced writing."
+    agent_hints:
+      - "Anthropic uses 'Prompt Prefilling' for better steering."
+      - "Great for long-document analysis due to high context window."
 
 config:
   base_url: "https://api.anthropic.com/v1"

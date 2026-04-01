@@ -5,8 +5,21 @@ meta:
   category: Messages
   type: Action
   platform: outlook
-  description: "Retrieve details for a specific message."
+  description: "Retrieves detailed information about a specific email message."
   version: "1.0.0"
+  discovery:
+    purpose: "Fetch the properties, full body, and headers of a specific email message."
+    usage_context: "Use this when you have a 'message_id' (e.g. from a trigger or list action) and need to read the full content or identify the sender's address."
+    agent_hints:
+      - "Requires the 'message_id' (long string)."
+      - "Returns the full message object, including its attachments and importance."
+    waml_examples:
+      - title: "Get Email Body"
+        waml: |
+          - step: read_mail
+            call: outlook.action.messages.get
+            with:
+               id: "AAMk..."
 
 interface:
   inputs:

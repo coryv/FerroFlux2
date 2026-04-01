@@ -7,6 +7,19 @@ meta:
   platform: google_sheets
   description: "Clears values from a spreadsheet."
   version: "1.0.0"
+  discovery:
+    purpose: "Clear values from a specific cell range in a Google Sheet without deleting the cells."
+    usage_context: "Use to reset a form, clear a staging area, or remove outdated data from a spreadsheet."
+    agent_hints:
+      - "Requires a Spreadsheet ID and the cell range."
+    waml_examples:
+      - title: "Reset Range"
+        waml: |
+          - step: clear
+            call: google_sheets.action.values.clear
+            with:
+               spreadsheet_id: "12345abcdefg"
+               range: "Sheet1!A2:E10"
 
 interface:
   inputs:

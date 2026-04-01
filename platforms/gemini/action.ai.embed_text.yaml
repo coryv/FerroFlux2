@@ -5,8 +5,22 @@ meta:
   category: AI
   type: Action
   platform: gemini
-  description: "Generate an embedding from text using a Gemini embedding model."
+  description: "Generates vector embeddings for a given text string."
   version: "1.0.0"
+  discovery:
+    purpose: "Convert text into numerical vectors for semantic search or clustering."
+    usage_context: "Use this to build RAG (Retrieval Augmented Generation) pipelines, find similar documents, or classify text based on meaning."
+    agent_hints:
+      - "Specify the 'model' (e.g. 'text-embedding-004')."
+      - "The resulting vector can be stored in a vector database like Pinecone or Supabase."
+    waml_examples:
+      - title: "Embed Document"
+        waml: |
+          - step: vectorize
+            call: gemini.action.ai.embed_text
+            with:
+               model: "text-embedding-004"
+               text: "The quick brown fox jumps over the lazy dog."
 
 interface:
   inputs:

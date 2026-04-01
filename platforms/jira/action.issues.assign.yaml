@@ -7,6 +7,19 @@ meta:
   platform: jira
   description: "Assign an issue to a specific user."
   version: "1.0.0"
+  discovery:
+    purpose: "Assign a Jira issue to a specific user (account ID)."
+    usage_context: "Use to automate ticket routing or reassign tasks based on workflow rules."
+    agent_hints:
+      - "Requires the issue key (e.g., PROJ-123) and the accountId of the user."
+    waml_examples:
+      - title: "Assign Ticket"
+        waml: |
+          - step: assign
+            call: jira.issues.assign
+            with:
+               issue_id_or_key: "PROJ-123"
+               account_id: "5b10ac8d82e05b22cc7d4ef5"
 
 interface:
   inputs:

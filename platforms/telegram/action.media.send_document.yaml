@@ -7,6 +7,20 @@ meta:
   platform: telegram
   description: "Send a file/document to a chat."
   version: "1.0.0"
+  discovery:
+    purpose: "Upload and send a document (PDF, ZIP, etc.) to a Telegram chat."
+    usage_context: "Use to send invoices, reports, or logs as downloadable files via Telegram."
+    agent_hints:
+      - "Requires a URL to a document or a file object."
+    waml_examples:
+      - title: "Send Report PDF"
+        waml: |
+          - step: send_doc
+            call: telegram.action.media.send_document
+            with:
+               chat_id: "123456789"
+               document: "https://example.com/report.pdf"
+               caption: "Monthly growth report."
 
 interface:
   inputs:

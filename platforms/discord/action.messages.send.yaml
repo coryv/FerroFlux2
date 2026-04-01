@@ -7,6 +7,20 @@ meta:
   platform: discord
   description: "Sends a message to a Discord channel."
   version: "1.0.0"
+  discovery:
+    purpose: "Post a message to a specific Discord channel."
+    usage_context: "Use this to send notifications, summaries, or alerts to a Discord server. Requires a valid Snowflake Channel ID."
+    agent_hints:
+      - "Channel IDs are unique integers (Snowflakes). You can get them by right-clicking a channel in Discord (if Developer Mode is on)."
+      - "The 'content' field supports Discord Markdown (e.g., **bold**, *italics*, <@user_id> for mentions)."
+    waml_examples:
+      - title: "Send a Server Alert"
+        waml: |
+          - step: notify_discord
+            call: discord.action.messages.send
+            with:
+               channel_id: "123456789012345678"
+               content: "**Alert:** New deployment successful! :rocket:"
 
 interface:
   inputs:

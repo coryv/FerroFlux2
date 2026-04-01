@@ -5,8 +5,21 @@ meta:
   category: Tasks
   type: Action
   platform: clickup
-  description: "Retrieve details for a specific task."
+  description: "Retrieves detailed information about a ClickUp task."
   version: "1.0.0"
+  discovery:
+    purpose: "Fetch the properties, status, and custom field values of a specific ClickUp task."
+    usage_context: "Use this when you have a Task ID and need to check its priority, current status, or identify its assignees before performing an update."
+    agent_hints:
+      - "Requires the Task ID (e.g. '862...') as a string."
+      - "Returns the full task object with all its properties."
+    waml_examples:
+      - title: "Get Task Details"
+        waml: |
+          - step: read_task
+            call: clickup.action.tasks.get
+            with:
+               task_id: "862k6r9n8"
 
 interface:
   inputs:

@@ -6,6 +6,13 @@ meta:
   category: Weather
   description: "Free, open-source weather API providing current conditions and forecasts with no API key required."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve high-resolution weather data, forecasts, and historical climate patterns."
+    usage_context: "Use this for automated weather alerts, agricultural planning, or providing localized environmental data in a chat bot."
+    agent_hints:
+      - "No API key is required for open access."
+      - "All weather queries require 'latitude' and 'longitude'."
+      - "Use the geocoding search action to resolve city names into coordinates."
 
 config:
   base_url: "https://api.open-meteo.com/v1"

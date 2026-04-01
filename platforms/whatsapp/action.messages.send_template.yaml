@@ -6,6 +6,22 @@ meta:
   platform: whatsapp
   description: "Send a pre-approved template message."
   version: "1.0.0"
+  discovery:
+    purpose: "Send a pre-approved WhatsApp message template to a recipient."
+    usage_context: "Use to automate delivery notifications, authentication codes, or customer service updates via the WhatsApp Business Platform."
+    agent_hints:
+      - "Requires a pre-approved template name and language code."
+      - "Phone numbers must be in E.164 format."
+    waml_examples:
+      - title: "Send OTP"
+        waml: |
+          - step: send_otp
+            call: whatsapp.action.messages.send_template
+            with:
+               to: "15551234567"
+               template_name: "auth_code"
+               language_code: "en_US"
+               components: [{ type: "body", parameters: [{ type: "text", text: "123456" }]}]
   permissions:
     - "network:graph.facebook.com"
 

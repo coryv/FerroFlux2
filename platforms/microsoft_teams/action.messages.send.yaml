@@ -7,6 +7,20 @@ meta:
   platform: microsoft_teams
   description: "Send a message to a channel."
   version: "1.0.0"
+  discovery:
+    purpose: "Send a new chat message to a specific Microsoft Teams channel or chat."
+    usage_context: "Use to automate internal alerts, provide status updates to project teams, or bridge notifications from external monitors into a Teams group."
+    agent_hints:
+      - "Requires teamId and channelId."
+    waml_examples:
+      - title: "Send Update"
+        waml: |
+          - step: notify
+            call: microsoft_teams.action.messages.send
+            with:
+               team_id: "71a3999c51"
+               channel_id: "19:123456789abc@thread.tacv2"
+               content: "Build successful!"
 
 interface:
   inputs:

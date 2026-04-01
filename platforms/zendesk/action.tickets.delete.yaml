@@ -7,6 +7,19 @@ meta:
   platform: zendesk
   description: "Deletes a ticket."
   version: "1.0.0"
+  discovery:
+    purpose: "Permanently remove a ticket from Zendesk."
+    usage_context: "Use to clean up spam, duplicates, or test data."
+    agent_hints:
+      - "Requires the ticket_id."
+      - "Note: This action is irreversible."
+    waml_examples:
+      - title: "Delete Spam"
+        waml: |
+          - step: remove_spam
+            call: zendesk.action.tickets.delete
+            with:
+               ticket_id: 9999
 
 interface:
   inputs:

@@ -4,8 +4,21 @@ meta:
   category: Deployments
   type: Action
   platform: vercel
-  description: "Get detailed information for a specific deployment."
+  description: "Gets the status and details of a specific Vercel deployment."
   version: "1.0.0"
+  discovery:
+    purpose: "Check if a deployment has finished, failed, or is still building."
+    usage_context: "Use this in a polling loop or after a 'create_deployment' step to verify that the site is live before notifying users."
+    agent_hints:
+      - "Requires the 'id' (deployment ID) returned by the 'create' action."
+      - "Monitor the 'readyState' field ('READY', 'ERROR', 'BUILDING')."
+    waml_examples:
+      - title: "Check Build Status"
+        waml: |
+          - step: check_build
+            call: vercel.action.deployments.get
+            with:
+               id: "dpl_123..."
   permissions:
     - "network:api.vercel.com"
 

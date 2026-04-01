@@ -4,8 +4,18 @@ meta:
   category: Transaction
   type: Action
   platform: mysql
-  description: "Starts a new MySQL database transaction for the current execution flow."
+  description: "Starts a new SQL transaction for the current execution flow."
   version: "1.0.0"
+  discovery:
+    purpose: "Begin a sequence of SQL operations that must be atomic."
+    usage_context: "Use transactions when moving data between tables (e.g., deducting balance from one table and adding to another) or when multiple related rows must be updated consistently."
+    agent_hints:
+      - "You must call 'commit' at the end of the success path or 'rollback' on the error path."
+    waml_examples:
+      - title: "Begin Atomic Transaction"
+        waml: |
+          - step: start_tx
+            call: mysql.action.tx.begin
 
 interface:
   inputs:

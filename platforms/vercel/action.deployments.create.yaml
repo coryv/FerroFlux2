@@ -4,8 +4,22 @@ meta:
   category: Deployments
   type: Action
   platform: vercel
-  description: "Create a new deployment for a project."
+  description: "Triggers a new deployment for a Vercel project."
   version: "1.0.0"
+  discovery:
+    purpose: "Initiate a build and deployment process on Vercel."
+    usage_context: "Use this to automate production releases, deploy preview environments for pull requests, or re-run a build after updating data."
+    agent_hints:
+      - "Requires a 'name' (project name) and an optional 'gitSource' or specific files."
+      - "Returns a deployment object with a unique 'id' and 'url'."
+    waml_examples:
+      - title: "Deploy Production"
+        waml: |
+          - step: push_live
+            call: vercel.action.deployments.create
+            with:
+               name: "my-nextjs-app"
+               target: "production"
   permissions:
     - "network:api.vercel.com"
 

@@ -5,8 +5,22 @@ meta:
   category: Comments
   type: Action
   platform: trello
-  description: "Adds a comment to a card."
+  description: "Adds a comment to an existing Trello card."
   version: "1.0.0"
+  discovery:
+    purpose: "Communicate updates and provide context on a task card."
+    usage_context: "Use this to log progress, notify team members of results, or record completion details within the card's history."
+    agent_hints:
+      - "Requires the card ID."
+    waml_examples:
+      - title: "Post Status Update"
+        waml: |
+          - step: say_it
+            call: trello.action.comments.create
+            with:
+               id: "65a..."
+               text: "Processing complete. Please check the results."
+ Riverside: 
 
 interface:
   inputs:

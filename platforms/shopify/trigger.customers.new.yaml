@@ -7,6 +7,17 @@ meta:
   platform: shopify
   description: "Triggers when a new customer registers."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow when a new customer is registered in Shopify."
+    usage_context: "Use to trigger onboarding sequences, update internal CRMs, or send welcome gifts."
+    agent_hints:
+      - "Provides the full customer object, including email, name, and marketing preferences."
+    waml_examples:
+      - title: "Welcome Sequence"
+        waml: |
+          - step: on_customer
+            type: trigger
+            call: shopify.trigger.customers.new
 
 interface:
   inputs: []

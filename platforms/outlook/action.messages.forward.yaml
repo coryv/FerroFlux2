@@ -5,8 +5,23 @@ meta:
   category: Messages
   type: Action
   platform: outlook
-  description: "Forward a specific message to new recipients."
+  description: "Forwards an email message to one or more recipients."
   version: "1.0.0"
+  discovery:
+    purpose: "Share incoming information, process alerts, or escalate support emails to the relevant team members."
+    usage_context: "Use this to automate information sharing when an email matches specific criteria (e.g. 'Project Alpha' keywords)."
+    agent_hints:
+      - "Requires 'id' (message_id) and 'toRecipients' array."
+      - "The 'comment' parameter adds a note before the forwarded content."
+    waml_examples:
+      - title: "Forward Alert"
+        waml: |
+          - step: pass_it
+            call: outlook.action.messages.forward
+            with:
+               id: "AAMk..."
+               toRecipients: [{ emailAddress: { address: "dev@acme.com" } }]
+               comment: "Please look into this server alert."
 
 interface:
   inputs:

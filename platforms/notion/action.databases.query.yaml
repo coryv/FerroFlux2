@@ -7,6 +7,20 @@ meta:
   platform: notion
   description: "Gets a list of Pages contained in the database, filtered and ordered according to the request."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve or search for pages within a specific Notion database."
+    usage_context: "Use to fetch task lists, employee directories, or content calendars for automated reporting or synchronization."
+    agent_hints:
+      - "Requires a database_id."
+      - "Supports complex filtering and sorting based on database properties."
+    waml_examples:
+      - title: "Query Tasks"
+        waml: |
+          - step: fetch_tasks
+            call: notion.action.databases.query
+            with:
+               database_id: "acb123456789"
+               filter: { "property": "Status", "select": { "equals": "Done" } }
 
 interface:
   inputs:

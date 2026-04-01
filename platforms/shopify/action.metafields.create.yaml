@@ -7,6 +7,23 @@ meta:
   platform: shopify
   description: "Creates a new Metafield for a resource."
   version: "1.0.0"
+  discovery:
+    purpose: "Store custom data (metafields) on a Shopify resource (order, product, customer)."
+    usage_context: "Use to store external IDs, custom preferences, or additional context required for third-party integrations."
+    agent_hints:
+      - "Requires owner_id, owner_resource, namespace, key, and value."
+    waml_examples:
+      - title: "Store External ID"
+        waml: |
+          - step: save_meta
+            call: shopify.action.metafields.create
+            with:
+               owner_id: "543216789"
+               owner_resource: "order"
+               namespace: "external_sync"
+               key: "erp_id"
+               value: "ERP-999"
+               type: "single_line_text_field"
 
 interface:
   inputs:

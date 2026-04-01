@@ -5,8 +5,22 @@ meta:
   category: Tasks
   type: Action
   platform: clickup
-  description: "Add a comment to a specified task."
+  description: "Adds a comment to a ClickUp task."
   version: "1.0.0"
+  discovery:
+    purpose: "Communicate updates and provide context on a task."
+    usage_context: "Use this to log progress, notify team members of results, or record completion details within the task's history."
+    agent_hints:
+      - "Requires the Task ID."
+      - "Supports plain text for the 'comment_text'."
+    waml_examples:
+      - title: "Post Status Update"
+        waml: |
+          - step: say_it
+            call: clickup.action.tasks.add_comment
+            with:
+               task_id: "862..."
+               comment_text: "Processing complete. Please check the results."
 
 interface:
   inputs:

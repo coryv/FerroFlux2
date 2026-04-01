@@ -6,6 +6,24 @@ meta:
   platform: mongodb
   description: "Updates documents matching a filter in a collection. Automatically participates in any active session for the current flow."
   version: "1.0.0"
+  discovery:
+    purpose: "Modify one or more documents in a MongoDB collection based on a filter."
+    usage_context: "Use to update user profile fields, change order status, or increment counters in a real-time analytics collection."
+    agent_hints:
+      - "Uses standard MongoDB update ($set, $inc) syntax."
+      - "Requires a filter (to identify target docs) and an update object."
+    waml_examples:
+      - title: "Update Status"
+        waml: |
+          - step: update
+            call: mongodb.action.document.update
+            with:
+               database: "prod"
+               collection: "orders"
+               filter: { "order_id": "123" }
+               update: { "$set": { "status": "shipped" } }
+               upsert: false
+               multi: true
 
 interface:
   inputs:

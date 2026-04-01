@@ -6,6 +6,12 @@ meta:
   category: Productivity
   description: "Connects to the Atlassian Confluence Cloud REST API v2."
   version: "1.0.0"
+  discovery:
+    purpose: "Collaborate on and manage wiki-style documentation and knowledge bases in Atlassian Confluence."
+    usage_context: "Use this to automate documentation updates, synchronize project requirements, and manage internal wiki content."
+    agent_hints:
+      - "Requires an Atlassian Cloud domain and OAuth2 authentication."
+      - "Uses Confluence REST API v2 (Atlassian Document Format for content)."
 
 config:
   base_url: >

@@ -5,8 +5,21 @@ meta:
   category: Checklists
   type: Action
   platform: trello
-  description: "Adds an item to a checklist."
+  description: "Adds a new item to an existing Trello checklist."
   version: "1.0.0"
+  discovery:
+    purpose: "Add a specific checkbox item to a checklist."
+    usage_context: "Use this to populate checklists with specific steps or requirements discovered during a workflow."
+    agent_hints:
+      - "Requires the checklist ID ('id')."
+    waml_examples:
+      - title: "Add Checklist Item"
+        waml: |
+          - step: add_todo
+            call: trello.action.checklists.addItem
+            with:
+               id: "65b..."
+               name: "Test on iOS"
 
 interface:
   inputs:

@@ -4,8 +4,25 @@ meta:
   category: Users
   type: Action
   platform: segment
-  description: "Tie a user to their actions and record traits about them."
+  description: "Sends an 'identify' event to Segment to create or update a user profile."
   version: "1.0.0"
+  discovery:
+    purpose: "Associate a user with their traits and a unique ID."
+    usage_context: "Use this when a user signs up, logs in, or updates their profile. It links an 'anonymousId' to a permanent 'userId' and maps custom traits like name, email, or plan type."
+    agent_hints:
+      - "The 'traits' JSON object should contain descriptive user data."
+      - "Always include 'email' if available to enable cross-platform identity resolution."
+    waml_examples:
+      - title: "Identify New User"
+        waml: |
+          - step: sync_user
+            call: segment.action.users.identify
+            with:
+               userId: "user_456"
+               traits:
+                 name: "Bob Builder"
+                 email: "bob@example.com"
+                 plan: "premium"
   permissions:
     - "network:api.segment.io"
 

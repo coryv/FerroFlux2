@@ -7,6 +7,20 @@ meta:
   platform: confluence
   description: "Create a new page in a Confluence space."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a new page in a specific Confluence space."
+    usage_context: "Use to generate project status reports, documentation from code templates, or meeting minute summaries."
+    agent_hints:
+      - "Requires spaceId, title, and body content."
+    waml_examples:
+      - title: "Create Report Page"
+        waml: |
+          - step: write_page
+            call: confluence.action.pages.create
+            with:
+               spaceId: "543216789"
+               title: "Monthly Project Report"
+               body: "<h1>Report</h1><p>Status: Green</p>"
 
 interface:
   inputs:

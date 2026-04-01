@@ -5,8 +5,21 @@ meta:
   category: Files
   type: Action
   platform: onedrive
-  description: "List files and folders in a OneDrive directory."
+  description: "Lists the contents of a Microsoft OneDrive folder."
   version: "1.0.0"
+  discovery:
+    purpose: "Browse files and folders in a specific OneDrive path."
+    usage_context: "Use this to find files to process, check for new uploads, or audit directory structures. Ideal for starting a Microsoft-centric file automation."
+    agent_hints:
+      - "Path must start with a '/' or be empty for the root folder."
+      - "Returns a list of drive items (id, name, webUrl, etc.)."
+    waml_examples:
+      - title: "List Shared Documents"
+        waml: |
+          - step: browse_docs
+            call: onedrive.action.files.list
+            with:
+               path: "/Documents/Shared"
 
 interface:
   inputs:

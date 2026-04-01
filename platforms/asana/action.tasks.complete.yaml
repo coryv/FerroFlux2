@@ -5,8 +5,22 @@ meta:
   category: Tasks
   type: Action
   platform: asana
-  description: "Marks a task as completed."
+  description: "Marks an Asana task as completed."
   version: "1.0.0"
+  discovery:
+    purpose: "Change a task's status to 'Completed' in the project tracking."
+    usage_context: "Use this to close out work items after a workflow successfully finishes a process, such as sending an invoice or processing a file."
+    agent_hints:
+      - "Requires the 'task_gid'."
+      - "Note that completing a task may trigger other automated workflows in Asana."
+    waml_examples:
+      - title: "Close Task"
+        waml: |
+          - step: finish_task
+            call: asana.action.tasks.complete
+            with:
+               task_gid: "1202..."
+               completed: true
 
 interface:
   inputs:

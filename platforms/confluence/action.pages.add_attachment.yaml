@@ -7,6 +7,21 @@ meta:
   platform: confluence
   description: "Add a file attachment to a Confluence page."
   version: "1.0.0"
+  discovery:
+    purpose: "Upload a file as an attachment to a specific Confluence page."
+    usage_context: "Use to attach PDF reports, images, or log files generated during a workflow to relevant project documentation."
+    agent_hints:
+      - "Requires pageId and a file object (URL or file stream)."
+    waml_examples:
+      - title: "Attach Report"
+        waml: |
+          - step: upload
+            call: confluence.action.pages.add_attachment
+            with:
+               pageId: "123456789"
+               file: steps.generate_pdf.output
+               comment: "Daily automated report."
+               minorEdit: true
 
 interface:
   inputs:

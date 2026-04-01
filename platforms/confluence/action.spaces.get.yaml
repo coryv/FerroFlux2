@@ -7,6 +7,19 @@ meta:
   platform: confluence
   description: "Retrieve details for a specific Confluence space."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve detailed metadata for a specific Confluence space."
+    usage_context: "Use this to verify space keys, check space permissions, or fetch space-specific settings."
+    agent_hints:
+      - "Requires a spaceId."
+      - "Returns the full space object."
+    waml_examples:
+      - title: "Get Space Info"
+        waml: |
+          - step: fetch_space
+            call: confluence.action.spaces.get
+            with:
+               spaceId: "123456789"
 
 interface:
   inputs:

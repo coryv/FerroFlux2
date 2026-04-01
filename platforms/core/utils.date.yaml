@@ -6,6 +6,20 @@ meta:
   platform: core
   description: "Parse, format, diff, and timezone conversion for dates."
   version: "1.0.0"
+  discovery:
+    purpose: "Format, parse, and manipulate date and time strings."
+    usage_context: "Use to standardize timestamps for logging, calculate deadlines, or convert user-friendly dates into ISO formats."
+    agent_hints:
+      - "Supports standard strftime formatting."
+    waml_examples:
+      - title: "Format Now"
+        waml: |
+          - step: log_date
+            call: core.utils.date
+            with:
+               action: "format"
+               date: "${now()}"
+               format: "%Y-%m-%d %H:%M:%S"
 
 interface:
   inputs:

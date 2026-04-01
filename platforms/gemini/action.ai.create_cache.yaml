@@ -5,8 +5,23 @@ meta:
   category: AI
   type: Action
   platform: gemini
-  description: "Create a context cache for long-running conversations to reduce tokens and improve speed."
+  description: "Creates a new context cache for large datasets."
   version: "1.0.0"
+  discovery:
+    purpose: "Store large amounts of data (e.g. documentation, codebases, video) in Gemini's infrastructure for rapid, cost-effective reuse."
+    usage_context: "Use this when you have a large 'static' context that will be referenced across multiple generation calls. Reduces latency and per-token costs."
+    agent_hints:
+      - "Requires a 'model' (e.g. 'gemini-1.5-pro-002')."
+      - "Caches have a TTL (Time To Live); check 'ttl' and 'expireTime' parameters."
+    waml_examples:
+      - title: "Cache Technical Docs"
+        waml: |
+          - step: mk_cache
+            call: gemini.action.ai.create_cache
+            with:
+               model: "models/gemini-1.5-pro-002"
+               contents:
+                  - parts: [{ text: "Full API Documentation..." }]
 
 interface:
   inputs:

@@ -5,8 +5,22 @@ meta:
   category: Deals
   type: Trigger
   platform: hubspot
-  description: "Polls HubSpot CRM for recently updated deals."
+  description: "Triggers when an existing HubSpot deal is modified."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a deal's stage, amount, or close date changes."
+    usage_context: "Use this to notify sales managers of large deal closings, update external revenue forecast systems, or alert team members of lost deals."
+    agent_hints:
+      - "Reacts to any change in the selected 'properties'."
+      - "Note that 'dealstage' changes are the most common trigger for this node."
+    waml_examples:
+      - title: "Notify on Deal Win"
+        waml: |
+          trigger:
+            deal_won:
+               call: hubspot.trigger.deals.updated
+               with:
+                  properties: ["dealstage", "amount"]
 
 interface:
   inputs: []

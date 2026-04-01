@@ -6,6 +6,11 @@ meta:
   category: Productivity
   description: "Connects to the Microsoft Excel API."
   version: "1.0.0"
+  discovery:
+    purpose: "Interact with Excel workbooks and sheets for data management and reporting."
+    usage_context: "Use to automate data entry into shared spreadsheets, extract quarterly reports, or synchronize business data from external sources."
+    agent_hints:
+      - "Requires OAuth2 authentication and a drive_id/item_id."
 
 config:
   base_url: "https://graph.microsoft.com/v1.0"

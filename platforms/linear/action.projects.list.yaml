@@ -5,8 +5,21 @@ meta:
   category: Projects
   type: Action
   platform: linear
-  description: "Lists all projects in Linear using GraphQL."
+  description: "Lists projects available in your Linear workspace."
   version: "1.0.0"
+  discovery:
+    purpose: "Browse and identify projects for organizing issues and roadmaps."
+    usage_context: "Use this to starting a project-specific automation, find a project's UUID by its name, or audit project health."
+    agent_hints:
+      - "Returns a list of projects with their names, UUIDs, and statuses."
+      - "You can filter and sort results using GraphQL-style fragments."
+    waml_examples:
+      - title: "List Projects"
+        waml: |
+          - step: get_projs
+            call: linear.action.projects.list
+            with:
+               first: 20
 
 interface:
   inputs:

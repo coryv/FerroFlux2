@@ -6,6 +6,12 @@ meta:
   category: AI/ML
   description: "Connects to the OpenAI API for chat completions, embeddings, and more."
   version: "1.0.0"
+  discovery:
+    purpose: "Access state-of-the-art language models (GPT-4o), image generation (DALL-E 3), and text-to-speech."
+    usage_context: "Use this for complex reasoning, natural language understanding, and general-purpose intelligence across all business domains."
+    agent_hints:
+      - "Defaults to GPT-4o-mini for efficiency but supports O1 for deep reasoning."
+      - "Tokens are charged per request/response; keep system prompts concise."
 
 config:
   base_url: "https://api.openai.com/v1"

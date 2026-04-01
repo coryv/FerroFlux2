@@ -7,6 +7,21 @@ meta:
   platform: google_sheets
   description: "Apply formatting to a cell range using Google Sheets batchUpdate. Supports background color, bold, italic, font size, and text alignment."
   version: "1.0.0"
+  discovery:
+    purpose: "Apply visual formatting (colors, fonts, borders) to cells in a Google Sheet."
+    usage_context: "Use to highlight overdue tasks in red, format headers, or improve report readability."
+    agent_hints:
+      - "Requires a Spreadsheet ID, Sheet ID, and cell range."
+    waml_examples:
+      - title: "Highlight Row"
+        waml: |
+          - step: highlight
+            call: google_sheets.action.sheets.format_cells
+            with:
+               spreadsheet_id: "12345abcdefg"
+               sheet_id: 0
+               range: "A1:Z1"
+               background_color: { red: 1.0, green: 0.9, blue: 0.9 }
 
 interface:
   inputs:

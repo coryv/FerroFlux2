@@ -4,8 +4,23 @@ meta:
   category: Database
   type: Action
   platform: mysql
-  description: "Retrieve rows from a MySQL table."
+  description: "Executes a SELECT query against a MySQL database."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve rows from a database table using SQL."
+    usage_context: "Use this to fetch records for processing, such as getting a list of pending orders or looking up a user's details. Supports parameterized queries for security."
+    agent_hints:
+      - "The 'query' must be valid MySQL SQL (e.g., uses backticks for identifiers)."
+      - "The 'params' array matches the '?' placeholders in your query in order."
+      - "Returns an array of objects where keys are column names."
+    waml_examples:
+      - title: "Fetch Active Users"
+        waml: |
+          - step: get_users
+            call: mysql.action.rows.select
+            with:
+               query: "SELECT id, email FROM `users` WHERE `status` = ?"
+               params: ["active"]
 
 interface:
   inputs:

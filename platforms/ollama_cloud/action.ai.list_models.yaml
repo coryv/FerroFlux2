@@ -7,6 +7,16 @@ meta:
   platform: ollama_cloud
   description: "List all models available on the Ollama Cloud instance."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve a list of all locally and cloud-available models in the Ollama instance."
+    usage_context: "Use to dynamically discover which open-source models (e.g. Llama 3, Mistral, CodeLlama) are installed and ready for inference."
+    agent_hints:
+      - "Returns an array of model objects with names and sizes."
+    waml_examples:
+      - title: "List Models"
+        waml: |
+          - step: get_models
+            call: ollama_cloud.action.ai.list_models
 
 interface:
   inputs:

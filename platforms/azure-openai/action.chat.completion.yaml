@@ -7,6 +7,21 @@ meta:
   platform: azure-openai
   description: "Generate a chat completion using an Azure OpenAI deployment."
   version: "1.0.0"
+  discovery:
+    purpose: "Generate text completions and conversational responses using Azure-hosted OpenAI models."
+    usage_context: "Use to build enterprise AI assistants, summarize internal documents, or automate customer service emails."
+    agent_hints:
+      - "Requires a 'deployment_name' for the specific GPT model in Azure."
+    waml_examples:
+      - title: "Summarize Text"
+        waml: |
+          - step: summarize
+            call: azure-openai.action.chat.completion
+            with:
+               deployment_name: "gpt-4-summarizer"
+               messages:
+                 - role: "user"
+                   content: "Summarize this: ${inputs.long_content}"
 
 interface:
   inputs:

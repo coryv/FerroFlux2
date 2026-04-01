@@ -7,6 +7,23 @@ meta:
   platform: stripe
   description: "Creates a new customer."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a new customer profile in Stripe."
+    usage_context: "Use to store billing details and personal information for users before processing charges or subscriptions."
+    agent_hints:
+      - "Requires email and name."
+      - "Returns a Stripe customer object."
+    waml_examples:
+      - title: "Register Customer"
+        waml: |
+          - step: register
+            call: stripe.action.customers.create
+            with:
+               email: "john.doe@example.com"
+               name: "John Doe"
+               description: "New user from FerroFlux"
+               phone: "+15550000000"
+               balance: 0
 
 interface:
   inputs:

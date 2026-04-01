@@ -6,6 +6,12 @@ meta:
   category: Project Management
   description: "Manage tasks, lists, and folders on ClickUp using the REST API."
   version: "1.0.0"
+  discovery:
+    purpose: "Highly customizable project management and productivity tool."
+    usage_context: "Use ClickUp for advanced task management that requires custom statuses, nested folders, and detailed time tracking. Best for complex team workflows."
+    agent_hints:
+      - "Uses Team/ID, Space/ID, and List/ID for hierarchy."
+      - "Numeric IDs are common for tasks and lists."
 
 config:
   base_url: "https://api.clickup.com/api/v2"

@@ -4,8 +4,21 @@ meta:
   category: Errors
   type: Action
   platform: sentry
-  description: "Mark an issue as resolved."
+  description: "Resolves a specific Sentry issue."
   version: "1.0.0"
+  discovery:
+    purpose: "Mark an error as resolved to clear alerts and signal bug fixes."
+    usage_context: "Use this to automate issue management when a corresponding bug is fixed (e.g. after a successful GitHub Merge or CI/CD deployment)."
+    agent_hints:
+      - "Requires the 'issue_id' (numeric string)."
+      - "Transitions the issue status to 'resolved'."
+    waml_examples:
+      - title: "Resolve Fixed Bug"
+        waml: |
+          - step: fix_it
+            call: sentry.action.issues.resolve
+            with:
+               issue_id: "123456"
   permissions:
     - "network:sentry.io"
 

@@ -7,6 +7,19 @@ meta:
   platform: zendesk
   description: "Lists all tickets."
   version: "1.0.0"
+  discovery:
+    purpose: "Search and retrieve a list of Zendesk support tickets."
+    usage_context: "Use to fetch unsolved tickets, generate support reports, or find tasks assigned to specific groups."
+    agent_hints:
+      - "Returns an array of ticket objects (subject, status, priority)."
+    waml_examples:
+      - title: "List Open Tickets"
+        waml: |
+          - step: get_tickets
+            call: zendesk.action.tickets.list
+            with:
+               status: "open"
+               limit: 20
 
 interface:
   inputs:

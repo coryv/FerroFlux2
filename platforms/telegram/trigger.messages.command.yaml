@@ -7,6 +7,19 @@ meta:
   platform: telegram
   description: "Polls for specific bot commands (e.g. /start)."
   version: "1.0.0"
+  discovery:
+    purpose: "Trigger a workflow when a specific bot command is received."
+    usage_context: "Use to handle user commands like /help, /start, or custom commands for bot interactions."
+    agent_hints:
+      - "The command is matched from the beginning of the message (e.g., /start)."
+    waml_examples:
+      - title: "Start Command"
+        waml: |
+          - step: on_start
+            type: trigger
+            call: telegram.trigger.messages.command
+            settings:
+               command: "start"
 
 interface:
   inputs: []

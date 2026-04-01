@@ -5,8 +5,22 @@ meta:
   category: Folders
   type: Trigger
   platform: clickup
-  description: "Polls for new folders within a specific Space."
+  description: "Triggers when a new folder is created in a ClickUp space."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a new project container (folder) is added."
+    usage_context: "Use this to automate folder-level setup, notify managers of new projects, or sync folder metadata to an archive."
+    agent_hints:
+      - "Polls the space for new folders based on the 'date_created'."
+      - "Requires the numeric 'space_id'."
+    waml_examples:
+      - title: "Notify on New Folder"
+        waml: |
+          trigger:
+            new_folder:
+               call: clickup.trigger.folders.new
+               with:
+                  space_id: "123456"
 
 interface:
   inputs: []

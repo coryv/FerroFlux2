@@ -5,8 +5,22 @@ meta:
   category: Items
   type: Trigger
   platform: monday
-  description: "Polls for new items on a specified board."
+  description: "Triggers when a new item is created on a Monday.com board."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a new row is added to a Monday project board."
+    usage_context: "Use this to notify team members on Slack, sync new records to an external DB, or initiate a task-specific onboarding flow."
+    agent_hints:
+      - "Polls the board for new items based on the 'created_at' timestamp."
+      - "Requires the numeric 'board_id'."
+    waml_examples:
+      - title: "Process New Request"
+        waml: |
+          trigger:
+            new_row:
+               call: monday.trigger.items.new
+               with:
+                  board_id: "1234567"
 
 interface:
   inputs: []

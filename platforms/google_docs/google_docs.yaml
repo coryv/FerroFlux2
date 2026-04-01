@@ -6,6 +6,12 @@ meta:
   category: Documents
   description: "Connects to the Google Docs API."
   version: "1.0.0"
+  discovery:
+    purpose: "Create and edit cloud-based documents (Google Docs)."
+    usage_context: "Use to automate the generation of contracts, meeting notes, and reports from structured data, or to extract content from existing documents for AI analysis."
+    agent_hints:
+      - "Requires OAuth2 authentication."
+      - "Note that Google Docs uses unique document IDs."
 
 config:
   base_url: "https://docs.googleapis.com/v1/documents"

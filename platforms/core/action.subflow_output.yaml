@@ -7,6 +7,19 @@ meta:
   platform: core
   description: "Returns data to the parent workflow and ends the sub-workflow."
   version: "1.0.0"
+  discovery:
+    purpose: "Define the return values for a subflow."
+    usage_context: "Use at the end of a subflow to pass results back to the parent workflow."
+    agent_hints:
+      - "The input values are emitted to the Success port of the subflow step in the parent."
+    waml_examples:
+      - title: "Return User Data"
+        waml: |
+          - step: output
+            call: core.action.subflow_output
+            with:
+              user: steps.get_user.body
+              status: "active"
 
 interface:
   inputs:

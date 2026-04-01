@@ -7,6 +7,19 @@ meta:
   platform: shopify
   description: "Creates a new PriceRule (Discount)."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a discount code in Shopify."
+    usage_context: "Use to generate promotional codes for marketing campaigns or as concessions for customer support."
+    agent_hints:
+      - "Requires a code and a price_rule_id."
+    waml_examples:
+      - title: "Create Promo Code"
+        waml: |
+          - step: promo
+            call: shopify.action.discounts.create
+            with:
+               price_rule_id: "765432109"
+               code: "WELCOME-10"
 
 interface:
   inputs:

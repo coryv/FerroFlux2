@@ -5,8 +5,24 @@ meta:
   category: Deals
   type: Action
   platform: hubspot
-  description: "Create a new deal."
+  description: "Creates a new deal in HubSpot CRM."
   version: "1.0.0"
+  discovery:
+    purpose: "Add a new sales opportunity to a pipeline."
+    usage_context: "Use this to track new business, manage renewals, or log representative sales activity. Requires 'dealname' and 'pipeline'."
+    agent_hints:
+      - "Note that 'dealstage' and 'pipeline' must match internal HubSpot IDs (use the metadata API to find these)."
+      - "Custom properties like 'amount', 'close_date', and 'deal_owner' can also be provided."
+    waml_examples:
+      - title: "Create New Deal"
+        waml: |
+          - step: log_deal
+            call: hubspot.action.deals.create
+            with:
+               properties:
+                 dealname: "Acme Q2 Expansion"
+                 dealstage: "appointmentscheduled"
+                 amount: 5000
 
 interface:
   inputs:

@@ -7,6 +7,19 @@ meta:
   platform: confluence
   description: "Add a comment to a specific Confluence page."
   version: "1.0.0"
+  discovery:
+    purpose: "Add a comment to an existing Confluence page."
+    usage_context: "Use to provide feedback on documentation, log automated system notes, or facilitate team collaboration on wiki pages."
+    agent_hints:
+      - "Requires pageId and comment body content."
+    waml_examples:
+      - title: "Post Page Comment"
+        waml: |
+          - step: note
+            call: confluence.action.comments.add
+            with:
+               pageId: "123456789"
+               body: "<p>New requirements reviewed.</p>"
 
 interface:
   inputs:

@@ -5,8 +5,23 @@ meta:
   category: Items
   type: Action
   platform: monday
-  description: "Update multiple column values for a specified item."
+  description: "Updates multiple column values for an item on a Monday board."
   version: "1.0.0"
+  discovery:
+    purpose: "Modify existing data on a board item."
+    usage_context: "Use this to sync multiple fields at once, update task statuses, or record external system outcomes back into Monday."
+    agent_hints:
+      - "Requires 'board_id', 'item_id', and 'column_values'."
+      - "The 'column_values' parameter must be a JSON string-encoded object of column IDs and values."
+    waml_examples:
+      - title: "Sync Record Changes"
+        waml: |
+          - step: sync_field
+            call: monday.action.items.update
+            with:
+               board_id: "1234567"
+               item_id: "890..."
+               column_values: '{"status": {"label": "Done"}, "text": "Sync completed"}'
 
 interface:
   inputs:

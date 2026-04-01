@@ -3,8 +3,14 @@ meta:
   name: Mistral
   type: Platform
   category: AI/ML
-  description: "Connects to the Mistral AI API."
+  description: "European high-performance AI models for developers."
   version: "1.0.0"
+  discovery:
+    purpose: "Access Mistral Large and Pixtral models with strong reasoning and multi-lingual support."
+    usage_context: "Great alternative to GPT models for enterprise-grade reasoning and localized AI tasks."
+    agent_hints:
+      - "Strong performance in French and other European languages."
+      - "Often more cost-effective for medium-complexity tasks."
   permissions:
     - "network:api.mistral.ai"
 

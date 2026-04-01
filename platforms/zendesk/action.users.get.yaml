@@ -7,6 +7,19 @@ meta:
   platform: zendesk
   description: "Gets user details."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve detailed profile information for a specific Zendesk user."
+    usage_context: "Use this to verify customer identity, fetch contact details, or check user roles."
+    agent_hints:
+      - "Requires the user_id."
+      - "Returns the full user object including contact info and tags."
+    waml_examples:
+      - title: "Get User Info"
+        waml: |
+          - step: fetch_user
+            call: zendesk.action.users.get
+            with:
+               user_id: 12345
 
 interface:
   inputs:

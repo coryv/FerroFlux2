@@ -5,8 +5,23 @@ meta:
   category: AI
   type: Action
   platform: gemini
-  description: "Generate a response from a Gemini model using a single text prompt."
+  description: "Generates text or multimodal content from a prompt."
   version: "1.0.0"
+  discovery:
+    purpose: "Perform single-turn generation for text, code, or data analysis."
+    usage_context: "Use this for summarization, translation, code generation, and analyzing complex documents or media."
+    agent_hints:
+      - "Supports up to 1M+ tokens context window in 1.5 Pro."
+      - "Use 'generationConfig' for temperature and top-p settings."
+    waml_examples:
+      - title: "Generate Summary"
+        waml: |
+          - step: summarize
+            call: gemini.action.ai.generate_content
+            with:
+               model: "gemini-1.5-pro"
+               contents:
+                  - parts: [{ text: "Summarize this 100-page PDF." }]
 
 interface:
   inputs:

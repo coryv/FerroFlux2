@@ -4,8 +4,24 @@ meta:
   category: LLM
   type: Action
   platform: mistral
-  description: "Generate text using Mistral models."
+  description: "Creates a model response using Mistral AI's inference."
   version: "1.0.0"
+  discovery:
+    purpose: "Generate text, reasoning, or code responses from Mistral's high-performance models (Large, NeMo, Pixtral)."
+    usage_context: "Use this as a powerful alternative to GPT-4 for complex reasoning, creative tasks, and multi-lingual processing."
+    agent_hints:
+      - "Specify the 'model' (e.g. 'mistral-large-latest')."
+      - "Supports system prompts and tool calling in supported models."
+    waml_examples:
+      - title: "Mistral Reasoning"
+        waml: |
+          - step: ask_mistral
+            call: mistral.action.chat.completion
+            with:
+               model: "mistral-large-latest"
+               messages:
+                  - role: "user"
+                    content: "Evaluate the pros and cons of microservices."
   permissions:
     - "network:api.mistral.ai"
 

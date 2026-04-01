@@ -5,8 +5,20 @@ meta:
   category: Tasks
   type: Action
   platform: clickup
-  description: "Delete a specified task."
+  description: "Permanently deletes a ClickUp task."
   version: "1.0.0"
+  discovery:
+    purpose: "Remove a task from the list and archive it."
+    usage_context: "Use this to clean up temporary tasks or remove duplicate work items. Use with caution as this is irreversible."
+    agent_hints:
+      - "Requires the Task ID."
+    waml_examples:
+      - title: "Cleanup Tasks"
+        waml: |
+          - step: rm_task
+            call: clickup.action.tasks.delete
+            with:
+               task_id: "862..."
 
 interface:
   inputs:

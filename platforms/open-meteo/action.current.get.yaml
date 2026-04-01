@@ -7,6 +7,19 @@ meta:
   platform: open-meteo
   description: "Fetch current weather conditions for a given latitude and longitude, including temperature, wind, and precipitation."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve the current weather conditions for a specific location."
+    usage_context: "Use to check temperature, weather code, and wind speed now."
+    agent_hints:
+      - "Requires latitude and longitude."
+    waml_examples:
+      - title: "Check Current Temp"
+        waml: |
+          - step: weather
+            call: open-meteo.action.current.get
+            with:
+               latitude: 37.7749
+               longitude: -122.4194
   data_strategy: enrich
 
 interface:

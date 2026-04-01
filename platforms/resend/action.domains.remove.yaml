@@ -7,6 +7,19 @@ meta:
   platform: resend
   description: "Delete a domain from your Resend account by its ID."
   version: "1.0.0"
+  discovery:
+    purpose: "Permanently delete a domain from the Resend account."
+    usage_context: "Use to decommission old sender identities or cleanup sandbox environments."
+    agent_hints:
+      - "Requires a domain_id."
+      - "Deletion is immediate and irreversible."
+    waml_examples:
+      - title: "Remove Domain"
+        waml: |
+          - step: delete
+            call: resend.action.domains.remove
+            with:
+               domain_id: "71a3999c-5117-406b-8253-91f1b9dc1031"
 
 interface:
   inputs:

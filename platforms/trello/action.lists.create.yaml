@@ -5,8 +5,21 @@ meta:
   category: Lists
   type: Action
   platform: trello
-  description: "Creates a list on a board."
+  description: "Creates a new list on a Trello board."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a container for cards within a specific project board."
+    usage_context: "Use this to automate list creation for new project phases, sprints, or client onboarding checklists."
+    agent_hints:
+      - "Requires the board ID ('idBoard') and a 'name'."
+    waml_examples:
+      - title: "Create Task List"
+        waml: |
+          - step: mk_list
+            call: trello.action.lists.create
+            with:
+               idBoard: "65e..."
+               name: "Backlog"
 
 interface:
   inputs:

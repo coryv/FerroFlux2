@@ -5,8 +5,21 @@ meta:
   category: Issues
   type: Trigger
   platform: linear
-  description: "Fires when a Linear issue is updated via inbound webhook. Real-time alternative to the polling trigger."
+  description: "Triggers in real-time when an existing Linear issue is modified (webhook)."
   version: "1.0.0"
+  discovery:
+    purpose: "React instantly to status changes, assignments, or priority updates in Linear."
+    usage_context: "Use this for immediate Slack updates on issue progress or to trigger CI/CD pipelines when an issue is moved to a specific status."
+    agent_hints:
+      - "Requires a webhook URL to be configured in Linear."
+      - "Provides the 'before' and 'after' state for detected changes."
+    waml_examples:
+      - title: "Immediate Status Update"
+        waml: |
+          trigger:
+            issue_change:
+               call: linear.trigger.issues.updated.webhook
+               with: {}
 
 interface:
   inputs: []

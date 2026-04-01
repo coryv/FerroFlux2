@@ -5,8 +5,24 @@ meta:
   category: Emails
   type: Action
   platform: resend
-  description: "Send a single email via Resend."
+  description: "Sends a transactional email via Resend."
   version: "1.0.0"
+  discovery:
+    purpose: "Send high-deliverability emails (welcome, notifications, resets) using a modern, developer-friendly API."
+    usage_context: "Use this for programmatic outbound communication, automated alerts, and professional customer engagement."
+    agent_hints:
+      - "Specify 'from', 'to', 'subject', and 'html' or 'text' content."
+      - "Supports custom 'headers' and 'tags' for tracking."
+    waml_examples:
+      - title: "Send Welcome Email"
+        waml: |
+          - step: say_hello
+            call: resend.action.emails.send
+            with:
+               from: "Acme <onboarding@acme.com>"
+               to: ["user@example.com"]
+               subject: "Welcome to Acme!"
+               html: "<strong>Ready to get started?</strong>"
 
 interface:
   inputs:

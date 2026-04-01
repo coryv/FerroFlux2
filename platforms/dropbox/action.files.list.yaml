@@ -5,8 +5,21 @@ meta:
   category: Files
   type: Action
   platform: dropbox
-  description: "List files and folders in a Dropbox directory."
+  description: "Lists the contents of a Dropbox folder."
   version: "1.0.0"
+  discovery:
+    purpose: "Browse files and folders in a specific Dropbox path."
+    usage_context: "Use this to find files to process, check for new uploads, or audit directory structures. Ideal for starting a file-based automation."
+    agent_hints:
+      - "Path must start with a '/' or be empty for the root folder."
+      - "Returns a 'cursor' if more entries are available (not fully implemented in this node version)."
+    waml_examples:
+      - title: "List Reports Folder"
+        waml: |
+          - step: browse_reports
+            call: dropbox.action.files.list
+            with:
+               path: "/Reports"
 
 interface:
   inputs:

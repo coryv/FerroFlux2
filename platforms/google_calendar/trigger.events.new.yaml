@@ -7,6 +7,19 @@ meta:
   platform: google_calendar
   description: "Polls a Google Calendar for newly created events."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow when a new event is created on a Google Calendar."
+    usage_context: "Use to notify team members in Slack, update client dashboards, or prepare for upcoming meetings automatically."
+    agent_hints:
+      - "Polls for recently created events in the specified calendar."
+    waml_examples:
+      - title: "Meeting Prep"
+        waml: |
+          - step: on_new_event
+            type: trigger
+            call: google_calendar.trigger.events.new
+            settings:
+               calendar_id: "primary"
 
 interface:
   inputs: []

@@ -7,6 +7,21 @@ meta:
   platform: dropbox
   description: "Upload a file to Dropbox."
   version: "1.0.0"
+  discovery:
+    purpose: "Upload a file from the local environment or a remote URL to Dropbox storage."
+    usage_context: "Use to back up generated reports, save user-submitted assets, or migrate data from other cloud storage platforms."
+    agent_hints:
+      - "Requires a path (e.g. '/uploads/report.pdf') and the file content."
+      - "Follows Dropbox's chunked upload protocol for large files."
+    waml_examples:
+      - title: "Upload PDF"
+        waml: |
+          - step: upload
+            call: dropbox.action.files.upload
+            with:
+               path: "/backups/report_${now()}.pdf"
+               content: "${steps.generate_pdf.output.blob}"
+               mode: "overwrite"
 
 interface:
   inputs:

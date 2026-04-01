@@ -7,6 +7,20 @@ meta:
   platform: shopify
   description: "Adjusts the inventory level of an item at a location."
   version: "1.0.0"
+  discovery:
+    purpose: "Adjust the inventory level of a product variant at a specific location."
+    usage_context: "Use to update stock levels based on warehouse receipts, manual audits, or external sales."
+    agent_hints:
+      - "Requires inventory_item_id, location_id, and available_adjustment amount."
+    waml_examples:
+      - title: "Restock Item"
+        waml: |
+          - step: restock
+            call: shopify.action.inventory.adjust
+            with:
+               inventory_item_id: "808950896"
+               location_id: "905684977"
+               available_adjustment: 10
 
 interface:
   inputs:

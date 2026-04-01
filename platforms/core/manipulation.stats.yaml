@@ -48,5 +48,18 @@ meta:
   type: Action
   platform: core
   version: 1.0.0
+  discovery:
+    purpose: "Calculate statistical metrics (mean, standard deviation, z-score) for numerical data in a collection."
+    usage_context: "Use to identify trends, averages, or anomalies in lists of items (e.g., historical sales or response times)."
+    agent_hints:
+      - "Requires a target numerical field within the collection items."
+    waml_examples:
+      - title: "Analyze Prices"
+        waml: |
+          - step: analyze_prices
+            call: core.manipulation.stats
+            with:
+              target_field: "price"
+              detect_outliers: true
 output_transform: null
 routing: null

@@ -7,6 +7,19 @@ meta:
   platform: google_sheets
   description: "Get properties and metadata of a spreadsheet."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve metadata for an entire Google Sheets spreadsheet."
+    usage_context: "Use to fetch sheet names, sheet IDs, formatting rules, or the spreadsheet title."
+    agent_hints:
+      - "Requires a Spreadsheet ID."
+      - "Returns the full spreadsheet object including metadata and sheet properties."
+    waml_examples:
+      - title: "Get Sheet Metadata"
+        waml: |
+          - step: fetch_meta
+            call: google_sheets.action.spreadsheets.get
+            with:
+               spreadsheet_id: "12345abcdefg"
 
 interface:
   inputs:

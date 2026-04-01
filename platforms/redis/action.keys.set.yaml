@@ -4,8 +4,22 @@ meta:
   category: Database
   type: Action
   platform: redis
-  description: "Set the value of a key in Redis."
+  description: "Sets the value of a single key in Redis."
   version: "1.0.0"
+  discovery:
+    purpose: "Store a value in the Redis in-memory cache."
+    usage_context: "Use this to save temporary state, cache API responses, or store tokens. Ideal for fast, short-term data persistence."
+    agent_hints:
+      - "If the key already exists, its value is overwritten."
+      - "Values are stored as strings by default."
+    waml_examples:
+      - title: "Cache User Session"
+        waml: |
+          - step: cache_session
+            call: redis.action.keys.set
+            with:
+               key: "session:user_456"
+               value: "active"
 
 interface:
   inputs:

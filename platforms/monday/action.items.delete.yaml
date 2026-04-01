@@ -5,8 +5,20 @@ meta:
   category: Items
   type: Action
   platform: monday
-  description: "Delete a specified item from a board."
+  description: "Permanently deletes an item from a Monday.com board."
   version: "1.0.0"
+  discovery:
+    purpose: "Remove an item from the board and workspace."
+    usage_context: "Use this to clean up temporary data, remove duplicates, or delete outdated records. Use with caution as this is irreversible."
+    agent_hints:
+      - "Requires the numeric 'item_id'."
+    waml_examples:
+      - title: "Delete Duplicate Record"
+        waml: |
+          - step: rm_row
+            call: monday.action.items.delete
+            with:
+               item_id: "890..."
 
 interface:
   inputs:

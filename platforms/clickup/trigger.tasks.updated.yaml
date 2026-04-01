@@ -5,8 +5,22 @@ meta:
   category: Tasks
   type: Trigger
   platform: clickup
-  description: "Polls for tasks that have been recently updated."
+  description: "Triggers when any property of a ClickUp task is modified."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a task's name, description, priority, or other fields change."
+    usage_context: "Use this for maintaining real-time data syncs between ClickUp and other tools, or for triggering notifications when important task details are updated."
+    agent_hints:
+      - "Polls for modifications across the specified list based on the 'date_updated' timestamp."
+      - "Requires the numeric 'list_id'."
+    waml_examples:
+      - title: "Sync Task Changes"
+        waml: |
+          trigger:
+            task_changed:
+               call: clickup.trigger.tasks.updated
+               with:
+                  list_id: "12345678"
 
 interface:
   inputs: []

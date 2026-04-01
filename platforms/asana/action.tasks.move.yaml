@@ -5,8 +5,24 @@ meta:
   category: Tasks
   type: Action
   platform: asana
-  description: "Moves a task to a different section."
+  description: "Moves an Asana task to a different section or project."
   version: "1.0.0"
+  discovery:
+    purpose: "Organize tasks within a project or move them to a different workflow container."
+    usage_context: "Use this to move tasks from 'In Progress' to 'Review' or to transition a task from a 'Marketing' project to a 'Legal' project."
+    agent_hints:
+      - "Requires the 'task_gid' to move."
+      - "You must specify 'project' and optionally 'section'."
+    waml_examples:
+      - title: "Move to Done Section"
+        waml: |
+          - step: move_it
+            call: asana.action.tasks.move
+            with:
+               task_gid: "1202..."
+               project: "1201..."
+               section: "1206..."
+               insert_after: "1207..."
 
 interface:
   inputs:

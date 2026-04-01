@@ -7,6 +7,19 @@ meta:
   platform: mailchimp
   description: "Gets information about a specific subscriber."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve detailed status and metadata for a specific subscriber in a Mailchimp list."
+    usage_context: "Use to verify a subscriber's current status (subscribed vs cleaned) before triggering automated emails or syncing data."
+    agent_hints:
+      - "Requires list_id and subscriber_hash (MD5 of email address)."
+    waml_examples:
+      - title: "Check Subscriber"
+        waml: |
+          - step: get_sub
+            call: mailchimp.action.subscribers.get
+            with:
+               list_id: "acb12345"
+               subscriber_hash: "5f123abc456..."
 
 interface:
   inputs:

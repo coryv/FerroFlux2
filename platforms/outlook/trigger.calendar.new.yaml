@@ -5,8 +5,20 @@ meta:
   category: Calendar
   type: Trigger
   platform: outlook
-  description: "Polls for new events in the user's calendar."
+  description: "Triggers when a new event is created in an Outlook calendar."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a new meeting or schedule item is added."
+    usage_context: "Use this to sync Outlook events to another calendar, notify team members on Slack/Teams, or automate meeting preparation notes."
+    agent_hints:
+      - "Polls the calendar for new events based on 'createdDateTime'."
+      - "Returns the full event object (subject, start, end, attendees)."
+    waml_examples:
+      - title: "Sync New Meetings"
+        waml: |
+          trigger:
+            new_mtg:
+               call: outlook.trigger.calendar.new
 
 interface:
   inputs: []

@@ -7,6 +7,19 @@ meta:
   platform: jira
   description: "Update an existing issue's fields."
   version: "1.0.0"
+  discovery:
+    purpose: "Update specific fields (summary, description) of an existing Jira issue."
+    usage_context: "Use to dynamically update progress, reassign issues, or modify task descriptions based on workflow criteria."
+    agent_hints:
+      - "Requires the issue key (e.g., PROJ-123) or issue ID."
+    waml_examples:
+      - title: "Update Issue Summary"
+        waml: |
+          - step: update_ticket
+            call: jira.issues.update
+            with:
+               issue_id_or_key: "PROJ-123"
+               summary: "Updated summary text"
 
 interface:
   inputs:

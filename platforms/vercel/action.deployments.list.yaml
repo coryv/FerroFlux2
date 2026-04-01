@@ -4,8 +4,20 @@ meta:
   category: Deployments
   type: Action
   platform: vercel
-  description: "List all deployments for the authenticated user or team."
+  description: "Lists all deployments for the authorized Vercel account or team."
   version: "1.0.0"
+  discovery:
+    purpose: "Browse the history of builds and deployments."
+    usage_context: "Use this to audit recent changes, find the latest successful deployment for a project, or clean up old preview environments."
+    agent_hints:
+      - "Supports filtering by 'projectId' and 'app' name."
+    waml_examples:
+      - title: "List Recent Builds"
+        waml: |
+          - step: list_deploys
+            call: vercel.action.deployments.list
+            with:
+               limit: 10
   permissions:
     - "network:api.vercel.com"
 

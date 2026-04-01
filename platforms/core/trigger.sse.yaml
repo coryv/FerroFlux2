@@ -6,6 +6,20 @@ meta:
   platform: core
   description: "Triggers on each event received from a Server-Sent Events (SSE) endpoint."
   version: "1.0.0"
+  discovery:
+    purpose: "Listen for real-time events from a Server-Sent Events (SSE) stream."
+    usage_context: "Use for live data feeds like stock market updates, AI streaming logs, or real-time monitoring."
+    agent_hints:
+      - "Maintains a persistent connection to the specified URL."
+      - "Retries connection automatically on loss."
+    waml_examples:
+      - title: "Live Updates"
+        waml: |
+          - step: listen
+            type: trigger
+            call: core.trigger.sse
+            settings:
+              url: "https://api.example.com/events"
   # RUNTIME NOTE: This trigger requires a persistent SSE connection manager in the
   # execution runtime. Unlike webhook triggers (passive/inbound), the SSE trigger
   # actively maintains an outbound HTTP connection and dispatches a workflow execution

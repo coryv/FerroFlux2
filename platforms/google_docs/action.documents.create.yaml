@@ -7,6 +7,18 @@ meta:
   platform: google_docs
   description: "Creates an empty document."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a new, blank Google Doc with a specified title."
+    usage_context: "Use to prepare automated document templates, start new project notes, or generate legal drafts from workflow data."
+    agent_hints:
+      - "Returns the new document's unique documentId."
+    waml_examples:
+      - title: "Create Document"
+        waml: |
+          - step: new_doc
+            call: google_docs.action.documents.create
+            with:
+               title: "Meeting Minutes - ${now()}"
 
 interface:
   inputs:

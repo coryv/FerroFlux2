@@ -6,6 +6,19 @@ meta:
   platform: core
   description: "Triggers the workflow at scheduled intervals."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow on a recurring schedule or at a specific point in time."
+    usage_context: "Use to automate routine tasks like daily backups, weekly email newsletters, or monthly financial reporting."
+    agent_hints:
+      - "Supports cron expressions or human-readable intervals (e.g. 'every 5 minutes')."
+    waml_examples:
+      - title: "Daily Sync"
+        waml: |
+          - step: daily_job
+            type: trigger
+            call: core.trigger.scheduler
+            settings:
+               cron: "0 0 * * *" # Every day at midnight
 
 interface:
   inputs: []

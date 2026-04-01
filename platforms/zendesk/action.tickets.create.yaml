@@ -7,6 +7,21 @@ meta:
   platform: zendesk
   description: "Creates a new ticket."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a new support ticket in Zendesk."
+    usage_context: "Use this to automate helpdesk entries from emails, website contact forms, or Slack messages."
+    agent_hints:
+      - "Requires a title (subject) and a requester (email or user_id)."
+      - "Defaults to 'open' status."
+    waml_examples:
+      - title: "Create Ticket"
+        waml: |
+          - step: log_support
+            call: zendesk.action.tickets.create
+            with:
+               subject: "Inquiry from ${inputs.user_email}"
+               comment: "User reached out regarding billing."
+               requester_email: inputs.user_email
 
 interface:
   inputs:

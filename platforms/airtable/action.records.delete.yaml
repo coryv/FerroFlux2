@@ -7,6 +7,21 @@ meta:
   platform: airtable
   description: "Deletes a single record in a table."
   version: "1.0.0"
+  discovery:
+    purpose: "Permanently delete a single record from a specific Airtable base and table."
+    usage_context: "Use to cleanup old entries, remove canceled orders, or manage the lifecycle of temporary records."
+    agent_hints:
+      - "Requires a valid recordId."
+      - "Deletion is immediate."
+    waml_examples:
+      - title: "Remove Record"
+        waml: |
+          - step: delete
+            call: airtable.action.records.delete
+            with:
+               baseId: "app12345"
+               tableIdOrName: "Leads"
+               recordId: "rec12345"
 
 interface:
   inputs:

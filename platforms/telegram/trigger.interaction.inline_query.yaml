@@ -7,6 +7,17 @@ meta:
   platform: telegram
   description: "Polls for inline queries from users typing the bot's username."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow when an inline query (e.g., @bot query) is received."
+    usage_context: "Use to provide dynamic search results or interactive content directly from the message box."
+    agent_hints:
+      - "Provides the query string and the user who initiated it."
+    waml_examples:
+      - title: "Inline Search"
+        waml: |
+          - step: search
+            type: trigger
+            call: telegram.trigger.interaction.inline_query
 
 interface:
   inputs: []

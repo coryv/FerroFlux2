@@ -7,6 +7,20 @@ meta:
   platform: airtable
   description: "Retrieves a single record by its ID."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve the details and fields of a specific Airtable record."
+    usage_context: "Use to fetch the current values of an identified row before processing updates or performing specific logic."
+    agent_hints:
+      - "Requires a valid recordId."
+    waml_examples:
+      - title: "Fetch Lead Details"
+        waml: |
+          - step: get_lead
+            call: airtable.action.records.get
+            with:
+               baseId: "app12345"
+               tableIdOrName: "Leads"
+               recordId: "rec123456789"
 
 interface:
   inputs:

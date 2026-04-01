@@ -5,8 +5,21 @@ meta:
   category: Messages
   type: Action
   platform: outlook
-  description: "Permanently delete a specific message."
+  description: "Permanently deletes an email message from the mailbox."
   version: "1.0.0"
+  discovery:
+    purpose: "Remove junk emails, clean up sent messages, or automate deletion of processed alerts."
+    usage_context: "Use this to manage mailbox size or remove sensitive information after it's been processed by a workflow."
+    agent_hints:
+      - "Requires the 'message_id'."
+      - "Note that this is irreversible (moves to 'Deleted Items' or removes permanently depending on mailbox settings)."
+    waml_examples:
+      - title: "Delete Junk Email"
+        waml: |
+          - step: rm_mail
+            call: outlook.action.messages.delete
+            with:
+               id: "AAMk..."
 
 interface:
   inputs:

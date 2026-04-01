@@ -7,6 +7,16 @@ meta:
   platform: jira
   description: "TODO: Describe what this node does."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve a list of all accessible Jira projects."
+    usage_context: "Use this to discover project keys or IDs required for creating or searching issues."
+    agent_hints:
+      - "Returns an array of project objects including key, name, and id."
+    waml_examples:
+      - title: "List Projects"
+        waml: |
+          - step: get_projects
+            call: jira.projects.list
 
 interface:
   inputs:

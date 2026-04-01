@@ -7,6 +7,21 @@ meta:
   platform: telegram
   description: "Polls for callback queries (button clicks)."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow when a user clicks an inline button on a bot-sent message."
+    usage_context: "Use to respond to user selections or interactive menu choices."
+    agent_hints:
+      - "Provides the callback_data and the user details."
+    waml_examples:
+      - title: "Button Choice"
+        waml: |
+          - step: on_click
+            type: trigger
+            call: telegram.trigger.interaction.callback_query
+            settings:
+               data: "my_data"
+            on:
+               Success: "handle_choice"
 
 interface:
   inputs: []

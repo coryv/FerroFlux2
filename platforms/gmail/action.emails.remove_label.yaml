@@ -5,8 +5,21 @@ meta:
   category: Emails
   type: Action
   platform: gmail
-  description: "Remove a specific label from an email."
+  description: "Removes a specific label from a Gmail message."
   version: "1.0.0"
+  discovery:
+    purpose: "Untag a Gmail message."
+    usage_context: "Use this to clean up labels after a multi-step process or to remove a message from a specific automated watch-list."
+    agent_hints:
+      - "Does not delete the message; only removes the specified label reference."
+    waml_examples:
+      - title: "Clear Processed Label"
+        waml: |
+          - step: untag
+            call: gmail.emails.remove_label
+            with:
+               message_id: "18e986fe..."
+               label_id: "Label_Processing"
 
 interface:
   inputs:

@@ -6,6 +6,13 @@ meta:
   category: Productivity
   description: "Connects to the Notion API."
   version: "1.0.0"
+  discovery:
+    purpose: "All-in-one workspace for notes, docs, and structured databases."
+    usage_context: "Use Notion as a knowledge base, project wiki, or a flexible lightweight CRM/Task tracker. Ideal for unstructured or semi-structured data shared across teams."
+    agent_hints:
+      - "Identifies resources using UUIDs (e.g. '065a...')."
+      - "Note that and Page is also any Block, and Databases can contain Pages."
+      - "Requires manual 'Integration' sharing in the Notion UI for specific pages/databases."
 
 config:
   base_url: "https://api.notion.com/v1"

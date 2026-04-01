@@ -7,6 +7,17 @@ meta:
   platform: twilio
   description: "Fires when an inbound SMS is received via Twilio webhook."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow when a new SMS message is received on a Twilio number."
+    usage_context: "Use to automate text message responses, bridge mobile communication with Slack, or process incoming keywords for marketing campaigns."
+    agent_hints:
+      - "Requires a pre-configured Twilio Webhook URL pointing to the FerroFlux intake."
+    waml_examples:
+      - title: "SMS Bridge"
+        waml: |
+          - step: on_sms
+            type: trigger
+            call: twilio.trigger.sms.received
 
 interface:
   inputs: []

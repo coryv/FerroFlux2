@@ -6,6 +6,12 @@ meta:
   category: Communication
   description: "Send emails via any SMTP server using the native SMTP tool."
   version: "1.0.0"
+  discovery:
+    purpose: "Send emails using standard SMTP servers (Gmail, Outlook, custom mail servers)."
+    usage_context: "Use to send low-volume notifications, system alerts, or internal reports without requiring a full marketing platform like Mailchimp or Resend."
+    agent_hints:
+      - "Requires host, port, username, and password."
+      - "Supports TLS/SSL encryption."
 
 config:
   base_url: >

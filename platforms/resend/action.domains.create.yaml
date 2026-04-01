@@ -5,8 +5,21 @@ meta:
   category: Domains
   type: Action
   platform: resend
-  description: "Add a new sending domain to your Resend account."
+  description: "Registers a new sending domain in Resend."
   version: "1.0.0"
+  discovery:
+    purpose: "Configure a custom domain for sending verified, branded emails from your workspace."
+    usage_context: "Use this to programmatically set up white-labeled sending for multi-tenant applications or to manage multiple business domains."
+    agent_hints:
+      - "Note that DNS records will need to be configured after creation to verify the domain."
+    waml_examples:
+      - title: "Add Sending Domain"
+        waml: |
+          - step: mk_domain
+            call: resend.action.domains.create
+            with:
+               name: "mail.acme.com"
+               region: "us-east-1"
 
 interface:
   inputs:

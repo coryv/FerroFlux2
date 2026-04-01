@@ -6,6 +6,12 @@ meta:
   category: Payments
   description: "Connects to the Stripe REST API."
   version: "1.0.0"
+  discovery:
+    purpose: "Process online payments, manage customer billing, and handle subscriptions."
+    usage_context: "Use this to automate invoicing, synchronize sales data, and manage recurring revenue workflows."
+    agent_hints:
+      - "Requires a Stripe Secret Key."
+      - "Uses the Stripe v1 REST API with form-urlencoded payloads."
 
 config:
   base_url: "https://api.stripe.com/v1"

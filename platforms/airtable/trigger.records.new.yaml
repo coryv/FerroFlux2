@@ -5,8 +5,24 @@ meta:
   category: Records
   type: Trigger
   platform: airtable
-  description: "Polls an Airtable table for newly created records."
+  description: "Triggers when a new record is created in an Airtable table."
   version: "1.0.0"
+  discovery:
+    purpose: "Monitor an Airtable table for new entries."
+    usage_context: "Use this to start a workflow whenever a new row is added. Ideal for lead capture, task assignment, or data synchronization."
+    agent_hints:
+      - "This trigger polls Airtable every 5 minutes by default."
+      - "Ensure the table has a 'Created' time field for reliable sorting/detection if possible, though Airtable handles this internally."
+      - "The payload includes all fields from the new record."
+    waml_examples:
+      - title: "Trigger on New Lead"
+        waml: |
+          trigger:
+            id: airtable_new_lead
+            call: airtable.trigger.records.new
+            with:
+              base_id: "app123456789"
+              table_id_or_name: "Leads"
 
 interface:
   inputs: []

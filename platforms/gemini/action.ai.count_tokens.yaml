@@ -5,8 +5,22 @@ meta:
   category: AI
   type: Action
   platform: gemini
-  description: "Count the number of tokens in a prompt for a specific model."
+  description: "Calculates the token count for a specific prompt or message."
   version: "1.0.0"
+  discovery:
+    purpose: "Estimate the cost and context usage of a prompt before generation."
+    usage_context: "Use this for budget monitoring, context window management, or determining if a document needs to be chunked."
+    agent_hints:
+      - "Tokenization varies by model; specify the target 'model' for accurate results."
+    waml_examples:
+      - title: "Estimate Request Cost"
+        waml: |
+          - step: check_tokens
+            call: gemini.action.ai.count_tokens
+            with:
+               model: "gemini-1.5-pro"
+               contents:
+                  - parts: [{ text: "Evaluate this large JSON file." }]
 
 interface:
   inputs:

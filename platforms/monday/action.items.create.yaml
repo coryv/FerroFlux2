@@ -5,8 +5,23 @@ meta:
   category: Items
   type: Action
   platform: monday
-  description: "Create a new item on a specified board."
+  description: "Creates a new item (row) on a Monday.com board."
   version: "1.0.0"
+  discovery:
+    purpose: "Add a new record to your Monday Work OS project board."
+    usage_context: "Use this to log new requests, create tasks from emails, or sync records from other systems into Monday's table view."
+    agent_hints:
+      - "Requires the numeric 'board_id' and 'item_name'."
+      - "Optionally specify a 'group_id' and 'column_values' as continuous JSON."
+    waml_examples:
+      - title: "Create Roadmap Item"
+        waml: |
+          - step: log_task
+            call: monday.action.items.create
+            with:
+               board_id: "1234567"
+               item_name: "Sprint 5: Auth Refactor"
+               column_values: '{"status": {"label": "Working on it"}}'
 
 interface:
   inputs:

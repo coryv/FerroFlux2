@@ -4,8 +4,23 @@ meta:
   category: Errors
   type: Action
   platform: sentry
-  description: "List issues for a specific project."
+  description: "Lists issues for a specific Sentry project."
   version: "1.0.0"
+  discovery:
+    purpose: "Audit and browse recent errors or performance issues in a project."
+    usage_context: "Use this to identify trending bugs, monitor project health, or trigger alerts for specific error types."
+    agent_hints:
+      - "Requires 'organization_slug' and 'project_slug'."
+      - "Can be filtered by 'query' (e.g. 'is:unresolved')."
+    waml_examples:
+      - title: "List Unresolved Errors"
+        waml: |
+          - step: see_errors
+            call: sentry.action.issues.list
+            with:
+               organization_slug: "my-org"
+               project_slug: "my-web-app"
+               query: "is:unresolved"
   permissions:
     - "network:sentry.io"
 

@@ -5,8 +5,22 @@ meta:
   category: Reactions
   type: Trigger
   platform: slack
-  description: "Polls for new reactions added by a user or in a channel."
+  description: "Triggers when a new reaction (emoji) is added by a specific user."
   version: "1.0.0"
+  discovery:
+    purpose: "Monitor Slack reactions added by a specific user."
+    usage_context: "Use this to track peer-to-peer recognition, internal polling, or to trigger workflows based on a specific user's activity. If 'user_id' is left blank, it monitors global activity (if supported by permissions)."
+    agent_hints:
+      - "This trigger uses the 'reactions.list' endpoint, which is scoped by user."
+      - "The payload includes the emoji name and the 'item' (message or file) that was reacted to."
+    waml_examples:
+      - title: "Monitor Admin Reactions"
+        waml: |
+          trigger:
+            id: admin_reaction_monitor
+            call: slack.trigger.reactions.new
+            with:
+               user_id: "U78901234"
 
 interface:
   inputs: []

@@ -4,8 +4,18 @@ meta:
   category: Transaction
   type: Action
   platform: mongodb
-  description: "Starts a new session and transaction for the current execution flow. Requires a replica set or sharded cluster."
+  description: "Commits the active transaction for the current execution flow."
   version: "1.0.0"
+  discovery:
+    purpose: "Permanently save all changes made during the current transaction."
+    usage_context: "Call this at the end of a successful sequence following a 'begin_transaction' call."
+    agent_hints:
+      - "You must call 'commit' at the end of the success path or 'abort' on the error path."
+    waml_examples:
+      - title: "Begin Atomic Update"
+        waml: |
+          - step: start_tx
+            call: mongodb.action.transaction.begin
 
 interface:
   inputs:

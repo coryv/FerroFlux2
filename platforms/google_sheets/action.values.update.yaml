@@ -7,6 +7,20 @@ meta:
   platform: google_sheets
   description: "Sets values in a range of a spreadsheet."
   version: "1.0.0"
+  discovery:
+    purpose: "Modify or overwrite values in a specific cell range in a Google Sheet."
+    usage_context: "Use to update line items, change status labels in a tracker, or reset specific cell values."
+    agent_hints:
+      - "Requires a Spreadsheet ID and the cell range (e.g., 'Sheet1!A1')."
+    waml_examples:
+      - title: "Update Status"
+        waml: |
+          - step: mark_complete
+            call: google_sheets.action.values.update
+            with:
+               spreadsheet_id: "12345abcdefg"
+               range: "Sheet1!B2"
+               values: ["Completed"]
 
 interface:
   inputs:

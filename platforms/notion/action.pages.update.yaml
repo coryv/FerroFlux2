@@ -5,8 +5,24 @@ meta:
   category: Pages
   type: Action
   platform: notion
-  description: "Updates page property values for a specified page."
+  description: "Updates properties and icon/cover for an existing Notion page."
   version: "1.0.0"
+  discovery:
+    purpose: "Modify values on a Notion document or database item."
+    usage_context: "Use this to change a task's status, update client contact details, or archive old pages by checking a 'History' property."
+    agent_hints:
+      - "Requires the 'page_id' UUID."
+      - "The 'properties' JSON should only contain the fields you wish to change (partial update)."
+    waml_examples:
+      - title: "Mark Task Complete"
+        waml: |
+          - step: finish_task
+            call: notion.action.pages.update
+            with:
+               page_id: "75a..."
+               properties:
+                 Status:
+                   status: { name: "Done" }
 
 interface:
   inputs:

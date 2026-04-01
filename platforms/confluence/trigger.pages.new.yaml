@@ -7,6 +7,17 @@ meta:
   platform: confluence
   description: "Polls Confluence for newly created pages."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow when a new Confluence page is created."
+    usage_context: "Use to notify team members in Slack, update project dashboards, or generate related documentation tasks."
+    agent_hints:
+      - "Provides the new page title, author, and space information."
+    waml_examples:
+      - title: "New Page Alert"
+        waml: |
+          - step: notify
+            type: trigger
+            call: confluence.trigger.pages.new
 
 interface:
   inputs: []

@@ -6,6 +6,12 @@ meta:
   category: Productivity
   description: "Connects to the Atlassian Jira Cloud REST API v3."
   version: "1.0.0"
+  discovery:
+    purpose: "Manage software projects, issues, and agile workflows in Atlassian Jira."
+    usage_context: "Use this to automate ticketing, track development progress, and synchronize project data across team tools."
+    agent_hints:
+      - "Requires an Atlassian Cloud domain and OAuth2 authentication."
+      - "Uses Jira REST API v3 (ADF format for descriptions)."
 
 config:
   base_url: >

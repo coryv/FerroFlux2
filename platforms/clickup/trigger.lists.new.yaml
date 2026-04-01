@@ -5,8 +5,22 @@ meta:
   category: Lists
   type: Trigger
   platform: clickup
-  description: "Polls for new lists within a specific Folder."
+  description: "Triggers when a new list is created in a ClickUp folder or space."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a new task container (list) is added."
+    usage_context: "Use this to automate list-level setup (like adding default tasks), notify team members of new sprints, or sync list metadata to a master project tracker."
+    agent_hints:
+      - "Polls the folder or space for new lists based on the 'date_created'."
+      - "Requires the numeric 'folder_id' or 'space_id'."
+    waml_examples:
+      - title: "Setup New List"
+        waml: |
+          trigger:
+            new_list:
+               call: clickup.trigger.lists.new
+               with:
+                  folder_id: "123456"
 
 interface:
   inputs: []

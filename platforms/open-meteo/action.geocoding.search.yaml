@@ -7,6 +7,19 @@ meta:
   platform: open-meteo
   description: "Search for a city or location by name and return its latitude, longitude, and metadata for use in weather queries."
   version: "1.0.0"
+  discovery:
+    purpose: "Search for coordinates (latitude/longitude) of a city or location name."
+    usage_context: "Use this to resolve user-provided location names before calling weather actions."
+    agent_hints:
+      - "Returns a list of matching results with their coordinates."
+    waml_examples:
+      - title: "Find City"
+        waml: |
+          - step: find_loc
+            call: open-meteo.action.geocoding.search
+            with:
+               name: "San Francisco"
+               count: 1
   data_strategy: enrich
 
 interface:

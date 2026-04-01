@@ -5,8 +5,23 @@ meta:
   category: Messages
   type: Action
   platform: outlook
-  description: "Send an email via Microsoft Outlook."
+  description: "Sends a new email message to one or more recipients."
   version: "1.0.0"
+  discovery:
+    purpose: "Automate outbound communication, send notifications, and share documents via email."
+    usage_context: "Use this to send project updates, share reports, or trigger automated business emails from a workflow."
+    agent_hints:
+      - "Requires 'toRecipients' array (emailAddress: { address: '...' })."
+      - "Supports 'subject', 'body' (html or text), and 'attachments'."
+    waml_examples:
+      - title: "Send Project Sync"
+        waml: |
+          - step: say_it
+            call: outlook.action.messages.send
+            with:
+               subject: "Weekly Update"
+               toRecipients: [{ emailAddress: { address: "ceo@acme.com" } }]
+               body: { content: "Find the report attached.", contentType: "text" }
 
 interface:
   inputs:

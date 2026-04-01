@@ -5,8 +5,22 @@ meta:
   category: Items
   type: Trigger
   platform: monday
-  description: "Polls for items where a specific status column has been updated."
+  description: "Triggers when a specific status column on a Monday item is updated."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever an item moves to a new phase (e.g. from 'Working on it' to 'Done')."
+    usage_context: "Use this to notify stakeholders of project progress, trigger follow-up actions when a task is finished, or sync status changes to an external CRM."
+    agent_hints:
+      - "Polls for status modifications across any status column on the specified board."
+      - "Requires the numeric 'board_id'."
+    waml_examples:
+      - title: "Notify on Completion"
+        waml: |
+          trigger:
+            task_done:
+               call: monday.trigger.items.status_updated
+               with:
+                  board_id: "1234567"
 
 interface:
   inputs: []

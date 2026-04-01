@@ -7,6 +7,18 @@ meta:
   platform: notion
   description: "Retrieves a Page object using the ID."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve the full content, properties, and metadata for a specific Notion page."
+    usage_context: "Use to fetch the body of a document for summarization, retrieve specific custom properties, or check last edit times."
+    agent_hints:
+      - "Requires a page_id."
+    waml_examples:
+      - title: "Fetch Page Content"
+        waml: |
+          - step: get_page
+            call: notion.action.pages.get
+            with:
+               page_id: "acb123456789"
 
 interface:
   inputs:

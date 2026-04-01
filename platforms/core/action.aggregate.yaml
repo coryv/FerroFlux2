@@ -7,6 +7,18 @@ meta:
   platform: core
   description: "Collects items into a batch (array)."
   version: "1.0.0"
+  discovery:
+    purpose: "Group and recombine multiple items from a stream or collection."
+    usage_context: "Use after parallel processing steps or to batch items before sending to a final destination."
+    agent_hints:
+      - "Maintains state until a completion signal or limit is reached."
+    waml_examples:
+      - title: "Batch Results"
+        waml: |
+          - step: collect_results
+            call: core.action.aggregate
+            with:
+              items: steps.process.output
 
 interface:
   inputs:

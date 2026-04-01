@@ -5,8 +5,21 @@ meta:
   category: Projects
   type: Action
   platform: asana
-  description: "Gets a project."
+  description: "Retrieves detailed information about an Asana project."
   version: "1.0.0"
+  discovery:
+    purpose: "Fetch the properties of a specific Asana project."
+    usage_context: "Use this when you have a Project GID and need to find its owner, due date, or the team it belongs to."
+    agent_hints:
+      - "Requires the 'project_gid'."
+      - "Returns the full project resource object."
+    waml_examples:
+      - title: "Get Project Details"
+        waml: |
+          - step: read_project
+            call: asana.action.projects.get
+            with:
+               project_gid: "1201..."
 
 interface:
   inputs:

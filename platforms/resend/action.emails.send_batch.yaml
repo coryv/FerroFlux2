@@ -7,6 +7,26 @@ meta:
   platform: resend
   description: "Send up to 100 emails in a single API call using Resend's batch endpoint."
   version: "1.0.0"
+  discovery:
+    purpose: "Send multiple emails in a single batch request via Resend."
+    usage_context: "Use to automate bulk notifications, marketing newsletters, or system-wide alerts to multiple recipients."
+    agent_hints:
+      - "Requires an array of email objects including 'to', 'from', 'subject', and 'html' or 'text'."
+    waml_examples:
+      - title: "Bulk Send"
+        waml: |
+          - step: send_batch
+            call: resend.action.emails.send_batch
+            with:
+               emails:
+                 - from: "onboarding@resend.dev"
+                   to: "user1@example.com"
+                   subject: "Welcome!"
+                   html: "<h1>Hi User 1</h1>"
+                 - from: "onboarding@resend.dev"
+                   to: "user2@example.com"
+                   subject: "Welcome!"
+                   html: "<h1>Hi User 2</h1>"
 
 interface:
   inputs:

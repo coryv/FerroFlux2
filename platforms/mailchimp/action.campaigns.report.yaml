@@ -7,6 +7,19 @@ meta:
   platform: mailchimp
   description: "Gets the overview report for a campaign."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve high-level results and click-through metrics for a dispatched campaign."
+    usage_context: "Use to automate post-campaign reporting, notify teams of high engagement, or sync conversion stats into a CRM."
+    agent_hints:
+      - "Requires a campaign_id."
+      - "Returns metrics like unique_opens, clicks, and unsubscribes."
+    waml_examples:
+      - title: "Fetch Metrics"
+        waml: |
+          - step: report
+            call: mailchimp.action.campaigns.report
+            with:
+               campaign_id: "71a3999c51"
 
 interface:
   inputs:

@@ -7,6 +7,17 @@ meta:
   platform: jira
   description: "TODO: Describe when this trigger fires."
   version: "1.0.0"
+  discovery:
+    purpose: "Triggers a workflow whenever a new comment is added to a Jira issue."
+    usage_context: "Use to notify team members, sync comments to other platforms (like Slack), or trigger automated responses."
+    agent_hints:
+      - "Provides the comment body, author, and associated issue details."
+    waml_examples:
+      - title: "Comment Notification"
+        waml: |
+          - step: log_comment
+            type: trigger
+            call: jira.trigger.comments.new
 
 interface:
   inputs: []

@@ -6,6 +6,19 @@ meta:
   platform: core
   description: "Make an outgoing HTTP request (JSON/Text)."
   version: "1.0.0"
+  discovery:
+    purpose: "Make a generic HTTP request to an external service."
+    usage_context: "Use for simple API integrations that do not have a dedicated FerroFlux connector."
+    agent_hints:
+      - "Supports custom methods, headers, and query parameters."
+    waml_examples:
+      - title: "Fetch External Data"
+        waml: |
+          - step: fetch_data
+            call: core.action.http
+            with:
+              url: "https://api.example.com/data"
+              method: GET
 
 config:
   base_url: ""

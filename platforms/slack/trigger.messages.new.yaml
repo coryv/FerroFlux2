@@ -5,8 +5,22 @@ meta:
   category: Messages
   type: Trigger
   platform: slack
-  description: "Polls a Slack channel for new messages."
+  description: "Triggers when a new message is posted in a Slack channel."
   version: "1.0.0"
+  discovery:
+    purpose: "Monitor a specific Slack channel for new activity."
+    usage_context: "Use this to react to customer queries, handle alerts, or build interactive commands in a public or private channel. Fires for every message except bot-sent ones by default."
+    agent_hints:
+      - "The 'message' output contains the full Slack message object, including 'text', 'user', and 'ts' (timestamp)."
+      - "By default, this polls the channel every 1 minute. Responses may be delayed based on this interval."
+    waml_examples:
+      - title: "Monitor Support Channel"
+        waml: |
+          trigger:
+            id: support_monitor
+            call: slack.trigger.messages.new
+            with:
+               channel: "C98765432"
 
 interface:
   inputs: []

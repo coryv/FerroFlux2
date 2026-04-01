@@ -7,6 +7,20 @@ meta:
   platform: google-drive
   description: "Creates a new folder in Google Drive."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a new directory for organizing files in Google Drive."
+    usage_context: "Use this to create project-specific folders, monthly archive directories, or shared workspace areas as part of an automation."
+    agent_hints:
+      - "Specify a 'name' for the folder."
+      - "You can provide 'parents' (folder IDs) to create the folder inside an existing directory. If omitted, it will be created in the root."
+    waml_examples:
+      - title: "Create Month Folder"
+        waml: |
+          - step: mk_dir
+            call: google-drive.action.folders.create
+            with:
+               name: "April 2024"
+               parents: ["parent_folder_id_123"]
 
 interface:
   inputs:

@@ -5,8 +5,24 @@ meta:
   category: AI/ML
   type: Action
   platform: anthropic
-  description: "Creates a message (chat completion) with Claude."
+  description: "Send a structured message to Anthropic Claude."
   version: "1.0.0"
+  discovery:
+    purpose: "Generate text, reasoning, or code responses from Claude 3.5 AI models."
+    usage_context: "Use this for high-context tasks (up to 200k tokens), creative writing, and precise instruction following. Supports 'system' and 'messages'."
+    agent_hints:
+      - "Specify the 'model' (e.g. 'claude-3-5-sonnet-20240620')."
+      - "Note that Anthropic requires a 'role' (user/assistant) in message objects."
+    waml_examples:
+      - title: "Claude Completion"
+        waml: |
+          - step: ask_claude
+            call: anthropic.action.messages.create
+            with:
+               model: "claude-3-5-sonnet-20240620"
+               messages:
+                  - role: "user"
+                    content: "Draft a technical RFC for a new API."
 
 interface:
   inputs:

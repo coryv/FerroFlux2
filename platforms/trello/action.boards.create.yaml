@@ -5,8 +5,21 @@ meta:
   category: Boards
   type: Action
   platform: trello
-  description: "Creates a board."
+  description: "Creates a new Trello board."
   version: "1.0.0"
+  discovery:
+    purpose: "Provision a new visual project area (board) in Trello."
+    usage_context: "Use this to create project-specific boards for new clients, monthly marketing plans, or team brainstorms."
+    agent_hints:
+      - "Requires a 'name'."
+      - "Optional parameters include 'defaultLabels', 'defaultLists', and 'idOrganization'."
+    waml_examples:
+      - title: "Create Client Board"
+        waml: |
+          - step: mk_board
+            call: trello.action.boards.create
+            with:
+               name: "Acme Web Redesign"
 
 interface:
   inputs:

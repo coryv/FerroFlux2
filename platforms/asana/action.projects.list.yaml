@@ -5,8 +5,21 @@ meta:
   category: Projects
   type: Action
   platform: asana
-  description: "Lists all projects in a workspace."
+  description: "Lists projects in an Asana workspace or team."
   version: "1.0.0"
+  discovery:
+    purpose: "Browse and find projects available to the authorized user."
+    usage_context: "Use this to starting a project-based automation, find a project by name, or audit workspace activity."
+    agent_hints:
+      - "Can be filtered by 'workspace' or 'team'."
+      - "Returns a list of project summaries (GID, name, resource_type)."
+    waml_examples:
+      - title: "List Team Projects"
+        waml: |
+          - step: get_projects
+            call: asana.action.projects.list
+            with:
+               team: "1201..."
 
 interface:
   inputs:

@@ -5,8 +5,22 @@ meta:
   category: Cards
   type: Action
   platform: trello
-  description: "Moves a card to a new list."
+  description: "Moves an existing Trello card to a different list or board."
   version: "1.0.0"
+  discovery:
+    purpose: "Organize tasks by changing their container (list) or project area (board)."
+    usage_context: "Use this to move cards from 'In Progress' to 'Done', or to transition a card across different project boards."
+    agent_hints:
+      - "Requires the card ID."
+      - "You must specify 'idList' and optionally 'idBoard'."
+    waml_examples:
+      - title: "Move to Done"
+        waml: |
+          - step: move_it
+            call: trello.action.cards.move
+            with:
+               id: "65a..."
+               idList: "65b..."
 
 interface:
   inputs:

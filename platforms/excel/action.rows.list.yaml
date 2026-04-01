@@ -7,6 +7,21 @@ meta:
   platform: excel
   description: "Get all rows from an Excel worksheet."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve a list of rows from an Excel table or worksheet."
+    usage_context: "Use to fetch inventory data, student grades, or expense reports for automated analysis or sync into other tools."
+    agent_hints:
+      - "Requires drive_id, item_id, and a worksheet name or table name."
+      - "Returns a 2D array of values."
+    waml_examples:
+      - title: "Fetch Data"
+        waml: |
+          - step: fetch
+            call: excel.action.rows.list
+            with:
+               drive_id: "me"
+               item_id: "workbook-123"
+               worksheet: "Financials"
 
 interface:
   inputs:

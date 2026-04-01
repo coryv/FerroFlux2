@@ -5,8 +5,22 @@ meta:
   category: Objects
   type: Action
   platform: s3
-  description: "Download a file from an S3 bucket as a blob."
+  description: "Downloads an object from an S3 bucket and stores it in the BlobStore."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve a file from AWS S3 for processing in the workflow."
+    usage_context: "Use this to fetch images, data files, or archives for processing. The file is stored as a 'blob' in FerroFlux."
+    agent_hints:
+      - "Requires the 'bucket' name and the 'key' (full path within the bucket)."
+      - "Returns a 'blob_id' which can be sent to other platforms."
+    waml_examples:
+      - title: "Download Image"
+        waml: |
+          - step: fetch_image
+            call: s3.action.objects.download
+            with:
+               bucket: "my-app-assets"
+               key: "images/logo.png"
 
 interface:
   inputs:

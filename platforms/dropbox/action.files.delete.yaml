@@ -5,8 +5,21 @@ meta:
   category: Files
   type: Action
   platform: dropbox
-  description: "Delete a file or folder in Dropbox."
+  description: "Deletes a file or folder from Dropbox."
   version: "1.0.0"
+  discovery:
+    purpose: "Permanently remove a file or directory in Dropbox."
+    usage_context: "Use this to clean up temporary assets, remove outdated reports, or manage account storage quotas. Use with caution as this is irreversible."
+    agent_hints:
+      - "Requires the explicit 'path' to the item (e.g. '/Temp/log.txt')."
+      - "Deleting a folder will delete all its contents."
+    waml_examples:
+      - title: "Cleanup Old Reports"
+        waml: |
+          - step: delete_report
+            call: dropbox.action.files.delete
+            with:
+               path: "/Reports/Archive/2023.pdf"
 
 interface:
   inputs:

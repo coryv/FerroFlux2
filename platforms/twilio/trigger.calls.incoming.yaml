@@ -7,6 +7,17 @@ meta:
   platform: twilio
   description: "Fires when an inbound call is received via Twilio webhook."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow when an incoming voice call is received on a Twilio number."
+    usage_context: "Use to build automated IVR menus, route calls to external agents, or log incoming phone activity for sales triage."
+    agent_hints:
+      - "Requires a pre-configured Twilio Webhook URL pointing to the FerroFlux intake."
+    waml_examples:
+      - title: "Call Route"
+        waml: |
+          - step: on_call
+            type: trigger
+            call: twilio.trigger.calls.incoming
 
 interface:
   inputs: []

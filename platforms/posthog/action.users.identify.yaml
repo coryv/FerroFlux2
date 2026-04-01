@@ -4,8 +4,24 @@ meta:
   category: Analytics
   type: Action
   platform: posthog
-  description: "Identify a user and update their properties."
+  description: "Identify and update properties for a user in PostHog."
   version: "1.0.0"
+  discovery:
+    purpose: "Associate a user with specific traits (e.g. email, name, subscription tier) to enable targeted analysis and cohort building."
+    usage_context: "Use this when a user's status changes (e.g. upgraded to Pro) or when you gain more information about an anonymous user."
+    agent_hints:
+      - "Requires a 'distinct_id'."
+      - "Properties passed will be merged with existing user properties."
+    waml_examples:
+      - title: "Identify Pro User"
+        waml: |
+          - step: update_user
+            call: posthog.action.users.identify
+            with:
+               distinct_id: "user_123"
+               $set:
+                  email: "user@example.com"
+                  tier: "Pro"
   permissions:
     - "network:app.posthog.com"
 

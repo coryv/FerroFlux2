@@ -6,6 +6,19 @@ meta:
   platform: core
   description: "Stores a value in the workflow's global memory."
   version: "1.0.0"
+  discovery:
+    purpose: "Store a value in a workflow variable."
+    usage_context: "Save an API response or calculation for access later in the workflow."
+    agent_hints:
+      - "Scope is limited to the current workflow instance."
+    waml_examples:
+      - title: "Save Result"
+        waml: |
+          - step: save
+            call: core.action.set_var
+            with:
+              name: total_count
+              value: 42
 
 interface:
   inputs:

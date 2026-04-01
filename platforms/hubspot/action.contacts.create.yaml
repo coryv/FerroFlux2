@@ -5,8 +5,24 @@ meta:
   category: Contacts
   type: Action
   platform: hubspot
-  description: "Create a new contact in HubSpot."
+  description: "Creates a new contact in HubSpot CRM."
   version: "1.0.0"
+  discovery:
+    purpose: "Add a new individual to your HubSpot marketing and sales database."
+    usage_context: "Use this to capture new leads from a signup form, import contacts from an external system, or add new subscribers to a mailing list."
+    agent_hints:
+      - "Email is usually the primary identifier for deduplication in HubSpot."
+      - "Properties must match internal HubSpot property names (e.g. 'firstname', 'lastname', 'email')."
+    waml_examples:
+      - title: "Create New Contact"
+        waml: |
+          - step: add_contact
+            call: hubspot.action.contacts.create
+            with:
+               properties:
+                 email: "jane.doe@example.com"
+                 firstname: "Jane"
+                 lastname: "Doe"
 
 interface:
   inputs:

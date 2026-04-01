@@ -7,6 +7,20 @@ meta:
   platform: excel
   description: "List worksheets in an Excel workbook."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve a list of all worksheets within a specific Excel workbook."
+    usage_context: "Use to dynamically discover which sheets are available (e.g. 'January', 'February', 'Master') before performing row-level operations."
+    agent_hints:
+      - "Requires drive_id and item_id."
+      - "Returns an array of sheet objects including name and visibility status."
+    waml_examples:
+      - title: "List Sheets"
+        waml: |
+          - step: get_sheets
+            call: excel.action.sheets.list
+            with:
+               drive_id: "me"
+               item_id: "workbook-123"
 
 interface:
   inputs:

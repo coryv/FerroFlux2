@@ -7,6 +7,20 @@ meta:
   platform: telegram
   description: "Send a native poll to a chat."
   version: "1.0.0"
+  discovery:
+    purpose: "Send a native poll (voting) to a Telegram chat or group."
+    usage_context: "Use to collect feedback from team members or conduct simple surveys within a group."
+    agent_hints:
+      - "Requires a question and a list of options (strings)."
+    waml_examples:
+      - title: "Team Lunch Poll"
+        waml: |
+          - step: poll
+            call: telegram.action.interaction.send_poll
+            with:
+               chat_id: "123456789"
+               question: "Where should we have lunch?"
+               options: ["Pizza", "Sushi", "Burgers"]
 
 interface:
   inputs:

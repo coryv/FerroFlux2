@@ -3,6 +3,14 @@ meta:
   name: "PayPal"
   category: "Payments"
   type: Platform
+  description: "Global payment processor for online money transfers and commerce."
+  version: "1.0.0"
+  discovery:
+    purpose: "Process financial transactions and manage orders via the PayPal platform."
+    usage_context: "Use to automate payment verification, generate invoices for services, or manage recurring subscription billing for digital products."
+    agent_hints:
+      - "Requires Client ID and Client Secret for OAuth2."
+      - "Supports both Sandbox and Live environments."
   icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/paypal.svg"
   permissions: ["network:api-m.paypal.com"]
 

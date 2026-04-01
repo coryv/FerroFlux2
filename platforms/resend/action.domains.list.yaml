@@ -7,6 +7,16 @@ meta:
   platform: resend
   description: "Retrieve a list of all domains associated with your Resend account."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve a list of all verified (and unverified) domains in the Resend account."
+    usage_context: "Use to verify domain configuration, audit sender identity, or identify which domains are available for email sending."
+    agent_hints:
+      - "Returns an array of domain objects including status, region, and verification tokens."
+    waml_examples:
+      - title: "List Domains"
+        waml: |
+          - step: get_domains
+            call: resend.action.domains.list
 
 interface:
   inputs:

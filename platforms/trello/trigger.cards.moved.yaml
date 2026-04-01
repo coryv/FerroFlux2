@@ -5,8 +5,22 @@ meta:
   category: Cards
   type: Trigger
   platform: trello
-  description: "Polls a Trello board for cards moved between lists."
+  description: "Triggers when a Trello card is moved between lists."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a task moves to a new stage (e.g. from 'In Progress' to 'Done')."
+    usage_context: "Use this to notify stakeholders of project progress, trigger follow-up actions when a task is finished, or sync status changes to an external CRM."
+    agent_hints:
+      - "Polls the board for card movement events."
+      - "Requires the board ID ('idBoard')."
+    waml_examples:
+      - title: "Notify on Done"
+        waml: |
+          trigger:
+            task_done:
+               call: trello.trigger.cards.moved
+               with:
+                  idBoard: "65e..."
 
 interface:
   inputs: []

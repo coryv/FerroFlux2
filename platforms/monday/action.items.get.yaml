@@ -5,8 +5,21 @@ meta:
   category: Items
   type: Action
   platform: monday
-  description: "Retrieve details for a specific item."
+  description: "Retrieves detailed information about an item on a Monday board."
   version: "1.0.0"
+  discovery:
+    purpose: "Fetch the properties, status, and column values of a specific Monday row."
+    usage_context: "Use this when you have an Item ID and need to read its data before performing logic or updating other systems."
+    agent_hints:
+      - "Requires the numeric 'item_id'."
+      - "Returns the full item object, including its column values and group association."
+    waml_examples:
+      - title: "Get Item Details"
+        waml: |
+          - step: read_row
+            call: monday.action.items.get
+            with:
+               item_id: "890..."
 
 interface:
   inputs:

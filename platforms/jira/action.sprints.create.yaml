@@ -7,6 +7,21 @@ meta:
   platform: jira
   description: "Creates a sprint."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a new sprint in a Jira software board."
+    usage_context: "Use to automate sprint planning, setup intervals from a project timeline, or initiate development cycles."
+    agent_hints:
+      - "Requires boardId and name."
+    waml_examples:
+      - title: "Start Sprint"
+        waml: |
+          - step: new_sprint
+            call: jira.action.sprints.create
+            with:
+               boardId: 101
+               name: "Sprint 23 - Backend Revamp"
+               startDate: "2023-10-01T09:00:00Z"
+               endDate: "2023-10-14T17:00:00Z"
 
 interface:
   inputs:

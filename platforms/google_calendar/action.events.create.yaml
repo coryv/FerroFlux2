@@ -7,6 +7,21 @@ meta:
   platform: google_calendar
   description: "Creates an event."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a new event on a Google Calendar."
+    usage_context: "Use to automatically schedule meetings from an email thread, block time for focus, or create project-specific calendar entries."
+    agent_hints:
+      - "Requires summary, start, and end (including timezone)."
+    waml_examples:
+      - title: "Quick Meeting"
+        waml: |
+          - step: schedule
+            call: google_calendar.action.events.create
+            with:
+               summary: "Project Review"
+               start: { dateTime: "2023-11-01T10:00:00Z" }
+               end: { dateTime: "2023-11-01T11:00:00Z" }
+               description: "Discuss quarterly goals."
 
 interface:
   inputs:

@@ -5,8 +5,23 @@ meta:
   category: Records
   type: Trigger
   platform: salesforce
-  description: "Triggers when a new SObject record is created."
+  description: "Triggers when a new record of a specific Salesforce object type is created."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a new record (e.g. Lead, Opportunity) appears in Salesforce."
+    usage_context: "Use this to react to new signups, automate follow-ups for new leads, or sync new accounts to an external database."
+    agent_hints:
+      - "Polls Salesforce for new records created after the last check."
+      - "Requires the 'object' name (e.g. 'Lead')."
+      - "Yields the full record data to the next step."
+    waml_examples:
+      - title: "React to New Leads"
+        waml: |
+          trigger:
+            new_lead:
+               call: salesforce.trigger.records.new
+               with:
+                  object: "Lead"
 
 interface:
   inputs: []

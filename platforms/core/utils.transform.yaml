@@ -6,6 +6,21 @@ meta:
   platform: core
   description: "Transforms input data using a template."
   version: "1.0.0"
+  discovery:
+    purpose: "Map, filter, and reshape JSON data structures."
+    usage_context: "Use to transform API responses into a specific format required by a downstream tool or database."
+    agent_hints:
+      - "Uses a declarative mapping syntax (Jolt-like) for complex object transformations."
+    waml_examples:
+      - title: "Rename Fields"
+        waml: |
+          - step: map
+            call: core.utils.transform
+            with:
+               data: steps.get_user.output
+               mapping:
+                 "first_name": "customerName"
+                 "id": "externalId"
 
 interface:
   inputs:

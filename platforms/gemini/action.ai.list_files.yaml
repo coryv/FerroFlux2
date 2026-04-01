@@ -5,8 +5,20 @@ meta:
   category: AI
   type: Action
   platform: gemini
-  description: "List all files uploaded to the Gemini File API."
+  description: "Lists all files uploaded to the Gemini File API."
   version: "1.0.0"
+  discovery:
+    purpose: "Audit and manage multimodal assets (video, audio, PDF) for Gemini generation."
+    usage_context: "Use this to track available documents for context windows or clean up old assets."
+    agent_hints:
+      - "Returns metadata like 'displayName', 'mimeType', and 'state'."
+    waml_examples:
+      - title: "Find Uploaded Docs"
+        waml: |
+          - step: see_docs
+            call: gemini.action.ai.list_files
+            with:
+               pageSize: 10
 
 interface:
   inputs:

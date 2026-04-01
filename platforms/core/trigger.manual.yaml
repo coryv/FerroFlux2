@@ -6,6 +6,17 @@ meta:
   platform: core
   description: "Manually starts the workflow via a button click."
   version: "1.0.0"
+  discovery:
+    purpose: "Manually initiate a workflow run from the dashboard or through a direct API call."
+    usage_context: "Use for testing, one-off tasks, or manually triggered processes like an on-demand report."
+    agent_hints:
+      - "Does not require external events; runs immediately when triggered manually."
+    waml_examples:
+      - title: "Manual Check"
+        waml: |
+          - step: run_manual
+            type: trigger
+            call: core.trigger.manual
 
 interface:
   inputs: []

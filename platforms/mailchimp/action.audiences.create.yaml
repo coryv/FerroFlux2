@@ -5,8 +5,20 @@ meta:
   category: Audiences
   type: Action
   platform: mailchimp
-  description: "Creates a new audience list."
+  description: "Creates a new audience (list) in Mailchimp."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a new container for subscribers, such as for a specific project or client."
+    usage_context: "Use this to programmatically segment users into top-level lists based on business logic or new product launches."
+    agent_hints:
+      - "Requires 'name', 'contact', 'permission_reminder', and 'campaign_defaults'."
+    waml_examples:
+      - title: "Create New Audience"
+        waml: |
+          - step: mk_list
+            call: mailchimp.action.audiences.create
+            with:
+               name: "Newsletter Q2"
 
 interface:
   inputs:

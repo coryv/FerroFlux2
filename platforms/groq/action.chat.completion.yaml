@@ -4,8 +4,24 @@ meta:
   category: LLM
   type: Action
   platform: groq
-  description: "Generate text using Groq's high-speed inference."
+  description: "Creates a model response using Groq's high-speed LPU inference."
   version: "1.0.0"
+  discovery:
+    purpose: "Generate text, reasoning, or code responses from high-performance open-source models with minimal latency."
+    usage_context: "Best for real-time applications, low-latency agents, or high-throughput tasks where speed is the primary constraint."
+    agent_hints:
+      - "Specify the 'model' (e.g. 'llama-3.1-70b-versatile', 'mixtral-8x7b-32768')."
+      - "Note that Groq enforces strict rate limits; monitor response headers."
+    waml_examples:
+      - title: "Fast Llama Chat"
+        waml: |
+          - step: ask_groq
+            call: groq.action.chat.completion
+            with:
+               model: "llama-3.1-70b-versatile"
+               messages:
+                  - role: "user"
+                    content: "Translate this sentence to Spanish: 'The sky is blue'."
   permissions:
     - "network:api.groq.com"
 

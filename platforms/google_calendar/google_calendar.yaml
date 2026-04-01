@@ -6,6 +6,12 @@ meta:
   category: Calendar
   description: "Connects to the Google Calendar API."
   version: "1.0.0"
+  discovery:
+    purpose: "Manage individual and shared Google Calendars, events, and scheduling."
+    usage_context: "Use this to automate meeting coordination, synchronize project timelines with calendars, and manage availability."
+    agent_hints:
+      - "Requires OAuth2 authentication."
+      - "Defaults to the 'primary' calendar unless a specific calendar_id is provided."
 
 config:
   base_url: "https://www.googleapis.com/calendar/v3/calendars"

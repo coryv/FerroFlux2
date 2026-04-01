@@ -7,6 +7,19 @@ meta:
   platform: google_calendar
   description: "Polls a Google Calendar for recently updated events."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow whenever an existing Google Calendar event is modified."
+    usage_context: "Use to synchronize rescheduled meetings with team availability or update invitees on changes to meeting locations."
+    agent_hints:
+      - "Polls for recently updated events in the specified calendar."
+    waml_examples:
+      - title: "Reschedule Sync"
+        waml: |
+          - step: on_change
+            type: trigger
+            call: google_calendar.trigger.events.updated
+            settings:
+               calendar_id: "primary"
 
 interface:
   inputs: []

@@ -7,6 +7,20 @@ meta:
   platform: shopify
   description: "Creates a fulfillment for an order."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a fulfillment for a specific Shopify order."
+    usage_context: "Use to automate shipping workflows once products are ready for delivery."
+    agent_hints:
+      - "Requires the order_id and location_id."
+    waml_examples:
+      - title: "Fulfill Order"
+        waml: |
+          - step: fulfill
+            call: shopify.action.orders.fulfill
+            with:
+               order_id: "543216789"
+               location_id: "987654321"
+               tracking_number: "ABC-123"
 
 interface:
   inputs:

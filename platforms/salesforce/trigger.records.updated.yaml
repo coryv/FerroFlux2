@@ -5,8 +5,22 @@ meta:
   category: Records
   type: Trigger
   platform: salesforce
-  description: "Triggers when an SObject record is updated."
+  description: "Triggers when an existing Salesforce record is modified."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a record (e.g. Lead, Account) is updated."
+    usage_context: "Use this to sync profile changes to external systems, alert account owners of stage changes, or update inventory when an order status changes."
+    agent_hints:
+      - "Polls for modifications based on the 'SystemModstamp' field."
+      - "Requires the 'object' name (e.g. 'Account')."
+    waml_examples:
+      - title: "Sync Account Updates"
+        waml: |
+          trigger:
+            updated_account:
+               call: salesforce.trigger.records.updated
+               with:
+                  object: "Account"
 
 interface:
   inputs: []

@@ -6,6 +6,12 @@ meta:
   category: CRM
   description: "Connects to the Salesforce REST API."
   version: "1.0.0"
+  discovery:
+    purpose: "Enterprise Customer Relationship Management (CRM) for managing leads, accounts, and opportunities."
+    usage_context: "Use Salesforce for managing the entire customer lifecycle, tracking sales pipelines, and automating complex business processes across your organization."
+    agent_hints:
+      - "Requires a 'My Domain' (e.g., 'acme-dev-ed') to build the correct API URL."
+      - "Note that Salesforce uses its own SOQL (Salesforce Object Query Language) for complex data retrieval."
 
 config:
   base_url: >

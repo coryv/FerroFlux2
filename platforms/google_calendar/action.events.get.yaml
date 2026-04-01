@@ -7,6 +7,18 @@ meta:
   platform: google_calendar
   description: "Returns an event."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve complete details, descriptions, and metadata for a specific calendar event."
+    usage_context: "Use to fetch meeting descriptions, attendee lists, or conference call links for automated prep."
+    agent_hints:
+      - "Requires a valid event_id."
+    waml_examples:
+      - title: "Fetch Event Details"
+        waml: |
+          - step: get_event
+            call: google_calendar.action.events.get
+            with:
+               event_id: "71a3999c-5117-406b-8253-91f1b9dc1031"
 
 interface:
   inputs:

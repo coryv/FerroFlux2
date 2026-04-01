@@ -5,8 +5,24 @@ meta:
   category: Objects
   type: Action
   platform: s3
-  description: "List objects in an S3 bucket."
+  description: "Lists objects in an S3 bucket."
   version: "1.0.0"
+  discovery:
+    purpose: "Browse the contents of an S3 bucket."
+    usage_context: "Use this to find files to process, list logs, or audit storage. Supports prefix filtering for specific 'folders' and pagination for large buckets."
+    agent_hints:
+      - "Requires the 'bucket' name."
+      - "The 'prefix' behaves like a directory filter (e.g. 'logs/2024/')."
+      - "Returns a list of object summaries (key, size, lastModified, etag)."
+    waml_examples:
+      - title: "List PDF Reports"
+        waml: |
+          - step: list_pdfs
+            call: s3.action.objects.list
+            with:
+               bucket: "client-uploads"
+               prefix: "reports/"
+               delimiter: "/"
 
 interface:
   inputs:

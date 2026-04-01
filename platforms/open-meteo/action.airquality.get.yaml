@@ -7,6 +7,21 @@ meta:
   platform: open-meteo
   description: "Fetch current and forecast air quality data including AQI, PM2.5, PM10, ozone, and other pollutants for a location."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve current and forecast air quality data for a specific location."
+    usage_context: "Use to monitor pollution levels, alert users to high pollen or dust, or decide on outdoor health recommendations."
+    agent_hints:
+      - "Requires latitude and longitude."
+      - "Returns data for PM2.5, PM10, NOx, O3, and more."
+    waml_examples:
+      - title: "Check Pollution"
+        waml: |
+          - step: air_quality
+            call: open-meteo.action.airquality.get
+            with:
+               latitude: 37.7749
+               longitude: -122.4194
+               hourly: ["european_aqi", "dust", "pm2_5"]
   data_strategy: enrich
 
 interface:

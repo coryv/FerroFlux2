@@ -5,8 +5,24 @@ meta:
   category: AI
   type: Action
   platform: gemini
-  description: "Continue a conversation with a Gemini model using message history."
+  description: "Creates a conversational response using Gemini's chat interface."
   version: "1.0.0"
+  discovery:
+    purpose: "Engage in multi-turn natural language conversations with Gemini models."
+    usage_context: "Use this for interactive assistants, customer support bots, and any task requiring back-and-forth dialogue."
+    agent_hints:
+      - "Specify the 'model' (e.g. 'gemini-1.5-flash')."
+      - "Maintains history via the 'contents' array (role: 'user/model')."
+    waml_examples:
+      - title: "Start Gemini Chat"
+        waml: |
+          - step: ask_gemini
+            call: gemini.action.ai.chat
+            with:
+               model: "gemini-1.5-flash"
+               contents:
+                  - role: "user"
+                    parts: [{ text: "Explain quantum entanglement like I'm five." }]
 
 interface:
   inputs:

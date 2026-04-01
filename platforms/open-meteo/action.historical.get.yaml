@@ -7,6 +7,22 @@ meta:
   platform: open-meteo
   description: "Fetch historical weather data for a location and date range using the Open-Meteo archive API."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve historical weather data for a specific date and location."
+    usage_context: "Use to analyze past weather patterns, verify flight conditions for a past date, or correlate historical sales data with weather."
+    agent_hints:
+      - "Requires latitude, longitude, start_date, and end_date (YYYY-MM-DD)."
+    waml_examples:
+      - title: "Fetch Past Weather"
+        waml: |
+          - step: past_weather
+            call: open-meteo.action.historical.get
+            with:
+               latitude: 37.7749
+               longitude: -122.4194
+               start_date: "2023-01-01"
+               end_date: "2023-01-07"
+               daily: ["temperature_2m_max", "temperature_2m_min"]
   data_strategy: enrich
 
 interface:

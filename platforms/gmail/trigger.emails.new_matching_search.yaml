@@ -5,8 +5,23 @@ meta:
   category: Emails
   type: Trigger
   platform: gmail
-  description: "Polls for new emails matching a specific Gmail search query."
+  description: "Triggers when a new email matches a specific Gmail search query."
   version: "1.0.0"
+  discovery:
+    purpose: "Continuously monitor an inbox for messages that meet specific criteria."
+    usage_context: "Use this as the start of an automation for incoming invoices, customer feedback, or alerts. You can specify complex filters like 'from:alerts@system.com is:unread label:cloud-alerts'."
+    agent_hints:
+      - "This trigger polls for new IDs that match the query and haven't been seen by the cursor yet."
+      - "Ensure the query is as specific as possible to avoid triggering on irrelevant messages."
+    waml_examples:
+      - title: "Watch for Unread Invoices"
+        waml: |
+          trigger:
+            id: invoice_watcher
+            call: gmail.trigger.emails.new_matching_search
+            with:
+               query: "is:unread label:invoices"
+               limit: 5
 
 interface:
   inputs: []

@@ -7,6 +7,17 @@ meta:
   platform: confluence
   description: "Polls Confluence for recently updated pages."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow whenever a Confluence page is modified."
+    usage_context: "Use to track documentation changes, notify stakeholders of wiki updates, or sync content to other knowledge management tools."
+    agent_hints:
+      - "Provides information on the modified page and the user who made the changes."
+    waml_examples:
+      - title: "Page Update Sync"
+        waml: |
+          - step: log_change
+            type: trigger
+            call: confluence.trigger.pages.updated
 
 interface:
   inputs: []

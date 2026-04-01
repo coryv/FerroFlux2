@@ -7,6 +7,21 @@ meta:
   platform: smtp
   description: "Send an email using the SMTP protocol."
   version: "1.0.0"
+  discovery:
+    purpose: "Send a custom email via the configured SMTP server."
+    usage_context: "Use to send error reports to developers, verification codes to users, or daily activity summaries to stakeholders."
+    agent_hints:
+      - "Requires to, from, subject, and either text or html content."
+    waml_examples:
+      - title: "Send Alert"
+        waml: |
+          - step: notify
+            call: smtp.action.email.send
+            with:
+               to: "admin@example.com"
+               from: "system@example.com"
+               subject: "System Alert: High Memory Usage"
+               text: "Memory usage has exceeded 90%."
 
 interface:
   inputs:

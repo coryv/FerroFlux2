@@ -7,6 +7,20 @@ meta:
   platform: discord
   description: "Send a direct message to a specific user."
   version: "1.0.0"
+  discovery:
+    purpose: "Send a private message to an individual Discord user."
+    usage_context: "Use this for private notifications or 1-on-1 interactions with server members. This action handles the 'channel creation' step required by Discord automatically."
+    agent_hints:
+      - "Requires the Snowflake ID of the recipient user."
+      - "Note: Bots can only DM users they share a server with, and who have DMs enabled."
+    waml_examples:
+      - title: "Send a Private Welcome"
+        waml: |
+          - step: private_greet
+            call: discord.action.messages.send_dm
+            with:
+               recipient_id: "123456789012345678"
+               content: "Thanks for joining! Use !help for more info."
 
 interface:
   inputs:

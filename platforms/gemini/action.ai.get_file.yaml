@@ -7,6 +7,19 @@ meta:
   platform: gemini
   description: "Get metadata for a specific file in the Gemini File API."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve metadata for a file in the Gemini File API."
+    usage_context: "Use to verify a file's state (e.g. processed vs active) before using it in generating content."
+    agent_hints:
+      - "Requires a file_id."
+      - "Returns the file object including URI and processing state."
+    waml_examples:
+      - title: "Get File Info"
+        waml: |
+          - step: fetch_file
+            call: gemini.action.ai.get_file
+            with:
+               file_id: "files/12345"
 
 interface:
   inputs:

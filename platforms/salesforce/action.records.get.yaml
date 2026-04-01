@@ -5,8 +5,22 @@ meta:
   category: Records
   type: Action
   platform: salesforce
-  description: "Retrieves a standard or custom SObject record."
+  description: "Retrieves a single Salesforce record by its unique ID."
   version: "1.0.0"
+  discovery:
+    purpose: "Fetch the details of a specific record."
+    usage_context: "Use this when you already have the 15 or 18-character Salesforce ID and need to get its current state."
+    agent_hints:
+      - "Requires the 'object' name and the 'id'."
+      - "Returns all fields of the record by default."
+    waml_examples:
+      - title: "Get Account Details"
+        waml: |
+          - step: get_account
+            call: salesforce.action.records.get
+            with:
+               object: "Account"
+               id: "0018c00002PqcYxAAJ"
 
 interface:
   inputs:

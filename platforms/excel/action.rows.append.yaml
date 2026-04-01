@@ -7,6 +7,22 @@ meta:
   platform: excel
   description: "Append one or more rows to an Excel table."
   version: "1.0.0"
+  discovery:
+    purpose: "Append one or more rows of data to the end of an Excel table or worksheet."
+    usage_context: "Use to log form submissions, record sales transactions, or append monthly expenses to a master workbook."
+    agent_hints:
+      - "Requires drive_id, item_id, and a worksheet name or table name."
+      - "Data should be provided as a 2D array (values)."
+    waml_examples:
+      - title: "Log Entry"
+        waml: |
+          - step: log
+            call: excel.action.rows.append
+            with:
+               drive_id: "me"
+               item_id: "workbook-123"
+               worksheet: "Sheet1"
+               values: [["2023-11-01", "Coffee", 4.50]]
 
 interface:
   inputs:

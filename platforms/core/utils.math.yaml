@@ -6,6 +6,18 @@ meta:
   platform: core
   description: "Performs basic arithmetic operations."
   version: "1.0.0"
+  discovery:
+    purpose: "Perform basic and advanced mathematical calculations within a workflow."
+    usage_context: "Use to calculate order totals, adjust inventory levels, or compute statistics from data arrays."
+    agent_hints:
+      - "Supports standard arithmetic (+, -, *, /) and common functions (min, max, round)."
+    waml_examples:
+      - title: "Calculate Sales Tax"
+        waml: |
+          - step: tax
+            call: core.utils.math
+            with:
+               expression: "${inputs.subtotal} * 0.08"
 
 interface:
   inputs:

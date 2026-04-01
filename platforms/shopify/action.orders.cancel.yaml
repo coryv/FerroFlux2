@@ -7,6 +7,21 @@ meta:
   platform: shopify
   description: "Cancels an existing Shopify order."
   version: "1.0.0"
+  discovery:
+    purpose: "Cancel an existing Shopify order."
+    usage_context: "Use to automate order cancellations based on fraud detection, payment failure, or customer requests."
+    agent_hints:
+      - "Requires the order_id."
+    waml_examples:
+      - title: "Cancel Fraudulent Order"
+        waml: |
+          - step: cancel
+            call: shopify.action.orders.cancel
+            with:
+               order_id: "543216789"
+               reason: "fraud"
+               note: "Automated cancellation due to high fraud risk score."
+               email: true
 
 interface:
   inputs:

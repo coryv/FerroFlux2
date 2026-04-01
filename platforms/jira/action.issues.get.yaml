@@ -7,6 +7,19 @@ meta:
   platform: jira
   description: "Retrieve details for a specific issue."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve all fields and details for a specific Jira issue."
+    usage_context: "Use this to fetch the current status, description, assignee, or custom field values of a ticket."
+    agent_hints:
+      - "Requires the issue key (e.g., PROJ-123) or issue ID."
+      - "Returns the full issue object."
+    waml_examples:
+      - title: "Get Bug Details"
+        waml: |
+          - step: fetch_bug
+            call: jira.issues.get
+            with:
+               issue_id_or_key: "PROJ-123"
 
 interface:
   inputs:

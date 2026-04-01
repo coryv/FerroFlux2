@@ -7,6 +7,19 @@ meta:
   platform: mailchimp
   description: "Sends a Mailchimp campaign."
   version: "1.0.0"
+  discovery:
+    purpose: "Permanently launch/send a prepared Mailchimp campaign to its audience."
+    usage_context: "Use to automate the final release of newsletters or marketing announcements once content is validated."
+    agent_hints:
+      - "Requires a campaign_id."
+      - "The campaign must be in 'Ready' status to send."
+    waml_examples:
+      - title: "Send Campaign"
+        waml: |
+          - step: send_now
+            call: mailchimp.action.campaigns.send
+            with:
+               campaign_id: "71a3999c51"
 
 interface:
   inputs:

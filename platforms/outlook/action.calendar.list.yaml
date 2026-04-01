@@ -5,8 +5,21 @@ meta:
   category: Calendar
   type: Action
   platform: outlook
-  description: "Retrieve a list of calendar events."
+  description: "Lists events from a specific Outlook calendar."
   version: "1.0.0"
+  discovery:
+    purpose: "Browse and identify upcoming meetings or schedule conflicts."
+    usage_context: "Use this to fetch daily schedules, sync calendar data to a team dashboard, or audit meeting attendance."
+    agent_hints:
+      - "Returns a list of event objects (subject, start, end, attendees)."
+      - "Supports query parameters for filtering by time range."
+    waml_examples:
+      - title: "List Today's Meetings"
+        waml: |
+          - step: see_schedule
+            call: outlook.action.calendar.list
+            with:
+               top: 10
 
 interface:
   inputs:

@@ -6,6 +6,20 @@ meta:
   platform: core
   description: "Triggers when a specific URL is called."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow when an incoming HTTP request is received."
+    usage_context: "Use for external integrations that push data to FerroFlux (e.g., Stripe, GitHub, custom scripts)."
+    agent_hints:
+      - "The body, headers, and query parameters are available as outputs."
+      - "Raw body is provided for HMAC signature verification."
+    waml_examples:
+      - title: "External Webhook"
+        waml: |
+          - step: incoming_data
+            type: trigger
+            call: core.trigger.webhook
+            settings:
+              path: "/orders/sync"
 
 interface:
   inputs: []

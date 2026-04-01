@@ -7,6 +7,21 @@ meta:
   platform: outlook
   description: "Permanently delete a specific calendar event."
   version: "1.0.0"
+  discovery:
+    purpose: "Permanently remove an event from an Outlook calendar."
+    usage_context: "Use to cleanup canceled meetings, remove placeholders, or manage shared availability."
+    agent_hints:
+      - "Requires event_id."
+    waml_examples:
+      - title: "Cancel Event"
+        waml: |
+          - step: delete
+            call: outlook.action.calendar.delete
+            with:
+               event_id: "AAMkAG..."
+               comment: "No longer needed."
+               notify_attendees: true
+               notify_message: "The meeting has been cancelled."
 
 interface:
   inputs:

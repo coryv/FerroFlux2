@@ -5,8 +5,21 @@ meta:
   category: Cards
   type: Action
   platform: trello
-  description: "Deletes a card."
+  description: "Permanently deletes a Trello card."
   version: "1.0.0"
+  discovery:
+    purpose: "Remove a card from the board."
+    usage_context: "Use this to clean up temporary cards or remove duplicate tasks. Use with caution as this is irreversible."
+    agent_hints:
+      - "Requires the card ID."
+    waml_examples:
+      - title: "Delete Duplicate Card"
+        waml: |
+          - step: rm_card
+            call: trello.action.cards.delete
+            with:
+               id: "65a..."
+ Riverside: 
 
 interface:
   inputs:

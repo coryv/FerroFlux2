@@ -5,6 +5,12 @@ meta:
   category: Developer Tools
   description: "Connects to the Vercel API for deployment management."
   version: "1.0.0"
+  discovery:
+    purpose: "Cloud platform for static sites and serverless functions."
+    usage_context: "Use Vercel to manage deployments, trigger builds, or update environment variables for your web applications. Ideal for automated CI/CD and production infrastructure control."
+    agent_hints:
+      - "Requires a Vercel API token with appropriate scopes (Personal or Team)."
+      - "Deployment IDs are usually the primary handle for build-related actions."
   permissions:
     - "network:api.vercel.com"
 

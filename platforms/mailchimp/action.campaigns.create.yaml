@@ -5,8 +5,22 @@ meta:
   category: Campaigns
   type: Action
   platform: mailchimp
-  description: "Creates a new Mailchimp campaign."
+  description: "Creates a new email campaign for a specific audience."
   version: "1.0.0"
+  discovery:
+    purpose: "Draft automated marketing messages, newsletters, or announcements."
+    usage_context: "Use this to prepare seasonal promotions, sync blog posts to email campaigns, or automate complex marketing workflows."
+    agent_hints:
+      - "Requires 'type' (regular, plaintext, etc.) and 'recipients' (list_id)."
+      - "The 'settings' object handles 'subject_line' and 'from_name'."
+    waml_examples:
+      - title: "Create Promo Campaign"
+        waml: |
+          - step: mk_campaign
+            call: mailchimp.action.campaigns.create
+            with:
+               type: "regular"
+               recipients: { list_id: "123..." }
 
 interface:
   inputs:

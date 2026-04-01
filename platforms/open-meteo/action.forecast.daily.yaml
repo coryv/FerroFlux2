@@ -7,6 +7,20 @@ meta:
   platform: open-meteo
   description: "Fetch daily weather forecast summaries including high/low temperatures, sunrise/sunset, precipitation totals, and UV index."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve daily weather forecasts for a specific location."
+    usage_context: "Use to plan outdoor activities, monitor high/low temperatures over the next week, or alert users to future rain."
+    agent_hints:
+      - "Requires latitude and longitude."
+    waml_examples:
+      - title: "Next Week Forecast"
+        waml: |
+          - step: forecast
+            call: open-meteo.action.forecast.daily
+            with:
+               latitude: 37.7749
+               longitude: -122.4194
+               days: 7
   data_strategy: enrich
 
 interface:

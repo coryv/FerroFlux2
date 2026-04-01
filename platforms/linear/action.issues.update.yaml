@@ -5,8 +5,22 @@ meta:
   category: Issues
   type: Action
   platform: linear
-  description: "Updates an issue in Linear using GraphQL."
+  description: "Updates an existing Linear issue by its UUID."
   version: "1.0.0"
+  discovery:
+    purpose: "Modify fields on a Linear issue, such as its status, priority, or assignee."
+    usage_context: "Use this to advance issues through a workflow (e.g. from 'Todo' to 'Done'), re-assign bugs to developers, or update issue descriptions."
+    agent_hints:
+      - "Requires the 'id' (UUID)."
+      - "Note that 'stateId' is used for custom workflow statuses."
+    waml_examples:
+      - title: "Mark Issue Done"
+        waml: |
+          - step: finish_bug
+            call: linear.action.issues.update
+            with:
+               id: "issue_uuid_123"
+               stateId: "done_state_uuid"
 
 interface:
   inputs:

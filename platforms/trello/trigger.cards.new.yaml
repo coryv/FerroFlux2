@@ -5,8 +5,22 @@ meta:
   category: Cards
   type: Trigger
   platform: trello
-  description: "Polls a Trello board for newly created cards."
+  description: "Triggers when a new card is created on a Trello board."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a new work item appears in Trello."
+    usage_context: "Use this to notify team members on Slack, sync new tasks to an external tool, or trigger automated task assignment."
+    agent_hints:
+      - "Polls the board for new cards based on the 'date_created' timestamp."
+      - "Requires the board ID ('idBoard')."
+    waml_examples:
+      - title: "Sync New Cards"
+        waml: |
+          trigger:
+            new_card:
+               call: trello.trigger.cards.new
+               with:
+                  idBoard: "65e..."
 
 interface:
   inputs: []

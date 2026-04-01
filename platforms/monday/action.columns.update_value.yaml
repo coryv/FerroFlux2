@@ -5,8 +5,24 @@ meta:
   category: Columns
   type: Action
   platform: monday
-  description: "Update the value of a single column for a specified item."
+  description: "Updates a specific column value for an item on a Monday board."
   version: "1.0.0"
+  discovery:
+    purpose: "Modify a single cell in the Monday table."
+    usage_context: "Use this when you only need to change one property (like 'Status', 'Date', or 'Text') without affecting others. More targeted than 'update_item'."
+    agent_hints:
+      - "Requires 'board_id', 'item_id', and 'column_id'."
+      - "The 'value' must be a JSON string-encoded object specific to the column type."
+    waml_examples:
+      - title: "Update Status Column"
+        waml: |
+          - step: set_status
+            call: monday.action.columns.update_value
+            with:
+               board_id: "1234567"
+               item_id: "890..."
+               column_id: "status"
+               value: '{"label": "Done"}'
 
 interface:
   inputs:

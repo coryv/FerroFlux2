@@ -5,8 +5,21 @@ meta:
   category: Checklists
   type: Action
   platform: trello
-  description: "Creates a checklist on a card."
+  description: "Creates a new checklist on a Trello card."
   version: "1.0.0"
+  discovery:
+    purpose: "Add a structured checklist (e.g. 'To Do', 'Requirements') to a card."
+    usage_context: "Use this to programmatically add standard checklists to specific task cards, such as a 'QA Checklist' for bug reports."
+    agent_hints:
+      - "Requires the card ID ('idCard') and a 'name'."
+    waml_examples:
+      - title: "Add Requirements Checklist"
+        waml: |
+          - step: mk_list
+            call: trello.action.checklists.create
+            with:
+               idCard: "65a..."
+               name: "Acceptance Criteria"
 
 interface:
   inputs:

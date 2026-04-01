@@ -7,6 +7,20 @@ meta:
   platform: google_sheets
   description: "Returns a range of values from a spreadsheet."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve values from a specific cell range in a Google Sheet."
+    usage_context: "Use to fetch configuration data, lookup values from a master table, or read values for processing in a workflow."
+    agent_hints:
+      - "Requires a Spreadsheet ID and the cell range (e.g., 'Sheet1!A1:B10')."
+      - "Returns a 2D array of values."
+    waml_examples:
+      - title: "Read Settings"
+        waml: |
+          - step: read_config
+            call: google_sheets.action.values.get
+            with:
+               spreadsheet_id: "12345abcdefg"
+               range: "Settings!A2:B2"
 
 interface:
   inputs:

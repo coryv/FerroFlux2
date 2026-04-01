@@ -7,6 +7,19 @@ meta:
   platform: google-drive
   description: "Downloads a file from Google Drive."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve the binary content of a file from Google Drive."
+    usage_context: "Use to fetch documents for AI analysis, download images for processing, or transfer assets to external storage."
+    agent_hints:
+      - "Requires a valid fileId."
+      - "Returns a file blob object."
+    waml_examples:
+      - title: "Download PDF"
+        waml: |
+          - step: fetch_file
+            call: google-drive.action.files.download
+            with:
+               fileId: "12345abcde"
 
 interface:
   inputs:

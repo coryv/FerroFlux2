@@ -5,8 +5,22 @@ meta:
   category: Cloud Storage & Files
   type: Trigger
   platform: google-drive
-  description: "Fires when a new file is created."
+  description: "Triggers when a new file or folder is created in Google Drive."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a new item appears in Google Drive."
+    usage_context: "Use this to automate document processing immediately after upload, such as reacting to a new invoice or a shared team report."
+    agent_hints:
+      - "Polls Google Drive for new items. There may be a short delay between upload and trigger."
+      - "Yields the full file resource (id, name, mimeType) to the next step."
+    waml_examples:
+      - title: "Process New Invoices"
+        waml: |
+          trigger:
+            new_file:
+               call: google-drive.trigger.files.new
+               with:
+                  folder_id: "invoices_folder_id_123"
 
 interface:
   inputs: []

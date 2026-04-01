@@ -7,6 +7,17 @@ meta:
   platform: jira
   description: "Polls Jira for issues that have been updated recently."
   version: "1.0.0"
+  discovery:
+    purpose: "Triggers whenever a Jira issue is modified (fields changed, transitioning status)."
+    usage_context: "Use to automate post-update actions like notifying team leads, syncing statuses to Trello, or updating documentation."
+    agent_hints:
+      - "Provides details on what fields were changed and the updated issue state."
+    waml_examples:
+      - title: "Issue Change Sync"
+        waml: |
+          - step: log_change
+            type: trigger
+            call: jira.trigger.issues.updated
 
 interface:
   inputs: []

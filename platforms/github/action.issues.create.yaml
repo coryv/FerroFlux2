@@ -5,8 +5,24 @@ meta:
   category: Issues
   type: Action
   platform: github
-  description: "Create a new issue in a GitHub repository."
+  description: "Creates a new issue in a GitHub repository."
   version: "1.0.0"
+  discovery:
+    purpose: "Log a bug, feature request, or task directly into a repository's issue tracker."
+    usage_context: "Use this to automate bug reporting from Sentry alerts, customer support tickets, or development task management. Requires 'owner', 'repo', and 'title'."
+    agent_hints:
+      - "Requires the 'owner' (user/org) and 'repo' name string."
+      - "Supports markdown in the 'body' and assignment to specific 'assignees'."
+    waml_examples:
+      - title: "Create Bug Issue"
+        waml: |
+          - step: log_bug
+            call: github.action.issues.create
+            with:
+               owner: "octocat"
+               repo: "hello-world"
+               title: "Broken link in footer"
+               body: "Found by the link checker."
 
 interface:
   inputs:

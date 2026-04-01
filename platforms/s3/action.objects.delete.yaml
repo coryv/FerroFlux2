@@ -7,6 +7,19 @@ meta:
   platform: s3
   description: "Delete an object from an S3 bucket."
   version: "1.0.0"
+  discovery:
+    purpose: "Permanently remove a specific object from an S3 bucket."
+    usage_context: "Use to cleanup temporary project files, remove old backups, or delete user assets that have been flagged as obsolete."
+    agent_hints:
+      - "Requires bucket_name and key."
+    waml_examples:
+      - title: "Delete Object"
+        waml: |
+          - step: remove
+            call: s3.action.objects.delete
+            with:
+               bucket_name: "my-bucket"
+               key: "uploads/old_file.zip"
 
 interface:
   inputs:

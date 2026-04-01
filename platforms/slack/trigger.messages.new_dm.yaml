@@ -5,8 +5,20 @@ meta:
   category: Messages
   type: Trigger
   platform: slack
-  description: "Polls for new direct messages across all active DM channels."
+  description: "Triggers when any new direct message is received by the bot."
   version: "1.0.0"
+  discovery:
+    purpose: "Monitor all incoming private messages to the bot."
+    usage_context: "Use this for 'catch-all' bot interactions where the user doesn't need to be pre-specified. Ideal for support bots or universal assistants."
+    agent_hints:
+      - "This trigger iterates through all open IM conversations and checks for new history."
+      - "Best used as the primary entry point for a private bot service."
+    waml_examples:
+      - title: "Global DM Listener"
+        waml: |
+          trigger:
+            id: dm_catchall
+            call: slack.trigger.messages.new_dm
 
 interface:
   inputs: []

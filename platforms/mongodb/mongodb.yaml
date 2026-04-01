@@ -5,6 +5,13 @@ meta:
   type: Platform
   description: "Direct connection to MongoDB clusters via binary protocol."
   version: "1.0.0"
+  discovery:
+    purpose: "NoSQL document-based database for flexible, JSON-like storage."
+    usage_context: "Use MongoDB when your data schema is evolving, or when you need to store large, nested objects that don't fit well into traditional relational tables. Ideal for logs, user profiles, and catalog data."
+    agent_hints:
+      - "Queries use the standard MongoDB BSON/JSON syntax."
+      - "Requires a connection string (URI) and a target database name."
+      - "Ensure the FerroFlux engine's IP is allow-listed in your MongoDB Atlas or firewall settings."
 
 config:
   driver: mongodb

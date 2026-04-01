@@ -7,6 +7,17 @@ meta:
   platform: shopify
   description: "Triggers when a new order is placed."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow when a new order is created in Shopify."
+    usage_context: "Use to automate order confirmation, fulfillment workflows, or customer data synchronization."
+    agent_hints:
+      - "Provides the full order object, including customer details and line items."
+    waml_examples:
+      - title: "Order Sync"
+        waml: |
+          - step: on_order
+            type: trigger
+            call: shopify.trigger.orders.new
 
 interface:
   inputs: []

@@ -7,6 +7,23 @@ meta:
   platform: shopify
   description: "Creates a new Shopify order."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a new order record in Shopify."
+    usage_context: "Use to sync orders from external marketplaces, draft orders, or manual sales channels."
+    agent_hints:
+      - "Requires line items and optionally customer details."
+    waml_examples:
+      - title: "Create External Order"
+        waml: |
+          - step: new_order
+            call: shopify.action.orders.create
+            with:
+               line_items:
+                 - title: "Custom Widget"
+                   price: 19.99
+                   quantity: 1
+               customer:
+                 email: "customer@example.com"
 
 interface:
   inputs:

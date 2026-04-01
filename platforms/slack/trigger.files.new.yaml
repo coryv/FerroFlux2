@@ -5,8 +5,22 @@ meta:
   category: Files
   type: Trigger
   platform: slack
-  description: "Polls for newly shared files in a Slack channel."
+  description: "Triggers when a new file is shared in a Slack workspace or channel."
   version: "1.0.0"
+  discovery:
+    purpose: "Monitor Slack for new file uploads and shares."
+    usage_context: "Use this to automate document processing, backup files to another service, or scan for sensitive content. Can filter by a specific channel or monitor the entire authorized workspace."
+    agent_hints:
+      - "The 'file' output contains the Slack file object, with 'url_private' for downloading and 'mimetype' for filtering."
+      - "Note that the bot must have 'files:read' scopes to detect files outside of channels it is a member of."
+    waml_examples:
+      - title: "Monitor Channel Files"
+        waml: |
+          trigger:
+            id: file_tracker
+            call: slack.trigger.files.new
+            with:
+               channel: "C12345678"
 
 interface:
   inputs: []

@@ -7,6 +7,25 @@ meta:
   platform: azure-openai
   description: "Analyze images with an Azure OpenAI vision-capable deployment (e.g., GPT-4o)."
   version: "1.0.0"
+  discovery:
+    purpose: "Analyze and describe images using GPT-4 Vision models hosted in Azure."
+    usage_context: "Use to automate image tagging, extract data from receipts, or provide accessibility descriptions for visual content."
+    agent_hints:
+      - "Requires a vision-capable model deployment (e.g. gpt-4o or gpt-4-vision)."
+    waml_examples:
+      - title: "Describe Image"
+        waml: |
+          - step: see
+            call: azure-openai.action.chat.completion_vision
+            with:
+               deployment_name: "gpt-4o"
+               messages:
+                 - role: "user"
+                   content:
+                     - type: "text"
+                       text: "What is in this image?"
+                     - type: "image_url"
+                       image_url: { url: "${inputs.img_url}" }
 
 interface:
   inputs:

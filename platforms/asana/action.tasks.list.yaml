@@ -5,8 +5,22 @@ meta:
   category: Tasks
   type: Action
   platform: asana
-  description: "Lists tasks in a project."
+  description: "Lists tasks in an Asana project, section, or for a specific user."
   version: "1.0.0"
+  discovery:
+    purpose: "Browse and find tasks within specific containers or assigned to users."
+    usage_context: "Use this to fetch all tasks in a 'Backlog' section, find a user's assigned work, or starting a bulk task update."
+    agent_hints:
+      - "Can be filtered by 'project', 'section', 'assignee', or 'workspace'."
+      - "Returns a list of task summaries (GID, name, resource_type)."
+    waml_examples:
+      - title: "List Project Tasks"
+        waml: |
+          - step: get_todo
+            call: asana.action.tasks.list
+            with:
+               project: "1201..."
+               completed_since: "now"
 
 interface:
   inputs:

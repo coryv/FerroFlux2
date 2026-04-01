@@ -7,6 +7,21 @@ meta:
   platform: aws
   description: "Invoke an AWS Lambda function."
   version: "1.0.0"
+  discovery:
+    purpose: "Trigger the execution of an AWS Lambda function with a custom JSON payload."
+    usage_context: "Use to run serverless compute jobs, process data with custom Python/Node.js logic, or trigger legacy AWS workflows from a FerroFlux pipeline."
+    agent_hints:
+      - "Requires function_name and payload (JSON)."
+      - "Supports RequestResponse (synchronous) or Event (asynchronous) invocation types."
+    waml_examples:
+      - title: "Invoke Function"
+        waml: |
+          - step: run_worker
+            call: aws.action.lambda.invoke
+            with:
+               function_name: "data-processor-prod"
+               payload: { "id": "123", "action": "re-index" }
+               invocation_type: "RequestResponse"
 
 interface:
   inputs:

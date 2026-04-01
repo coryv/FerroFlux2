@@ -5,8 +5,23 @@ meta:
   category: Cloud Storage & Files
   type: Action
   platform: google-drive
-  description: "Copies a file in Google Drive."
+  description: "Copies a file in Google Drive to a new location or name."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a duplicate of an existing file in Google Drive."
+    usage_context: "Use this to create templates, archive snapshots of documents, or share a private copy of a file with a specific folder."
+    agent_hints:
+      - "Requires the 'file_id' of the source file."
+      - "You can provide a 'name' for the new copy and specify 'parents' (folder IDs) for its destination."
+    waml_examples:
+      - title: "Create Template Copy"
+        waml: |
+          - step: copy_template
+            call: google-drive.action.files.copy
+            with:
+               file_id: "1abc..."
+               name: "Report_2024.pdf"
+               parents: ["folder_id_123"]
 
 interface:
   inputs:

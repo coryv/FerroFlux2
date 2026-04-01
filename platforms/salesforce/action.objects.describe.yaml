@@ -5,8 +5,21 @@ meta:
   category: Objects
   type: Action
   platform: salesforce
-  description: "Gets metadata and fields for an SObject."
+  description: "Retrieves metadata about a Salesforce object (SObject)."
   version: "1.0.0"
+  discovery:
+    purpose: "Understand the fields, relationships, and capabilities of a specific Salesforce object."
+    usage_context: "Use this to dynamically discover which fields are available on 'Account', 'Lead', or custom objects before performing a query or update."
+    agent_hints:
+      - "Requires the 'object' API name (e.g., 'Account', 'CustomObject__c')."
+      - "Returns detailed field metadata (type, label, length, picklist values)."
+    waml_examples:
+      - title: "Describe Lead Fields"
+        waml: |
+          - step: get_fields
+            call: salesforce.action.objects.describe
+            with:
+               object: "Lead"
 
 interface:
   inputs:

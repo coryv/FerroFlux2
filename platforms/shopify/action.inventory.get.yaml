@@ -7,6 +7,19 @@ meta:
   platform: shopify
   description: "Gets the inventory level for an item at a location."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve the current inventory levels for a product variant at a specific location."
+    usage_context: "Use to verify stock availability before fulfilling an order or syncing with an external warehouse."
+    agent_hints:
+      - "Requires inventory_item_id and location_id."
+    waml_examples:
+      - title: "Check Stock"
+        waml: |
+          - step: check
+            call: shopify.action.inventory.get
+            with:
+               inventory_item_id: "808950896"
+               location_id: "905684977"
 
 interface:
   inputs:

@@ -7,6 +7,17 @@ meta:
   platform: zendesk
   description: "Triggers when a ticket is updated."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow whenever an existing Zendesk ticket is modified."
+    usage_context: "Use to sync status changes to Jira, notify assignees of new comments, or update internal dashboards."
+    agent_hints:
+      - "Provides details on changed fields and the current ticket state."
+    waml_examples:
+      - title: "Sync Status Change"
+        waml: |
+          - step: log_update
+            type: trigger
+            call: zendesk.trigger.tickets.updated
 
 interface:
   inputs: []

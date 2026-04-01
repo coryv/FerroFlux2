@@ -7,6 +7,19 @@ meta:
   platform: slack
   description: "Gets information about a specific user."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve profile and status details for a Slack user."
+    usage_context: "Use this to resolve a user ID into a human-readable name, get an email address for cross-platform workflows, or check a user's current status and time zone."
+    agent_hints:
+      - "The 'user' object includes a 'profile' field where most contact information (like email and real_name) is stored."
+      - "Requires a valid user ID (e.g. 'U12345678')."
+    waml_examples:
+      - title: "Get User's Email"
+        waml: |
+          - step: fetch_profile
+            call: slack.action.users.get
+            with:
+               user_id: "U12345678"
 
 interface:
   inputs:

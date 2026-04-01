@@ -7,6 +7,19 @@ meta:
   platform: telegram
   description: "Send answers to callback queries sent from inline keyboards."
   version: "1.0.0"
+  discovery:
+    purpose: "Answer a callback query from an inline keyboard button click."
+    usage_context: "Use to confirm button clicks or show a 'toast' notification to the user."
+    agent_hints:
+      - "Requires the callback_query_id from the trigger."
+    waml_examples:
+      - title: "Acknowledge Button"
+        waml: |
+          - step: ack
+            call: telegram.action.interaction.answer_callback
+            with:
+               callback_query_id: steps.trigger.callback_query_id
+               text: "Processing your request..."
 
 interface:
   inputs:

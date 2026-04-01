@@ -6,6 +6,13 @@ meta:
   category: Storage
   description: "Connects to the AWS S3 REST API using Signature Version 4."
   version: "1.0.0"
+  discovery:
+    purpose: "Highly scalable object storage for binary data and static assets."
+    usage_context: "Use AWS S3 for production-grade storage, data lakes, or hosting static files. It is the industry standard for reliable, high-throughput object storage."
+    agent_hints:
+      - "Bucket names must be globally unique across all AWS accounts."
+      - "Requires Region-specific endpoints if not using us-east-1."
+      - "Interactions use AWS Signature V4 for security."
 
 config:
   base_url: "https://s3.amazonaws.com"

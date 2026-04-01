@@ -5,8 +5,23 @@ meta:
   category: Tasks
   type: Action
   platform: asana
-  description: "Updates a task."
+  description: "Updates an existing Asana task by its GID."
   version: "1.0.0"
+  discovery:
+    purpose: "Modify fields on an existing task."
+    usage_context: "Use this to update a task's title, change its due date, or assign it to a team member as it moves through a workflow."
+    agent_hints:
+      - "Requires the 'task_gid'."
+      - "The 'data' parameter is a JSON object of field names and values (partial update)."
+    waml_examples:
+      - title: "Assign Task"
+        waml: |
+          - step: assign_it
+            call: asana.action.tasks.update
+            with:
+               task_gid: "1202..."
+               data:
+                 assignee: "1205..."
 
 interface:
   inputs:

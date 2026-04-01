@@ -7,6 +7,19 @@ meta:
   platform: gemini
   description: "Get metadata for a specific context cache by its name."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve metadata for a specific context cache in the Gemini API."
+    usage_context: "Use to verify cache expiration, model compatibility, and reuse tokens for massive context retrieval."
+    agent_hints:
+      - "Requires a cache_name."
+      - "Returns the cache object including TTL and token count."
+    waml_examples:
+      - title: "Verify Cache"
+        waml: |
+          - step: check_cache
+            call: gemini.action.ai.get_cache
+            with:
+               cache_name: "cachedContents/12345"
 
 interface:
   inputs:

@@ -5,8 +5,22 @@ meta:
   category: Issues
   type: Trigger
   platform: linear
-  description: "Polls Linear for newly created issues."
+  description: "Triggers when a new issue is created in a Linear team (polling)."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a new bug or task is logged in Linear."
+    usage_context: "Use this to notify team members on Slack, sync new issues to a project database, or triage incoming bugs."
+    agent_hints:
+      - "Polls Linear for new issues created after the last check."
+      - "Requires the 'teamId' UUID."
+    waml_examples:
+      - title: "Sync New Bugs"
+        waml: |
+          trigger:
+            new_issue:
+               call: linear.trigger.issues.new
+               with:
+                  teamId: "team_uuid_123"
 
 interface:
   inputs: []

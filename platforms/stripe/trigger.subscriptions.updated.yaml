@@ -7,6 +7,17 @@ meta:
   platform: stripe
   description: "Fires when a Stripe customer.subscription.updated webhook event is received."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow whenever a customer's subscription is modified."
+    usage_context: "Use to handle plan upgrades, downgrades, or cancellations by granting/revoking access to services."
+    agent_hints:
+      - "Provides subscription IDs and current/previous plan details."
+    waml_examples:
+      - title: "Subscription Sync"
+        waml: |
+          - step: log_sub
+            type: trigger
+            call: stripe.trigger.subscriptions.updated
 
 interface:
   inputs: []

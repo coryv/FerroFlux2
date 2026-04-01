@@ -5,8 +5,22 @@ meta:
   category: Channels
   type: Trigger
   platform: slack
-  description: "Polls for newly created public Slack channels."
+  description: "Triggers when a new public channel is created in the Slack workspace."
   version: "1.0.0"
+  discovery:
+    purpose: "Monitor the Slack workspace for new public channels."
+    usage_context: "Use this to automate channel setup tasks, post welcome messages to new channels, or track workspace growth and organization."
+    agent_hints:
+      - "Only public channels are detected by this trigger by default."
+      - "The 'channel' output contains the standard Slack channel object (id, name, created, etc.)."
+    waml_examples:
+      - title: "Auto-Welcome New Channels"
+        waml: |
+          trigger:
+            id: channel_welcome
+            call: slack.trigger.channels.new
+            with:
+               poll_interval: 10
 
 interface:
   inputs: []

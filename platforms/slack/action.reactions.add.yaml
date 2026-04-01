@@ -7,6 +7,21 @@ meta:
   platform: slack
   description: "Adds a reaction (emoji) to a specific message."
   version: "1.0.0"
+  discovery:
+    purpose: "Acknowledge or react to a Slack message with an emoji."
+    usage_context: "Use this to acknowledge notifications, show agreement, or tag messages for later processing. Requires a channel ID, the exact timestamp of the message, and the emoji name."
+    agent_hints:
+      - "Emoji names should not include colons (e.g., use 'thumbsup' instead of ':thumbsup:')."
+      - "The 'timestamp' must be the precise float-style string (e.g. '12345678.123456') returned by message triggers."
+    waml_examples:
+      - title: "Add a Checkmark Reaction"
+        waml: |
+          - step: acknowledge
+            call: slack.action.reactions.add
+            with:
+               channel: "C12345678"
+               timestamp: steps.trigger.message.ts
+               name: "white_check_mark"
 
 interface:
   inputs:

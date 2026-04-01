@@ -5,8 +5,21 @@ meta:
   category: Records
   type: Action
   platform: salesforce
-  description: "Executes a SOQL query."
+  description: "Executes a SOQL query to find records in Salesforce."
   version: "1.0.0"
+  discovery:
+    purpose: "Search for multiple records using SQL-like syntax."
+    usage_context: "Use this for complex searches, such as 'Find all Leads created last week' or 'List all Contacts belonging to this Account'."
+    agent_hints:
+      - "The 'query' must be a valid SOQL string."
+      - "Returns a list of records matching the criteria."
+    waml_examples:
+      - title: "Find Hot Leads"
+        waml: |
+          - step: search_leads
+            call: salesforce.action.records.query
+            with:
+               query: "SELECT Id, Name, Email FROM Lead WHERE Rating = 'Hot' LIMIT 10"
 
 interface:
   inputs:

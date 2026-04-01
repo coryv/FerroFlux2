@@ -7,6 +7,21 @@ meta:
   platform: supabase
   description: "Inserts a new row into a table using PostgREST."
   version: "1.0.0"
+  discovery:
+    purpose: "Insert one or more new rows into a Supabase (PostgreSQL) table via the REST API."
+    usage_context: "Use to persist application data, log new user activity, or synchronize data from external webhooks into a Supabase backend."
+    agent_hints:
+      - "Requires table_name and a JSON object or array of objects representing the rows."
+    waml_examples:
+      - title: "Save Profile"
+        waml: |
+          - step: save
+            call: supabase.action.rows.insert
+            with:
+               table_name: "profiles"
+               row: { "id": "123", "name": "John Doe" }
+               on_conflict: "do_nothing"
+               returning: "representation"
 
 interface:
   inputs:

@@ -6,6 +6,20 @@ meta:
   platform: core
   description: "Hashing, HMAC, and UUID generation."
   version: "1.0.0"
+  discovery:
+    purpose: "Hash or verify data using cryptographic algorithms (SHA-256, HMAC)."
+    usage_context: "Use to verify webhook signatures, generate unique IDs, or secure sensitive data before storage."
+    agent_hints:
+      - "Supports various algorithms including md5, sha1, sha256."
+    waml_examples:
+      - title: "Verify Signature"
+        waml: |
+          - step: verify
+            call: core.utils.crypto
+            with:
+               action: "hmac_sha256"
+               key: "${env.WEBHOOK_SECRET}"
+               data: "${inputs.payload}"
 
 interface:
   inputs:

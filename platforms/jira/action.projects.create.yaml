@@ -7,6 +7,22 @@ meta:
   platform: jira
   description: "TODO: Describe what this node does."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a new project in Jira Cloud."
+    usage_context: "Use to automate project provisioning from an external intake form or a master project tracker."
+    agent_hints:
+      - "Requires key, name, and leadAccountId."
+    waml_examples:
+      - title: "Admin Project Provision"
+        waml: |
+          - step: new_project
+            call: jira.action.projects.create
+            with:
+               key: "NEWPROJ"
+               name: "New Marketplace Initiative"
+               leadAccountId: "5f123abc"
+               projectTypeKey: "software"
+               projectTemplateKey: "com.pyxis.greenhopper.jira:gh-simplified-kanban-classic"
 
 interface:
   inputs:

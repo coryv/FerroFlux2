@@ -3,6 +3,14 @@ meta:
   name: "AWS"
   category: "Cloud"
   type: Platform
+  description: "Amazon Web Services — cloud infrastructure, storage, and serverless compute."
+  version: "1.0.0"
+  discovery:
+    purpose: "Manage Amazon Web Services resources (S3, Lambda, EC2, DynamoDB) through a unified platform identity."
+    usage_context: "Use to automate cloud infrastructure management, handle file storage in S3, or trigger Lambda functions in response to external events."
+    agent_hints:
+      - "Requires AWS Region, Access Key, and Secret Key."
+      - "Follows standard AWS SDK request signing."
   icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/amazonaws.svg"
   permissions: ["network:*.amazonaws.com"]
 

@@ -4,8 +4,22 @@ meta:
   category: Audio
   type: Action
   platform: groq
-  description: "Transcribe audio files into text using Whisper."
+  description: "Transcribes an audio file into text using Groq's fast inference."
   version: "1.0.0"
+  discovery:
+    purpose: "Convert voice recordings, meetings, or voice commands into structured text with high speed."
+    usage_context: "Use this for real-time transcription, accessibility tools, or converting voice memos into tasks."
+    agent_hints:
+      - "Requires a supported audio file format and size limits."
+      - "Specify the 'model' (e.g. 'whisper-large-v3')."
+    waml_examples:
+      - title: "Transcribe Voice Memo"
+        waml: |
+          - step: transcribe
+            call: groq.action.audio.transcribe
+            with:
+               model: "whisper-large-v3"
+               file: "https://example.com/memo.wav"
   permissions:
     - "network:api.groq.com"
 

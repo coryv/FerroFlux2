@@ -5,8 +5,24 @@ meta:
   category: AI/ML
   type: Action
   platform: anthropic
-  description: "Streams a message with Claude."
+  description: "Streams a model response as a series of events from Anthropic Claude."
   version: "1.0.0"
+  discovery:
+    purpose: "Generate AI responses in real-time for improved perceived latency in chat applications."
+    usage_context: "Use this when you want to show the AI's output as it's being generated, rather than waiting for the entire response to complete."
+    agent_hints:
+      - "Requires a streaming-capable interface to handle incoming Server-Sent Events (SSE)."
+      - "Provides incremental 'text_delta' events for immediate UI updates."
+    waml_examples:
+      - title: "Stream Live Response"
+        waml: |
+          - step: watch_claude
+            call: anthropic.action.messages.stream
+            with:
+               model: "claude-3-5-sonnet-20240620"
+               messages:
+                  - role: "user"
+                    content: "Draft a lengthy technical RFC."
 
 interface:
   inputs:

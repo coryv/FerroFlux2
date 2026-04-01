@@ -5,8 +5,21 @@ meta:
   category: Campaigns
   type: Action
   platform: mailchimp
-  description: "Schedules a Mailchimp campaign for delivery."
+  description: "Schedules a Mailchimp campaign to be sent at a specific time."
   version: "1.0.0"
+  discovery:
+    purpose: "Plan marketing launches, coordinate global announcements across time zones, and automate content delivery."
+    usage_context: "Use this to schedule a newsletter for the upcoming Monday or coordinate a product rollout."
+    agent_hints:
+      - "Requires 'campaign_id' and 'schedule_time' (ISO 8601 format)."
+    waml_examples:
+      - title: "Schedule Monday News"
+        waml: |
+          - step: plan_send
+            call: mailchimp.action.campaigns.schedule
+            with:
+               campaign_id: "123..."
+               schedule_time: "2024-04-01T09:00:00Z"
 
 interface:
   inputs:

@@ -7,6 +7,19 @@ meta:
   platform: resend
   description: "Retrieve details of a specific domain by its ID."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve detailed metadata and DNS verification status for a specific Resend domain."
+    usage_context: "Use to verify if a domain has valid SPF/DKIM records or to retrieve its unique region configuration."
+    agent_hints:
+      - "Requires a domain_id."
+      - "Returns the domain object with DNS records and status."
+    waml_examples:
+      - title: "Get Domain Info"
+        waml: |
+          - step: fetch
+            call: resend.action.domains.get
+            with:
+               domain_id: "71a3999c-5117-406b-8253-91f1b9dc1031"
 
 interface:
   inputs:

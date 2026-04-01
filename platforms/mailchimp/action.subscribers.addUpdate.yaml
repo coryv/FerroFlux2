@@ -5,8 +5,23 @@ meta:
   category: Subscribers
   type: Action
   platform: mailchimp
-  description: "Adds or updates a subscriber in an audience list."
+  description: "Adds or updates a subscriber's properties and status in an audience."
   version: "1.0.0"
+  discovery:
+    purpose: "Sync user data from CRMs, manage newsletter signups, and handle profile updates for existing members."
+    usage_context: "Use this to automate new user onboarding, update subscriber preferences, and manage 'subscribed' or 'unsubscribed' states."
+    agent_hints:
+      - "Requires 'list_id' and 'email_address'."
+      - "Status must be 'subscribed', 'unsubscribed', 'cleaned', or 'pending'."
+    waml_examples:
+      - title: "Subscribe New User"
+        waml: |
+          - step: upsert_user
+            call: mailchimp.action.subscribers.addUpdate
+            with:
+               list_id: "123..."
+               email_address: "user@example.com"
+               status: "subscribed"
 
 interface:
   inputs:

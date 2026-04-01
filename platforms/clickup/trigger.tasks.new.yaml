@@ -5,8 +5,22 @@ meta:
   category: Tasks
   type: Trigger
   platform: clickup
-  description: "Polls for new tasks in a specific list."
+  description: "Triggers when a new task is created in a ClickUp list."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a new work item appears in ClickUp."
+    usage_context: "Use this to notify team members on Slack, sync new tasks to an external tool, or trigger automated task assignment."
+    agent_hints:
+      - "Polls the list for new tasks based on the 'date_created'."
+      - "Requires the numeric 'list_id'."
+    waml_examples:
+      - title: "Sync New Tasks"
+        waml: |
+          trigger:
+            new_task:
+               call: clickup.trigger.tasks.new
+               with:
+                  list_id: "12345678"
 
 interface:
   inputs: []

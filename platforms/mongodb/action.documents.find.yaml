@@ -4,8 +4,27 @@ meta:
   category: Database
   type: Action
   platform: mongodb
-  description: "Retrieve documents from a MongoDB collection."
+  description: "Finds multiple documents in a MongoDB collection."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve an array of documents that match a query."
+    usage_context: "Use this to list items like all orders from a specific user, or products in a category. Supports limit and skip for pagination."
+    agent_hints:
+      - "Returns an empty array if no documents match."
+      - "Use the standard MongoDB filter syntax ($in, $or, etc.)."
+    waml_examples:
+      - title: "List Recent Orders"
+        waml: |
+          - step: get_orders
+            call: mongodb.action.documents.find
+            with:
+               collection: "orders"
+               filter:
+                 user_id: "U789"
+                 status: "completed"
+               limit: 20
+               sort:
+                 created_at: -1
 
 interface:
   inputs:

@@ -5,8 +5,21 @@ meta:
   category: Records
   type: Action
   platform: salesforce
-  description: "Deletes a standard or custom SObject record."
+  description: "Permanently deletes a Salesforce record by its ID."
   version: "1.0.0"
+  discovery:
+    purpose: "Remove a record from Salesforce storage."
+    usage_context: "Use this to delete test data, remove duplicates, or clean up outdated records. Use with caution as this is irreversible."
+    agent_hints:
+      - "Requires the 'object' name and the 'id'."
+    waml_examples:
+      - title: "Delete Duplicate Lead"
+        waml: |
+          - step: rm_lead
+            call: salesforce.action.records.delete
+            with:
+               object: "Lead"
+               id: "00Q..."
 
 interface:
   inputs:

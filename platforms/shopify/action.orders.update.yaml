@@ -7,6 +7,20 @@ meta:
   platform: shopify
   description: "Updates an existing Shopify order."
   version: "1.0.0"
+  discovery:
+    purpose: "Modify the details of an existing Shopify order."
+    usage_context: "Use to update order notes, tags, or customer information after initial placement."
+    agent_hints:
+      - "Requires the order_id."
+    waml_examples:
+      - title: "Tag Order"
+        waml: |
+          - step: tag
+            call: shopify.action.orders.update
+            with:
+               order_id: "543216789"
+               tags: "priority,vip"
+               note: "Customer requested expedited shipping."
 
 interface:
   inputs:

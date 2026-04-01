@@ -5,8 +5,23 @@ meta:
   category: Issues
   type: Action
   platform: github
-  description: "Retrieve details for a specific issue in a GitHub repository."
+  description: "Retrieves detailed information about a GitHub issue."
   version: "1.0.0"
+  discovery:
+    purpose: "Fetch the properties, status, and comments of a specific repository issue."
+    usage_context: "Use this to check issue status (Open, Closed), read developer comments, or identify the current assignees before performing an update."
+    agent_hints:
+      - "Requires 'owner', 'repo', and the 'issue_number' (integer)."
+      - "Returns the full issue object, including its labels, milestone, and state changes."
+    waml_examples:
+      - title: "Get Issue Details"
+        waml: |
+          - step: read_issue
+            call: github.action.issues.get
+            with:
+               owner: "octocat"
+               repo: "hello-world"
+               issue_number: 123
 
 interface:
   inputs:

@@ -4,8 +4,24 @@ meta:
   category: Tables
   type: Action
   platform: mysql
-  description: "Inserts a single row into a table. Automatically participates in any active transaction for the current flow."
+  description: "Inserts a new row into a MySQL table."
   version: "1.0.0"
+  discovery:
+    purpose: "Add a new record to a database table."
+    usage_context: "Use this to create new resources, like a new user account, a support ticket, or a transaction record."
+    agent_hints:
+      - "The 'rows' parameter must be an array of objects where each key is a column name."
+      - "Omit auto-increment columns (like 'id') to let the database generate them."
+    waml_examples:
+      - title: "Create New User"
+        waml: |
+          - step: create_user
+            call: mysql.action.rows.insert
+            with:
+               table: "users"
+               rows:
+                 - email: "alice@example.com"
+                   name: "Alice"
 
 interface:
   inputs:

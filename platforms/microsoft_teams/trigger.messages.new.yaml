@@ -7,6 +7,17 @@ meta:
   platform: microsoft_teams
   description: "Polls a Microsoft Teams channel for new messages."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow whenever a new message is posted in a Microsoft Teams channel or chat."
+    usage_context: "Use to build Teams-based chatbots, automate keyword-based ticket creation, or log channel activity for audit purposes."
+    agent_hints:
+      - "Requires a active subscription (webhook) via Microsoft Graph."
+    waml_examples:
+      - title: "On Message"
+        waml: |
+          - step: on_teams_msg
+            type: trigger
+            call: microsoft_teams.trigger.messages.new
 
 interface:
   inputs: []

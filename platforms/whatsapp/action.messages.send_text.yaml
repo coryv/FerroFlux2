@@ -4,8 +4,22 @@ meta:
   category: WhatsApp
   type: Action
   platform: whatsapp
-  description: "Send a free-form text message to a user."
+  description: "Sends a direct text message to a user on WhatsApp."
   version: "1.0.0"
+  discovery:
+    purpose: "Engage customers in real-time, respond to inquiries, or share links via WhatsApp."
+    usage_context: "Use this for conversational support, customer check-ins, and two-way business messaging."
+    agent_hints:
+      - "Requires a 'to' phone number and a 'body' string."
+      - "Note: Business-initiated messages should generally use templates first."
+    waml_examples:
+      - title: "Send WhatsApp Greeting"
+        waml: |
+          - step: say_hello
+            call: whatsapp.action.messages.send_text
+            with:
+               to: "+15551234567"
+               body: "Hi there! How can we help you today?"
   permissions:
     - "network:graph.facebook.com"
 

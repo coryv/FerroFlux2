@@ -7,6 +7,20 @@ meta:
   platform: jira
   description: "Polls Jira for newly created issues in a specific project."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow when a new Jira issue is created."
+    usage_context: "Use to automate project intake, notify Slack when bugs are filed, or sync issues to an external CRM."
+    agent_hints:
+      - "Can be filtered by project key or issue type."
+    waml_examples:
+      - title: "Bug Intake"
+        waml: |
+          - step: on_bug
+            type: trigger
+            call: jira.trigger.issues.new
+            settings:
+               project: "PROJ"
+               issuetype: "Bug"
 
 interface:
   inputs: []

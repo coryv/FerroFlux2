@@ -7,6 +7,20 @@ meta:
   platform: gmail
   description: "Search for emails using Gmail's search syntax (e.g. from:someone has:attachment)."
   version: "1.0.0"
+  discovery:
+    purpose: "Find emails based on specific criteria within a Gmail account."
+    usage_context: "Use this to locate specific messages, threads, or attachments. Ideal for finding a past invoice, checking for a specific subject line, or gathering unread emails for processing."
+    agent_hints:
+      - "The 'query' parameter supports standard Gmail search operators (e.g., 'is:unread', 'from:google.com', 'after:2024/01/01')."
+      - "Returns a list of message summaries. You may need to call 'gmail.emails.get' with an ID to see the full content."
+    waml_examples:
+      - title: "Find Unread Invoices"
+        waml: |
+          - step: search_invoices
+            call: gmail.emails.search
+            with:
+               query: "is:unread label:invoices"
+               limit: 5
 
 interface:
   inputs:

@@ -5,8 +5,21 @@ meta:
   category: Labels
   type: Action
   platform: gmail
-  description: "Permanently delete a user label."
+  description: "Permanently delete a user label from the Gmail account."
   version: "1.0.0"
+  discovery:
+    purpose: "Permanently remove a label from the entire Gmail account."
+    usage_context: "Use this to clean up temporary labels or manage the account's organizational structure. This does NOT delete the messages, but it removes the label from all of them."
+    agent_hints:
+      - "This operation is irreversible. Ensure the correct 'label_id' is provided."
+      - "System labels (e.g. 'INBOX', 'TRASH') cannot be deleted."
+    waml_examples:
+      - title: "Cleanup Temporary Label"
+        waml: |
+          - step: delete_temp_label
+            call: gmail.labels.remove
+            with:
+               label_id: "Label_12345"
 
 interface:
   inputs:

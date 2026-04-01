@@ -7,6 +7,20 @@ meta:
   platform: open-meteo
   description: "Fetch hourly weather forecast data for a location, including temperature, humidity, precipitation, and wind over multiple days."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve hourly weather forecasts (up to 7 days) for a specific location."
+    usage_context: "Use to check for rain over the next few hours, temperature changes, or wind speed fluctuations."
+    agent_hints:
+      - "Requires latitude and longitude."
+    waml_examples:
+      - title: "Next 24 Hours Info"
+        waml: |
+          - step: forecast
+            call: open-meteo.action.forecast.hourly
+            with:
+               latitude: 37.7749
+               longitude: -122.4194
+               hours: 24
   data_strategy: enrich
 
 interface:

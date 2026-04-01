@@ -6,6 +6,12 @@ meta:
   category: Communication
   description: "Connects to the Discord API for bot messaging and server management."
   version: "1.0.0"
+  discovery:
+    purpose: "Community building and real-time gaming/group chat."
+    usage_context: "Use Discord for community bot interactions, webhook notifications, and role management. Similar to Slack but with a higher emphasis on server/guild structure."
+    agent_hints:
+      - "Discord uses 'Snowflake' IDs (large integers) for channels, users, and guilds."
+      - "Bots must have the correct Permissions and Intents enabled in the Discord Developer Portal to see messages or members."
 
 config:
   base_url: "https://discord.com/api/v10"

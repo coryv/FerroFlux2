@@ -6,6 +6,19 @@ meta:
   platform: core
   description: "Logs input data to the console/system log."
   version: "1.0.0"
+  discovery:
+    purpose: "Output debug information and messages to the workflow logs."
+    usage_context: "Use this to inspect data, trace logic, or provide feedback during development."
+    agent_hints:
+      - "Does not affect workflow flow; purely for observability."
+    waml_examples:
+      - title: "Log Debug Info"
+        waml: |
+          - step: debug
+            call: core.action.log
+            with:
+              message: "Value of counter: ${vars.counter}"
+              level: debug
 
 interface:
   inputs:

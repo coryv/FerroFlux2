@@ -4,8 +4,14 @@ meta:
   name: GitHub
   type: Platform
   category: Developer Tools
-  description: "Connects to the GitHub REST API for repository and issue management."
+  description: "The world's leading platform for software development and version control."
   version: "1.0.0"
+  discovery:
+    purpose: "Manage repositories, pull requests, issues, and CI/CD workflows."
+    usage_context: "Use this to automate software delivery, track bugs, and manage code changes across team projects."
+    agent_hints:
+      - "Requires personal access tokens or OAuth for authentication."
+      - "Supports webhooks for real-time CI/CD and repository events."
 
 config:
   base_url: "https://api.github.com"

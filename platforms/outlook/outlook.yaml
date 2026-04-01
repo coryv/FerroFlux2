@@ -4,8 +4,14 @@ meta:
   name: Microsoft Outlook
   type: Platform
   category: Communication
-  description: "Connects to the Microsoft Outlook API."
+  description: "Enterprise-grade email and calendar management from Microsoft."
   version: "1.0.0"
+  discovery:
+    purpose: "Manage professional communication, schedules, and contacts within the Microsoft 365 ecosystem."
+    usage_context: "Use this to automate business emails, schedule meetings, and sync calendar events with team workflows."
+    agent_hints:
+      - "Requires OAuth2 authentication."
+      - "Note that large attachments may require specific handling."
 
 config:
   base_url: "https://graph.microsoft.com/v1.0"

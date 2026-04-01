@@ -7,6 +7,19 @@ meta:
   platform: outlook
   description: "Reply to the sender of a specific message."
   version: "1.0.0"
+  discovery:
+    purpose: "Send a reply to an existing email message in Outlook."
+    usage_context: "Use to automate email responses, provide status updates to customer inquiries, or maintain communication threads."
+    agent_hints:
+      - "Requires message_id and the body of the reply."
+    waml_examples:
+      - title: "Reply to Inquiry"
+        waml: |
+          - step: reply
+            call: outlook.action.messages.reply
+            with:
+               message_id: "AAMkAG..."
+               comment: "We have received your request and are processing it."
 
 interface:
   inputs:

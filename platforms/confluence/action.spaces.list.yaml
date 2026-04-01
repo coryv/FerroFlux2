@@ -7,6 +7,19 @@ meta:
   platform: confluence
   description: "Retrieve a list of Confluence spaces."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve a list of all Confluence spaces that the authenticated user can access."
+    usage_context: "Use to find space IDs for creating or listing pages, or for auditing project distribution."
+    agent_hints:
+      - "Returns an array of space objects including name, key, and id."
+    waml_examples:
+      - title: "List Spaces"
+        waml: |
+          - step: get_spaces
+            call: confluence.action.spaces.list
+            with:
+               limit: 20
+               type: "global"
 
 interface:
   inputs:

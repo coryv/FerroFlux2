@@ -7,6 +7,22 @@ meta:
   platform: jira
   description: "Creates a new issue in a specific project."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a new issue (Task, Bug, Story) in a specific Jira project."
+    usage_context: "Use this to automate ticket creation from external triggers like GitHub issues or Slack messages."
+    agent_hints:
+      - "Requires project_key and summary (title)."
+      - "Defaults to 'Task' if issue_type is not provided."
+    waml_examples:
+      - title: "Create Bug Ticket"
+        waml: |
+          - step: log_bug
+            call: jira.issues.create
+            with:
+               project_key: "PROJ"
+               summary: "Bug found in production"
+               description: "System failed with error 500"
+               issue_type: "Bug"
 
 interface:
   inputs:

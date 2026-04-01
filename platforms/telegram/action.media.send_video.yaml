@@ -7,6 +7,20 @@ meta:
   platform: telegram
   description: "Send a video file to a chat."
   version: "1.0.0"
+  discovery:
+    purpose: "Upload and send a video file to a Telegram chat."
+    usage_context: "Use to send visual evidence, recorded bugs, or status logs via video."
+    agent_hints:
+      - "Requires a URL to a video file or a file object."
+    waml_examples:
+      - title: "Send Video Clip"
+        waml: |
+          - step: send_vid
+            call: telegram.action.media.send_video
+            with:
+               chat_id: "123456789"
+               video: "https://example.com/recorded.mp4"
+               caption: "Session recording."
 
 interface:
   inputs:

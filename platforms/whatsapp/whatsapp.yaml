@@ -3,8 +3,14 @@ meta:
   name: WhatsApp Business
   type: Platform
   category: Communication
-  description: "Connects to the WhatsApp Business Platform (Cloud API) for messaging."
+  description: "Official WhatsApp Business API for rich messaging and automation."
   version: "1.0.0"
+  discovery:
+    purpose: "Send rich text, images, and documents to users via their primary messaging app."
+    usage_context: "Use this for official customer alerts, interactive service bots, and personal client communication."
+    agent_hints:
+      - "Requires a Phone Number ID and System User Access Token from Meta."
+      - "Note that business-initiated conversations require pre-approved templates."
   permissions:
     - "network:graph.facebook.com"
 

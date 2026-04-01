@@ -5,8 +5,23 @@ meta:
   category: Calendar
   type: Action
   platform: outlook
-  description: "Create a new event in the user's calendar."
+  description: "Creates a new event in an Outlook calendar."
   version: "1.0.0"
+  discovery:
+    purpose: "Schedule meetings, set reminders, and block time on an Outlook calendar."
+    usage_context: "Use this to automate appointment booking, sync external schedules, and manage team calendars."
+    agent_hints:
+      - "Requires 'subject', 'start', and 'end' times with 'dateTime' and 'timeZone'."
+      - "Supports adding 'attendees' and 'location'."
+    waml_examples:
+      - title: "Create Meeting"
+        waml: |
+          - step: mk_event
+            call: outlook.action.calendar.create
+            with:
+               subject: "Project Sync"
+               start: { dateTime: "2024-04-01T10:00:00", timeZone: "UTC" }
+               end: { dateTime: "2024-04-01T11:00:00", timeZone: "UTC" }
 
 interface:
   inputs:

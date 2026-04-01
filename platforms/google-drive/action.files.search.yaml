@@ -5,8 +5,21 @@ meta:
   category: Cloud Storage & Files
   type: Action
   platform: google-drive
-  description: "Search files using a query."
+  description: "Searches for files and folders in Google Drive using specific filters."
   version: "1.0.0"
+  discovery:
+    purpose: "Find specific items in Google Drive using precise query syntax."
+    usage_context: "Use this to find a spreadsheet by name, filter for PDF documents, or find all files inside a specific folder."
+    agent_hints:
+      - "The 'q' parameter uses Google Drive search syntax (e.g. 'name = \"Report\"', 'mimeType = \"application/pdf\"')."
+      - "Supports searching trashed files using the 'trashed' filter (not enabled by default)."
+    waml_examples:
+      - title: "Find Spreadsheet by Name"
+        waml: |
+          - step: find_sheet
+            call: google-drive.action.files.search
+            with:
+               q: "name = 'October Invoice' and mimeType = 'application/vnd.google-apps.spreadsheet'"
 
 interface:
   inputs:

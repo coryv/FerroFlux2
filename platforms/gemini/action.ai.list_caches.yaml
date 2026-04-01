@@ -7,6 +7,16 @@ meta:
   platform: gemini
   description: "List all active context caches."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve a list of active context caches in the Gemini API."
+    usage_context: "Use to manage reusable tokens and identify shared contexts for efficient long-range reasoning."
+    agent_hints:
+      - "Returns an array of cache objects including cached content and expiration times."
+    waml_examples:
+      - title: "List Caches"
+        waml: |
+          - step: get_caches
+            call: gemini.action.ai.list_caches
 
 interface:
   inputs:

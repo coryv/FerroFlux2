@@ -5,8 +5,24 @@ meta:
   category: Files
   type: Action
   platform: salesforce
-  description: "Uploads a document (ContentVersion) to Salesforce."
+  description: "Uploads a file (blob reference) to Salesforce as a ContentVersion record."
   version: "1.0.0"
+  discovery:
+    purpose: "Store a local FerroFlux 'blob' in Salesforce and link it to a record (Account, Case, etc.)."
+    usage_context: "Use this to attach signed contracts to opportunities, upload log files to cases, or store profile images for contacts."
+    agent_hints:
+      - "The 'file' must be a valid 'blob_id' from a previous step."
+      - "The 'Title' and 'PathOnClient' are required for the Salesforce ContentVersion object."
+    waml_examples:
+      - title: "Upload Signed PDF"
+        waml: |
+          - step: upload_doc
+            call: salesforce.action.files.upload
+            with:
+               file: steps.get_blob.blob_id
+               Title: "Signed_Contract.pdf"
+               PathOnClient: "contract.pdf"
+               FirstPublishLocationId: "001..." 
 
 interface:
   inputs:

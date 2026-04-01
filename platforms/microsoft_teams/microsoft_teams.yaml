@@ -6,6 +6,11 @@ meta:
   category: Communication
   description: "Connects to Microsoft Graph API for Teams."
   version: "1.0.0"
+  discovery:
+    purpose: "Manage team communication and channel activity via Microsoft Teams."
+    usage_context: "Use to automate internal notifications, bridge Slack and Teams messages, or trigger workflows based on channel activity."
+    agent_hints:
+      - "Requires OAuth2 authentication and a teamId/channelId."
 
 config:
   base_url: "https://graph.microsoft.com/v1.0"

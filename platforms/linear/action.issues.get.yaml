@@ -5,8 +5,21 @@ meta:
   category: Issues
   type: Action
   platform: linear
-  description: "Gets an issue in Linear using GraphQL."
+  description: "Retrieves detailed information about a Linear issue."
   version: "1.0.0"
+  discovery:
+    purpose: "Fetch the properties, status, and comments of a specific Linear issue."
+    usage_context: "Use this when you have an Issue UUID and need to check its current state (Draft, In Progress, Done) or identify the Assignee."
+    agent_hints:
+      - "Requires the 'id' (UUID)."
+      - "Returns the full issue object, including its team and project associations."
+    waml_examples:
+      - title: "Get Issue Details"
+        waml: |
+          - step: read_issue
+            call: linear.action.issues.get
+            with:
+               id: "issue_uuid_123"
 
 interface:
   inputs:

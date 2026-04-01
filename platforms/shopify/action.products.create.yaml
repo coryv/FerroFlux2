@@ -7,6 +7,21 @@ meta:
   platform: shopify
   description: "Creates a new product."
   version: "1.0.0"
+  discovery:
+    purpose: "Add a new product to the Shopify catalog."
+    usage_context: "Use to sync new items from a supplier database, PIM system, or custom inventory tool."
+    agent_hints:
+      - "Requires a title and optionally body_html, vendor, and product_type."
+    waml_examples:
+      - title: "Add New Item"
+        waml: |
+          - step: add_product
+            call: shopify.action.products.create
+            with:
+               title: "Awesome T-Shirt"
+               vendor: "My Brand"
+               product_type: "Apparel"
+               body_html: "<strong>Vibrant</strong> colors."
 
 interface:
   inputs:

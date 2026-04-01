@@ -7,6 +7,21 @@ meta:
   platform: outlook
   description: "Update an existing calendar event."
   version: "1.0.0"
+  discovery:
+    purpose: "Modify the details of an existing Outlook calendar event."
+    usage_context: "Use to reschedule meetings, update attendee lists, or change meeting details in response to workflow triggers."
+    agent_hints:
+      - "Requires event_id and updated fields (subject, start, end)."
+    waml_examples:
+      - title: "Reschedule Meeting"
+        waml: |
+          - step: reschedule
+            call: outlook.action.calendar.update
+            with:
+               event_id: "AAMkAG..."
+               subject: "Updated: Product Review"
+               start: { dateTime: "2023-11-01T14:30:00", timeZone: "UTC" }
+               end: { dateTime: "2023-11-01T15:30:00", timeZone: "UTC" }
 
 interface:
   inputs:

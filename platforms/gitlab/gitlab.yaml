@@ -4,8 +4,14 @@ meta:
   name: GitLab
   type: Platform
   category: Developer Tools
-  description: "Connects to the GitLab API."
+  description: "A complete DevOps platform for source control and automated pipelines."
   version: "1.0.0"
+  discovery:
+    purpose: "Manage projects, merge requests, issues, and complex CI/CD environments."
+    usage_context: "Use this to manage code changes, automate deployments, and track team velocity in a self-hosted or cloud environment."
+    agent_hints:
+      - "Requires Project or Personal Access Tokens for API access."
+      - "Supports detailed job and pipeline status monitoring."
 
 config:
   base_url: "https://gitlab.com/api/v4"

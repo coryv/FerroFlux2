@@ -7,6 +7,17 @@ meta:
   platform: zendesk
   description: "Triggers when a new ticket is created."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow when a new support ticket is created in Zendesk."
+    usage_context: "Use to automate initial triage, send auto-replies, or notify team members on Slack."
+    agent_hints:
+      - "Provides the full ticket object, including subject, requester, and tags."
+    waml_examples:
+      - title: "Inbound Support Alert"
+        waml: |
+          - step: notify_team
+            type: trigger
+            call: zendesk.trigger.tickets.new
 
 interface:
   inputs: []

@@ -7,6 +7,19 @@ meta:
   platform: confluence
   description: "Retrieve a list of pages, optionally filtered by space."
   version: "1.0.0"
+  discovery:
+    purpose: "Search and retrieve a list of Confluence pages."
+    usage_context: "Use this to find existing documentation for updates, audits, or linking in other tools."
+    agent_hints:
+      - "Supports searching by space, title, or CQL (Confluence Query Language)."
+    waml_examples:
+      - title: "List Space Pages"
+        waml: |
+          - step: get_pages
+            call: confluence.action.pages.list
+            with:
+               spaceId: "543216789"
+               limit: 20
 
 interface:
   inputs:

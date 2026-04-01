@@ -5,8 +5,20 @@ meta:
   category: Messages
   type: Trigger
   platform: outlook
-  description: "Polls for new emails in the Outlook Inbox."
+  description: "Triggers when a new email message is received in the Inbox."
   version: "1.0.0"
+  discovery:
+    purpose: "Start a workflow whenever a new client email, invoice, or notification arrives."
+    usage_context: "Use this to automate responses, extract data from attachments (e.g. invoices to Xero), or notify team members on Slack/Teams."
+    agent_hints:
+      - "Polls the Inbox for new messages based on 'receivedDateTime'."
+      - "Returns the full message object (subject, from, body preview, attachment status)."
+    waml_examples:
+      - title: "Process Incoming Mail"
+        waml: |
+          trigger:
+            new_mail:
+               call: outlook.trigger.messages.new
 
 interface:
   inputs: []

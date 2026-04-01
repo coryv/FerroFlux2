@@ -1,8 +1,15 @@
 meta:
-  id: pipedrive
   name: "Pipedrive"
   category: "CRM"
   type: Platform
+  description: "Connects to Pipedrive CRM API for sales management."
+  version: "1.0.0"
+  discovery:
+    purpose: "Sales-focused CRM for managing deals and pipelines."
+    usage_context: "Use Pipedrive specifically to track sales activities, manage deal stages, and automate lead follow-ups. Optimized for personal and small team sales efficiency."
+    agent_hints:
+      - "The API uses a mix of OAuth2 and Personal API Tokens."
+      - "Note that Pipedrive labels its primary data entity as 'Deals'."
   icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/pipedrive.svg"
   permissions: ["network:api.pipedrive.com"]
 

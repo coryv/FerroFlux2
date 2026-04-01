@@ -7,6 +7,17 @@ meta:
   platform: telegram
   description: "Polling trigger for new messages in Telegram."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow when an incoming text message is received."
+    usage_context: "Use to build conversational bots or to log feedback from users."
+    agent_hints:
+      - "Provides the full message object, including chat_id and text."
+    waml_examples:
+      - title: "Log Inbound Message"
+        waml: |
+          - step: log_msg
+            type: trigger
+            call: telegram.trigger.messages.new
 
 interface:
   inputs: []

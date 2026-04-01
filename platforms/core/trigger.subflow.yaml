@@ -6,6 +6,17 @@ meta:
   platform: core
   description: "Starts a sub-workflow, receiving data from the parent workflow."
   version: "1.0.0"
+  discovery:
+    purpose: "Initialize a workflow when called from another workflow as a sub-process."
+    usage_context: "Use to create modular, reusable workflow components that can be executed from multiple parent workflows."
+    agent_hints:
+      - "Executes synchronously or asynchronously based on the parent 'call' configuration."
+    waml_examples:
+      - title: "Subflow Trigger"
+        waml: |
+          - step: start
+            type: trigger
+            call: core.trigger.subflow
 
 interface:
   inputs: []

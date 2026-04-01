@@ -7,6 +7,19 @@ meta:
   platform: google-drive
   description: "Gets metadata for a file in Google Drive."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve detailed metadata for a specific file or folder in Google Drive."
+    usage_context: "Use to check file properties (mimeType, size, name), retrieve its web viewing link, or verify its parent folder structure."
+    agent_hints:
+      - "Requires a valid fileId."
+      - "Returns metadata fields including 'name', 'mimeType', and 'webViewLink'."
+    waml_examples:
+      - title: "Fetch Metadata"
+        waml: |
+          - step: get_info
+            call: google-drive.action.files.get-metadata
+            with:
+               fileId: "12345abcde"
 
 interface:
   inputs:

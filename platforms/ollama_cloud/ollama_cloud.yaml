@@ -6,6 +6,12 @@ meta:
   category: AI/ML
   description: "Connects to the Ollama Cloud API."
   version: "1.0.0"
+  discovery:
+    purpose: "Access hosted open-source Large Language Models (LLMs) via the Ollama Cloud platform."
+    usage_context: "Use to run Llama 3, Mistral, and other open models in a managed cloud environment without local hardware dependencies."
+    agent_hints:
+      - "Requires a valid Ollama Cloud API Key and Endpoint."
+      - "Supports standard Ollama API protocols."
 
 config:
   base_url: "https://ollama.com/api"

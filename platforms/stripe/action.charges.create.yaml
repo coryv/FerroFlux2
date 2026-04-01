@@ -7,6 +7,21 @@ meta:
   platform: stripe
   description: "Creates a new charge object."
   version: "1.0.0"
+  discovery:
+    purpose: "Create a one-time charge for a customer or a specific payment source."
+    usage_context: "Use to process payments for single items, services, or manual invoices."
+    agent_hints:
+      - "Requires amount (in smallest currency unit, e.g., cents) and currency."
+    waml_examples:
+      - title: "Charge Customer"
+        waml: |
+          - step: charge
+            call: stripe.action.charges.create
+            with:
+               amount: 2000
+               currency: "usd"
+               customer: "cus_12345"
+               description: "Service Fee"
 
 interface:
   inputs:

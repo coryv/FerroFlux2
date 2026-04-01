@@ -5,8 +5,25 @@ meta:
   category: Contacts
   type: Action
   platform: hubspot
-  description: "Search for a contact systematically."
+  description: "Searches for contacts in HubSpot CRM using filters."
   version: "1.0.0"
+  discovery:
+    purpose: "Find specific contacts based on their properties or behavioral data."
+    usage_context: "Use this to find a contact by email, list all contacts in a specific city, or find 'Qualified' leads for a follow-up workflow."
+    agent_hints:
+      - "The 'filterGroups' parameter follows the HubSpot Search API structure."
+      - "Note that common operators include 'EQ' (equals), 'NEQ' (not equals), 'GT', 'LT'."
+    waml_examples:
+      - title: "Find Contact by Email"
+        waml: |
+          - step: find_user
+            call: hubspot.action.contacts.search
+            with:
+               filterGroups:
+                 - filters:
+                     - propertyName: "email"
+                       operator: "EQ"
+                       value: "user@example.com"
 
 interface:
   inputs:

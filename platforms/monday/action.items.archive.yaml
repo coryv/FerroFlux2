@@ -5,8 +5,20 @@ meta:
   category: Items
   type: Action
   platform: monday
-  description: "Archive a specified item from a board."
+  description: "Archives an item on a Monday.com board."
   version: "1.0.0"
+  discovery:
+    purpose: "Move an item from the active board into the archive."
+    usage_context: "Use this to clean up completed work items while still preserving their data for historical reference."
+    agent_hints:
+      - "Requires the numeric 'item_id'."
+    waml_examples:
+      - title: "Archive Finished Task"
+        waml: |
+          - step: cleanup_row
+            call: monday.action.items.archive
+            with:
+               item_id: "890..."
 
 interface:
   inputs:

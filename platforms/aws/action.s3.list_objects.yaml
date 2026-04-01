@@ -7,6 +7,20 @@ meta:
   platform: aws
   description: "List objects in an AWS S3 bucket."
   version: "1.0.0"
+  discovery:
+    purpose: "Retrieve a list of object keys and metadata from an S3 bucket."
+    usage_context: "Use to audit cloud storage, find new files for processing, or generate public URLs for recently uploaded assets."
+    agent_hints:
+      - "Requires a bucket_name."
+      - "Returns an array of object summaries (key, size, lastModified)."
+    waml_examples:
+      - title: "List Bucket"
+        waml: |
+          - step: get_files
+            call: aws.action.s3.list_objects
+            with:
+               bucket_name: "my-production-bucket"
+               prefix: "uploads/2023/"
 
 interface:
   inputs:

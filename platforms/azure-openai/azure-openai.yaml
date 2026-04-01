@@ -6,6 +6,12 @@ meta:
   category: AI/ML
   description: "Connects to Azure OpenAI Service — the enterprise-grade OpenAI deployment on Microsoft Azure with data residency, VNet support, and compliance controls."
   version: "1.0.0"
+  discovery:
+    purpose: "Access enterprise-grade OpenAI models (GPT-4, GPT-3.5) via Microsoft Azure."
+    usage_context: "Use this for corporate AI applications where data residency, private networking, and enterprise SLAs are required."
+    agent_hints:
+      - "Requires a resource name, API key, and specific deployment name (not just model name)."
+      - "Follows Azure-specific API versioning (e.g. 2024-08-01-preview)."
 
 config:
   base_url: "https://RESOURCE_NAME.openai.azure.com/openai"

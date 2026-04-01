@@ -5,8 +5,22 @@ meta:
   category: Items
   type: Action
   platform: monday
-  description: "Add a new update (comment) to a specified item."
+  description: "Adds a new update (note) to a Monday.com item."
   version: "1.0.0"
+  discovery:
+    purpose: "Communicate updates, provide context, and log history on a board item."
+    usage_context: "Use this to post progress reports, notify team members of results, or record completion details within the item's update feed."
+    agent_hints:
+      - "Requires the numeric 'item_id' and the 'body' text."
+      - "Updates appear in the 'Activity' column of the Monday board."
+    waml_examples:
+      - title: "Post Task Update"
+        waml: |
+          - step: say_it
+            call: monday.action.items.add_update
+            with:
+               item_id: "890..."
+               body: "Processing complete. Please check the results."
 
 interface:
   inputs:
