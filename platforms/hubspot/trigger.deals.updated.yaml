@@ -1,0 +1,63 @@
+meta:
+  permissions: ["network:api.hubapi.com"]
+  id: hubspot.trigger.deals.updated
+  name: Updated Deal
+  category: Deals
+  type: Trigger
+  platform: hubspot
+  description: "Polls HubSpot CRM for recently updated deals."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: deal
+      type: object
+  settings:
+    - name: properties
+      label: "Properties to Fetch"
+      type: string
+      default: "dealname,amount,dealstage,closedate,hs_lastmodifieddate"
+      description: "Comma-separated list of deal properties to include."
+    - name: polling_interval
+      label: "Polling Interval (minutes)"
+      type: number
+      default: 15
+
+execution:
+  - id: query
+    tool: http_client
+    params:
+      method: GET
+      url: >
+        platform.base_url + "/crm/v3/objects/deals"
+      headers: platform.headers
+      query:
+        limit: 50
+        properties: settings.properties
+        sort: "-hs_lastmodifieddate"
+        filterGroups: >
+          has(event.cursor) ? '[{"filters":[{"propertyName":"hs_lastmodifieddate","operator":"GTE","value":"' + event.cursor + '"}]}]' : "[]"
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: steps.query.status_code
+  cases:
+    "200":
+      - tool: iterate
+        params:
+          items: steps.query.response_body.results
+          cursor_key: properties.hs_lastmodifieddate
+          port: deal
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: steps.query.response_body

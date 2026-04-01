@@ -1,0 +1,54 @@
+meta:
+  permissions: ["network:api.linear.app"]
+  id: linear.trigger.issues.created.webhook
+  name: Issue Created (Webhook)
+  category: Issues
+  type: Trigger
+  platform: linear
+  description: "Fires when a new Linear issue is created via inbound webhook. Real-time alternative to the polling trigger."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: issue
+      type: object
+  settings:
+    - name: webhook_secret
+      label: "Webhook Signing Secret"
+      type: string
+      required: true
+      description: "The signing secret from your Linear webhook configuration."
+
+execution:
+  - id: verify
+    tool: verify_signature
+    params:
+      body: event.raw_body
+      secret: settings.webhook_secret
+      signature: event.headers["linear-signature"]
+      algorithm: hmac-sha256
+      encoding: hex
+    returns:
+      valid: is_valid
+
+  - id: check_event
+    tool: logic
+    params:
+      condition: >
+        steps.verify.is_valid && event.body.action == "create" && event.body.type == "Issue"
+
+routing:
+  match: steps.check_event.result
+  cases:
+    "true":
+      - tool: emit
+        params:
+          port: issue
+          value: event.body.data
+      - tool: emit
+        params:
+          port: Success
+    "false": []

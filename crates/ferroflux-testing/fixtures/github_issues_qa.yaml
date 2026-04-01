@@ -1,0 +1,22 @@
+name: "GitHub Issues Create QA"
+description: "Tests webhook → github.issues.create workflow: webhook receives issue data and creates a GitHub issue"
+triggers:
+  - id: "webhook_in"
+    name: "Incoming Webhook"
+    type: "core.trigger.webhook"
+    config:
+      path: "/github-issue-hook"
+nodes:
+  - id: "create_issue"
+    name: "Create GitHub Issue"
+    type: "github.issues.create"
+    config:
+      owner: "acme"
+      repo: "app"
+      title: "Bug found"
+      body: "Details here"
+edges:
+  - source_id: "webhook_in"
+    source_handle: "Success"
+    target_id: "create_issue"
+    target_handle: "Exec"

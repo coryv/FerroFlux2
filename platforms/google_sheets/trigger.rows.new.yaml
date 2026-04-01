@@ -1,0 +1,97 @@
+meta:
+  permissions: ["network:sheets.googleapis.com"]
+  id: google_sheets.trigger.rows.new
+  name: New Row
+  category: Rows
+  type: Trigger
+  platform: google_sheets
+  description: "Polls a Google Sheet for newly appended rows by tracking row count."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: row
+      type: object
+  settings:
+    - name: spreadsheet_id
+      label: "Spreadsheet ID"
+      type: string
+      required: true
+    - name: sheet_range
+      label: "Range"
+      type: string
+      default: "Sheet1"
+      description: "Sheet name or A1 range to watch (e.g. Sheet1 or Sheet1!A:Z)"
+    - name: has_header_row
+      label: "First Row is Header"
+      type: boolean
+      default: true
+    - name: polling_interval
+      label: "Polling Interval (minutes)"
+      type: number
+      default: 15
+
+execution:
+  - id: fetch_values
+    tool: http_client
+    params:
+      method: GET
+      url: >
+        "https://sheets.googleapis.com/v4/spreadsheets/" + settings.spreadsheet_id + "/values/" + settings.sheet_range
+      headers: platform.headers
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: extract_rows
+    tool: rhai
+    params:
+      script: >
+        let values = input.values;
+        let last_row = has(event.cursor) ? int(event.cursor) : (input.has_header ? 1 : 0);
+        let header = input.has_header && values.len() > 0 ? values[0] : [];
+        let new_rows = [];
+        let i = last_row;
+        while i < values.len() {
+          let raw = values[i];
+          let row_obj = #{};
+          let j = 0;
+          while j < raw.len() {
+            if header.len() > j {
+              row_obj[header[j]] = raw[j];
+            } else {
+              row_obj["col_" + j] = raw[j];
+            }
+            j += 1;
+          }
+          row_obj["_row_index"] = i + 1;
+          new_rows.push(row_obj);
+          i += 1;
+        }
+        #{ new_rows: new_rows, next_cursor: values.len() }
+      input:
+        values: steps.fetch_values.response_body.values
+        has_header: settings.has_header_row
+    returns:
+      result: extracted
+
+routing:
+  match: steps.fetch_values.status_code
+  cases:
+    "200":
+      - tool: iterate
+        params:
+          items: steps.extracted.new_rows
+          cursor_key: _row_index
+          port: row
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: steps.fetch_values.response_body

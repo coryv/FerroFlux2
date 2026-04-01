@@ -100,3 +100,4 @@ edges:
     let router = world.resource::<NodeRouter>();
     assert_eq!(router.0.len(), 3);
 }
+

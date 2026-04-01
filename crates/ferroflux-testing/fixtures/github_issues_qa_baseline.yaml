@@ -1,0 +1,22 @@
+name: "GitHub Issues QA Baseline"
+description: "Webhook triggers github.issues.create with title, body, owner, repo from payload"
+triggers:
+  - id: "webhook_in"
+    name: "Incoming Webhook"
+    type: "core.trigger.webhook"
+    config:
+      path: "/github-issue-webhook"
+nodes:
+  - id: "create_issue"
+    name: "Create GitHub Issue"
+    type: "github.issues.create"
+    config:
+      owner: "{{ get 'body.owner' }}"
+      repo: "{{ get 'body.repo' }}"
+      title: "{{ get 'body.title' }}"
+      body: "{{ get 'body.body' }}"
+edges:
+  - source_id: "webhook_in"
+    source_handle: "body"
+    target_id: "create_issue"
+    target_handle: "body"

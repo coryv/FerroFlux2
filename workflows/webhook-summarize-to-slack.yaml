@@ -1,0 +1,39 @@
+name: "Webhook to AI Summary to Slack DM"
+description: "Receives a webhook POST, summarizes the body with Claude, and sends the summary as a Slack DM."
+
+triggers:
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
+    config:
+      path: /summarize
+      method: POST
+
+nodes:
+  - id: summarize
+    name: Summarize with Claude
+    type: core.action.agent
+    config:
+      provider: anthropic
+      model: claude-sonnet-4-6
+      system_instruction: "You are a helpful assistant. Summarize the provided content concisely."
+      prompt: '"Summarize the following:\n\n" + body'
+      output_var: agent_response
+
+  - id: send_slack
+    name: Send Slack DM
+    type: slack.messages.send_dm
+    config:
+      user_id: "UXXXXXXXX"
+
+edges:
+  - source_id: webhook_in
+    source_handle: body
+    target_id: summarize
+  - source_id: summarize
+    source_handle: Success
+    target_id: send_slack
+  - source_id: summarize
+    source_handle: agent_response
+    target_id: send_slack
+    target_handle: text

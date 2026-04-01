@@ -1,0 +1,72 @@
+meta:
+  permissions: ["network:api.linear.app"]
+  id: linear.trigger.issues.updated
+  name: Updated Issue
+  category: Issues
+  type: Trigger
+  platform: linear
+  description: "Polls Linear for recently updated issues."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: issue
+      type: object
+  settings:
+    - name: team_id
+      label: "Team ID"
+      type: string
+      description: "Filter to a specific team (optional)."
+    - name: polling_interval
+      label: "Polling Interval (minutes)"
+      type: number
+      default: 15
+
+execution:
+  - id: query
+    tool: http_client
+    params:
+      method: POST
+      url: >
+        platform.base_url + "/graphql"
+      headers: platform.headers
+      body:
+        query: >
+          "query($cursor: String, $teamId: ID) { issues(filter: { updatedAt: { gt: $cursor } team: { id: { eq: $teamId } } } orderBy: updatedAt) { nodes { id title description state { name } assignee { name } createdAt updatedAt priority team { name } } } }"
+        variables:
+          cursor: >
+            has(event.cursor) ? event.cursor : "1970-01-01T00:00:00.000Z"
+          teamId: >
+            has(settings.team_id) ? settings.team_id : null
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: extract_issues
+    tool: json_query
+    params:
+      json: steps.query.response_body
+      path: "/data/issues/nodes"
+    returns:
+      result: issues_array
+
+routing:
+  match: steps.query.status_code
+  cases:
+    "200":
+      - tool: iterate
+        params:
+          items: steps.extract_issues.issues_array
+          cursor_key: updatedAt
+          port: issue
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: steps.query.response_body

@@ -1,0 +1,169 @@
+meta:
+  permissions: ["network:sheets.googleapis.com"]
+  id: google_sheets.action.sheets.format_cells
+  name: Format Cells
+  category: Sheets
+  type: Action
+  platform: google_sheets
+  description: "Apply formatting to a cell range using Google Sheets batchUpdate. Supports background color, bold, italic, font size, and text alignment."
+  version: "1.0.0"
+
+interface:
+  inputs:
+    - name: Exec
+      type: flow
+  outputs:
+    - name: Success
+      type: flow
+    - name: Error
+      type: flow
+  settings:
+    - name: spreadsheet_id
+      label: "Spreadsheet ID"
+      type: string
+      required: true
+    - name: sheet_id
+      label: "Sheet ID"
+      type: number
+      default: 0
+      description: "Numeric sheet ID (0 for the first sheet). Found in the URL: /edit#gid={sheet_id}"
+    - name: start_row
+      label: "Start Row (0-indexed)"
+      type: number
+      required: true
+    - name: end_row
+      label: "End Row (0-indexed, exclusive)"
+      type: number
+      required: true
+    - name: start_col
+      label: "Start Column (0-indexed)"
+      type: number
+      default: 0
+    - name: end_col
+      label: "End Column (0-indexed, exclusive)"
+      type: number
+      required: true
+    - name: bold
+      label: "Bold"
+      type: boolean
+      default: false
+    - name: italic
+      label: "Italic"
+      type: boolean
+      default: false
+    - name: font_size
+      label: "Font Size"
+      type: number
+      description: "Leave empty to keep existing size."
+    - name: horizontal_alignment
+      label: "Horizontal Alignment"
+      type: select
+      options: ["LEFT", "CENTER", "RIGHT"]
+      description: "Leave empty to keep existing alignment."
+    - name: background_color_red
+      label: "Background Color (Red 0-1)"
+      type: number
+      description: "Red component of background color (0.0 to 1.0). Leave empty for no change."
+    - name: background_color_green
+      label: "Background Color (Green 0-1)"
+      type: number
+      description: "Green component of background color (0.0 to 1.0)."
+    - name: background_color_blue
+      label: "Background Color (Blue 0-1)"
+      type: number
+      description: "Blue component of background color (0.0 to 1.0)."
+
+execution:
+  - id: build_request
+    tool: rhai
+    params:
+      script: >
+        let cell_format = #{};
+        let text_format = #{};
+
+        if input.bold != () { text_format.bold = input.bold; }
+        if input.italic != () { text_format.italic = input.italic; }
+        if input.font_size != () { text_format.fontSize = input.font_size; }
+
+        if text_format.len() > 0 {
+          cell_format.textFormat = text_format;
+        }
+
+        if input.h_align != () && input.h_align != "" {
+          cell_format.horizontalAlignment = input.h_align;
+        }
+
+        if input.bg_red != () {
+          cell_format.backgroundColor = #{
+            red: input.bg_red,
+            green: if input.bg_green != () { input.bg_green } else { 0.0 },
+            blue: if input.bg_blue != () { input.bg_blue } else { 0.0 },
+            alpha: 1.0
+          };
+        }
+
+        let fields = [];
+        if cell_format.has("textFormat") { fields.push("userEnteredFormat.textFormat"); }
+        if cell_format.has("horizontalAlignment") { fields.push("userEnteredFormat.horizontalAlignment"); }
+        if cell_format.has("backgroundColor") { fields.push("userEnteredFormat.backgroundColor"); }
+        let fields_str = fields.join(",");
+
+        #{
+          requests: [
+            #{
+              repeatCell: #{
+                range: #{
+                  sheetId: input.sheet_id,
+                  startRowIndex: input.start_row,
+                  endRowIndex: input.end_row,
+                  startColumnIndex: input.start_col,
+                  endColumnIndex: input.end_col
+                },
+                cell: #{
+                  userEnteredFormat: cell_format
+                },
+                fields: if fields_str == "" { "userEnteredFormat" } else { fields_str }
+              }
+            }
+          ]
+        }
+      input:
+        bold: settings.bold
+        italic: settings.italic
+        font_size: settings.font_size
+        h_align: settings.horizontal_alignment
+        bg_red: settings.background_color_red
+        bg_green: settings.background_color_green
+        bg_blue: settings.background_color_blue
+        sheet_id: settings.sheet_id
+        start_row: settings.start_row
+        end_row: settings.end_row
+        start_col: settings.start_col
+        end_col: settings.end_col
+    returns:
+      result: batch_request
+
+  - id: update
+    tool: http_client
+    params:
+      method: POST
+      url: >
+        "https://sheets.googleapis.com/v4/spreadsheets/" + settings.spreadsheet_id + ":batchUpdate"
+      headers: platform.headers
+      body: steps.build_request.batch_request
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: steps.update.status_code
+  cases:
+    "200":
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: steps.update.response_body

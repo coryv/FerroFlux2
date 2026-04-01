@@ -1,0 +1,64 @@
+meta:
+  permissions: ["network:graph.microsoft.com"]
+  id: microsoft_teams.trigger.messages.new
+  name: New Channel Message
+  category: Messages
+  type: Trigger
+  platform: microsoft_teams
+  description: "Polls a Microsoft Teams channel for new messages."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: message
+      type: object
+  settings:
+    - name: team_id
+      label: "Team ID"
+      type: string
+      required: true
+    - name: channel_id
+      label: "Channel ID"
+      type: string
+      required: true
+    - name: polling_interval
+      label: "Polling Interval (minutes)"
+      type: number
+      default: 15
+
+execution:
+  - id: query
+    tool: http_client
+    params:
+      method: GET
+      url: >
+        "https://graph.microsoft.com/v1.0/teams/" + settings.team_id + "/channels/" + settings.channel_id + "/messages/delta"
+      headers: platform.headers
+      query:
+        $filter: >
+          has(event.cursor) ? "createdDateTime ge " + event.cursor : null
+        $top: 50
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: steps.query.status_code
+  cases:
+    "200":
+      - tool: iterate
+        params:
+          items: steps.query.response_body.value
+          cursor_key: createdDateTime
+          port: message
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: steps.query.response_body

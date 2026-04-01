@@ -1,0 +1,66 @@
+name: "Daily Status Feed Monitor"
+description: "Fetches a JSON feed on a daily schedule, routes critical statuses to Discord, and logs normal items."
+
+triggers:
+  - id: daily_timer
+    name: Daily Schedule
+    type: core.trigger.schedule
+    config:
+      mode: daily
+      time: "08:00"
+
+nodes:
+  - id: fetch_feed
+    name: Fetch Status Feed
+    type: core.action.http
+    config:
+      url: "https://api.example.com/status-feed"
+      method: GET
+      output_var: feed_response
+
+  - id: route_status
+    name: Route by Status
+    type: core.action.switch
+    config:
+      rules:
+        - condition: "val.status == 'critical'"
+          output: critical
+        - condition: default
+          output: normal
+
+  - id: discord_alert
+    name: Send Discord Alert
+    type: discord.action.messages.send
+    config:
+      channel_id: "000000000000000000"
+      content: "Critical status alert! Check the status feed immediately."
+
+  - id: log_normal
+    name: Log Normal Status
+    type: core.action.log
+    config:
+      level: INFO
+      message: "Normal status received — no action required."
+
+edges:
+  # Schedule fires → fetch feed
+  - source_id: daily_timer
+    source_handle: Success
+    target_id: fetch_feed
+  # Fetch success flow → switch
+  - source_id: fetch_feed
+    source_handle: Success
+    target_id: route_status
+  # Feed response data → switch input
+  - source_id: fetch_feed
+    source_handle: feed_response
+    target_id: route_status
+    target_handle: data
+  # Critical branch → Discord
+  - source_id: route_status
+    source_handle: critical
+    target_id: discord_alert
+  # Normal branch → log
+  - source_id: route_status
+    source_handle: normal
+    target_id: log_normal

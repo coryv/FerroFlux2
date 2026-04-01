@@ -1,0 +1,73 @@
+meta:
+  permissions: ["network:api.stripe.com"]
+  id: stripe.trigger.subscriptions.updated
+  name: Subscription Updated
+  category: Subscriptions
+  type: Trigger
+  platform: stripe
+  description: "Fires when a Stripe customer.subscription.updated webhook event is received."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: subscription
+      type: object
+  settings:
+    - name: webhook_secret
+      label: "Webhook Signing Secret"
+      type: string
+      required: true
+      description: "Your Stripe webhook signing secret (whsec_...). Found in the Stripe Dashboard under Webhooks."
+
+execution:
+  - id: parse_stripe_sig
+    tool: rhai
+    params:
+      script: >
+        let sig_header = input.raw_signature;
+        let parts = sig_header.split(",");
+        let t_val = "";
+        let v1_val = "";
+        for part in parts {
+          if part.starts_with("t=") { t_val = part.trim_start_matches("t="); }
+          if part.starts_with("v1=") { v1_val = part.trim_start_matches("v1="); }
+        }
+        #{ timestamp: t_val, signature: v1_val, signed_payload: t_val + "." + input.raw_body }
+      input:
+        raw_signature: event.headers["stripe-signature"]
+        raw_body: event.raw_body
+    returns:
+      result: stripe_sig
+
+  - id: verify
+    tool: verify_signature
+    params:
+      body: steps.stripe_sig.result.signed_payload
+      secret: settings.webhook_secret
+      signature: steps.stripe_sig.result.signature
+      algorithm: hmac-sha256
+      encoding: hex
+    returns:
+      valid: is_valid
+
+  - id: check_event_type
+    tool: logic
+    params:
+      condition: >
+        steps.verify.is_valid && event.body.type == "customer.subscription.updated"
+
+routing:
+  match: steps.check_event_type.result
+  cases:
+    "true":
+      - tool: emit
+        params:
+          port: subscription
+          value: event.body.data.object
+      - tool: emit
+        params:
+          port: Success
+    "false": []

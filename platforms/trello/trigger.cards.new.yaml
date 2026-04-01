@@ -1,0 +1,71 @@
+meta:
+  permissions: ["network:api.trello.com"]
+  id: trello.trigger.cards.new
+  name: New Card
+  category: Cards
+  type: Trigger
+  platform: trello
+  description: "Polls a Trello board for newly created cards."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: card
+      type: object
+  settings:
+    - name: board_id
+      label: "Board ID"
+      type: string
+      required: true
+    - name: polling_interval
+      label: "Polling Interval (minutes)"
+      type: number
+      default: 15
+
+execution:
+  - id: query
+    tool: http_client
+    params:
+      method: GET
+      url: >
+        platform.base_url + "/1/boards/" + settings.board_id + "/actions"
+      headers: platform.headers
+      query:
+        filter: createCard
+        since: >
+          has(event.cursor) ? event.cursor : "1970-01-01T00:00:00.000Z"
+        limit: 50
+    returns:
+      status: status_code
+      body: response_body
+
+  - id: extract_cards
+    tool: rhai
+    params:
+      script: >
+        input.actions.map(|a| a.data.card)
+      input:
+        actions: steps.query.response_body
+    returns:
+      result: cards_array
+
+routing:
+  match: steps.query.status_code
+  cases:
+    "200":
+      - tool: iterate
+        params:
+          items: steps.extract_cards.cards_array
+          cursor_key: date
+          port: card
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: steps.query.response_body

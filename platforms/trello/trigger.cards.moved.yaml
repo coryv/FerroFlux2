@@ -1,0 +1,68 @@
+meta:
+  permissions: ["network:api.trello.com"]
+  id: trello.trigger.cards.moved
+  name: Card Moved
+  category: Cards
+  type: Trigger
+  platform: trello
+  description: "Polls a Trello board for cards moved between lists."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: card
+      type: object
+    - name: list_before
+      type: object
+    - name: list_after
+      type: object
+  settings:
+    - name: board_id
+      label: "Board ID"
+      type: string
+      required: true
+    - name: polling_interval
+      label: "Polling Interval (minutes)"
+      type: number
+      default: 15
+
+execution:
+  - id: query
+    tool: http_client
+    params:
+      method: GET
+      url: >
+        platform.base_url + "/1/boards/" + settings.board_id + "/actions"
+      headers: platform.headers
+      query:
+        filter: updateCard:idList
+        since: >
+          has(event.cursor) ? event.cursor : "1970-01-01T00:00:00.000Z"
+        limit: 50
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: steps.query.status_code
+  cases:
+    "200":
+      - tool: iterate
+        params:
+          items: steps.query.response_body
+          cursor_key: date
+          port: card
+          emit_extra:
+            list_before: item.data.listBefore
+            list_after: item.data.listAfter
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: steps.query.response_body

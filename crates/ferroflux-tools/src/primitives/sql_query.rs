@@ -15,9 +15,6 @@ static POOL_REGISTRY: Lazy<Arc<RwLock<HashMap<String, AnyPool>>>> =
 static TX_REGISTRY: Lazy<Arc<tokio::sync::Mutex<HashMap<String, AnyConnection>>>> =
     Lazy::new(|| Arc::new(tokio::sync::Mutex::new(HashMap::new())));
 
-// TODO: Implement proper numeric type mapping (currently String-only)
-// This will require mapping sqlx::any::AnyTypeInfo to appropriate serde_json::Value variants.
-
 pub struct SqlTool;
 
 impl Tool for SqlTool {

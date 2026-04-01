@@ -1,0 +1,66 @@
+meta:
+  permissions: ["network:api.airtable.com"]
+  id: airtable.trigger.records.new
+  name: New Record
+  category: Records
+  type: Trigger
+  platform: airtable
+  description: "Polls an Airtable table for newly created records."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: record
+      type: object
+  settings:
+    - name: base_id
+      label: "Base ID"
+      type: string
+      required: true
+    - name: table_name
+      label: "Table Name"
+      type: string
+      required: true
+    - name: polling_interval
+      label: "Polling Interval (minutes)"
+      type: number
+      default: 15
+
+execution:
+  - id: query
+    tool: http_client
+    params:
+      method: GET
+      url: >
+        platform.base_url + "/" + settings.base_id + "/" + settings.table_name
+      headers: platform.headers
+      query:
+        sort[0][field]: "Created Time"
+        sort[0][direction]: asc
+        filterByFormula: >
+          has(event.cursor) ? "IS_AFTER(CREATED_TIME(), '" + event.cursor + "')" : "1=1"
+        pageSize: 50
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: steps.query.status_code
+  cases:
+    "200":
+      - tool: iterate
+        params:
+          items: steps.query.response_body.records
+          cursor_key: createdTime
+          port: record
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: steps.query.response_body

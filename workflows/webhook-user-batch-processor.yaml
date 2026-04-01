@@ -1,0 +1,62 @@
+name: "Webhook User Batch Processor"
+description: "Receives a JSON array of user IDs via webhook, fans out to process each user via HTTP, collects all results, then sends a summary email via Resend. Note: SendGrid has no action nodes yet — Resend is used instead."
+
+triggers:
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
+    config:
+      path: /process-users
+      method: POST
+
+nodes:
+  - id: split_users
+    name: Split User IDs
+    type: core.action.split
+    config: {}
+
+  - id: process_user
+    name: Process User
+    type: core.action.http
+    config:
+      url: "https://api.example.com/users/process"
+      method: POST
+      output_var: user_result
+
+  - id: collect_results
+    name: Collect Results
+    type: core.action.aggregate
+    config:
+      batch_size: 100
+
+  - id: send_summary
+    name: Send Summary Email
+    type: resend.emails.send
+    config:
+      from: "notifications@yourdomain.com"
+      to: "admin@yourdomain.com"
+      subject: "User Processing Complete"
+
+edges:
+  # Webhook body (array of user IDs) → split
+  - source_id: webhook_in
+    source_handle: body
+    target_id: split_users
+  # Each item fans out → process user
+  - source_id: split_users
+    source_handle: item
+    target_id: process_user
+  # Per-user result data → aggregate item input
+  - source_id: process_user
+    source_handle: user_result
+    target_id: collect_results
+    target_handle: item
+  # Aggregate fires when batch ready → email (flow)
+  - source_id: collect_results
+    source_handle: Exec
+    target_id: send_summary
+  # Batch results array → email text body
+  - source_id: collect_results
+    source_handle: batch
+    target_id: send_summary
+    target_handle: text

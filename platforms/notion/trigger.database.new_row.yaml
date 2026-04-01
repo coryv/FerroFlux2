@@ -1,0 +1,67 @@
+meta:
+  permissions: ["network:api.notion.com"]
+  id: notion.trigger.database.new_row
+  name: New Database Row
+  category: Database
+  type: Trigger
+  platform: notion
+  description: "Polls a Notion database for newly created rows."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: row
+      type: object
+  settings:
+    - name: database_id
+      label: "Database ID"
+      type: string
+      required: true
+      description: "The Notion database ID to poll for new rows."
+    - name: polling_interval
+      label: "Polling Interval (minutes)"
+      type: number
+      default: 15
+
+execution:
+  - id: query
+    tool: http_client
+    params:
+      method: POST
+      url: >
+        platform.base_url + "/databases/" + settings.database_id + "/query"
+      headers: platform.headers
+      body:
+        sorts:
+          - property: "Created time"
+            direction: descending
+        filter:
+          timestamp: created_time
+          created_time:
+            after: >
+              has(event.cursor) ? event.cursor : "1970-01-01T00:00:00.000Z"
+        page_size: 50
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: steps.query.status_code
+  cases:
+    "200":
+      - tool: iterate
+        params:
+          items: steps.query.response_body.results
+          cursor_key: created_time
+          port: row
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: steps.query.response_body

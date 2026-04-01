@@ -1,0 +1,63 @@
+meta:
+  permissions: ["network:www.googleapis.com"]
+  id: google_calendar.trigger.events.updated
+  name: Updated Calendar Event
+  category: Events
+  type: Trigger
+  platform: google_calendar
+  description: "Polls a Google Calendar for recently updated events."
+  version: "1.0.0"
+
+interface:
+  inputs: []
+  outputs:
+    - name: Success
+      type: flow
+    - name: event
+      type: object
+  settings:
+    - name: calendar_id
+      label: "Calendar ID"
+      type: string
+      default: "primary"
+      description: "Calendar to watch. Use 'primary' for the user's main calendar."
+    - name: polling_interval
+      label: "Polling Interval (minutes)"
+      type: number
+      default: 15
+
+execution:
+  - id: query
+    tool: http_client
+    params:
+      method: GET
+      url: >
+        "https://www.googleapis.com/calendar/v3/calendars/" + settings.calendar_id + "/events"
+      headers: platform.headers
+      query:
+        orderBy: updated
+        singleEvents: "true"
+        updatedMin: >
+          has(event.cursor) ? event.cursor : "1970-01-01T00:00:00Z"
+        maxResults: 50
+    returns:
+      status: status_code
+      body: response_body
+
+routing:
+  match: steps.query.status_code
+  cases:
+    "200":
+      - tool: iterate
+        params:
+          items: steps.query.response_body.items
+          cursor_key: updated
+          port: event
+      - tool: emit
+        params:
+          port: Success
+    default:
+      - tool: emit
+        params:
+          port: Error
+          value: steps.query.response_body
