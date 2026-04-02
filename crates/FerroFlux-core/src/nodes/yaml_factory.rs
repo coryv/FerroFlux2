@@ -69,6 +69,15 @@ impl NodeFactory for YamlNodeFactory {
                 .iter()
                 .map(|s| serde_json::to_value(s).unwrap())
                 .collect(),
+            discovery: meta.discovery.as_ref().map(|d| ferroflux_types::node_factory::DiscoveryMetadata {
+                purpose: d.purpose.clone(),
+                usage_context: d.usage_context.clone(),
+                agent_hints: d.agent_hints.clone(),
+                waml_examples: d.waml_examples.iter().map(|e| ferroflux_types::node_factory::WamlExample {
+                    title: e.title.clone(),
+                    waml: e.waml.clone(),
+                }).collect(),
+            }),
         }
     }
 

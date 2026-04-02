@@ -2,6 +2,30 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 
+/// Metadata for AI agents to discover and use this node correctly.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiscoveryMetadata {
+    /// High-level purpose of the node for agent reasoning.
+    pub purpose: String,
+    /// Detailed context on when to use this action over others.
+    pub usage_context: String,
+    /// Specific hints or "gotchas" for the agent.
+    #[serde(default)]
+    pub agent_hints: Vec<String>,
+    /// Representative WAML examples for this node.
+    #[serde(default)]
+    pub waml_examples: Vec<WamlExample>,
+}
+
+/// A WAML example for documentation and agent guidance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WamlExample {
+    /// Short title for the example.
+    pub title: String,
+    /// The WAML snippet itself.
+    pub waml: String,
+}
+
 /// The top-level structure of a YAML Node Definition.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeDefinition {
@@ -40,6 +64,8 @@ pub struct NodeMeta {
     /// Explicitly declared permissions/capabilities required by this node (e.g. "network:api.slack.com").
     #[serde(default)]
     pub permissions: Vec<String>,
+    /// AI Agent discovery and usage guidance.
+    pub discovery: Option<DiscoveryMetadata>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

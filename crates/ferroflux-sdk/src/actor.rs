@@ -347,6 +347,7 @@ impl<T: NodeData + Send + 'static> EngineActor<T> {
                         inputs,
                         outputs,
                         settings: vec![], // For now
+                        discovery: None,
                     });
                 }
             }

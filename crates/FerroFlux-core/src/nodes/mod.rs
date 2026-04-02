@@ -118,6 +118,7 @@ impl NodeFactory for IntegrationNodeFactory {
             inputs: vec![],
             outputs: vec![],
             settings: vec![],
+            discovery: None,
         }
     }
 }

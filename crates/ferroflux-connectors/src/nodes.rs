@@ -39,6 +39,7 @@ impl NodeFactory for SseTriggerNodeFactory {
                 data_type: "Any".to_string(),
             }],
             settings: vec![],
+            discovery: None,
         }
     }
 }
