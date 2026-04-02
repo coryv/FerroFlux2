@@ -6,7 +6,31 @@ use anyhow::{Context, Result};
 use rand::RngCore;
 use std::env;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+fn get_master_key_path() -> PathBuf {
+    // 1. Env Var override
+    if let Ok(path_str) = env::var("FERROFLUX_MASTER_KEY_PATH") {
+        return PathBuf::from(path_str);
+    }
+
+    // 2. Legacy fallback
+    let legacy_path = PathBuf::from("ferroflux.key");
+    if legacy_path.exists() {
+        return legacy_path;
+    }
+
+    // 3. New default
+    if let Ok(home) = env::var("HOME") {
+        let mut path = PathBuf::from(home);
+        path.push(".ferroflux");
+        let _ = fs::create_dir_all(&path);
+        path.push("master.key");
+        return path;
+    }
+
+    legacy_path
+}
 
 /// Encryption algorithm: AES-256-GCM
 ///
@@ -58,8 +82,8 @@ pub fn decrypt(ciphertext: &[u8], key: &[u8], nonce: &[u8]) -> Result<Vec<u8>> {
 ///
 /// Priority:
 /// 1. `FERROFLUX_MASTER_KEY` environment variable (Hex encoded).
-/// 2. `ferroflux.key` file in current directory (Hex encoded).
-/// 3. Auto-generate new key and save to `ferroflux.key` (Dev mode).
+/// 2. `FERROFLUX_MASTER_KEY_PATH` override, or legacy `ferroflux.key`, or `$HOME/.ferroflux/master.key`
+/// 3. Auto-generate new key and save to the determined key path (Dev mode).
 #[tracing::instrument]
 pub fn get_or_create_master_key() -> Result<Vec<u8>> {
     // 1. Env Var
@@ -74,28 +98,49 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
         return Ok(key);
     }
 
+    let key_path = get_master_key_path();
+    get_or_create_master_key_internal(&key_path)
+}
+
+fn get_or_create_master_key_internal(key_path: &Path) -> Result<Vec<u8>> {
     // 2. File
-    let key_path = Path::new("ferroflux.key");
     if key_path.exists() {
-        let content = fs::read_to_string(key_path).context("Failed to read ferroflux.key")?;
+        let content = fs::read_to_string(key_path).context("Failed to read master key file")?;
         let content = content.trim();
-        let key = hex::decode(content).context("Invalid hex in ferroflux.key")?;
+        let key = hex::decode(content).context("Invalid hex in master key file")?;
         if key.len() != 32 {
             return Err(anyhow::anyhow!(
-                "ferroflux.key must be 32 bytes (64 hex chars)"
+                "Master key must be 32 bytes (64 hex chars)"
             ));
         }
-        tracing::warn!("Using master key from local file 'ferroflux.key'");
+        tracing::warn!("Using master key from local file {:?}", key_path);
         return Ok(key);
     }
 
     // 3. Auto-generate
-    tracing::info!("Generating new master key -> 'ferroflux.key'");
+    tracing::info!("Generating new master key -> {:?}", key_path);
     let mut key = [0u8; 32];
     rand::thread_rng().fill_bytes(&mut key);
     let hex_key = hex::encode(key);
 
-    fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    #[cfg(unix)]
+    {
+        use std::fs::OpenOptions;
+        use std::os::unix::fs::OpenOptionsExt;
+        use std::io::Write;
+
+        let mut options = OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        options.mode(0o600);
+
+        let mut file = options.open(key_path).context("Failed to open master key file with restricted permissions")?;
+        file.write_all(hex_key.as_bytes()).context("Failed to write master key to file")?;
+    }
+
+    #[cfg(not(unix))]
+    {
+        fs::write(key_path, hex_key).context("Failed to write master key file")?;
+    }
 
     Ok(key.to_vec())
 }
@@ -103,6 +148,33 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+    #[cfg(unix)]
+    use std::os::unix::fs::PermissionsExt;
+
+    #[test]
+    fn test_get_or_create_master_key_permissions() {
+        let key_file = std::env::temp_dir().join(format!("test_master_key_{}.key", uuid::Uuid::new_v4()));
+
+        // Ensure file doesn't exist before test
+        if key_file.exists() {
+            fs::remove_file(&key_file).unwrap();
+        }
+
+        let _key = get_or_create_master_key_internal(&key_file).expect("Failed to get or create master key");
+
+        let metadata = fs::metadata(&key_file).expect("Failed to get metadata");
+        #[cfg(unix)]
+        {
+            let permissions = metadata.permissions();
+            let mode = permissions.mode() & 0o777;
+
+            // Cleanup
+            fs::remove_file(&key_file).unwrap();
+
+            assert_eq!(mode, 0o600, "File should have 0o600 permissions");
+        }
+    }
 
     #[test]
     fn test_roundtrip() {

@@ -21,6 +21,7 @@ fn test_dynamic_port_generation() {
             node_subtype: None,
             signature: None,
             permissions: vec![],
+            discovery: None,
         },
         interface: Interface {
             inputs: vec![],

@@ -47,6 +47,7 @@ fn default_node_meta(id: &str) -> NodeMeta {
         node_subtype: None,
         signature: None,
         permissions: vec![],
+        discovery: None,
     }
 }
 fn default_interface() -> Interface {
