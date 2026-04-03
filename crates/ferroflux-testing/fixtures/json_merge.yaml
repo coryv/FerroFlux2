@@ -1,0 +1,47 @@
+id: json_merge_workflow
+name: "JSON Deep Merge Test Workflow"
+description: "Test deep merging of two JSON objects."
+
+nodes:
+  - id: webhook_in
+    name: "Incoming Webhook"
+    type: core.trigger.webhook
+
+  - id: jmes_merge
+    name: "Deep Merge Objects"
+    type: core.utils.json
+    config:
+      operation: "'merge'"
+
+  - id: merge_logger
+    name: "Log Merged Result"
+    type: core.action.log
+    config:
+      message: "'Merged: ' + string(inputs.body)"
+
+edges:
+  # 1. Flow & Data: Webhook to Merge
+  - source_id: webhook_in
+    target_id: jmes_merge
+    source_handle: Success
+    target_handle: Exec
+  - source_id: webhook_in
+    target_id: jmes_merge
+    source_handle: body
+    target_handle: input
+  # We'll use a second edge from the same trigger to provide 'other'
+  # in our test harness for simplicity, or we can send a combined object.
+  - source_id: webhook_in
+    target_id: jmes_merge
+    source_handle: other # Test harness will provide 'other' from the webhook payload
+    target_handle: other
+
+  # 2. Flow & Data: Merge to Logger
+  - source_id: jmes_merge
+    target_id: merge_logger
+    source_handle: Exec
+    target_handle: Exec
+  - source_id: jmes_merge
+    target_id: merge_logger
+    source_handle: result
+    target_handle: body

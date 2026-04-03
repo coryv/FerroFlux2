@@ -34,13 +34,28 @@ pub fn update_graph_topology(
     if needs_rebuild {
         tracing::debug!(edge_count = %edge_count, "Graph topology changed or uninitialized, rebuilding adjacency cache");
         topology.adjacency.clear();
+        topology.inbound_connections.clear();
+
         for edge in edge_query.iter() {
-            tracing::debug!(source = ?edge.source, target = ?edge.target, "Cache rebuild: adding edge");
+            tracing::debug!(
+                source = ?edge.source,
+                target = ?edge.target,
+                source_handle = ?edge.source_handle,
+                "Cache rebuild: adding edge"
+            );
             topology
                 .adjacency
                 .entry(edge.source)
                 .or_default()
                 .push((edge.source_handle.clone(), edge.target, edge.target_handle.clone()));
+
+            if let Some(ref th) = edge.target_handle {
+                topology
+                    .inbound_connections
+                    .entry(edge.target)
+                    .or_default()
+                    .insert(th.clone());
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ use bevy_ecs::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
+use uuid::Uuid;
 
 /// Runtime component for a Node executing a pipeline.
 #[derive(Component, Debug, Clone, Serialize, Deserialize)]
@@ -55,4 +56,11 @@ pub struct ExecutionResult {
     pub raw_body: String,
     pub trace_id: String,
     pub context: ExecutionContext,
+}
+
+/// Buffer for incoming tickets waiting for synchronization.
+/// Keyed by Trace ID, then by Port Name.
+#[derive(Component, Debug, Clone, Default)]
+pub struct InputBuffer {
+    pub traces: HashMap<Uuid, HashMap<String, crate::store::SecureTicket>>,
 }

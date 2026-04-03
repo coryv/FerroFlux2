@@ -24,6 +24,8 @@ interface:
   inputs:
     - name: Exec
       type: flow
+    - name: body
+      type: any
 
   
   outputs:
@@ -36,7 +38,7 @@ interface:
     - name: level
       label: Level
       type: select
-      default: INFO
+      default: "'INFO'"
       options: ["INFO", "WARN", "ERROR", "DEBUG"]
     - name: message
       label: Message Template
@@ -49,9 +51,9 @@ execution:
     params:
       level: settings.level
       message: settings.message
-      data: inputs
+      data: "has(inputs.body) ? inputs.body : inputs"
 
   - id: passthrough
     tool: emit
     params:
-      port: Success
+      port: "'Success'"

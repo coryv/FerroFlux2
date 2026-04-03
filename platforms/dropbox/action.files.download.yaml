@@ -2,6 +2,7 @@ meta:
   permissions: ["network:api.dropboxapi.com"]
   id: dropbox.files.download
   name: Download File
+  type: Action
   category: Files
   description: "Downloads a file from Dropbox and stores it in the BlobStore."
   version: "1.0.0"
@@ -40,7 +41,7 @@ execution:
       method: POST
       url: "https://content.dropboxapi.com/2/files/download"
       headers:
-        Dropbox-API-Arg: "{\"path\": \"" + inputs.path + "\"}"
+        Dropbox-API-Arg: '"{\"path\": \"" + inputs.path + "\"}"'
         Authorization: platform.headers.Authorization
       response_type: blob
     returns:

@@ -19,6 +19,10 @@ pub struct ToolContext<'a> {
     pub memory: &'a mut HashMap<String, Value>,
     /// Correlation ID for the execution flow.
     pub trace_id: String,
+    /// ID of the node currently executing.
+    pub node_id: String,
+    /// ID of the tenant owning the execution.
+    pub tenant_id: String,
     /// System event bus for emitting telemetry.
     pub event_bus: Option<SystemEventBus>,
     /// Whether the current execution is a safe simulation ("Shadow Mode").

@@ -2,7 +2,6 @@ use ferroflux_testing::harness::TestHarness;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, ResponseTemplate};
 use serde_json::json;
-use ferroflux_integration::definition::PlatformDefinition;
 
 #[tokio::test(flavor = "multi_thread")]
 async fn test_slack_webhook_integration() -> anyhow::Result<()> {

@@ -44,5 +44,7 @@ pub fn register_core_tools(registry: &mut ToolRegistry) {
     registry.register(PdfWriteTool);
     registry.register(CryptoTool);
     registry.register(GraphQlTool);
+    registry.register(SplitTool);
+    registry.register(AggregateTool);
 }
 

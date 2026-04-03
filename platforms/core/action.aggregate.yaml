@@ -52,8 +52,7 @@ execution:
     params:
       data: steps.agg.is_ready
       rules:
-        - condition: >
-          "val == true"
+        - condition: "val == true"
           output: Exec
 
   - id: emit_batch

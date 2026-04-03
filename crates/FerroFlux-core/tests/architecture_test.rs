@@ -47,6 +47,7 @@ fn default_node_meta(id: &str) -> NodeMeta {
         node_subtype: None,
         signature: None,
         permissions: vec![],
+        discovery: None,
     }
 }
 fn default_interface() -> Interface {
@@ -127,7 +128,7 @@ async fn setup_world() -> World {
     // OAuth2 Token Refresh Locks
     world.insert_resource(ferroflux_db::oauth2::TokenRefreshLocks::default());
 
-    return world;
+    world
 }
 
 #[tokio::test]
@@ -332,7 +333,7 @@ async fn test_memory_spill_strategy() {
     if let DataRef::Blob(ticket) = data_ref {
         println!("Success: large_var was spilled to Blob: {:?}", ticket);
         // Verify content
-        let blob = store.claim(&ticket).unwrap();
+        let blob = store.claim(ticket).unwrap();
         let val: serde_json::Value = serde_json::from_slice(&blob).unwrap();
         assert_eq!(val, json!(large_string));
     } else {

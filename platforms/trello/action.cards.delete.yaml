@@ -19,7 +19,6 @@ meta:
             call: trello.action.cards.delete
             with:
                id: "65a..."
- Riverside: 
 
 interface:
   inputs:

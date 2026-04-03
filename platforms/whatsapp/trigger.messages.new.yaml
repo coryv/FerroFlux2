@@ -58,5 +58,4 @@ routing:
         params:
           port: message
           value: steps.extract_message.result
-    "false": >
-      "[]"
+    "false": []

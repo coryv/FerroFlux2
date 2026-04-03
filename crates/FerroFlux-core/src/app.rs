@@ -228,6 +228,7 @@ impl AppBuilder {
         world.insert_resource(crate::resources::GraphTopology::default());
         world.insert_resource(crate::resources::templates::CelEngine);
         world.insert_resource(crate::resources::PipelineResultChannel::default());
+        world.insert_resource(crate::resources::GlobalMemory::default());
         
         let tool_registry = crate::tools::ToolRegistry::default();
         world.insert_resource(tool_registry);
@@ -415,6 +416,7 @@ impl AppBuilder {
         world.insert_resource(crate::resources::GraphTopology::default());
         world.insert_resource(crate::resources::templates::CelEngine);
         world.insert_resource(crate::resources::PipelineResultChannel::default());
+        world.insert_resource(crate::resources::GlobalMemory::default());
         // Create and register ToolRegistry
         let tool_registry = crate::tools::ToolRegistry::default();
         world.insert_resource(tool_registry);

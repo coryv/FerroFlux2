@@ -68,8 +68,7 @@ execution:
     params:
       data: steps.request.response_status
       rules:
-        - condition: >
-          "val < 400"
+        - condition: "val < 400"
           output: Success
         - condition: default
           output: Error

@@ -23,7 +23,7 @@ fn setup_world() -> World {
         tokio::sync::Semaphore::new(10),
     )));
     world.insert_resource(ferroflux_core::resources::GlobalHttpClient::default());
-    world.insert_resource(ferroflux_core::resources::templates::CelEngine::default());
+    world.insert_resource(ferroflux_core::resources::templates::CelEngine);
     world.insert_resource(ferroflux_core::resources::PipelineResultChannel::default());
     world.insert_resource(ferroflux_core::resources::PipelineResultChannel::default());
     let (tx, _) = tokio::sync::broadcast::channel(100);

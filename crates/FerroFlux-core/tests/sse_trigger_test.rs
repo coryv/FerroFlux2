@@ -68,8 +68,8 @@ async fn test_sse_trigger_lifecycle() {
         
         // CHECK THE OUTBOX OF THE NODE INSTEAD OF GLOBAL CHANNEL
         // ingest_triggers routes from the channel TO the outbox of the entity
-        if let Some(outbox) = app_ctx.app.world.get::<Outbox>(entity) {
-            if let Some((_, ticket)) = outbox.queue.front() {
+        if let Some(outbox) = app_ctx.app.world.get::<Outbox>(entity)
+            && let Some((_, ticket)) = outbox.queue.front() {
                 println!("DEBUG: Received event in node outbox in iteration {}", i);
                 let store = app_ctx.app.world.resource::<BlobStore>();
                 let data = store.claim(ticket).unwrap();
@@ -79,7 +79,6 @@ async fn test_sse_trigger_lifecycle() {
                     event_received = true;
                     break;
                 }
-            }
         }
         
         tokio::time::sleep(std::time::Duration::from_millis(50)).await;
@@ -90,13 +89,13 @@ async fn test_sse_trigger_lifecycle() {
     // 5. Verify Registry tracking
     {
         let registry = app_ctx.app.world.resource::<SseTriggerRegistry>();
-        assert!(registry.connections.len() >= 1);
+        assert!(!registry.connections.is_empty());
     }
 
     // 6. Test Shutdown
     {
         app_ctx.app.shutdown();
         let registry = app_ctx.app.world.resource::<SseTriggerRegistry>();
-        assert_eq!(registry.connections.len(), 0);
+        assert!(registry.connections.is_empty());
     }
 }

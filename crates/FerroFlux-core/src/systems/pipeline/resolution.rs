@@ -5,8 +5,6 @@ use anyhow::Result;
 use cel_interpreter::{Context, Program};
 use serde_json::Value;
 use std::collections::HashMap;
-use tracing::warn;
-
 /// Lazy pipeline execution context.
 ///
 /// Instead of materializing all DataRefs upfront, `LazyCtx` holds the raw
@@ -60,6 +58,11 @@ pub fn resolve_recursive(value: &Value, ctx: &mut LazyCtx<'_>) -> Result<Value> 
     match value {
         Value::String(s) => {
             let trimmed = s.trim();
+            
+            // Heuristic: If it's a simple operator or very short, treat as literal to avoid CEL parser panics
+            if trimmed.len() <= 2 && (trimmed == ">" || trimmed == "<" || trimmed == "==" || trimmed == "!=" || trimmed == ">=" || trimmed == "<=") {
+                return Ok(Value::String(s.clone()));
+            }
 
             let program = match Program::compile(trimmed) {
                 Ok(p) => p,
@@ -71,12 +74,18 @@ pub fn resolve_recursive(value: &Value, ctx: &mut LazyCtx<'_>) -> Result<Value> 
 
             // Determine exactly which top-level variables this expression uses,
             // then materialize only those -- leaving all other DataRefs untouched.
-            let refs: Vec<String> = program
+            let mut refs: Vec<String> = program
                 .references()
                 .variables()
                 .into_iter()
                 .map(|s| s.to_string())
                 .collect();
+
+            // Fallback: If no refs were found but the expression is a simple identifier,
+            // CEL might not have picked it up. Try materializing it anyway.
+            if refs.is_empty() && trimmed.chars().all(|c| c.is_alphanumeric() || c == '_') {
+                refs.push(trimmed.to_string());
+            }
 
             let mut partial = serde_json::Map::new();
             for key in &refs {
@@ -97,7 +106,7 @@ pub fn resolve_recursive(value: &Value, ctx: &mut LazyCtx<'_>) -> Result<Value> 
             match program.execute(&cel_ctx) {
                 Ok(cel_val) => Ok(cel_to_json(cel_val)),
                 Err(e) => {
-                    warn!(
+                    tracing::debug!(
                         expression = trimmed,
                         error = %e,
                         "CEL execution failed during resolution, using literal string"

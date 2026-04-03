@@ -24,6 +24,10 @@ interface:
   inputs:
     - name: Exec
       type: flow
+    - name: a
+      type: any
+    - name: b
+      type: any
 
   outputs:
     - name: True
@@ -41,7 +45,7 @@ interface:
     - name: operator
       label: Operator
       type: select
-      default: "=="
+      default: "'=='"
       options: ["==", "!=", ">", "<", ">=", "<="]
 
 execution:
@@ -50,7 +54,7 @@ execution:
     params:
       data: inputs.a
       rules:
-        - output: True
+        - output: "'True'"
           condition:
             field: >
               ""
@@ -62,5 +66,5 @@ execution:
   - id: route
     tool: emit
     params:
-      port: steps.check.match
+      port: "steps.check.branch_name == 'default' ? 'False' : steps.check.branch_name"
       value: inputs.a

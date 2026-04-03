@@ -26,6 +26,8 @@ interface:
       type: flow
     - name: input
       type: any
+    - name: other
+      type: any
   outputs:
     - name: Exec
       type: flow
@@ -60,17 +62,17 @@ execution:
       operation: settings.operation
       input: inputs.input
       expression: settings.expression
-      other: settings.other
+      other: "has(inputs.other) ? inputs.other : settings.other"
     returns:
       result: transformed
 
   - id: emit_res
     tool: emit
     params:
-      port: result
-      value: steps.transform.result
+      port: "'result'"
+      value: transformed
 
   - id: done
     tool: emit
     params:
-      port: Exec
+      port: "'Exec'"

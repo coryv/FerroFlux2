@@ -29,6 +29,9 @@ pub mod templates;
 #[derive(Resource, Clone, Default)]
 pub struct WorkDone(pub bool);
 
+#[derive(Resource, Clone, Default)]
+pub struct GlobalMemory(pub std::sync::Arc<std::sync::Mutex<std::collections::HashMap<String, serde_json::Value>>>);
+
 #[derive(Resource, Clone)]
 pub struct AgentConcurrency(pub Arc<Semaphore>);
 
@@ -66,6 +69,8 @@ pub type AdjacencyMap = std::collections::HashMap<Entity, Vec<(Option<String>, E
 pub struct GraphTopology {
     // Source -> [(SourcePort, TargetEntity, TargetPort)]
     pub adjacency: AdjacencyMap,
+    // Target -> Set of Target Port Names that have incoming edges
+    pub inbound_connections: std::collections::HashMap<Entity, std::collections::HashSet<String>>,
 }
 #[derive(Resource, Clone)]
 pub struct PipelineResultChannel {

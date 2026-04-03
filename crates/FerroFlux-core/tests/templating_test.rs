@@ -72,6 +72,7 @@ fn test_dataref_blob_templating() {
             node_subtype: None,
             signature: None,
             permissions: vec![],
+            discovery: None,
         },
         interface: Interface {
             inputs: vec![],

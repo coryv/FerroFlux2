@@ -26,7 +26,8 @@ pub fn execute_pipeline_node(
     secret_store: Option<&crate::secrets::DatabaseSecretStore>,
     runtime: Option<&crate::resources::TokioRuntime>,
     refresh_locks: Option<&ferroflux_db::oauth2::TokenRefreshLocks>,
-) -> Result<Vec<String>> {
+    workflow_config: HashMap<String, Value>,
+) -> Result<Vec<(String, Value, ActiveWorkflowState)>> {
     let def = definitions
         .definitions
         .get(&node.definition_id)
@@ -41,6 +42,7 @@ pub fn execute_pipeline_node(
     // Settings are always small/Inline.
     ctx_map.insert("settings".to_string(), DataRef::Inline(serde_json::to_value(&node.config)?));
     ctx_map.insert("trace_id".to_string(), DataRef::Inline(Value::String(trace_id.clone())));
+    ctx_map.insert("config".to_string(), DataRef::Inline(Value::Object(workflow_config.clone().into_iter().collect())));
 
     // 2. Platform injection -- always Inline (loaded from the definitions registry).
     let mut platform_root = serde_json::Map::new();
@@ -49,11 +51,11 @@ pub fn execute_pipeline_node(
         platform_root.insert(id.clone(), platform_val.clone());
 
         // Flatten the active platform's keys into the root context.
-        if Some(id) == def.meta.platform.as_ref() {
-            if let Some(obj) = platform_val.as_object() {
-                for (rk, rv) in obj {
-                    ctx_map.insert(rk.clone(), DataRef::Inline(rv.clone()));
-                }
+        if Some(id) == def.meta.platform.as_ref()
+            && let Some(obj) = platform_val.as_object()
+        {
+            for (rk, rv) in obj {
+                ctx_map.insert(rk.clone(), DataRef::Inline(rv.clone()));
             }
         }
     }
@@ -63,21 +65,44 @@ pub fn execute_pipeline_node(
     //    each Blob is claimed from the store at most once per node execution.
     let mut blob_cache: HashMap<String, Value> = HashMap::new();
 
-    // 4. Resolve Node Inputs (fully hydrated for tool use).
-    let mut resolved_inputs = serde_json::Map::new();
+    // 4. Resolve Node settings (fully hydrated for tool use).
+    let mut resolved_settings = serde_json::Map::new();
     for (k, v) in &node.config {
         let result = resolve_recursive(
             v,
             &mut LazyCtx { data: &ctx_map, store, cache: &mut blob_cache },
         )?;
-        resolved_inputs.insert(k.clone(), result);
+        resolved_settings.insert(k.clone(), result);
     }
-    let inputs_val = Value::Object(resolved_inputs);
+    let settings_val = Value::Object(resolved_settings);
+    ctx_map.insert("settings".to_string(), DataRef::Inline(settings_val.clone()));
+    blob_cache.insert("settings".to_string(), settings_val);
+
+    // 5. Populate `inputs` from workflow context (ports).
+    let mut inputs_map = serde_json::Map::new();
+    let declared_inputs: Vec<String> = def.interface.inputs.iter().map(|i| i.name.clone()).collect();
+    
+    if declared_inputs.is_empty() {
+        // Fallback: Populate with ALL context keys if none are declared (Catch-all mode)
+        for k in workflow_state.context.keys() {
+            if let Some(val) = (LazyCtx { data: &workflow_state.context, store, cache: &mut blob_cache }).materialize_key(k) {
+                inputs_map.insert(k.clone(), val);
+            }
+        }
+    } else {
+        // Strict mode: Only populate declared ports
+        for name in declared_inputs {
+            if let Some(val) = (LazyCtx { data: &workflow_state.context, store, cache: &mut blob_cache }).materialize_key(&name) {
+                inputs_map.insert(name, val);
+            }
+        }
+    }
+    
+    let inputs_val = Value::Object(inputs_map);
     ctx_map.insert("inputs".to_string(), DataRef::Inline(inputs_val.clone()));
-    // Pre-populate cache so steps don't need to re-clone from DataRef.
     blob_cache.insert("inputs".to_string(), inputs_val);
 
-    // 5. Resolve explicit context templates.
+    // 6. Resolve explicit context templates.
     if let Some(ctx_defs) = &def.context {
         for (key, template) in ctx_defs {
             let val = resolve_recursive(
@@ -93,51 +118,85 @@ pub fn execute_pipeline_node(
     ctx_map.insert("steps".to_string(), DataRef::Inline(serde_json::json!({})));
     blob_cache.insert("steps".to_string(), serde_json::json!({}));
 
-    let mut active_ports = vec!["_next".to_string()];
+    let mut emissions: Vec<(String, Value, ActiveWorkflowState)> = Vec::new();
     let execution_start = Instant::now();
 
-    for step in &def.execution {
-        let tool = tools.get(&step.tool)
-            .ok_or_else(|| anyhow::anyhow!("Tool not found: {}", step.tool))?;
+    let is_iterator = def.meta.node_subtype.as_deref() == Some("Iterator");
+    let mut iteration_count = 0;
+    const MAX_ITERATIONS: usize = 1000;
 
-        let resolved_params = resolve_recursive(
-            &step.params,
-            &mut LazyCtx { data: &ctx_map, store, cache: &mut blob_cache },
-        )?;
+    loop {
+        iteration_count += 1;
+        if iteration_count > MAX_ITERATIONS {
+            tracing::warn!(node_id = %node.definition_id, "Max iterations reached (1000) - breaking jump to avoid infinite loop");
+            break;
+        }
 
-        let default_masks = std::collections::HashMap::new();
-        let masks_ref = shadow_exec.map(|s| &s.mocked_tools).unwrap_or(&default_masks);
+        let mut iteration_done = true; // Assume done unless an iterator tool says otherwise
 
-        let secrets_resolver = if let Some(ss) = secret_store && let Some(rt) = runtime {
-            Some(crate::tools::CoreSecretResolver {
-                tenant_id: ferroflux_types::tenant::TenantId::from("default_tenant"),
-                store: ss,
-                runtime: rt,
-                refresh_locks,
-            })
-        } else {
-            None
-        };
+        for step in &def.execution {
+            let tool = tools.get(&step.tool)
+                .ok_or_else(|| anyhow::anyhow!("Tool not found: {}", step.tool))?;
 
-        let mut tool_ctx = ToolContext {
-            local: &mut ctx_map,
-            memory: global_memory,
-            trace_id: trace_id.clone(),
-            event_bus: event_bus.clone(),
-            shadow_mode: shadow_exec.is_some(),
-            shadow_masks: masks_ref,
-            store,
-            secrets: secrets_resolver.as_ref().map(|r| r as &dyn crate::tools::SecretResolver),
-        };
+            let resolved_params = resolve_recursive(
+                &step.params,
+                &mut LazyCtx { data: &ctx_map, store, cache: &mut blob_cache },
+            )?;
 
-        let result = tool.run(&mut tool_ctx, resolved_params)?;
+            let default_masks = std::collections::HashMap::new();
+            let masks_ref = shadow_exec.map(|s| &s.mocked_tools).unwrap_or(&default_masks);
 
-        // Map step output into the "steps" namespace. Collect root promotions
-        // separately to avoid holding the steps_val borrow during insertion.
-        let mut root_updates: Vec<(String, Value)> = Vec::new();
+            let secrets_resolver = if let Some(ss) = secret_store && let Some(rt) = runtime {
+                Some(crate::tools::CoreSecretResolver {
+                    tenant_id: ferroflux_types::tenant::TenantId::from("default_tenant"),
+                    store: ss,
+                    runtime: rt,
+                    refresh_locks,
+                })
+            } else {
+                None
+            };
 
-        if let Some(DataRef::Inline(steps_val)) = ctx_map.get_mut("steps") {
-            if let Some(steps_obj) = steps_val.as_object_mut() {
+            let mut tool_ctx = ToolContext {
+                local: &mut ctx_map,
+                memory: global_memory,
+                trace_id: trace_id.clone(),
+                node_id: node.definition_id.clone(),
+                tenant_id: "default_tenant".to_string(),
+                event_bus: event_bus.clone(),
+                shadow_mode: shadow_exec.is_some(),
+                shadow_masks: masks_ref,
+                store,
+                secrets: secrets_resolver.as_ref().map(|r| r as &dyn crate::tools::SecretResolver),
+            };
+
+            let result = tool.run(&mut tool_ctx, resolved_params)?;
+
+            // If the tool is 'split', it may signal if we are done or not
+            if step.tool == "split" {
+                if let Some(done) = result.get("is_done").and_then(|v| v.as_bool()) {
+                    iteration_done = done;
+                }
+            }
+
+            // If the tool is 'emit', capture current state snapshot and the value for this port
+            if step.tool == "emit" && let Some(port) = result.get("port").and_then(|v| v.as_str()) {
+                let val = result.get("value").cloned().unwrap_or(Value::Null);
+                // Take a snapshot of the current workflow state (context + history)
+                let mut state_snapshot = workflow_state.clone();
+                for (k, v) in &ctx_map {
+                    if k != "inputs" && k != "steps" && k != "settings" && k != "platform" {
+                        state_snapshot.set_ref(k, v.clone());
+                    }
+                }
+                emissions.push((port.to_string(), val, state_snapshot));
+            }
+
+            // Map step output into the "steps" namespace...
+            let mut root_updates: Vec<(String, Value)> = Vec::new();
+            if let Some(DataRef::Inline(steps_val)) = ctx_map.get_mut("steps")
+                && let Some(steps_obj) = steps_val.as_object_mut()
+            {
                 if step.returns.is_empty() {
                     steps_obj.insert(step.id.clone(), result.clone());
                 } else {
@@ -151,16 +210,17 @@ pub fn execute_pipeline_node(
                     steps_obj.insert(step.id.clone(), Value::Object(step_out));
                 }
             }
+
+            for (var_name, val) in root_updates {
+                ctx_map.insert(var_name.clone(), DataRef::Inline(val));
+                blob_cache.remove(&var_name);
+            }
+            blob_cache.remove("steps");
         }
 
-        // Promote mapped vars to root context and invalidate their cache entries.
-        for (var_name, val) in root_updates {
-            ctx_map.insert(var_name.clone(), DataRef::Inline(val));
-            blob_cache.remove(&var_name);
+        if !is_iterator || iteration_done {
+            break;
         }
-
-        // Invalidate steps cache so the next step picks up the updated object.
-        blob_cache.remove("steps");
     }
 
     // 7. Routing.
@@ -186,6 +246,8 @@ pub fn execute_pipeline_node(
                     local: &mut ctx_map,
                     memory: global_memory,
                     trace_id: trace_id.clone(),
+                    node_id: node.definition_id.clone(),
+                    tenant_id: "default_tenant".to_string(),
                     event_bus: event_bus.clone(),
                     shadow_mode: shadow_exec.is_some(),
                     shadow_masks: &std::collections::HashMap::new(),
@@ -194,13 +256,31 @@ pub fn execute_pipeline_node(
                 };
 
                 let result = tool.run(&mut tool_ctx, resolved_params)?;
-                if action.tool == "emit" {
-                    if let Some(port) = result.get("port").and_then(|v| v.as_str()) {
-                        active_ports.push(port.to_string());
+                if action.tool == "emit"
+                    && let Some(port) = result.get("port").and_then(|v| v.as_str())
+                {
+                    let val = result.get("value").cloned().unwrap_or(Value::Null);
+                    let mut state_snapshot = workflow_state.clone();
+                    for (k, v) in &ctx_map {
+                        if k != "inputs" && k != "steps" && k != "settings" && k != "platform" {
+                            state_snapshot.set_ref(k, v.clone());
+                        }
                     }
+                    emissions.push((port.to_string(), val, state_snapshot));
                 }
             }
         }
+    }
+
+    // Capture the final state for the default _next port if no emissions occurred
+    if emissions.is_empty() {
+        let mut final_state = workflow_state.clone();
+        for (k, v) in &ctx_map {
+            if k != "inputs" && k != "steps" && k != "settings" && k != "platform" {
+                final_state.set_ref(k, v.clone());
+            }
+        }
+        emissions.push(("_next".to_string(), Value::Null, final_state));
     }
 
     // 8. Telemetry.
@@ -213,10 +293,10 @@ pub fn execute_pipeline_node(
             success: true,
             details: serde_json::json!({
                 "definition_id": node.definition_id,
-                "active_ports": active_ports
+                "emissions_count": emissions.len()
             }),
         });
     }
 
-    Ok(active_ports)
+    Ok(emissions)
 }

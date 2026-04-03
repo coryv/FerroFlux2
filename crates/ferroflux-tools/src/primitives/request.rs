@@ -128,20 +128,19 @@ impl<'a> BlockingRequest<'a> {
     pub fn with_headers(mut self, user_headers: Option<&Value>, dynamic: &[(String, String)]) -> Self {
         if let Some(Value::Object(map)) = user_headers {
             for (k, v) in map {
-                if let Some(s) = v.as_str() {
-                    if let Ok(name) = reqwest::header::HeaderName::from_bytes(k.as_bytes()) {
-                        if let Ok(val) = reqwest::header::HeaderValue::from_str(s) {
-                            self.headers.insert(name, val);
-                        }
-                    }
+                if let Some(s) = v.as_str()
+                    && let Ok(name) = reqwest::header::HeaderName::from_bytes(k.as_bytes())
+                    && let Ok(val) = reqwest::header::HeaderValue::from_str(s)
+                {
+                    self.headers.insert(name, val);
                 }
             }
         }
         for (k, v) in dynamic {
-            if let Ok(name) = reqwest::header::HeaderName::from_bytes(k.as_bytes()) {
-                if let Ok(val) = reqwest::header::HeaderValue::from_str(v) {
-                    self.headers.insert(name, val);
-                }
+            if let Ok(name) = reqwest::header::HeaderName::from_bytes(k.as_bytes())
+                && let Ok(val) = reqwest::header::HeaderValue::from_str(v)
+            {
+                self.headers.insert(name, val);
             }
         }
         self
@@ -227,20 +226,19 @@ pub fn execute_multipart_request(
     
     if let Some(Value::Object(map)) = headers_val {
         for (k, v) in map {
-            if let Some(s) = v.as_str() {
-                if let Ok(name) = reqwest::header::HeaderName::from_bytes(k.as_bytes()) {
-                    if let Ok(val) = reqwest::header::HeaderValue::from_str(s) {
-                        req_headers.insert(name, val);
-                    }
-                }
+            if let Some(s) = v.as_str()
+                && let Ok(name) = reqwest::header::HeaderName::from_bytes(k.as_bytes())
+                && let Ok(val) = reqwest::header::HeaderValue::from_str(s)
+            {
+                req_headers.insert(name, val);
             }
         }
     }
     for (k, v) in dynamic_headers {
-        if let Ok(name) = reqwest::header::HeaderName::from_bytes(k.as_bytes()) {
-            if let Ok(val) = reqwest::header::HeaderValue::from_str(v) {
-                req_headers.insert(name, val);
-            }
+        if let Ok(name) = reqwest::header::HeaderName::from_bytes(k.as_bytes())
+            && let Ok(val) = reqwest::header::HeaderValue::from_str(v)
+        {
+            req_headers.insert(name, val);
         }
     }
 

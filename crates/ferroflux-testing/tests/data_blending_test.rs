@@ -46,28 +46,31 @@ async fn test_data_blending_workflow() -> anyhow::Result<()> {
         .await;
 
     println!("Mocks registered at {}", mock_uri);
-    
-    // 5. Overwrite Platform base_url to mock server
+
+    // 5. Load platforms so the registry is populated
+    harness.load_platforms()?;
+
+    // 7. Overwrite Platform base_url to mock server
     harness.set_platform_config("slack", "base_url", json!(mock_uri.clone()))?;
     harness.set_platform_config("core", "base_url", json!(mock_uri))?; // route mock_db HTTP actions here
 
-    // 6. Load Workflow WAML
+    // 8. Load Workflow WAML
     let yaml_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("fixtures/data_blending.yaml");
     let workflow_yaml = std::fs::read_to_string(&yaml_path)?;
     println!("Loaded WAML from {:?}:\n{}", yaml_path, workflow_yaml);
     harness.load_waml(&workflow_yaml)?;
-    
-    // 7. Trigger the Webhook Node
+
+    // 9. Trigger the Webhook Node
     let webhook_uuid = uuid::Uuid::new_v5(&uuid::Uuid::NAMESPACE_DNS, b"webhook_in");
     
     harness.trigger_node(webhook_uuid, json!({ 
         "user_id": "U123"
     }))?;
     
-    // 8. Execute Engine
+    // 10. Execute Engine
     harness.run_until_idle(100).await;
-    
-    // 9. Assertions
+
+    // 11. Assertions
     let received_requests = harness.mock_server().received_requests().await.expect("Mock server should have recorded requests");
     
     // We expect at least two requests: users.info and mock_db

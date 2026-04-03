@@ -70,6 +70,7 @@ fn test_unified_pipeline_execution() {
             node_subtype: None,
             signature: None,
             permissions: vec![],
+            discovery: None,
         },
         interface: Interface {
             inputs: vec![],
@@ -208,6 +209,7 @@ fn test_stats_tool() {
             node_subtype: None,
             signature: None,
             permissions: vec![],
+            discovery: None,
         },
         interface: Interface {
             inputs: vec![],

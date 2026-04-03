@@ -20,7 +20,6 @@ meta:
             with:
                id: "65a..."
                text: "Processing complete. Please check the results."
- Riverside: 
 
 interface:
   inputs:

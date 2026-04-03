@@ -1,4 +1,5 @@
 pub mod aws_sigv4;
+pub mod aggregate;
 pub mod emit;
 
 pub mod http_client;
@@ -14,6 +15,7 @@ pub mod rhai;
 pub mod sleep;
 pub mod smtp;
 pub mod sql_query;
+pub mod split;
 pub mod stats;
 pub mod switch;
 
@@ -32,6 +34,7 @@ pub mod pdf_write;
 pub mod crypto;
 pub mod graphql;
 
+pub use self::aggregate::AggregateTool;
 pub use self::emit::EmitTool;
 pub use self::http_client::HttpClientTool;
 pub use self::json_query::JsonQueryTool;
@@ -60,6 +63,7 @@ pub use self::verify_signature::VerifySignatureTool;
 pub use self::sql_query::SqlTool;
 pub use self::mongo_query::MongoTool;
 pub use self::redis_query::RedisTool;
+pub use self::split::SplitTool;
 
 
 use ferroflux_db::oauth2::TokenRefreshLocks;

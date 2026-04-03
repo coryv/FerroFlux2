@@ -1,0 +1,41 @@
+name: "Split Array"
+description: "Split a list of 3 items"
+triggers:
+  - id: "webhook_in"
+    name: "Incoming Webhook"
+    type: "core.trigger.webhook"
+    config:
+        path: "/split"
+nodes:
+  - id: "set_array"
+    name: "Set Array"
+    type: "core.action.script"
+    config:
+      script: "return [1, 2, 3];"
+  - id: "splitter"
+    name: "Splitting Node"
+    type: "core.action.split"
+    config: {}
+  - id: "log_item"
+    name: "Item Log"
+    type: "core.action.log"
+    config:
+      level: "'INFO'"
+      message: "Processing item"
+edges:
+  - source_id: "webhook_in"
+    source_handle: "Success"
+    target_id: "set_array"
+    target_handle: "Exec"
+  - source_id: "set_array"
+    source_handle: "Success"
+    target_id: "splitter"
+    target_handle: "Exec"
+  - source_id: "set_array"
+    source_handle: "result"
+    target_id: "splitter"
+    target_handle: "array"
+  - source_id: "splitter"
+    source_handle: "item"
+    target_id: "log_item"
+    target_handle: "Exec"

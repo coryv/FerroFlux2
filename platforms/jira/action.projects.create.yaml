@@ -55,7 +55,7 @@ execution:
         platform.base_url + "/TODO"
       headers: platform.headers
       # body:                >
-        "# Uncomment for POST/PUT/PATCH"
+        # "# Uncomment for POST/PUT/PATCH"
       #   field: inputs.field_name
       #   setting: settings.example_setting
     returns:
@@ -67,8 +67,7 @@ execution:
     params:
       value: steps.request.status_code
       cases:
-        - condition: >
-          "\"200\"   # TODO: add all success codes (201, 202, 204, etc.)"
+        - condition: "\"200\"   # TODO: add all success codes (201, 202, 204, etc.)"
           output: success
         - condition: default
           output: error

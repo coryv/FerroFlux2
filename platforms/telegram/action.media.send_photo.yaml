@@ -55,8 +55,7 @@ execution:
         - name: photo
           type: blob
           field: photo
-          # Note: >
-            "'field' maps to the key in the multipart form,"
+          # Note: 'field' maps to the key in the multipart form,
           # and 'photo' is the name of the input port of type blob.
         - name: caption
           type: string

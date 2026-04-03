@@ -35,15 +35,16 @@ pub fn handle_trigger_node(
                 let is_source = if let Some(conf) = world.get::<NodeConfig>(e) {
                     conf.node_type == "Webhook"
                         || conf.node_type == "Cron"
-                        || conf.node_type.ends_with("trigger.webhook")
-                        || conf.node_type.ends_with("trigger.cron")
+                        || conf.node_type == "Manual"
+                        || conf.node_type.contains(".trigger.")
+                        || conf.node_type.starts_with("trigger.")
                 } else {
                     false
                 };
 
                 if is_source {
                     if let Some(mut outbox) = world.get_mut::<Outbox>(e) {
-                        outbox.queue.push_back((Some("body".to_string()), ticket));
+                        outbox.queue.push_back((None, ticket));
                         tracing::info!(entity = ?e, "Trigger sent to OUTBOX (Source Node)");
                         if let Some(mut wd) = world.get_resource_mut::<WorkDone>() {
                             wd.0 = true;
@@ -94,8 +95,9 @@ pub fn handle_trigger_workflow(
                 let is_source = if let Some(conf) = world.get::<NodeConfig>(e) {
                     conf.node_type == "Webhook"
                         || conf.node_type == "Cron"
-                        || conf.node_type.ends_with("trigger.webhook")
-                        || conf.node_type.ends_with("trigger.cron")
+                        || conf.node_type == "Manual"
+                        || conf.node_type.contains(".trigger.")
+                        || conf.node_type.starts_with("trigger.")
                 } else {
                     false
                 };

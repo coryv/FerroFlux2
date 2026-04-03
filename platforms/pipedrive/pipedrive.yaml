@@ -1,4 +1,5 @@
 meta:
+  id: pipedrive
   name: "Pipedrive"
   category: "CRM"
   type: Platform

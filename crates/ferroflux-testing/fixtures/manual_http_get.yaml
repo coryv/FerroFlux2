@@ -1,0 +1,34 @@
+name: "Manual HTTP GET"
+description: "Manual trigger starts an HTTP GET and logs the response"
+triggers:
+  - id: "manual_in"
+    name: "Manual Trigger"
+    type: "core.trigger.manual"
+    config: {}
+nodes:
+  - id: "http_get"
+    name: "HTTP GET"
+    type: "core.action.http"
+    config:
+      url: "/get-data"
+      method: "GET"
+      output_var: "api_response"
+  - id: "log_out"
+    name: "Debug Log"
+    type: "core.action.log"
+    config:
+      level: "INFO"
+      message: "API Response received"
+edges:
+  - source_id: "manual_in"
+    source_handle: "Success"
+    target_id: "http_get"
+    target_handle: "Exec"
+  - source_id: "http_get"
+    source_handle: "Success"
+    target_id: "log_out"
+    target_handle: "Exec"
+  - source_id: "http_get"
+    source_handle: "api_response"
+    target_id: "log_out"
+    target_handle: "body"

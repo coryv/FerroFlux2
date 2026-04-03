@@ -121,16 +121,14 @@ edges:
             >(&data)
             {
                 // core.action.script defined returns: { result: script_result }
-                if let Some(val_ref) = state.context.get("result") {
-                    if let Some(val) = val_ref.as_inline() {
-                        if val.as_i64() == Some(15)
-                            || val.as_u64() == Some(15)
-                            || val.as_f64() == Some(15.0)
-                        {
-                            found_result = true;
-                            break;
-                        }
-                    }
+                if let Some(val_ref) = state.context.get("result")
+                    && let Some(val) = val_ref.as_inline()
+                    && (val.as_i64() == Some(15)
+                        || val.as_u64() == Some(15)
+                        || val.as_f64() == Some(15.0))
+                {
+                    found_result = true;
+                    break;
                 }
             }
         }

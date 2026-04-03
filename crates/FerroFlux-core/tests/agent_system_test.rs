@@ -44,7 +44,7 @@ async fn setup_world(mock_server_url: String) -> (World, Schedule) {
     ));
 
     world.insert_resource(GlobalHttpClient::default());
-    world.insert_resource(ferroflux_core::resources::templates::CelEngine::default());
+    world.insert_resource(ferroflux_core::resources::templates::CelEngine);
     world.insert_resource(ferroflux_core::resources::PipelineResultChannel::default());
     world.insert_resource(ferroflux_core::resources::NodeRouter::default());
     let (tx, _) = tokio::sync::broadcast::channel(100);

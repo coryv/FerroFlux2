@@ -1,0 +1,22 @@
+name: "Schedule Interval"
+description: "Schedule trigger runs every 15 minutes and logs"
+triggers:
+  - id: "scheduler_in"
+    name: "Interval Trigger"
+    type: "core.trigger.schedule"
+    config:
+      mode: "interval"
+      interval_value: 15
+      interval_unit: "minutes"
+nodes:
+  - id: "log_out"
+    name: "Debug Log"
+    type: "core.action.log"
+    config:
+      level: "'INFO'"
+      message: "Interval run active"
+edges:
+  - source_id: "scheduler_in"
+    source_handle: "Success"
+    target_id: "log_out"
+    target_handle: "Exec"

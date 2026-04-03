@@ -23,7 +23,6 @@ fn load_slack_platform(harness: &mut TestHarness) -> anyhow::Result<()> {
     }
     let defs = def_registry.0.definitions.clone();
     let platforms = def_registry.0.platforms.clone();
-    drop(def_registry);
 
     {
         let mut registry = harness.app.world.resource_mut::<NodeRegistry>();
@@ -106,7 +105,7 @@ async fn test_slack_dm_qa() -> anyhow::Result<()> {
 
     // Assertion 1: conversations.open was called
     assert!(
-        requests.len() >= 1,
+        !requests.is_empty(),
         "expected at least 1 HTTP call, got 0"
     );
 

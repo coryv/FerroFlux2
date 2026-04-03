@@ -13,7 +13,7 @@ async fn test_github_issues_create() -> anyhow::Result<()> {
     unsafe { std::env::set_var("FERROFLUX_ALLOW_INTERNAL_IPS", "true"); }
 
     let mut harness = TestHarness::new().await;
-    let mock_uri = harness.mock_server().uri();
+    let _mock_uri = harness.mock_server().uri();
 
     // NOTE: load_platforms() fails due to a pre-existing YAML parse error in
     // platforms/core/utils.graphql.yaml (malformed block scalar at line 68).
@@ -67,7 +67,7 @@ async fn test_github_issues_create() -> anyhow::Result<()> {
 
     // Assertion 1: at least one HTTP call was made
     assert!(
-        requests.len() >= 1,
+        !requests.is_empty(),
         "expected at least 1 HTTP call to GitHub API, got 0"
     );
 

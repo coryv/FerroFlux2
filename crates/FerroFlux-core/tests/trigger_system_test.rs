@@ -43,7 +43,7 @@ fn test_trigger_ingestion() {
     let mut success = false;
     for _ in 0..10 {
         schedule.run(&mut world);
-        if world.get::<Outbox>(entity).unwrap().queue.len() > 0 {
+        if !world.get::<Outbox>(entity).unwrap().queue.is_empty() {
             success = true;
             break;
         }

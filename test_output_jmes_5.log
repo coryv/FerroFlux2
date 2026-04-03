@@ -1,0 +1,13 @@
+
+running 1 test
+[2m2026-04-02T19:00:35.801132Z[0m [33m WARN[0m [1mload_from_directory[0m[1m{[0m[3mpath[0m[2m=[0m"integrations"[1m}[0m[2m:[0m [2mferroflux_core::integrations::registry[0m[2m:[0m Integration directory does not exist [3mpath[0m[2m=[0mintegrations
+DEBUG: registering core nodes
+test test_json_query ... FAILED
+
+failures:
+
+failures:
+    test_json_query
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.57s
+

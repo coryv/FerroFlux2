@@ -1,0 +1,39 @@
+
+running 1 test
+[2m2026-04-02T19:01:12.604845Z[0m [33m WARN[0m [1mload_from_directory[0m[1m{[0m[3mpath[0m[2m=[0m"integrations"[1m}[0m[2m:[0m [2mferroflux_core::integrations::registry[0m[2m:[0m Integration directory does not exist [3mpath[0m[2m=[0mintegrations
+DEBUG: registering core nodes
+[2m2026-04-02T19:01:13.334206Z[0m [32m INFO[0m [1mload_graph_from_str[0m[2m:[0m [2mferroflux_core::graph_loader[0m[2m:[0m Spawned Node [3mentity[0m[2m=[0m1v1 [3mnode_name[0m[2m=[0mIncoming Webhook [3mnode_type[0m[2m=[0mcore.trigger.webhook
+[2m2026-04-02T19:01:13.334284Z[0m [32m INFO[0m [1mload_graph_from_str[0m[2m:[0m [2mferroflux_core::graph_loader[0m[2m:[0m Spawned Node [3mentity[0m[2m=[0m2v1 [3mnode_name[0m[2m=[0mJMESPath Query [3mnode_type[0m[2m=[0mcore.utils.json
+[2m2026-04-02T19:01:13.334319Z[0m [32m INFO[0m [1mload_graph_from_str[0m[2m:[0m [2mferroflux_core::graph_loader[0m[2m:[0m Spawned Node [3mentity[0m[2m=[0m3v1 [3mnode_name[0m[2m=[0mLog Extracted Value [3mnode_type[0m[2m=[0mcore.action.log
+[2m2026-04-02T19:01:13.334358Z[0m [32m INFO[0m [1mload_graph_from_str[0m[2m:[0m [2mferroflux_core::graph_loader[0m[2m:[0m Spawned Edge [3msource[0m[2m=[0m1v1 [3mtarget[0m[2m=[0m2v1 [3msource_id[0m[2m=[0mwebhook_in [3mtarget_id[0m[2m=[0mjmes_query
+[2m2026-04-02T19:01:13.334380Z[0m [32m INFO[0m [1mload_graph_from_str[0m[2m:[0m [2mferroflux_core::graph_loader[0m[2m:[0m Spawned Edge [3msource[0m[2m=[0m1v1 [3mtarget[0m[2m=[0m2v1 [3msource_id[0m[2m=[0mwebhook_in [3mtarget_id[0m[2m=[0mjmes_query
+[2m2026-04-02T19:01:13.334396Z[0m [32m INFO[0m [1mload_graph_from_str[0m[2m:[0m [2mferroflux_core::graph_loader[0m[2m:[0m Spawned Edge [3msource[0m[2m=[0m2v1 [3mtarget[0m[2m=[0m3v1 [3msource_id[0m[2m=[0mjmes_query [3mtarget_id[0m[2m=[0mquery_logger
+[2m2026-04-02T19:01:13.334410Z[0m [32m INFO[0m [1mload_graph_from_str[0m[2m:[0m [2mferroflux_core::graph_loader[0m[2m:[0m Spawned Edge [3msource[0m[2m=[0m2v1 [3mtarget[0m[2m=[0m3v1 [3msource_id[0m[2m=[0mjmes_query [3mtarget_id[0m[2m=[0mquery_logger
+[2m2026-04-02T19:01:13.334425Z[0m [32m INFO[0m [1mload_graph_from_str[0m[2m:[0m [2mferroflux_core::graph_loader[0m[2m:[0m Populated NodeRouter [3mcount[0m[2m=[0m3
+>>> CASE 1: Simple path extraction
+[2m2026-04-02T19:01:13.335615Z[0m [32m INFO[0m [2mferroflux_core::api::handlers::trigger[0m[2m:[0m Processing TriggerNode command [3mnode_id[0m[2m=[0mce9ee1a2-1765-5705-b4eb-c8fce297fcb5
+[2m2026-04-02T19:01:13.335974Z[0m [32m INFO[0m [2mferroflux_core::api::handlers::trigger[0m[2m:[0m Trigger sent to OUTBOX (Source Node) [3mentity[0m[2m=[0m1v1
+[2m2026-04-02T19:01:13.337220Z[0m [34mDEBUG[0m [1mupdate_graph_topology[0m[2m:[0m [2mferroflux_core::systems::transport[0m[2m:[0m Graph topology changed or uninitialized, rebuilding adjacency cache [3medge_count[0m[2m=[0m4
+[2m2026-04-02T19:01:13.337238Z[0m [34mDEBUG[0m [1mupdate_graph_topology[0m[2m:[0m [2mferroflux_core::systems::transport[0m[2m:[0m Cache rebuild: adding edge [3msource[0m[2m=[0m1v1 [3mtarget[0m[2m=[0m2v1 [3msource_handle[0m[2m=[0mSome("Success")
+[2m2026-04-02T19:01:13.337258Z[0m [34mDEBUG[0m [1mupdate_graph_topology[0m[2m:[0m [2mferroflux_core::systems::transport[0m[2m:[0m Cache rebuild: adding edge [3msource[0m[2m=[0m1v1 [3mtarget[0m[2m=[0m2v1 [3msource_handle[0m[2m=[0mSome("body")
+[2m2026-04-02T19:01:13.337269Z[0m [34mDEBUG[0m [1mupdate_graph_topology[0m[2m:[0m [2mferroflux_core::systems::transport[0m[2m:[0m Cache rebuild: adding edge [3msource[0m[2m=[0m2v1 [3mtarget[0m[2m=[0m3v1 [3msource_handle[0m[2m=[0mSome("Exec")
+[2m2026-04-02T19:01:13.337280Z[0m [34mDEBUG[0m [1mupdate_graph_topology[0m[2m:[0m [2mferroflux_core::systems::transport[0m[2m:[0m Cache rebuild: adding edge [3msource[0m[2m=[0m2v1 [3mtarget[0m[2m=[0m3v1 [3msource_handle[0m[2m=[0mSome("result")
+[2m2026-04-02T19:01:13.337312Z[0m [34mDEBUG[0m [1mtransport_worker[0m[2m:[0m [2mferroflux_core::systems::transport[0m[2m:[0m Moved ticket [3msource[0m[2m=[0m1v1 [3mtarget[0m[2m=[0m2v1 [3mport[0m[2m=[0mNone [3mtarget_handle[0m[2m=[0mSome("Exec")
+[2m2026-04-02T19:01:13.337349Z[0m [34mDEBUG[0m [1mtransport_worker[0m[2m:[0m [2mferroflux_core::systems::transport[0m[2m:[0m Moved ticket [3msource[0m[2m=[0m1v1 [3mtarget[0m[2m=[0m2v1 [3mport[0m[2m=[0mNone [3mtarget_handle[0m[2m=[0mSome("input")
+[2m2026-04-02T19:01:13.337404Z[0m [34mDEBUG[0m [2mferroflux_core::systems::pipeline[0m[2m:[0m pipeline_execution_system: running query [3mcount[0m[2m=[0m3
+[2m2026-04-02T19:01:13.337650Z[0m [34mDEBUG[0m [2mferroflux_core::systems::pipeline[0m[2m:[0m pipeline_execution_system: running query [3mcount[0m[2m=[0m3
+
+>>> CASE 2: Array filtering
+[2m2026-04-02T19:01:13.337827Z[0m [32m INFO[0m [2mferroflux_core::api::handlers::trigger[0m[2m:[0m Processing TriggerNode command [3mnode_id[0m[2m=[0mce9ee1a2-1765-5705-b4eb-c8fce297fcb5
+[2m2026-04-02T19:01:13.337851Z[0m [32m INFO[0m [2mferroflux_core::api::handlers::trigger[0m[2m:[0m Trigger sent to OUTBOX (Source Node) [3mentity[0m[2m=[0m1v1
+[2m2026-04-02T19:01:13.337876Z[0m [34mDEBUG[0m [1mtransport_worker[0m[2m:[0m [2mferroflux_core::systems::transport[0m[2m:[0m Moved ticket [3msource[0m[2m=[0m1v1 [3mtarget[0m[2m=[0m2v1 [3mport[0m[2m=[0mNone [3mtarget_handle[0m[2m=[0mSome("Exec")
+[2m2026-04-02T19:01:13.337888Z[0m [34mDEBUG[0m [1mtransport_worker[0m[2m:[0m [2mferroflux_core::systems::transport[0m[2m:[0m Moved ticket [3msource[0m[2m=[0m1v1 [3mtarget[0m[2m=[0m2v1 [3mport[0m[2m=[0mNone [3mtarget_handle[0m[2m=[0mSome("input")
+[2m2026-04-02T19:01:13.337913Z[0m [34mDEBUG[0m [2mferroflux_core::systems::pipeline[0m[2m:[0m pipeline_execution_system: running query [3mcount[0m[2m=[0m3
+[2m2026-04-02T19:01:13.337948Z[0m [32m INFO[0m [2mferroflux_core::systems::pipeline[0m[2m:[0m Synchronization Gate: All inputs present, executing [3mentity[0m[2m=[0m2v1 [3mtrace_id[0m[2m=[0m16b846c2-814a-48a2-813b-e0f2114042ee
+[2m2026-04-02T19:01:13.340570Z[0m [34mDEBUG[0m [2mferroflux_core::systems::pipeline::resolution[0m[2m:[0m CEL execution failed during resolution, using literal string [3mexpression[0m[2m=[0m"settings.other" [3merror[0m[2m=[0mNo such key: other
+[2m2026-04-02T19:01:13.341951Z[0m [31mERROR[0m [2mferroflux_core::systems::pipeline[0m[2m:[0m Pipeline execution failed: Missing 'port' [3mtrace_id[0m[2m=[0m16b846c2-814a-48a2-813b-e0f2114042ee
+[2m2026-04-02T19:01:13.342057Z[0m [34mDEBUG[0m [2mferroflux_core::systems::pipeline[0m[2m:[0m pipeline_execution_system: running query [3mcount[0m[2m=[0m3
+test test_json_query ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.80s
+

@@ -98,10 +98,9 @@ async fn test_two_step_propagation_qa_baseline() -> anyhow::Result<()> {
             req.method,
             req.url.path()
         );
-        if !req.body.is_empty() {
-            if let Ok(body_str) = std::str::from_utf8(&req.body) {
+        if let Ok(body_str) = std::str::from_utf8(&req.body)
+            && !body_str.is_empty() {
                 println!("      body: {}", body_str);
-            }
         }
         if let Some(query) = req.url.query() {
             println!("      query: {}", query);

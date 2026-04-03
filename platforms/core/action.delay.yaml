@@ -60,8 +60,7 @@ execution:
     tool: sleep
     params:
       duration_ms: settings.duration
-      # Note: >
-        "User must enter MS if I map it directly."
+      # Note: User must enter MS if I map it directly.
       # To support Units, I would need a 'calc_ms' tool or more complex templating.
       
   - id: done

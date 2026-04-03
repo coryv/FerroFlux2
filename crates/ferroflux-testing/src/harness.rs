@@ -107,6 +107,18 @@ impl TestHarness {
         }
     }
 
+    /// Overrides a global workflow configuration value.
+    pub fn set_workflow_config(&mut self, key: &str, value: serde_json::Value) -> anyhow::Result<()> {
+        use ferroflux_core::components::execution_state::WorkflowDefinition;
+        let mut query = self.app.world.query::<&mut WorkflowDefinition>();
+        if let Some(mut def) = query.iter_mut(&mut self.app.world).next() {
+            def.config.insert(key.to_string(), value);
+            Ok(())
+        } else {
+            anyhow::bail!("WorkflowDefinition not found in world")
+        }
+    }
+
     /// Add an integration and automatically point its base_url to the mock server.
     pub fn add_mocked_integration(&mut self, yaml: &str) -> anyhow::Result<String> {
         let def: ferroflux_integration::definition::PlatformDefinition = serde_yaml::from_str(yaml)?;

@@ -1,0 +1,30 @@
+name: "Webhook HTTP POST"
+description: "Webhook forwards data via HTTP POST"
+triggers:
+  - id: "webhook_in"
+    name: "Incoming Webhook"
+    type: "core.trigger.webhook"
+    config:
+      path: "/forward"
+nodes:
+  - id: "http_post"
+    name: "HTTP POST"
+    type: "core.action.http"
+    config:
+      url: "/post-sink"
+      method: "POST"
+  - id: "log_out"
+    name: "Debug Log"
+    type: "core.action.log"
+    config:
+      level: "'INFO'"
+      message: "HTTP Response received"
+edges:
+  - source_id: "webhook_in"
+    source_handle: "Success"
+    target_id: "http_post"
+    target_handle: "Exec"
+  - source_id: "http_post"
+    source_handle: "Success"
+    target_id: "log_out"
+    target_handle: "Exec"

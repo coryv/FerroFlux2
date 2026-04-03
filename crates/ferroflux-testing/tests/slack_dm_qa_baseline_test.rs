@@ -17,9 +17,7 @@ fn load_slack_platform(harness: &mut TestHarness) -> anyhow::Result<()> {
 
     let defs = {
         let mut def_registry = harness.app.world.resource_mut::<DefinitionRegistry>();
-        if let Err(e) = def_registry.0.load_from_dir(&slack_path) {
-            return Err(e);
-        }
+        def_registry.0.load_from_dir(&slack_path)?;
         def_registry.0.definitions.clone()
     };
 

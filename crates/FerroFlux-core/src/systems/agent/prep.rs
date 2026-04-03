@@ -338,7 +338,7 @@ mod tests {
             .insert("test_provider".to_string(), def);
         world.insert_resource(registry);
 
-        world.insert_resource(CelEngine::default());
+        world.insert_resource(CelEngine);
         world.insert_resource(WorkDone::default());
 
         // Mock Secret Store

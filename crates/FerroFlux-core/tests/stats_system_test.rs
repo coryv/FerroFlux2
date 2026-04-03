@@ -56,6 +56,7 @@ async fn test_stats_tool_large_dataset() {
             node_subtype: None,
             signature: None,
             permissions: vec![],
+            discovery: None,
         },
         interface: Interface {
             inputs: vec![],

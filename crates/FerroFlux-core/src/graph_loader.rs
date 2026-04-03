@@ -20,6 +20,7 @@ pub struct WorkflowBlueprint {
     pub id: Option<String>,
     pub name: String,
     pub description: Option<String>,
+    pub config: Option<HashMap<String, serde_json::Value>>,
     /// List of triggers (optional section for semantic grouping).
     pub triggers: Option<Vec<NodeBlueprint>>,
     /// List of nodes to spawn.
@@ -34,6 +35,7 @@ pub struct NodeBlueprint {
     pub name: String,
     #[serde(rename = "type")]
     pub node_type: String,
+    #[serde(default)]
     pub config: serde_json::Value,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<SecretConfig>,
@@ -68,25 +70,16 @@ pub fn load_graph_from_str(world: &mut World, tenant: TenantId, yaml: &str) -> a
     let workflow_id_ref = parsed_id.clone();
 
     // 0. CLEANUP: Despawn existing entities for this workflow
-    if let Some(wf_id) = &workflow_id_ref {
+    let wf_cleanup_id = workflow_id_ref.clone().unwrap_or_else(|| "global".to_string());
+    {
         let mut to_despawn = Vec::new();
         let mut query = world.query::<(Entity, &NodeConfig)>();
         for (e, conf) in query.iter(world) {
-            if conf.workflow_id == *wf_id {
+            if conf.workflow_id == wf_cleanup_id {
                 to_despawn.push(e);
             }
         }
 
-        // Also need to cleanup edges connected to these nodes?
-        // Edges have source/target Entity IDs. If nodes are despawned, edges might dangle or be despawned automatically?
-        // Bevy doesn't auto-despawn dependent entities unless parented. Mine are just components.
-        // But `Edge` struct has `Entity` fields.
-        // Actually, cleaner to rely on `Edge` component entities.
-        // If I delete nodes, I should probably delete edges too.
-        // Edges don't store workflow_id directly.
-        // But if I find all edges where source OR target is in `to_despawn`, I should delete them.
-
-        // Let's find edges first
         let mut edges_to_despawn = Vec::new();
         let mut edge_query = world.query::<(Entity, &Edge)>();
         for (e, edge) in edge_query.iter(world) {
@@ -95,15 +88,36 @@ pub fn load_graph_from_str(world: &mut World, tenant: TenantId, yaml: &str) -> a
             }
         }
 
-        tracing::info!(node_count = to_despawn.len(), edge_count = edges_to_despawn.len(), workflow_id = %wf_id, "Cleaning up old graph entities");
+        if !to_despawn.is_empty() {
+            tracing::info!(node_count = to_despawn.len(), edge_count = edges_to_despawn.len(), workflow_id = %wf_cleanup_id, "Cleaning up old graph entities");
 
-        for e in edges_to_despawn {
-            world.despawn(e);
+            for e in edges_to_despawn {
+                world.despawn(e);
+            }
+            for e in to_despawn {
+                world.despawn(e);
+            }
         }
-        for e in to_despawn {
+
+        // Cleanup: Despawn old WorkflowDefinition entities for this ID
+        let mut to_cleanup = Vec::new();
+        let mut query = world.query::<(Entity, &crate::components::execution_state::WorkflowDefinition)>();
+        for (e, def) in query.iter(world) {
+            if def.id == wf_cleanup_id {
+                to_cleanup.push(e);
+            }
+        }
+        for e in to_cleanup {
             world.despawn(e);
         }
     }
+
+    // 0.5. Spawn WorkflowDefinition
+    world.spawn(crate::components::execution_state::WorkflowDefinition {
+        id: wf_cleanup_id.clone(),
+        name: blueprint.name.clone(),
+        config: blueprint.config.unwrap_or_default(),
+    });
 
     // 1. Spawn Nodes (including triggers)
     let mut all_nodes = blueprint.nodes;
@@ -162,10 +176,10 @@ pub fn load_graph_from_str(world: &mut World, tenant: TenantId, yaml: &str) -> a
 
         let source = *uuid_map
             .get(&source_uuid)
-            .ok_or_else(|| anyhow::anyhow!("Edge source ID not found: {}", edge_bp.source_id))?;
+            .ok_or_else(|| anyhow::anyhow!("Edge source ID not found: {} (uuid: {})", edge_bp.source_id, source_uuid))?;
         let target = *uuid_map
             .get(&target_uuid)
-            .ok_or_else(|| anyhow::anyhow!("Edge target ID not found: {}", edge_bp.target_id))?;
+            .ok_or_else(|| anyhow::anyhow!("Edge target ID not found: {} (uuid: {})", edge_bp.target_id, target_uuid))?;
 
         let mut edge_cmds = world.spawn(Edge {
             source,
@@ -177,7 +191,7 @@ pub fn load_graph_from_str(world: &mut World, tenant: TenantId, yaml: &str) -> a
         if let Some(label) = edge_bp.label {
             edge_cmds.insert(EdgeLabel(label));
         }
-        tracing::info!(source = ?source, target = ?target, "Spawned Edge");
+        tracing::info!(source = ?source, target = ?target, source_id = %edge_bp.source_id, target_id = %edge_bp.target_id, "Spawned Edge");
     }
 
     // 3. Populate NodeRouter (for O(1) Webhook lookups)
@@ -249,6 +263,7 @@ pub fn save_graph(world: &mut World, path: &str) -> anyhow::Result<()> {
         id: Some("exported_workflow".to_string()),
         name: "exported_workflow".to_string(),
         description: Some("Generated from ECS runtime".to_string()),
+        config: Some(std::collections::HashMap::new()), // TODO: populate from world if needed
         triggers: None,
         nodes,
         edges,
