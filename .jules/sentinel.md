@@ -1,0 +1,4 @@
+## 2024-04-04 - Insecure File Permissions for Master Key
+**Vulnerability:** The master encryption key (`ferroflux.key`) was created using `fs::write()`, which applies default permissive file permissions (typically `0o644` or `0o666` modified by umask). This allows other users on the system to read the master key.
+**Learning:** Rust's standard library `fs::write()` does not allow granular control over file permissions. Secure file creation requires using `std::fs::OpenOptions` along with Unix-specific extensions (`std::os::unix::fs::OpenOptionsExt`) to explicitly set the `mode`.
+**Prevention:** Always use `OpenOptions` with `.mode(0o600)` when creating files that store secrets, tokens, or encryption keys. Ensure cross-platform compatibility by wrapping Unix-specific logic in `#[cfg(unix)]`.
