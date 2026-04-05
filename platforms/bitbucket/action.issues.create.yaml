@@ -5,24 +5,24 @@ meta:
   category: Issues
   type: Action
   platform: bitbucket
-  description: "Creates a new issue in a Bitbucket repository."
-  version: "1.0.0"
+  description: Creates a new issue in a Bitbucket repository.
+  version: 1.0.0
   discovery:
-    purpose: "Log a bug, feature request, or task directly into a repository's issue tracker."
-    usage_context: "Use this to automate bug reporting from Atlassian pipelines, customer support tickets (Jira), or development task management. Requires 'workspace', 'repo_slug', and 'title'."
+    purpose: Log a bug, feature request, or task directly into a repository's issue tracker.
+    usage_context: Use this to automate bug reporting from Atlassian pipelines, customer support tickets (Jira), or development task management. Requires 'workspace', 'repo_slug', and 'title'.
     agent_hints:
       - "Requires the 'workspace' (ID or slug) and 'repo_slug' string."
       - "Supports markdown in the 'content'."
     waml_examples:
-      - title: "Create Bug Issue"
+      - title: Create Bug Issue
         waml: |
           - step: log_bug
             call: bitbucket.action.issues.create
             with:
-               workspace: "atlassian"
-               repo_slug: "hello-world"
-               title: "Broken link in footer"
-               content: "Found by the link checker."
+               workspace: atlassian
+               repo_slug: hello-world
+               title: Broken link in footer
+               content: Found by the link checker.
 
 interface:
   inputs:
@@ -52,12 +52,12 @@ execution:
       method: POST
       url: >
         platform.base_url + "/repositories/" + inputs.workspace + "/" + inputs.repo_slug + "/issues"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        title: inputs.title
+        title: =inputs.title
         content: >
           ""
-          raw: inputs.content
+          raw: =inputs.content
     returns:
       status: status_code
       body: response_body
@@ -65,7 +65,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 201
           output: success
@@ -73,7 +73,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -82,9 +82,9 @@ routing:
       - tool: emit
         params:
           port: issue
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

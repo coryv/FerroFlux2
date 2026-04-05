@@ -5,22 +5,22 @@ meta:
   category: Tickets
   type: Action
   platform: zendesk
-  description: "Updates an existing ticket."
-  version: "1.0.0"
+  description: Updates an existing ticket.
+  version: 1.0.0
   discovery:
-    purpose: "Modify an existing Zendesk ticket (status, group, priority, or custom fields)."
-    usage_context: "Use to automate ticket assignment, prioritize urgent queries, or close resolved issues."
+    purpose: Modify an existing Zendesk ticket (status, group, priority, or custom fields).
+    usage_context: Use to automate ticket assignment, prioritize urgent queries, or close resolved issues.
     agent_hints:
       - "Requires the ticket_id."
     waml_examples:
-      - title: "Close Ticket"
+      - title: Close Ticket
         waml: |
           - step: close
             call: zendesk.action.tickets.update
             with:
                ticket_id: 1024
-               status: "closed"
-               comment: "Issue resolved automatically."
+               status: closed
+               comment: Issue resolved automatically.
 
 interface:
   inputs:
@@ -49,18 +49,18 @@ execution:
       method: PUT
       url: >
         platform.base_url + "/tickets/" + inputs.ticketId + ".json"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         ticket:
-          subject: inputs.subject
-          priority: inputs.priority
-          status: inputs.status
+          subject: =inputs.subject
+          priority: =inputs.priority
+          status: =inputs.status
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -69,9 +69,9 @@ routing:
       - tool: emit
         params:
           port: ticket
-          value: steps.request.response_body.ticket
+          value: =steps.request.response_body.ticket
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

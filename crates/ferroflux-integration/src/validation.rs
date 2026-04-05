@@ -366,31 +366,22 @@ fn check_cel_syntax(
     match value {
         serde_json::Value::String(s) => {
             let trimmed = s.trim();
-            // Only validate if it looks like an expression to avoid false positives on simple literals.
-            // Check for common CEL operators and syntax.
-            let looks_like_expr = trimmed.contains('.')
-                || trimmed.contains('+')
-                || trimmed.contains('-')
-                || trimmed.contains('(')
-                || trimmed.contains('[')
-                || trimmed.contains('!')
-                || trimmed.contains('?')
-                || trimmed.contains('>')
-                || trimmed.contains('<')
-                || trimmed.contains("==")
-                || trimmed.contains("!=")
-                || trimmed.contains("&&")
-                || trimmed.contains("||");
-            if looks_like_expr
-                && let Err(e) = Program::compile(trimmed)
-            {
-                result.diagnostics.push(ValidationDiagnostic::error(
-                    "malformed-cel",
-                    format!(
-                        "step '{}': CEL syntax error: {}",
-                        step_id, e
-                    ),
-                ));
+            // With the explicit = expression architecture, only strings beginning with = are evaluate as CEL
+            if let Some(expr) = trimmed.strip_prefix('=') {
+                let expression = expr.trim();
+                // Empty = is considered an empty string literal, not a broken expression. Usually. 
+                // But since WAML mandates CEL, we can compile it.
+                if !expression.is_empty() {
+                    if let Err(e) = Program::compile(expression) {
+                        result.diagnostics.push(ValidationDiagnostic::error(
+                            "malformed-cel",
+                            format!(
+                                "step '{}': CEL syntax error: {}",
+                                step_id, e
+                            ),
+                        ));
+                    }
+                }
             }
         }
         serde_json::Value::Object(map) => {

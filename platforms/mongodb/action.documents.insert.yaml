@@ -4,21 +4,21 @@ meta:
   category: Database
   type: Action
   platform: mongodb
-  description: "Insert a new document into a MongoDB collection."
-  version: "1.0.0"
+  description: Insert a new document into a MongoDB collection.
+  version: 1.0.0
   discovery:
-    purpose: "Insert multiple JSON documents into a MongoDB collection in a single operation."
-    usage_context: "Use to batch insert records such as data migration results, bulk log entries, or newly imported CSV rows into a database."
+    purpose: Insert multiple JSON documents into a MongoDB collection in a single operation.
+    usage_context: Use to batch insert records such as data migration results, bulk log entries, or newly imported CSV rows into a database.
     agent_hints:
       - "Requires database, collection, and an array of documents."
     waml_examples:
-      - title: "Batch Log"
+      - title: Batch Log
         waml: |
           - step: bulk_log
             call: mongodb.action.documents.insert
             with:
-               database: "prod"
-               collection: "logs"
+               database: prod
+               collection: logs
                documents: [{ "msg": "start" }, { "msg": "finish" }]
 
 interface:
@@ -43,16 +43,16 @@ execution:
   - id: mongo
     tool: mongo_query
     params:
-      connection_string: settings.connection_string
-      database: settings.database
-      collection: inputs.collection
+      connection_string: =settings.connection_string
+      database: =settings.database
+      collection: =inputs.collection
       operation: insert
-      document: inputs.document
+      document: =inputs.document
     returns:
       inserted_id: inserted_id
 
 routing:
-  match: steps.mongo.status
+  match: =steps.mongo.status
   cases:
     default:
       - tool: emit
@@ -61,4 +61,4 @@ routing:
       - tool: emit
         params:
           port: inserted_id
-          value: steps.mongo.inserted_id
+          value: =steps.mongo.inserted_id

@@ -5,23 +5,23 @@ meta:
   category: Records
   type: Action
   platform: airtable
-  description: "Deletes a single record in a table."
-  version: "1.0.0"
+  description: Deletes a single record in a table.
+  version: 1.0.0
   discovery:
-    purpose: "Permanently delete a single record from a specific Airtable base and table."
-    usage_context: "Use to cleanup old entries, remove canceled orders, or manage the lifecycle of temporary records."
+    purpose: Permanently delete a single record from a specific Airtable base and table.
+    usage_context: Use to cleanup old entries, remove canceled orders, or manage the lifecycle of temporary records.
     agent_hints:
       - "Requires a valid recordId."
       - "Deletion is immediate."
     waml_examples:
-      - title: "Remove Record"
+      - title: Remove Record
         waml: |
           - step: delete
             call: airtable.action.records.delete
             with:
-               baseId: "app12345"
-               tableIdOrName: "Leads"
-               recordId: "rec12345"
+               baseId: app12345
+               tableIdOrName: Leads
+               recordId: rec12345
 
 interface:
   inputs:
@@ -49,7 +49,7 @@ execution:
       method: DELETE
       url: >
         platform.base_url + "/" + inputs.base_id + "/" + inputs.table_id_or_name + "/" + inputs.record_id
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -57,7 +57,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -65,7 +65,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -74,9 +74,9 @@ routing:
       - tool: emit
         params:
           port: response
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -4,21 +4,21 @@ meta:
   name: Download File
   type: Action
   category: Files
-  description: "Downloads a file from Dropbox and stores it in the BlobStore."
-  version: "1.0.0"
+  description: Downloads a file from Dropbox and stores it in the BlobStore.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve a file from Dropbox for processing in the workflow."
-    usage_context: "Use this to fetch images for processing, documents for OCR, or CSVs for data extraction. The file is stored as a 'blob' in FerroFlux."
+    purpose: Retrieve a file from Dropbox for processing in the workflow.
+    usage_context: Use this to fetch images for processing, documents for OCR, or CSVs for data extraction. The file is stored as a 'blob' in FerroFlux.
     agent_hints:
       - "Requires the explicit 'path' to the file (e.g. '/Archive/data.csv')."
       - "Output is a 'blob_id' which can be sent to other nodes (like Gmail or Slack)."
     waml_examples:
-      - title: "Download Image"
+      - title: Download Image
         waml: |
           - step: fetch_image
             call: dropbox.action.files.download
             with:
-               path: "/Assets/logo.png"
+               path: /Assets/logo.png
 
 interface:
   inputs:
@@ -41,15 +41,15 @@ execution:
       method: POST
       url: "https://content.dropboxapi.com/2/files/download"
       headers:
-        Dropbox-API-Arg: '"{\"path\": \"" + inputs.path + "\"}"'
-        Authorization: platform.headers.Authorization
+        Dropbox-API-Arg: '="{\"path\": \"" + inputs.path + "\"}"'
+        Authorization: =platform.headers.Authorization
       response_type: blob
     returns:
       status: status_code
       body: response_blob
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -58,9 +58,9 @@ routing:
       - tool: emit
         params:
           port: file
-          value: steps.request.response_blob
+          value: =steps.request.response_blob
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_blob
+          value: =steps.request.response_blob

@@ -5,22 +5,22 @@ meta:
   category: Messages
   type: Action
   platform: telegram
-  description: "Edit a previously sent message in a Telegram chat."
-  version: "1.0.0"
+  description: Edit a previously sent message in a Telegram chat.
+  version: 1.0.0
   discovery:
-    purpose: "Modify the text or formatting of a previously sent message from the bot."
-    usage_context: "Use to update live status indicators, correct typos in automated announcements, or change inline buttons in response to interaction."
+    purpose: Modify the text or formatting of a previously sent message from the bot.
+    usage_context: Use to update live status indicators, correct typos in automated announcements, or change inline buttons in response to interaction.
     agent_hints:
       - "Requires chat_id and message_id."
       - "Only messages sent by the bot can be edited."
     waml_examples:
-      - title: "Update Progress"
+      - title: Update Progress
         waml: |
           - step: update_msg
             call: telegram.action.messages.edit
             with:
-               chat_id: "${inputs.chat_id}"
-               message_id: "${steps.last_msg.output.id}"
+               chat_id: =inputs.chat_id
+               message_id: =steps.last_msg.output.id
                text: "Status: 100% Complete!"
 
 interface:
@@ -48,17 +48,17 @@ execution:
       method: POST
       url: >
         platform.base_url + "/editMessageText"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        chat_id: inputs.chat_id
-        message_id: inputs.message_id
-        text: inputs.text
+        chat_id: =inputs.chat_id
+        message_id: =inputs.message_id
+        text: =inputs.text
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -67,9 +67,9 @@ routing:
       - tool: emit
         params:
           port: message
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

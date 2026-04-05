@@ -4,24 +4,24 @@ meta:
   category: Analytics
   type: Action
   platform: posthog
-  description: "Captures a single event for a user in PostHog."
-  version: "1.0.0"
+  description: Captures a single event for a user in PostHog.
+  version: 1.0.0
   discovery:
-    purpose: "Track user interactions, system events, or business milestones in PostHog."
-    usage_context: "Use this to log specific actions (e.g. 'Button Click', 'Signup') and associate them with properties like 'plan', 'source', or 'version'."
+    purpose: Track user interactions, system events, or business milestones in PostHog.
+    usage_context: Use this to log specific actions (e.g. 'Button Click', 'Signup') and associate them with properties like 'plan', 'source', or 'version'.
     agent_hints:
       - "Requires a 'distinct_id' to identify the user."
       - "The 'event' name should be descriptive and consistent."
     waml_examples:
-      - title: "Track New Signup"
+      - title: Track New Signup
         waml: |
           - step: log_signup
             call: posthog.action.events.capture
             with:
-               distinct_id: "user_123"
-               event: "user_signup"
+               distinct_id: user_123
+               event: user_signup
                properties:
-                  plan: "enterprise"
+                  plan: enterprise
   permissions:
     - "network:app.posthog.com"
 
@@ -48,12 +48,12 @@ execution:
       method: POST
       url: >
         platform.base_url + "/capture"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        api_key: settings.project_api_key
-        event: inputs.event
-        distinct_id: inputs.distinct_id
-        properties: inputs.properties
+        api_key: =settings.project_api_key
+        event: =inputs.event
+        distinct_id: =inputs.distinct_id
+        properties: =inputs.properties
     returns:
       status: status_code
       body: response_body
@@ -61,7 +61,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -69,7 +69,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -79,4 +79,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

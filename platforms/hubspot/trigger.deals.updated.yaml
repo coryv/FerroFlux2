@@ -5,16 +5,16 @@ meta:
   category: Deals
   type: Trigger
   platform: hubspot
-  description: "Triggers when an existing HubSpot deal is modified."
-  version: "1.0.0"
+  description: Triggers when an existing HubSpot deal is modified.
+  version: 1.0.0
   discovery:
-    purpose: "Start a workflow whenever a deal's stage, amount, or close date changes."
-    usage_context: "Use this to notify sales managers of large deal closings, update external revenue forecast systems, or alert team members of lost deals."
+    purpose: Start a workflow whenever a deal's stage, amount, or close date changes.
+    usage_context: Use this to notify sales managers of large deal closings, update external revenue forecast systems, or alert team members of lost deals.
     agent_hints:
       - "Reacts to any change in the selected 'properties'."
       - "Note that 'dealstage' changes are the most common trigger for this node."
     waml_examples:
-      - title: "Notify on Deal Win"
+      - title: Notify on Deal Win
         waml: |
           trigger:
             deal_won:
@@ -31,12 +31,12 @@ interface:
       type: object
   settings:
     - name: properties
-      label: "Properties to Fetch"
+      label: Properties to Fetch
       type: string
-      default: "dealname,amount,dealstage,closedate,hs_lastmodifieddate"
-      description: "Comma-separated list of deal properties to include."
+      default: dealname,amount,dealstage,closedate,hs_lastmodifieddate
+      description: Comma-separated list of deal properties to include.
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -47,11 +47,11 @@ execution:
       method: GET
       url: >
         platform.base_url + "/crm/v3/objects/deals"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         limit: 50
-        properties: settings.properties
-        sort: "-hs_lastmodifieddate"
+        properties: =settings.properties
+        sort: -hs_lastmodifieddate
         filterGroups: >
           has(event.cursor) ? '[{"filters":[{"propertyName":"hs_lastmodifieddate","operator":"GTE","value":"' + event.cursor + '"}]}]' : "[]"
     returns:
@@ -59,12 +59,12 @@ execution:
       body: response_body
 
 routing:
-  match: steps.query.status_code
+  match: =steps.query.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.query.response_body.results
+          items: =steps.query.response_body.results
           cursor_key: properties.hs_lastmodifieddate
           port: deal
       - tool: emit
@@ -74,4 +74,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.query.response_body
+          value: =steps.query.response_body

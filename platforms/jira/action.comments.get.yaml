@@ -5,21 +5,21 @@ meta:
   category: Comments
   type: Action
   platform: jira
-  description: "Gets comments for an issue."
-  version: "1.0.0"
+  description: Gets comments for an issue.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve the content and author of a specific comment on a Jira issue."
-    usage_context: "Use to fetch user feedback for sentiment analysis, archive discussions, or trigger logic based on comment content."
+    purpose: Retrieve the content and author of a specific comment on a Jira issue.
+    usage_context: Use to fetch user feedback for sentiment analysis, archive discussions, or trigger logic based on comment content.
     agent_hints:
       - "Requires issueIdOrKey and commentId."
     waml_examples:
-      - title: "Read Comment"
+      - title: Read Comment
         waml: |
           - step: fetch
             call: jira.action.comments.get
             with:
-               issueIdOrKey: "PROJ-123"
-               commentId: "10501"
+               issueIdOrKey: PROJ-123
+               commentId: 10501
 
 interface:
   inputs:
@@ -42,7 +42,7 @@ execution:
       method: GET
       url: >
         "https://" + settings.domain + ".atlassian.net/rest/api/3/issue/" + inputs.issueIdOrKey + "/comment"
-      headers: platform.headers
+      headers: =platform.headers
       strategy: offset
       offset_param: startAt
       limit_param: maxResults
@@ -51,7 +51,7 @@ execution:
       items: all_items
 
 routing:
-  match: "success"
+  match: success
   cases:
     success:
       - tool: emit
@@ -60,4 +60,4 @@ routing:
       - tool: emit
         params:
           port: comments
-          value: steps.request.all_items
+          value: =steps.request.all_items

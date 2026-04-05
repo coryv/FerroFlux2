@@ -3,11 +3,11 @@ meta:
   name: Segment
   type: Platform
   category: Analytics
-  description: "Connects to the Segment V1 API for unified customer data tracking."
-  version: "1.0.0"
+  description: Connects to the Segment V1 API for unified customer data tracking.
+  version: 1.0.0
   discovery:
-    purpose: "Customer Data Platform (CDP) for unified tracking and analytics routing."
-    usage_context: "Use Segment to collect customer events, identify users, and sync behavioral data across multiple marketing and analytics tools automatically. The single source of truth for user interactions."
+    purpose: Customer Data Platform (CDP) for unified tracking and analytics routing.
+    usage_context: Use Segment to collect customer events, identify users, and sync behavioral data across multiple marketing and analytics tools automatically. The single source of truth for user interactions.
     agent_hints:
       - "Uses the Segment Write Key for authentication (Basic Auth)."
       - "Interactions follow the standard 'identify', 'track', and 'group' patterns."
@@ -17,12 +17,12 @@ meta:
 config:
   base_url: "https://api.segment.io/v1"
   headers:
-    Content-Type: "application/json"
+    Content-Type: application/json
     Authorization: >
       "Basic " + base64 (concat settings.write_key ':')
 
 settings:
   - name: write_key
-    label: "Write Key"
+    label: Write Key
     type: string
     required: true

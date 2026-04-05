@@ -5,21 +5,21 @@ meta:
   category: Cards
   type: Action
   platform: trello
-  description: "Retrieves detailed information about a Trello card."
-  version: "1.0.0"
+  description: Retrieves detailed information about a Trello card.
+  version: 1.0.0
   discovery:
-    purpose: "Fetch the properties, due date, and labels of a specific Trello card."
-    usage_context: "Use this when you have a Card ID and need to check its status, read its description, or identify which list it belongs to."
+    purpose: Fetch the properties, due date, and labels of a specific Trello card.
+    usage_context: Use this when you have a Card ID and need to check its status, read its description, or identify which list it belongs to.
     agent_hints:
       - "Requires the card ID (Short string)."
       - "Returns the full card object with its associations (ID List, ID Board, labels)."
     waml_examples:
-      - title: "Get Card Status"
+      - title: Get Card Status
         waml: |
           - step: read_card
             call: trello.action.cards.get
             with:
-               id: "65a..."
+               id: 65a...
 
 interface:
   inputs:
@@ -42,13 +42,13 @@ execution:
       method: GET
       url: >
         platform.base_url + "/cards/" + inputs.id
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -57,9 +57,9 @@ routing:
       - tool: emit
         params:
           port: card
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

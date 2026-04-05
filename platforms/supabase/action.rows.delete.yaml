@@ -5,20 +5,20 @@ meta:
   category: Rows
   type: Action
   platform: supabase
-  description: "Deletes rows from a table matching a filter using PostgREST."
-  version: "1.0.0"
+  description: Deletes rows from a table matching a filter using PostgREST.
+  version: 1.0.0
   discovery:
-    purpose: "Permanently delete rows from a Supabase (PostgreSQL) table that match a filter."
-    usage_context: "Use to cleanup old log entries, remove deleted user accounts, or manage the lifecycle of database records."
+    purpose: Permanently delete rows from a Supabase (PostgreSQL) table that match a filter.
+    usage_context: Use to cleanup old log entries, remove deleted user accounts, or manage the lifecycle of database records.
     agent_hints:
       - "Requires table_name and a filter object."
     waml_examples:
-      - title: "Remove User"
+      - title: Remove User
         waml: |
           - step: delete
             call: supabase.action.rows.delete
             with:
-               table_name: "profiles"
+               table_name: profiles
                filter: { "id": "123" }
 
 interface:
@@ -48,7 +48,7 @@ execution:
       headers:
         Content-Type: >
           "application/json"
-        apikey: settings.api_key
+        apikey: =settings.api_key
         Authorization: >
           "Bearer " + settings.api_key
         Prefer: >
@@ -60,7 +60,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -68,7 +68,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -77,9 +77,9 @@ routing:
       - tool: emit
         params:
           port: rows
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

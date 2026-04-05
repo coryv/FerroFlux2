@@ -2,19 +2,19 @@ meta:
   permissions: ["network:www.googleapis.com"]
   id: google-drive.files.list
   name: List Files
-  category: Cloud Storage & Files
+  category: "Cloud Storage & Files"
   type: Action
   platform: google-drive
-  description: "Lists files and folders in Google Drive."
-  version: "1.0.0"
+  description: Lists files and folders in Google Drive.
+  version: 1.0.0
   discovery:
-    purpose: "List the contents of the authorized user's Google Drive account."
-    usage_context: "Use this to browse files, find recent activity, or starting a bulk file operation. Supports limit and skip for pagination."
+    purpose: List the contents of the authorized user's Google Drive account.
+    usage_context: Use this to browse files, find recent activity, or starting a bulk file operation. Supports limit and skip for pagination.
     agent_hints:
       - "Returns a list of file objects with basic metadata (id, name, mimeType)."
       - "Use 'action.files.search' if you need to filter by name or folder specifically."
     waml_examples:
-      - title: "List Recent Files"
+      - title: List Recent Files
         waml: |
           - step: list_files
             call: google-drive.action.files.list
@@ -42,7 +42,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/files"
-      headers: platform.headers
+      headers: =platform.headers
       strategy: page_token
       cursor_param: pageToken
       max_pages: 5
@@ -56,7 +56,7 @@ execution:
       items: all_items
 
 routing:
-  match: "success"
+  match: success
   cases:
     success:
       - tool: emit
@@ -65,4 +65,4 @@ routing:
       - tool: emit
         params:
           port: files
-          value: steps.request.all_items
+          value: =steps.request.all_items

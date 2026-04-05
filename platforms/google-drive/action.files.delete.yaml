@@ -2,24 +2,24 @@ meta:
   permissions: ["network:www.googleapis.com"]
   id: google-drive.files.delete
   name: Delete File
-  category: Cloud Storage & Files
+  category: "Cloud Storage & Files"
   type: Action
   platform: google-drive
-  description: "Deletes a file from Google Drive."
-  version: "1.0.0"
+  description: Deletes a file from Google Drive.
+  version: 1.0.0
   discovery:
-    purpose: "Permanently delete or trash a file/folder in Google Drive."
-    usage_context: "Use to cleanup temporary storage, remove old reports, or manage the lifecycle of ephemeral files."
+    purpose: Permanently delete or trash a file/folder in Google Drive.
+    usage_context: Use to cleanup temporary storage, remove old reports, or manage the lifecycle of ephemeral files.
     agent_hints:
       - "Requires a file_id."
       - "By default, files are moved to the trash."
     waml_examples:
-      - title: "Delete Temporary PDF"
+      - title: Delete Temporary PDF
         waml: |
           - step: remove
             call: google-drive.action.files.delete
             with:
-               file_id: "12345abcde"
+               file_id: 12345abcde
 
 interface:
   inputs:
@@ -40,13 +40,13 @@ execution:
       method: DELETE
       url: >
         platform.base_url + "/files/" + inputs.fileId
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -56,4 +56,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

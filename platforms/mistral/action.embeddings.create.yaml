@@ -4,20 +4,20 @@ meta:
   category: Embeddings
   type: Action
   platform: mistral
-  description: "Generates vector embeddings for a given text string using Mistral models."
-  version: "1.0.0"
+  description: Generates vector embeddings for a given text string using Mistral models.
+  version: 1.0.0
   discovery:
-    purpose: "Convert text into numerical vectors for semantic search or RAG."
-    usage_context: "Use this to build cross-lingual search engines or find similarities in enterprise datasets. Requires 'input' and 'model'."
+    purpose: Convert text into numerical vectors for semantic search or RAG.
+    usage_context: Use this to build cross-lingual search engines or find similarities in enterprise datasets. Requires 'input' and 'model'.
     agent_hints:
       - "Specify the 'model' (e.g. 'mistral-embed')."
     waml_examples:
-      - title: "Mistral Embedding"
+      - title: Mistral Embedding
         waml: |
           - step: vectorize
             call: mistral.action.embeddings.create
             with:
-               model: "mistral-embed"
+               model: mistral-embed
                input: ["Analyze these strings for semantic meaning."]
   permissions:
     - "network:api.mistral.ai"
@@ -28,7 +28,7 @@ interface:
       type: flow
     - name: model
       type: string
-      default: "mistral-embed"
+      default: mistral-embed
     - name: input
       type: array
   outputs:
@@ -46,10 +46,10 @@ execution:
       method: POST
       url: >
         platform.base_url + "/embeddings"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        model: inputs.model
-        input: inputs.input
+        model: =inputs.model
+        input: =inputs.input
     returns:
       status: status_code
       body: response_body
@@ -57,7 +57,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -65,7 +65,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -74,9 +74,9 @@ routing:
       - tool: emit
         params:
           port: embeddings
-          value: steps.request.response_body.data
+          value: =steps.request.response_body.data
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

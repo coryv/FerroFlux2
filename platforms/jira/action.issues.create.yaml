@@ -5,24 +5,24 @@ meta:
   category: Issues
   type: Action
   platform: jira
-  description: "Creates a new issue in a specific project."
-  version: "1.0.0"
+  description: Creates a new issue in a specific project.
+  version: 1.0.0
   discovery:
-    purpose: "Create a new issue (Task, Bug, Story) in a specific Jira project."
-    usage_context: "Use this to automate ticket creation from external triggers like GitHub issues or Slack messages."
+    purpose: Create a new issue (Task, Bug, Story) in a specific Jira project.
+    usage_context: Use this to automate ticket creation from external triggers like GitHub issues or Slack messages.
     agent_hints:
       - "Requires project_key and summary (title)."
       - "Defaults to 'Task' if issue_type is not provided."
     waml_examples:
-      - title: "Create Bug Ticket"
+      - title: Create Bug Ticket
         waml: |
           - step: log_bug
             call: jira.issues.create
             with:
-               project_key: "PROJ"
-               summary: "Bug found in production"
-               description: "System failed with error 500"
-               issue_type: "Bug"
+               project_key: PROJ
+               summary: Bug found in production
+               description: System failed with error 500
+               issue_type: Bug
 
 interface:
   inputs:
@@ -36,7 +36,7 @@ interface:
       type: string
     - name: issue_type
       type: string
-      default: "Task"
+      default: Task
   outputs:
     - name: Success
       type: flow
@@ -52,12 +52,12 @@ execution:
       method: POST
       url: >
         platform.base_url + "/issue"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         fields:
           project:
-            key: inputs.project_key
-          summary: inputs.summary
+            key: =inputs.project_key
+          summary: =inputs.summary
           description:
             type: doc
             version: 1
@@ -65,7 +65,7 @@ execution:
               - type: paragraph
                 content:
                   - type: text
-                    text: inputs.description
+                    text: =inputs.description
           issuetype:
             name: >
               (has(inputs.issue_type) ? inputs.issue_type : 'Task')
@@ -74,7 +74,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -83,9 +83,9 @@ routing:
       - tool: emit
         params:
           port: issue
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

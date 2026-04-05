@@ -5,23 +5,23 @@ meta:
   category: Issues
   type: Action
   platform: gitlab
-  description: "Creates a new issue in a GitLab project."
-  version: "1.0.0"
+  description: Creates a new issue in a GitLab project.
+  version: 1.0.0
   discovery:
-    purpose: "Log a bug, feature request, or task directly into a project's issue tracker."
-    usage_context: "Use this to automate bug reporting from GitLab pipelines, customer support tickets, or development task management. Requires the project 'id' (URL-encoded path or numeric ID) and 'title'."
+    purpose: Log a bug, feature request, or task directly into a project's issue tracker.
+    usage_context: Use this to automate bug reporting from GitLab pipelines, customer support tickets, or development task management. Requires the project 'id' (URL-encoded path or numeric ID) and 'title'.
     agent_hints:
       - "Requires the project 'id' string (e.g. 'gitlab-org%2Fgitlab' or '12345')."
       - "Supports markdown in the 'description' and labels via 'labels' (comma-separated)."
     waml_examples:
-      - title: "Create Bug Issue"
+      - title: Create Bug Issue
         waml: |
           - step: log_bug
             call: gitlab.action.issues.create
             with:
-               id: "group%2Frepo"
-               title: "Broken link in footer"
-               description: "Found by the link checker."
+               id: group%2Frepo
+               title: Broken link in footer
+               description: Found by the link checker.
 
 interface:
   inputs:
@@ -49,10 +49,10 @@ execution:
       method: POST
       url: >
         platform.base_url + "/projects/" + inputs.projectId + "/issues"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        title: inputs.title
-        description: inputs.description
+        title: =inputs.title
+        description: =inputs.description
     returns:
       status: status_code
       body: response_body
@@ -60,7 +60,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 201
           output: success
@@ -68,7 +68,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -77,9 +77,9 @@ routing:
       - tool: emit
         params:
           port: issue
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

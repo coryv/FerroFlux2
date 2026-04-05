@@ -5,21 +5,21 @@ meta:
   category: Tasks
   type: Action
   platform: asana
-  description: "Adds followers to an Asana task."
-  version: "1.0.0"
+  description: Adds followers to an Asana task.
+  version: 1.0.0
   discovery:
-    purpose: "Subscribe users to updates and notifications for a specific task."
-    usage_context: "Use this to ensure that relevant team members are looped in on a task's progress, even if they aren't the primary assignee."
+    purpose: Subscribe users to updates and notifications for a specific task.
+    usage_context: Use this to ensure that relevant team members are looped in on a task's progress, even if they aren't the primary assignee.
     agent_hints:
       - "Requires the 'task_gid'."
       - "Followers receive notifications for comments, status changes, and completion."
     waml_examples:
-      - title: "Loop in Stakeholders"
+      - title: Loop in Stakeholders
         waml: |
           - step: add_subscribers
             call: asana.action.followers.add
             with:
-               task_gid: "1202..."
+               task_gid: 1202...
                followers: ["1205...", "1208..."]
 
 interface:
@@ -45,16 +45,16 @@ execution:
       method: POST
       url: >
         platform.base_url + "/tasks/" + inputs.taskGid + "/addFollowers"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         data:
-          followers: inputs.followers
+          followers: =inputs.followers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -63,9 +63,9 @@ routing:
       - tool: emit
         params:
           port: result
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

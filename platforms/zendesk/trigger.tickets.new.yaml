@@ -5,15 +5,15 @@ meta:
   category: Tickets
   type: Trigger
   platform: zendesk
-  description: "Triggers when a new ticket is created."
-  version: "1.0.0"
+  description: Triggers when a new ticket is created.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow when a new support ticket is created in Zendesk."
-    usage_context: "Use to automate initial triage, send auto-replies, or notify team members on Slack."
+    purpose: Initialize a workflow when a new support ticket is created in Zendesk.
+    usage_context: Use to automate initial triage, send auto-replies, or notify team members on Slack.
     agent_hints:
       - "Provides the full ticket object, including subject, requester, and tags."
     waml_examples:
-      - title: "Inbound Support Alert"
+      - title: Inbound Support Alert
         waml: |
           - step: notify_team
             type: trigger
@@ -28,7 +28,7 @@ interface:
       type: object
   settings:
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -39,7 +39,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/search.json"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         query: >
           "type:ticket created>" + state.last_poll
@@ -50,12 +50,12 @@ execution:
       body: response_body
 
 routing:
-  match: steps.query.status_code
+  match: =steps.query.status_code
   cases:
     "200":
       - tool: foreach
         params:
-          items: steps.query.response_body.results
+          items: =steps.query.response_body.results
           action:
             - tool: emit
               params:

@@ -5,21 +5,21 @@ meta:
   category: Emails
   type: Action
   platform: gmail
-  description: "Forwards a specific Gmail message to another email address."
-  version: "1.0.0"
+  description: Forwards a specific Gmail message to another email address.
+  version: 1.0.0
   discovery:
-    purpose: "Send an existing email to a new recipient."
-    usage_context: "Use this to escalate support tickets, share incoming leads with a team, or archive specific communications. Requires the original message_id."
+    purpose: Send an existing email to a new recipient.
+    usage_context: Use this to escalate support tickets, share incoming leads with a team, or archive specific communications. Requires the original message_id.
     agent_hints:
       - "The forwarded message will contain the original content with the standard 'Forwarded message' header."
     waml_examples:
-      - title: "Forward to Team"
+      - title: Forward to Team
         waml: |
           - step: forward_email
             call: gmail.emails.forward
             with:
-               message_id: "18e986fe..."
-               to: "team@company.com"
+               message_id: 18e986fe...
+               to: team@company.com
 
 interface:
   inputs:
@@ -42,7 +42,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/messages/" + inputs.message_id
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -53,23 +53,23 @@ execution:
       method: POST
       url: >
         platform.base_url + "/messages/send"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        threadId: steps.get_original.response_body.threadId
+        threadId: =steps.get_original.response_body.threadId
         payload:
           headers:
             - name: To
-              value: inputs.to
+              value: =inputs.to
             - name: Subject
               value: >
                 "Fwd: " + json_query(steps.get_original.response_body.payload.headers, "[?name=='Subject'].value | [0]")
-          parts: steps.get_original.response_body.payload.parts
+          parts: =steps.get_original.response_body.payload.parts
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.send_forward.status_code
+  match: =steps.send_forward.status_code
   cases:
     "200":
       - tool: emit
@@ -79,4 +79,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.send_forward.response_body
+          value: =steps.send_forward.response_body

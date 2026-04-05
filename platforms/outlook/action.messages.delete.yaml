@@ -5,21 +5,21 @@ meta:
   category: Messages
   type: Action
   platform: outlook
-  description: "Permanently deletes an email message from the mailbox."
-  version: "1.0.0"
+  description: Permanently deletes an email message from the mailbox.
+  version: 1.0.0
   discovery:
-    purpose: "Remove junk emails, clean up sent messages, or automate deletion of processed alerts."
-    usage_context: "Use this to manage mailbox size or remove sensitive information after it's been processed by a workflow."
+    purpose: Remove junk emails, clean up sent messages, or automate deletion of processed alerts.
+    usage_context: Use this to manage mailbox size or remove sensitive information after it's been processed by a workflow.
     agent_hints:
       - "Requires the 'message_id'."
       - "Note that this is irreversible (moves to 'Deleted Items' or removes permanently depending on mailbox settings)."
     waml_examples:
-      - title: "Delete Junk Email"
+      - title: Delete Junk Email
         waml: |
           - step: rm_mail
             call: outlook.action.messages.delete
             with:
-               id: "AAMk..."
+               id: AAMk...
 
 interface:
   inputs:
@@ -40,13 +40,13 @@ execution:
       method: DELETE
       url: >
         platform.base_url + "/me/messages/" + inputs.message_id
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -56,4 +56,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

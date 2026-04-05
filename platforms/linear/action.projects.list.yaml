@@ -5,16 +5,16 @@ meta:
   category: Projects
   type: Action
   platform: linear
-  description: "Lists projects available in your Linear workspace."
-  version: "1.0.0"
+  description: Lists projects available in your Linear workspace.
+  version: 1.0.0
   discovery:
-    purpose: "Browse and identify projects for organizing issues and roadmaps."
-    usage_context: "Use this to starting a project-specific automation, find a project's UUID by its name, or audit project health."
+    purpose: Browse and identify projects for organizing issues and roadmaps.
+    usage_context: Use this to starting a project-specific automation, find a project's UUID by its name, or audit project health.
     agent_hints:
       - "Returns a list of projects with their names, UUIDs, and statuses."
       - "You can filter and sort results using GraphQL-style fragments."
     waml_examples:
-      - title: "List Projects"
+      - title: List Projects
         waml: |
           - step: get_projs
             call: linear.action.projects.list
@@ -38,8 +38,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: platform.base_url
-      headers: platform.headers
+      url: =platform.base_url
+      headers: =platform.headers
       body:
         query: >
           "query Projects { projects { nodes { id name state } } }"
@@ -48,7 +48,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -57,9 +57,9 @@ routing:
       - tool: emit
         params:
           port: projects
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

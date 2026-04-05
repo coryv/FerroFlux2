@@ -1,0 +1,94 @@
+name: Math Operations Pipeline
+description: "=Calculates (subtotal * tax_rate) + subtotal"
+triggers:
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
+    config:
+      path: /math-test
+nodes:
+  - id: extract_subtotal
+    name: Extract Subtotal
+    type: core.utils.json
+    config:
+      operation: query
+      expression: subtotal
+  - id: extract_tax_rate
+    name: Extract Tax Rate
+    type: core.utils.json
+    config:
+      operation: query
+      expression: tax_rate
+  - id: math_multiply
+    name: Calculate Tax
+    type: core.utils.math
+    config:
+      operation: mul
+  - id: math_add
+    name: Calculate Total
+    type: core.utils.math
+    config:
+      operation: add
+  - id: verify_result
+    name: Verify Result
+    type: core.action.http
+    config:
+      url: /verify-total
+      method: POST
+edges:
+  # Webhook to Extractions (Parallel)
+  - source_id: webhook_in
+    source_handle: Success
+    target_id: extract_subtotal
+    target_handle: Exec
+  - source_id: webhook_in
+    source_handle: body
+    target_id: extract_subtotal
+    target_handle: input
+
+  - source_id: webhook_in
+    source_handle: Success
+    target_id: extract_tax_rate
+    target_handle: Exec
+  - source_id: webhook_in
+    source_handle: body
+    target_id: extract_tax_rate
+    target_handle: input
+
+  # Extractions to Multiply
+  - source_id: extract_tax_rate
+    source_handle: Exec
+    target_id: math_multiply
+    target_handle: Exec
+  - source_id: extract_subtotal
+    source_handle: result
+    target_id: math_multiply
+    target_handle: a
+  - source_id: extract_tax_rate
+    source_handle: result
+    target_id: math_multiply
+    target_handle: b
+
+  # Multiply to Add
+  - source_id: math_multiply
+    source_handle: Exec
+    target_id: math_add
+    target_handle: Exec
+  - source_id: math_multiply
+    source_handle: result
+    target_id: math_add
+    target_handle: a
+  - source_id: extract_subtotal
+    source_handle: result
+    target_id: math_add
+    target_handle: b
+
+  # Add to Verify
+  - source_id: math_add
+    source_handle: Exec
+    target_id: verify_result
+    target_handle: Exec
+  - source_id: math_add
+    source_handle: result
+    target_id: verify_result
+    target_handle: body

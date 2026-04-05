@@ -5,15 +5,15 @@ meta:
   category: Domains
   type: Action
   platform: resend
-  description: "Retrieve a list of all domains associated with your Resend account."
-  version: "1.0.0"
+  description: Retrieve a list of all domains associated with your Resend account.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve a list of all verified (and unverified) domains in the Resend account."
-    usage_context: "Use to verify domain configuration, audit sender identity, or identify which domains are available for email sending."
+    purpose: Retrieve a list of all verified (and unverified) domains in the Resend account.
+    usage_context: Use to verify domain configuration, audit sender identity, or identify which domains are available for email sending.
     agent_hints:
       - "Returns an array of domain objects including status, region, and verification tokens."
     waml_examples:
-      - title: "List Domains"
+      - title: List Domains
         waml: |
           - step: get_domains
             call: resend.action.domains.list
@@ -37,7 +37,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/domains"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -45,7 +45,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -53,12 +53,12 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/data"
         returns:
@@ -69,9 +69,9 @@ routing:
       - tool: emit
         params:
           port: domains
-          value: steps.request.domain_list
+          value: =steps.request.domain_list
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

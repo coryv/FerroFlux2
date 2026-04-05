@@ -50,6 +50,7 @@ pub fn pipeline_execution_system(
         query.iter_mut()
     {
         // 1. Ingest all pending tickets into the InputBuffer
+        let mut temp_new_buffer = None;
         while let Some((target_port, ticket)) = inbox.queue.pop_front() {
             let port_name = target_port.clone().unwrap_or_else(|| "Exec".to_string());
             let trace_id_str = ticket.metadata.get("trace_id").cloned().unwrap_or_default();
@@ -57,16 +58,15 @@ pub fn pipeline_execution_system(
                 if let Some(ref mut buffer) = input_buffer {
                     buffer.traces.entry(trace_id).or_default().insert(port_name, ticket);
                 } else {
-                    let mut buffer = InputBuffer::default();
-                    buffer
-                        .traces
-                        .entry(trace_id)
-                        .or_default()
-                        .insert(port_name, ticket);
-                    commands.entity(entity).insert(buffer);
+                    let buffer = temp_new_buffer.get_or_insert_with(InputBuffer::default);
+                    buffer.traces.entry(trace_id).or_default().insert(port_name, ticket);
                 }
             }
             work_done.0 = true;
+        }
+
+        if let Some(new_buffer) = temp_new_buffer {
+            commands.entity(entity).insert(new_buffer);
         }
 
         // 2. Process ready traces
@@ -112,6 +112,7 @@ pub fn pipeline_execution_system(
             for trace_id in ready_traces {
                 if let Some(port_tickets) = buffer.traces.remove(&trace_id) {
                     tracing::info!(entity = ?entity, trace_id = %trace_id, "Synchronization Gate: All inputs present, executing");
+                    work_done.0 = true;
 
                     // 1. Merge States
                     // We pick one ticket as the "Primary" (prioritize Exec) and merge others into it.

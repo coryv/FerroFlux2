@@ -5,21 +5,21 @@ meta:
   category: Messages
   type: Action
   platform: outlook
-  description: "Sends a new email message to one or more recipients."
-  version: "1.0.0"
+  description: Sends a new email message to one or more recipients.
+  version: 1.0.0
   discovery:
-    purpose: "Automate outbound communication, send notifications, and share documents via email."
-    usage_context: "Use this to send project updates, share reports, or trigger automated business emails from a workflow."
+    purpose: Automate outbound communication, send notifications, and share documents via email.
+    usage_context: Use this to send project updates, share reports, or trigger automated business emails from a workflow.
     agent_hints:
       - "Requires 'toRecipients' array (emailAddress: { address: '...' })."
       - "Supports 'subject', 'body' (html or text), and 'attachments'."
     waml_examples:
-      - title: "Send Project Sync"
+      - title: Send Project Sync
         waml: |
           - step: say_it
             call: outlook.action.messages.send
             with:
-               subject: "Weekly Update"
+               subject: Weekly Update
                toRecipients: [{ emailAddress: { address: "ceo@acme.com" } }]
                body: { content: "Find the report attached.", contentType: "text" }
 
@@ -40,14 +40,14 @@ interface:
       type: flow
   settings:
     - name: content_type
-      label: "Content Type"
+      label: Content Type
       type: select
-      default: "Text"
+      default: Text
       options:
-        - value: "Text"
-          label: "Plain Text"
-        - value: "HTML"
-          label: "HTML"
+        - value: Text
+          label: Plain Text
+        - value: HTML
+          label: HTML
 
 execution:
   - id: request
@@ -56,22 +56,22 @@ execution:
       method: POST
       url: >
         platform.base_url + "/me/sendMail"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         message:
-          subject: inputs.subject
+          subject: =inputs.subject
           body:
-            contentType: settings.content_type
-            content: inputs.content
+            contentType: =settings.content_type
+            content: =inputs.content
           toRecipients:
             - emailAddress:
-                address: inputs.recipient
+                address: =inputs.recipient
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "202":
       - tool: emit
@@ -81,4 +81,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

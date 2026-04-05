@@ -5,24 +5,24 @@ meta:
   category: AI/ML
   type: Action
   platform: anthropic
-  description: "Send a structured message to Anthropic Claude."
-  version: "1.0.0"
+  description: Send a structured message to Anthropic Claude.
+  version: 1.0.0
   discovery:
-    purpose: "Generate text, reasoning, or code responses from Claude 3.5 AI models."
-    usage_context: "Use this for high-context tasks (up to 200k tokens), creative writing, and precise instruction following. Supports 'system' and 'messages'."
+    purpose: Generate text, reasoning, or code responses from Claude 3.5 AI models.
+    usage_context: Use this for high-context tasks (up to 200k tokens), creative writing, and precise instruction following. Supports 'system' and 'messages'.
     agent_hints:
       - "Specify the 'model' (e.g. 'claude-3-5-sonnet-20240620')."
       - "Note that Anthropic requires a 'role' (user/assistant) in message objects."
     waml_examples:
-      - title: "Claude Completion"
+      - title: Claude Completion
         waml: |
           - step: ask_claude
             call: anthropic.action.messages.create
             with:
-               model: "claude-3-5-sonnet-20240620"
+               model: claude-3-5-sonnet-20240620
                messages:
-                  - role: "user"
-                    content: "Draft a technical RFC for a new API."
+                  - role: user
+                    content: Draft a technical RFC for a new API.
 
 interface:
   inputs:
@@ -47,24 +47,24 @@ interface:
       type: array
   settings:
     - name: model
-      label: "Model"
+      label: Model
       type: select
       required: true
-      default: "claude-3-5-sonnet-20241022"
+      default: claude-3-5-sonnet-20241022
       options:
-        - value: "claude-3-7-sonnet-20250219"
-          label: "Claude 3.7 Sonnet"
-        - value: "claude-3-5-sonnet-20241022"
-          label: "Claude 3.5 Sonnet"
-        - value: "claude-3-5-haiku-20241022"
-          label: "Claude 3.5 Haiku"
+        - value: claude-3-7-sonnet-20250219
+          label: Claude 3.7 Sonnet
+        - value: claude-3-5-sonnet-20241022
+          label: Claude 3.5 Sonnet
+        - value: claude-3-5-haiku-20241022
+          label: Claude 3.5 Haiku
     - name: max_tokens
-      label: "Max Tokens"
+      label: Max Tokens
       type: number
       required: false
       default: 1024
     - name: temperature
-      label: "Temperature"
+      label: Temperature
       type: number
       required: false
       default: 0.7
@@ -76,25 +76,25 @@ execution:
       method: POST
       url: >
         platform.base_url + "/messages"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        model: settings.model
-        messages: inputs.messages
-        system: inputs.system
-        tools: inputs.tools
-        max_tokens: settings.max_tokens
-        temperature: settings.temperature
+        model: =settings.model
+        messages: =inputs.messages
+        system: =inputs.system
+        tools: =inputs.tools
+        max_tokens: =settings.max_tokens
+        temperature: =settings.temperature
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/content/0/text"
         returns:
@@ -105,7 +105,7 @@ routing:
       - tool: emit
         params:
           port: message
-          value: steps.request.response_body
+          value: =steps.request.response_body
       - tool: emit
         params:
           port: text
@@ -114,4 +114,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

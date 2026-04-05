@@ -4,11 +4,11 @@ meta:
   name: Airtable
   type: Platform
   category: Databases
-  description: "Connects to the Airtable API."
-  version: "1.0.0"
+  description: Connects to the Airtable API.
+  version: 1.0.0
   discovery:
-    purpose: "Database-like spreadsheet storage for structured records."
-    usage_context: "Use Airtable when you need a simple, human-editable database for tracking tasks, leads, or inventory. It is best for record-based workflows rather than high-frequency data streams."
+    purpose: Database-like spreadsheet storage for structured records.
+    usage_context: Use Airtable when you need a simple, human-editable database for tracking tasks, leads, or inventory. It is best for record-based workflows rather than high-frequency data streams.
     agent_hints:
       - "All interactions require a Base ID (usually starts with 'app')."
       - "Table identifiers can be either the numeric Table ID or the human-readable Table Name."
@@ -17,11 +17,11 @@ meta:
 config:
   base_url: "https://api.airtable.com/v0"
   headers:
-    Content-Type: "application/json"
-    Authorization: "Bearer PASTE_YOUR_KEY_HERE"
+    Content-Type: application/json
+    Authorization: Bearer PASTE_YOUR_KEY_HERE
 
 settings:
   - name: connection
-    label: "Airtable Connection"
+    label: Airtable Connection
     type: connection_select
     required: true

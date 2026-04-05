@@ -4,11 +4,11 @@ meta:
   name: SMTP
   type: Platform
   category: Communication
-  description: "Send emails via any SMTP server using the native SMTP tool."
-  version: "1.0.0"
+  description: Send emails via any SMTP server using the native SMTP tool.
+  version: 1.0.0
   discovery:
-    purpose: "Send emails using standard SMTP servers (Gmail, Outlook, custom mail servers)."
-    usage_context: "Use to send low-volume notifications, system alerts, or internal reports without requiring a full marketing platform like Mailchimp or Resend."
+    purpose: Send emails using standard SMTP servers (Gmail, Outlook, custom mail servers).
+    usage_context: Use to send low-volume notifications, system alerts, or internal reports without requiring a full marketing platform like Mailchimp or Resend.
     agent_hints:
       - "Requires host, port, username, and password."
       - "Supports TLS/SSL encryption."
@@ -20,29 +20,29 @@ config:
 
 settings:
   - name: host
-    label: "SMTP Host"
+    label: SMTP Host
     type: string
     required: true
   - name: port
-    label: "SMTP Port"
+    label: SMTP Port
     type: number
     default: 587
   - name: username
-    label: "Username"
+    label: Username
     type: string
     required: false
   - name: password
-    label: "Password"
+    label: Password
     type: password
     required: false
   - name: encryption
-    label: "Encryption"
+    label: Encryption
     type: select
-    default: "starttls"
+    default: starttls
     options:
-      - value: "tls"
-        label: "TLS (Port 465)"
-      - value: "starttls"
-        label: "STARTTLS (Port 587)"
-      - value: "none"
-        label: "No Encryption"
+      - value: tls
+        label: TLS (Port 465)
+      - value: starttls
+        label: STARTTLS (Port 587)
+      - value: none
+        label: No Encryption

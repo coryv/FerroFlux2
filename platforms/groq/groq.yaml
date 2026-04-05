@@ -3,11 +3,11 @@ meta:
   name: Groq
   type: Platform
   category: AI/ML
-  description: "Leading provider of high-speed LPU inference for open-source models."
-  version: "1.0.0"
+  description: Leading provider of high-speed LPU inference for open-source models.
+  version: 1.0.0
   discovery:
-    purpose: "Access open-source models (Llama 3, Mixtral, Gemma) with lightning-fast inference speeds."
-    usage_context: "Use this when response latency is critical (e.g. real-time chat, streaming agents, or high-throughput processing)."
+    purpose: Access open-source models (Llama 3, Mixtral, Gemma) with lightning-fast inference speeds.
+    usage_context: Use this when response latency is critical (e.g. real-time chat, streaming agents, or high-throughput processing).
     agent_hints:
       - "Groq is specialized in speed, not model training."
       - "Great for chaining multiple small model calls in a single workflow."
@@ -17,11 +17,11 @@ meta:
 config:
   base_url: "https://api.groq.com/openai/v1"
   headers:
-    Content-Type: "application/json"
-    Authorization: "Bearer PASTE_YOUR_API_KEY_HERE"
+    Content-Type: application/json
+    Authorization: Bearer PASTE_YOUR_API_KEY_HERE
 
 settings:
   - name: api_key
-    label: "API Key"
+    label: API Key
     type: string
     required: true

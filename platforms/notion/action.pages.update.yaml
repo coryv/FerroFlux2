@@ -5,21 +5,21 @@ meta:
   category: Pages
   type: Action
   platform: notion
-  description: "Updates properties and icon/cover for an existing Notion page."
-  version: "1.0.0"
+  description: Updates properties and icon/cover for an existing Notion page.
+  version: 1.0.0
   discovery:
-    purpose: "Modify values on a Notion document or database item."
-    usage_context: "Use this to change a task's status, update client contact details, or archive old pages by checking a 'History' property."
+    purpose: Modify values on a Notion document or database item.
+    usage_context: Use this to change a task's status, update client contact details, or archive old pages by checking a 'History' property.
     agent_hints:
       - "Requires the 'page_id' UUID."
       - "The 'properties' JSON should only contain the fields you wish to change (partial update)."
     waml_examples:
-      - title: "Mark Task Complete"
+      - title: Mark Task Complete
         waml: |
           - step: finish_task
             call: notion.action.pages.update
             with:
-               page_id: "75a..."
+               page_id: 75a...
                properties:
                  Status:
                    status: { name: "Done" }
@@ -54,12 +54,12 @@ execution:
       method: PATCH
       url: >
         platform.base_url + "/pages/" + inputs.page_id
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        properties: inputs.properties
-        icon: inputs.icon
-        cover: inputs.cover
-        archived: inputs.archived
+        properties: =inputs.properties
+        icon: =inputs.icon
+        cover: =inputs.cover
+        archived: =inputs.archived
     returns:
       status: status_code
       body: response_body
@@ -67,7 +67,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -75,7 +75,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -84,9 +84,9 @@ routing:
       - tool: emit
         params:
           port: page
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

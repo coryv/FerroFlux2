@@ -4,22 +4,22 @@ meta:
   category: Errors
   type: Action
   platform: sentry
-  description: "Lists issues for a specific Sentry project."
-  version: "1.0.0"
+  description: Lists issues for a specific Sentry project.
+  version: 1.0.0
   discovery:
-    purpose: "Audit and browse recent errors or performance issues in a project."
-    usage_context: "Use this to identify trending bugs, monitor project health, or trigger alerts for specific error types."
+    purpose: Audit and browse recent errors or performance issues in a project.
+    usage_context: Use this to identify trending bugs, monitor project health, or trigger alerts for specific error types.
     agent_hints:
       - "Requires 'organization_slug' and 'project_slug'."
       - "Can be filtered by 'query' (e.g. 'is:unresolved')."
     waml_examples:
-      - title: "List Unresolved Errors"
+      - title: List Unresolved Errors
         waml: |
           - step: see_errors
             call: sentry.action.issues.list
             with:
-               organization_slug: "my-org"
-               project_slug: "my-web-app"
+               organization_slug: my-org
+               project_slug: my-web-app
                query: "is:unresolved"
   permissions:
     - "network:sentry.io"
@@ -49,9 +49,9 @@ execution:
       method: GET
       url: >
         platform.base_url + "/projects/" + inputs.organization_slug + "/" + inputs.project_slug + "/issues/"
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        query: inputs.query
+        query: =inputs.query
     returns:
       status: status_code
       body: response_body
@@ -59,7 +59,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -67,7 +67,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -76,9 +76,9 @@ routing:
       - tool: emit
         params:
           port: issues
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

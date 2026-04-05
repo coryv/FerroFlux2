@@ -5,22 +5,22 @@ meta:
   category: Items
   type: Trigger
   platform: monday
-  description: "Triggers when a specific status column on a Monday item is updated."
-  version: "1.0.0"
+  description: Triggers when a specific status column on a Monday item is updated.
+  version: 1.0.0
   discovery:
-    purpose: "Start a workflow whenever an item moves to a new phase (e.g. from 'Working on it' to 'Done')."
-    usage_context: "Use this to notify stakeholders of project progress, trigger follow-up actions when a task is finished, or sync status changes to an external CRM."
+    purpose: Start a workflow whenever an item moves to a new phase (e.g. from 'Working on it' to 'Done').
+    usage_context: Use this to notify stakeholders of project progress, trigger follow-up actions when a task is finished, or sync status changes to an external CRM.
     agent_hints:
       - "Polls for status modifications across any status column on the specified board."
       - "Requires the numeric 'board_id'."
     waml_examples:
-      - title: "Notify on Completion"
+      - title: Notify on Completion
         waml: |
           trigger:
             task_done:
                call: monday.trigger.items.status_updated
                with:
-                  board_id: "1234567"
+                  board_id: 1234567
 
 interface:
   inputs: []
@@ -31,11 +31,11 @@ interface:
       type: object
   settings:
     - name: board_id
-      label: "Board ID"
+      label: Board ID
       type: string
       required: true
     - name: status_column_id
-      label: "Status Column ID"
+      label: Status Column ID
       type: string
       required: true
 
@@ -44,8 +44,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: platform.base_url
-      headers: platform.headers
+      url: =platform.base_url
+      headers: =platform.headers
       body:
         query: |
           query ($boardId: ID!) {
@@ -63,7 +63,7 @@ execution:
             }
           }
         variables:
-          boardId: settings.board_id
+          boardId: =settings.board_id
     returns:
       status: status_code
       body: response_body
@@ -71,19 +71,19 @@ execution:
   - id: extract_items
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/data/boards/0/items"
     returns:
       items: items_array
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extract_items.items_array
+          items: =steps.extract_items.items_array
           cursor_key: updated_at
           port: item
       - tool: emit
@@ -93,4 +93,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

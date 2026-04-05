@@ -4,11 +4,11 @@ meta:
   name: Zendesk
   type: Platform
   category: Support
-  description: "Enterprise-grade customer service and helpdesk platform."
-  version: "1.0.0"
+  description: Enterprise-grade customer service and helpdesk platform.
+  version: 1.0.0
   discovery:
-    purpose: "Manage support tickets, track customer interactions, and automate helpdesk workflows."
-    usage_context: "Use this to create tickets from incoming logs, sync user profiles across tools, and manage team support queues."
+    purpose: Manage support tickets, track customer interactions, and automate helpdesk workflows.
+    usage_context: Use this to create tickets from incoming logs, sync user profiles across tools, and manage team support queues.
     agent_hints:
       - "Requires a subdomain and an API Token/OAuth."
       - "Note the importance of 'requester_id' and 'group_id' for routing."
@@ -17,15 +17,15 @@ config:
   base_url: >
     "https://" + settings.domain + ".zendesk.com/api/v2"
   headers:
-    Content-Type: "application/json"
-    Accept: "application/json"
+    Content-Type: application/json
+    Accept: application/json
 
 settings:
   - name: domain
-    label: "Zendesk Subdomain (e.g. company-name)"
+    label: Zendesk Subdomain (e.g. company-name)
     type: string
     required: true
   - name: connection
-    label: "Zendesk Account"
+    label: Zendesk Account
     type: connection_select
     required: true

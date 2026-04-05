@@ -5,15 +5,15 @@ meta:
   category: Orders
   type: Trigger
   platform: shopify
-  description: "Triggers when a new order is placed."
-  version: "1.0.0"
+  description: Triggers when a new order is placed.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow when a new order is created in Shopify."
-    usage_context: "Use to automate order confirmation, fulfillment workflows, or customer data synchronization."
+    purpose: Initialize a workflow when a new order is created in Shopify.
+    usage_context: Use to automate order confirmation, fulfillment workflows, or customer data synchronization.
     agent_hints:
       - "Provides the full order object, including customer details and line items."
     waml_examples:
-      - title: "Order Sync"
+      - title: Order Sync
         waml: |
           - step: on_order
             type: trigger
@@ -28,7 +28,7 @@ interface:
       type: object
   settings:
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -39,7 +39,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/orders.json"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         created_at_min: state.last_poll
         status: any
@@ -48,12 +48,12 @@ execution:
       body: response_body
 
 routing:
-  match: steps.query.status_code
+  match: =steps.query.status_code
   cases:
     "200":
       - tool: foreach
         params:
-          items: steps.query.response_body.orders
+          items: =steps.query.response_body.orders
           action:
             - tool: emit
               params:

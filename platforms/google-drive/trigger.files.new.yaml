@@ -2,25 +2,25 @@ meta:
   permissions: ["network:www.googleapis.com"]
   id: google-drive.files.new
   name: New File
-  category: Cloud Storage & Files
+  category: "Cloud Storage & Files"
   type: Trigger
   platform: google-drive
-  description: "Triggers when a new file or folder is created in Google Drive."
-  version: "1.0.0"
+  description: Triggers when a new file or folder is created in Google Drive.
+  version: 1.0.0
   discovery:
-    purpose: "Start a workflow whenever a new item appears in Google Drive."
-    usage_context: "Use this to automate document processing immediately after upload, such as reacting to a new invoice or a shared team report."
+    purpose: Start a workflow whenever a new item appears in Google Drive.
+    usage_context: Use this to automate document processing immediately after upload, such as reacting to a new invoice or a shared team report.
     agent_hints:
       - "Polls Google Drive for new items. There may be a short delay between upload and trigger."
       - "Yields the full file resource (id, name, mimeType) to the next step."
     waml_examples:
-      - title: "Process New Invoices"
+      - title: Process New Invoices
         waml: |
           trigger:
             new_file:
                call: google-drive.trigger.files.new
                with:
-                  folder_id: "invoices_folder_id_123"
+                  folder_id: invoices_folder_id_123
 
 interface:
   inputs: []
@@ -31,7 +31,7 @@ interface:
       type: object
   settings:
     - name: poll_interval
-      label: "Poll Interval (minutes)"
+      label: Poll Interval (minutes)
       type: number
       required: false
       default: 5
@@ -44,7 +44,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/files"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         orderBy: >
           "createdTime desc"
@@ -58,12 +58,12 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/files"
         returns:

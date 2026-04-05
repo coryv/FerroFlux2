@@ -5,21 +5,21 @@ meta:
   category: Issues
   type: Action
   platform: jira
-  description: "Search for issues using JQL (Jira Query Language)."
-  version: "1.0.0"
+  description: Search for issues using JQL (Jira Query Language).
+  version: 1.0.0
   discovery:
-    purpose: "Search and retrieve issues from Jira using JQL (Jira Query Language)."
-    usage_context: "Use this to fetch bug reports, track milestone progress, or list tasks for a specific assignee."
+    purpose: Search and retrieve issues from Jira using JQL (Jira Query Language).
+    usage_context: Use this to fetch bug reports, track milestone progress, or list tasks for a specific assignee.
     agent_hints:
       - "Requires a valid JQL query string."
       - "Returns a list of issue objects (id, key, status, summary, etc.)."
     waml_examples:
-      - title: "List Open Bugs"
+      - title: List Open Bugs
         waml: |
           - step: find_bugs
             call: jira.issues.list
             with:
-               jql: "issuetype = Bug AND status != Done"
+               jql: "=issuetype = Bug AND status != Done"
                limit: 20
 
 interface:
@@ -46,9 +46,9 @@ execution:
       method: POST
       url: >
         platform.base_url + "/search"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        jql: inputs.jql
+        jql: =inputs.jql
         maxResults: >
           (has(inputs.limit) ? inputs.limit : '50')
     returns:
@@ -56,7 +56,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -65,9 +65,9 @@ routing:
       - tool: emit
         params:
           port: issues
-          value: steps.request.response_body.issues
+          value: =steps.request.response_body.issues
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

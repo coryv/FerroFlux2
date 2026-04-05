@@ -5,21 +5,21 @@ meta:
   category: Messages
   type: Action
   platform: outlook
-  description: "Create a new draft message."
-  version: "1.0.0"
+  description: Create a new draft message.
+  version: 1.0.0
   discovery:
-    purpose: "Create a new draft email in the user's Outlook account."
-    usage_context: "Use to prepare automated reports, candidate reach-out emails, or project updates for human review before sending."
+    purpose: Create a new draft email in the user's Outlook account.
+    usage_context: Use to prepare automated reports, candidate reach-out emails, or project updates for human review before sending.
     agent_hints:
       - "Requires subject, body, and toRecipients."
       - "Draft is created in the user's 'Drafts' folder."
     waml_examples:
-      - title: "Create Report Draft"
+      - title: Create Report Draft
         waml: |
           - step: prep_email
             call: outlook.action.messages.create_draft
             with:
-               subject: "Quarterly Analysis Draft"
+               subject: Quarterly Analysis Draft
                body: "<h1>Review Required</h1><p>Here is the automated report.</p>"
                toRecipients: [{ "emailAddress": { "address": "admin@example.com" } }]
 
@@ -48,12 +48,12 @@ execution:
       method: POST
       url: >
         platform.base_url + "/me/messages"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        subject: inputs.subject
+        subject: =inputs.subject
         body:
           contentType: HTML
-          content: inputs.body
+          content: =inputs.body
         toRecipients: >
           (has(inputs.to_recipients) ? inputs.to_recipients : '[]')
     returns:
@@ -61,7 +61,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -70,9 +70,9 @@ routing:
       - tool: emit
         params:
           port: draft
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

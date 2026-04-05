@@ -2,24 +2,24 @@ meta:
   permissions: ["network:www.googleapis.com"]
   id: google-drive.files.get-metadata
   name: Get File Metadata
-  category: Cloud Storage & Files
+  category: "Cloud Storage & Files"
   type: Action
   platform: google-drive
-  description: "Gets metadata for a file in Google Drive."
-  version: "1.0.0"
+  description: Gets metadata for a file in Google Drive.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve detailed metadata for a specific file or folder in Google Drive."
-    usage_context: "Use to check file properties (mimeType, size, name), retrieve its web viewing link, or verify its parent folder structure."
+    purpose: Retrieve detailed metadata for a specific file or folder in Google Drive.
+    usage_context: Use to check file properties (mimeType, size, name), retrieve its web viewing link, or verify its parent folder structure.
     agent_hints:
       - "Requires a valid fileId."
       - "Returns metadata fields including 'name', 'mimeType', and 'webViewLink'."
     waml_examples:
-      - title: "Fetch Metadata"
+      - title: Fetch Metadata
         waml: |
           - step: get_info
             call: google-drive.action.files.get-metadata
             with:
-               fileId: "12345abcde"
+               fileId: 12345abcde
 
 interface:
   inputs:
@@ -36,10 +36,10 @@ interface:
       type: object
   settings:
     - name: fields
-      label: "Fields (comma separated)"
+      label: Fields (comma separated)
       type: string
       required: false
-      default: "id,name,mimeType,size,parents,createdTime,modifiedTime"
+      default: id,name,mimeType,size,parents,createdTime,modifiedTime
 
 execution:
   - id: request
@@ -48,15 +48,15 @@ execution:
       method: GET
       url: >
         platform.base_url + "/files/" + inputs.fileId
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        fields: settings.fields
+        fields: =settings.fields
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -65,9 +65,9 @@ routing:
       - tool: emit
         params:
           port: file
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

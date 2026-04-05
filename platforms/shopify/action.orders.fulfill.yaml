@@ -5,22 +5,22 @@ meta:
   category: Orders
   type: Action
   platform: shopify
-  description: "Creates a fulfillment for an order."
-  version: "1.0.0"
+  description: Creates a fulfillment for an order.
+  version: 1.0.0
   discovery:
-    purpose: "Create a fulfillment for a specific Shopify order."
-    usage_context: "Use to automate shipping workflows once products are ready for delivery."
+    purpose: Create a fulfillment for a specific Shopify order.
+    usage_context: Use to automate shipping workflows once products are ready for delivery.
     agent_hints:
       - "Requires the order_id and location_id."
     waml_examples:
-      - title: "Fulfill Order"
+      - title: Fulfill Order
         waml: |
           - step: fulfill
             call: shopify.action.orders.fulfill
             with:
-               order_id: "543216789"
-               location_id: "987654321"
-               tracking_number: "ABC-123"
+               order_id: 543216789
+               location_id: 987654321
+               tracking_number: ABC-123
 
 interface:
   inputs:
@@ -47,17 +47,17 @@ execution:
       method: POST
       url: >
         platform.base_url + "/orders/" + inputs.orderId + "/fulfillments.json"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         fulfillment:
-          location_id: inputs.locationId
-          tracking_number: inputs.trackingNumber
+          location_id: =inputs.locationId
+          tracking_number: =inputs.trackingNumber
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -66,9 +66,9 @@ routing:
       - tool: emit
         params:
           port: fulfillment
-          value: steps.request.response_body.fulfillment
+          value: =steps.request.response_body.fulfillment
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -5,22 +5,22 @@ meta:
   category: Items
   type: Trigger
   platform: monday
-  description: "Triggers when a new item is created on a Monday.com board."
-  version: "1.0.0"
+  description: Triggers when a new item is created on a Monday.com board.
+  version: 1.0.0
   discovery:
-    purpose: "Start a workflow whenever a new row is added to a Monday project board."
-    usage_context: "Use this to notify team members on Slack, sync new records to an external DB, or initiate a task-specific onboarding flow."
+    purpose: Start a workflow whenever a new row is added to a Monday project board.
+    usage_context: Use this to notify team members on Slack, sync new records to an external DB, or initiate a task-specific onboarding flow.
     agent_hints:
       - "Polls the board for new items based on the 'created_at' timestamp."
       - "Requires the numeric 'board_id'."
     waml_examples:
-      - title: "Process New Request"
+      - title: Process New Request
         waml: |
           trigger:
             new_row:
                call: monday.trigger.items.new
                with:
-                  board_id: "1234567"
+                  board_id: 1234567
 
 interface:
   inputs: []
@@ -31,11 +31,11 @@ interface:
       type: object
   settings:
     - name: board_id
-      label: "Board ID"
+      label: Board ID
       type: string
       required: true
     - name: limit
-      label: "Batch Limit"
+      label: Batch Limit
       type: number
       default: 10
 
@@ -44,8 +44,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: platform.base_url
-      headers: platform.headers
+      url: =platform.base_url
+      headers: =platform.headers
       body:
         query: |
           query ($boardId: ID!, $limit: Int!) {
@@ -62,8 +62,8 @@ execution:
             }
           }
         variables:
-          boardId: settings.board_id
-          limit: settings.limit
+          boardId: =settings.board_id
+          limit: =settings.limit
     returns:
       status: status_code
       body: response_body
@@ -71,19 +71,19 @@ execution:
   - id: extract_items
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/data/boards/0/items"
     returns:
       items: items_array
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extract_items.items_array
+          items: =steps.extract_items.items_array
           cursor_key: >
             "\"id\" # Item IDs are generally increasing"
           port: item
@@ -94,4 +94,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

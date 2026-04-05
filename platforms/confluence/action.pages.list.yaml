@@ -5,20 +5,20 @@ meta:
   category: Pages
   type: Action
   platform: confluence
-  description: "Retrieve a list of pages, optionally filtered by space."
-  version: "1.0.0"
+  description: Retrieve a list of pages, optionally filtered by space.
+  version: 1.0.0
   discovery:
-    purpose: "Search and retrieve a list of Confluence pages."
-    usage_context: "Use this to find existing documentation for updates, audits, or linking in other tools."
+    purpose: Search and retrieve a list of Confluence pages.
+    usage_context: Use this to find existing documentation for updates, audits, or linking in other tools.
     agent_hints:
       - "Supports searching by space, title, or CQL (Confluence Query Language)."
     waml_examples:
-      - title: "List Space Pages"
+      - title: List Space Pages
         waml: |
           - step: get_pages
             call: confluence.action.pages.list
             with:
-               spaceId: "543216789"
+               spaceId: 543216789
                limit: 20
 
 interface:
@@ -45,9 +45,9 @@ execution:
       method: GET
       url: >
         platform.base_url + "/pages"
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        spaceId: inputs.space_id
+        spaceId: =inputs.space_id
         limit: >
           (has(inputs.limit) ? inputs.limit : '20')
     returns:
@@ -55,7 +55,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -64,9 +64,9 @@ routing:
       - tool: emit
         params:
           port: pages
-          value: steps.request.response_body.results
+          value: =steps.request.response_body.results
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

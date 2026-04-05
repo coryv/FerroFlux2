@@ -5,25 +5,25 @@ meta:
   category: Records
   type: Action
   platform: salesforce
-  description: "Updates an existing Salesforce record by its ID."
-  version: "1.0.0"
+  description: Updates an existing Salesforce record by its ID.
+  version: 1.0.0
   discovery:
-    purpose: "Modify fields on an existing Salesforce object."
-    usage_context: "Use this to update a Lead's status, change an Opportunity's close date, or sync contact information from an external source."
+    purpose: Modify fields on an existing Salesforce object.
+    usage_context: Use this to update a Lead's status, change an Opportunity's close date, or sync contact information from an external source.
     agent_hints:
       - "Requires the 'object' name and the 'id'."
       - "The 'fields' parameter should only contain the fields you wish to change (partial update)."
     waml_examples:
-      - title: "Close Opportunity"
+      - title: Close Opportunity
         waml: |
           - step: win_opp
             call: salesforce.action.records.update
             with:
-               object: "Opportunity"
-               id: "006..."
+               object: Opportunity
+               id: 006...
                fields:
-                 StageName: "Closed Won"
-                 CloseDate: "2024-04-15"
+                 StageName: Closed Won
+                 CloseDate: 2024-04-15
 
 interface:
   inputs:
@@ -48,14 +48,14 @@ execution:
       method: PATCH
       url: >
         platform.base_url + "/sobjects/" + inputs.sObjectName + "/" + inputs.recordId
-      headers: platform.headers
-      body: inputs.fields
+      headers: =platform.headers
+      body: =inputs.fields
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -65,4 +65,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

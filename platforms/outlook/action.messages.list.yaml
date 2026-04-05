@@ -5,16 +5,16 @@ meta:
   category: Messages
   type: Action
   platform: outlook
-  description: "Lists email messages from the user's Inbox or other folders."
-  version: "1.0.0"
+  description: Lists email messages from the user's Inbox or other folders.
+  version: 1.0.0
   discovery:
-    purpose: "Audit real-time communication, identify important emails, and process incoming data via automation."
-    usage_context: "Use this to starting point for an email processing workflow or to sync inbox messages to an external dashboard."
+    purpose: Audit real-time communication, identify important emails, and process incoming data via automation.
+    usage_context: Use this to starting point for an email processing workflow or to sync inbox messages to an external dashboard.
     agent_hints:
       - "Returns a list of message objects (subject, from, body preview, receivedDateTime)."
       - "Can be filtered by '$filter' (e.g., 'receivedDateTime ge 2024-04-01T00:00:00Z')."
     waml_examples:
-      - title: "List Recent Emails"
+      - title: List Recent Emails
         waml: |
           - step: see_inbox
             call: outlook.action.messages.list
@@ -27,7 +27,7 @@ interface:
       type: flow
     - name: folder_id
       type: string
-      default: "inbox"
+      default: inbox
     - name: limit
       type: number
       default: 10
@@ -46,7 +46,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/mailFolders/" + (has(inputs.folder_id) ? inputs.folder_id : 'inbox') + "/messages"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         "$top": >
           (has(inputs.limit) ? inputs.limit : '10')
@@ -57,7 +57,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -66,9 +66,9 @@ routing:
       - tool: emit
         params:
           port: messages
-          value: steps.request.response_body.value
+          value: =steps.request.response_body.value
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

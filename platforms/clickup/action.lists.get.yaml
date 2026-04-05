@@ -5,20 +5,20 @@ meta:
   category: Lists
   type: Action
   platform: clickup
-  description: "Retrieves detailed information about a ClickUp list."
-  version: "1.0.0"
+  description: Retrieves detailed information about a ClickUp list.
+  version: 1.0.0
   discovery:
-    purpose: "Fetch the properties and metadata of a specific ClickUp list."
-    usage_context: "Use this when you have a List ID and need to find its name, status, or parent container details."
+    purpose: Fetch the properties and metadata of a specific ClickUp list.
+    usage_context: Use this when you have a List ID and need to find its name, status, or parent container details.
     agent_hints:
       - "Requires the numeric 'list_id'."
     waml_examples:
-      - title: "Get List Details"
+      - title: Get List Details
         waml: |
           - step: read_list
             call: clickup.action.lists.get
             with:
-               list_id: "12345678"
+               list_id: 12345678
 
 interface:
   inputs:
@@ -41,13 +41,13 @@ execution:
       method: GET
       url: >
         platform.base_url + "/folder/" + inputs.folder_id + "/list"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -56,9 +56,9 @@ routing:
       - tool: emit
         params:
           port: lists
-          value: steps.request.response_body.lists
+          value: =steps.request.response_body.lists
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

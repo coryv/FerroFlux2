@@ -2,24 +2,24 @@ meta:
   permissions: ["network:www.googleapis.com"]
   id: google-drive.files.download
   name: Download File
-  category: Cloud Storage & Files
+  category: "Cloud Storage & Files"
   type: Action
   platform: google-drive
-  description: "Downloads a file from Google Drive."
-  version: "1.0.0"
+  description: Downloads a file from Google Drive.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve the binary content of a file from Google Drive."
-    usage_context: "Use to fetch documents for AI analysis, download images for processing, or transfer assets to external storage."
+    purpose: Retrieve the binary content of a file from Google Drive.
+    usage_context: Use to fetch documents for AI analysis, download images for processing, or transfer assets to external storage.
     agent_hints:
       - "Requires a valid fileId."
       - "Returns a file blob object."
     waml_examples:
-      - title: "Download PDF"
+      - title: Download PDF
         waml: |
           - step: fetch_file
             call: google-drive.action.files.download
             with:
-               fileId: "12345abcde"
+               fileId: 12345abcde
 
 interface:
   inputs:
@@ -42,13 +42,13 @@ execution:
       method: GET
       url: >
         platform.base_url + "/files/" + inputs.fileId + "?alt=media"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -57,9 +57,9 @@ routing:
       - tool: emit
         params:
           port: file
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

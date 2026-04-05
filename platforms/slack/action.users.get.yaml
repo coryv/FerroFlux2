@@ -5,21 +5,21 @@ meta:
   category: Users
   type: Action
   platform: slack
-  description: "Gets information about a specific user."
-  version: "1.0.0"
+  description: Gets information about a specific user.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve profile and status details for a Slack user."
-    usage_context: "Use this to resolve a user ID into a human-readable name, get an email address for cross-platform workflows, or check a user's current status and time zone."
+    purpose: Retrieve profile and status details for a Slack user.
+    usage_context: Use this to resolve a user ID into a human-readable name, get an email address for cross-platform workflows, or check a user's current status and time zone.
     agent_hints:
       - "The 'user' object includes a 'profile' field where most contact information (like email and real_name) is stored."
       - "Requires a valid user ID (e.g. 'U12345678')."
     waml_examples:
-      - title: "Get User's Email"
+      - title: Get User's Email
         waml: |
           - step: fetch_profile
             call: slack.action.users.get
             with:
-               user_id: "U12345678"
+               user_id: U12345678
 
 interface:
   inputs:
@@ -43,9 +43,9 @@ execution:
       method: GET
       url: >
         platform.slack.base_url + "/users.info"
-      headers: platform.slack.headers
+      headers: =platform.slack.headers
       query:
-        user: inputs.user_id
+        user: =inputs.user_id
     returns:
       status: status_code
       body: response_body
@@ -53,7 +53,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.fetch.status_code
+      value: =steps.fetch.status_code
       cases:
         - condition: 200
           output: success
@@ -61,7 +61,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -70,9 +70,9 @@ routing:
       - tool: emit
         params:
           port: user
-          value: steps.fetch.response_body.user
+          value: =steps.fetch.response_body.user
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.fetch.response_body
+          value: =steps.fetch.response_body

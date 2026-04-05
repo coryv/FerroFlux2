@@ -5,21 +5,21 @@ meta:
   category: Inventory
   type: Action
   platform: shopify
-  description: "Gets the inventory level for an item at a location."
-  version: "1.0.0"
+  description: Gets the inventory level for an item at a location.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve the current inventory levels for a product variant at a specific location."
-    usage_context: "Use to verify stock availability before fulfilling an order or syncing with an external warehouse."
+    purpose: Retrieve the current inventory levels for a product variant at a specific location.
+    usage_context: Use to verify stock availability before fulfilling an order or syncing with an external warehouse.
     agent_hints:
       - "Requires inventory_item_id and location_id."
     waml_examples:
-      - title: "Check Stock"
+      - title: Check Stock
         waml: |
           - step: check
             call: shopify.action.inventory.get
             with:
-               inventory_item_id: "808950896"
-               location_id: "905684977"
+               inventory_item_id: 808950896
+               location_id: 905684977
 
 interface:
   inputs:
@@ -44,16 +44,16 @@ execution:
       method: GET
       url: >
         platform.base_url + "/inventory_levels.json"
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        inventory_item_ids: inputs.inventoryItemId
-        location_ids: inputs.locationId
+        inventory_item_ids: =inputs.inventoryItemId
+        location_ids: =inputs.locationId
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -62,9 +62,9 @@ routing:
       - tool: emit
         params:
           port: inventoryLevel
-          value: steps.request.response_body.inventory_levels
+          value: =steps.request.response_body.inventory_levels
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

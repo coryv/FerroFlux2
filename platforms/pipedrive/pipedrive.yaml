@@ -1,13 +1,13 @@
 meta:
   id: pipedrive
-  name: "Pipedrive"
-  category: "CRM"
+  name: Pipedrive
+  category: CRM
   type: Platform
-  description: "Connects to Pipedrive CRM API for sales management."
-  version: "1.0.0"
+  description: Connects to Pipedrive CRM API for sales management.
+  version: 1.0.0
   discovery:
-    purpose: "Sales-focused CRM for managing deals and pipelines."
-    usage_context: "Use Pipedrive specifically to track sales activities, manage deal stages, and automate lead follow-ups. Optimized for personal and small team sales efficiency."
+    purpose: Sales-focused CRM for managing deals and pipelines.
+    usage_context: Use Pipedrive specifically to track sales activities, manage deal stages, and automate lead follow-ups. Optimized for personal and small team sales efficiency.
     agent_hints:
       - "The API uses a mix of OAuth2 and Personal API Tokens."
       - "Note that Pipedrive labels its primary data entity as 'Deals'."
@@ -16,12 +16,12 @@ meta:
 
 config:
   base_url: "https://api.pipedrive.com/v1"
-  auth_type: "oauth2"
+  auth_type: oauth2
   auth:
-    type: "bearer"
+    type: bearer
   connection_schema:
-    - name: "api_token"
-      type: "string"
+    - name: api_token
+      type: string
       required: false
       is_secret: true
-      description: "Personal API Token (can be used as api_token param)"
+      description: Personal API Token (can be used as api_token param)

@@ -4,16 +4,16 @@ meta:
   name: Shopify
   type: Platform
   category: E-Commerce
-  description: "Connects to the Shopify Admin REST API."
-  version: "1.0.0"
+  description: Connects to the Shopify Admin REST API.
+  version: 1.0.0
   discovery:
-    purpose: "Manage storefront operations, orders, and inventory in Shopify."
-    usage_context: "Use this to automate e-commerce workflows, synchronize product catalogs, and handle order fulfillment."
+    purpose: Manage storefront operations, orders, and inventory in Shopify.
+    usage_context: Use this to automate e-commerce workflows, synchronize product catalogs, and handle order fulfillment.
     agent_hints:
       - "Requires a myshopify.com store name and Admin API Access Token."
       - "Uses the 2024-01 API version."
     waml_examples:
-      - title: "List Store Products"
+      - title: List Store Products
         waml: |
           - step: get_products
             call: shopify.action.products.list
@@ -22,15 +22,15 @@ config:
   base_url: >
     "https://" + settings.store_name + ".myshopify.com/admin/api/2024-01"
   headers:
-    Content-Type: "application/json"
-    X-Shopify-Access-Token: settings.access_token
+    Content-Type: application/json
+    X-Shopify-Access-Token: =settings.access_token
 
 settings:
   - name: store_name
-    label: "Store Name (e.g. my-store-name for my-store-name.myshopify.com)"
+    label: Store Name (e.g. my-store-name for my-store-name.myshopify.com)
     type: string
     required: true
   - name: access_token
-    label: "Admin API Access Token"
+    label: Admin API Access Token
     type: string
     required: true

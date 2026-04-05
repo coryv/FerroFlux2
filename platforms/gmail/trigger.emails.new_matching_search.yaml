@@ -5,16 +5,16 @@ meta:
   category: Emails
   type: Trigger
   platform: gmail
-  description: "Triggers when a new email matches a specific Gmail search query."
-  version: "1.0.0"
+  description: Triggers when a new email matches a specific Gmail search query.
+  version: 1.0.0
   discovery:
-    purpose: "Continuously monitor an inbox for messages that meet specific criteria."
+    purpose: Continuously monitor an inbox for messages that meet specific criteria.
     usage_context: "Use this as the start of an automation for incoming invoices, customer feedback, or alerts. You can specify complex filters like 'from:alerts@system.com is:unread label:cloud-alerts'."
     agent_hints:
       - "This trigger polls for new IDs that match the query and haven't been seen by the cursor yet."
       - "Ensure the query is as specific as possible to avoid triggering on irrelevant messages."
     waml_examples:
-      - title: "Watch for Unread Invoices"
+      - title: Watch for Unread Invoices
         waml: |
           trigger:
             id: invoice_watcher
@@ -35,7 +35,7 @@ interface:
       label: "Search Query (e.g. from:boss@company.com is:unread)"
       type: string
     - name: limit
-      label: "Batch Limit"
+      label: Batch Limit
       type: number
       default: 10
 
@@ -46,9 +46,9 @@ execution:
       method: GET
       url: >
         platform.base_url + "/messages"
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        q: settings.query
+        q: =settings.query
         maxResults: >
           (has(settings.limit) ? settings.limit : '10')
     returns:
@@ -58,19 +58,19 @@ execution:
   - id: extract_messages
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/messages"
     returns:
       messages: messages_array
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extract_messages.messages_array
+          items: =steps.extract_messages.messages_array
           cursor_key: id
           port: message
       - tool: emit
@@ -80,4 +80,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

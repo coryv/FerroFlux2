@@ -5,22 +5,22 @@ meta:
   category: Tasks
   type: Trigger
   platform: clickup
-  description: "Triggers when any property of a ClickUp task is modified."
-  version: "1.0.0"
+  description: Triggers when any property of a ClickUp task is modified.
+  version: 1.0.0
   discovery:
-    purpose: "Start a workflow whenever a task's name, description, priority, or other fields change."
-    usage_context: "Use this for maintaining real-time data syncs between ClickUp and other tools, or for triggering notifications when important task details are updated."
+    purpose: Start a workflow whenever a task's name, description, priority, or other fields change.
+    usage_context: Use this for maintaining real-time data syncs between ClickUp and other tools, or for triggering notifications when important task details are updated.
     agent_hints:
       - "Polls for modifications across the specified list based on the 'date_updated' timestamp."
       - "Requires the numeric 'list_id'."
     waml_examples:
-      - title: "Sync Task Changes"
+      - title: Sync Task Changes
         waml: |
           trigger:
             task_changed:
                call: clickup.trigger.tasks.updated
                with:
-                  list_id: "12345678"
+                  list_id: 12345678
 
 interface:
   inputs: []
@@ -31,7 +31,7 @@ interface:
       type: object
   settings:
     - name: list_id
-      label: "List ID"
+      label: List ID
       type: string
       required: true
 
@@ -42,7 +42,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/list/" + settings.list_id + "/task"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         order_by: updated
         reverse: true
@@ -53,19 +53,19 @@ execution:
   - id: extract_tasks
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/tasks"
     returns:
       tasks: tasks_array
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extract_tasks.tasks_array
+          items: =steps.extract_tasks.tasks_array
           cursor_key: date_updated
           port: task
       - tool: emit
@@ -75,4 +75,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

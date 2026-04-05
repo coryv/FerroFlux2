@@ -5,21 +5,21 @@ meta:
   category: Boards
   type: Action
   platform: monday
-  description: "Retrieves detailed information about a Monday.com board."
-  version: "1.0.0"
+  description: Retrieves detailed information about a Monday.com board.
+  version: 1.0.0
   discovery:
-    purpose: "Fetch the schema, columns, and settings of a specific board."
-    usage_context: "Use this to discover column IDs (like 'status', 'text', 'date') before performing item updates or queries."
+    purpose: Fetch the schema, columns, and settings of a specific board.
+    usage_context: Use this to discover column IDs (like 'status', 'text', 'date') before performing item updates or queries.
     agent_hints:
       - "Requires the numeric 'board_id'."
       - "Returns column metadata which is essential for correctly mapping 'column_values' JSON."
     waml_examples:
-      - title: "Get Board Schema"
+      - title: Get Board Schema
         waml: |
           - step: read_board
             call: monday.action.boards.get
             with:
-               board_id: "1234567"
+               board_id: 1234567
 
 interface:
   inputs:
@@ -40,8 +40,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: platform.base_url
-      headers: platform.headers
+      url: =platform.base_url
+      headers: =platform.headers
       body:
         query: |
           query ($boardId: ID!) {
@@ -57,13 +57,13 @@ execution:
             }
           }
         variables:
-          boardId: inputs.board_id
+          boardId: =inputs.board_id
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -78,4 +78,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

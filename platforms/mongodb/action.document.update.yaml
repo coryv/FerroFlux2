@@ -4,22 +4,22 @@ meta:
   category: Documents
   type: Action
   platform: mongodb
-  description: "Updates documents matching a filter in a collection. Automatically participates in any active session for the current flow."
-  version: "1.0.0"
+  description: Updates documents matching a filter in a collection. Automatically participates in any active session for the current flow.
+  version: 1.0.0
   discovery:
-    purpose: "Modify one or more documents in a MongoDB collection based on a filter."
-    usage_context: "Use to update user profile fields, change order status, or increment counters in a real-time analytics collection."
+    purpose: Modify one or more documents in a MongoDB collection based on a filter.
+    usage_context: Use to update user profile fields, change order status, or increment counters in a real-time analytics collection.
     agent_hints:
       - "Uses standard MongoDB update ($set, $inc) syntax."
       - "Requires a filter (to identify target docs) and an update object."
     waml_examples:
-      - title: "Update Status"
+      - title: Update Status
         waml: |
           - step: update
             call: mongodb.action.document.update
             with:
-               database: "prod"
-               collection: "orders"
+               database: prod
+               collection: orders
                filter: { "order_id": "123" }
                update: { "$set": { "status": "shipped" } }
                upsert: false
@@ -31,10 +31,10 @@ interface:
       type: flow
     - name: collection
       type: string
-      description: "The name of the collection to update."
+      description: The name of the collection to update.
     - name: filter
       type: object
-      description: "The filter to apply."
+      description: The filter to apply.
     - name: update
       type: object
       description: "The update operation (e.g. { '$set': { status: 'active' } })."
@@ -53,11 +53,11 @@ execution:
     tool: mongo_query
     params:
       operation: update
-      connection_string: settings.connection_string
-      database: settings.database
-      collection: inputs.collection
-      filter: inputs.filter
-      update: inputs.update
+      connection_string: =settings.connection_string
+      database: =settings.database
+      collection: =inputs.collection
+      filter: =inputs.filter
+      update: =inputs.update
     returns:
       matched_count: matched_count
       modified_count: modified_count
@@ -72,8 +72,8 @@ routing:
       - tool: emit
         params:
           port: matched_count
-          value: steps.update.matched_count
+          value: =steps.update.matched_count
       - tool: emit
         params:
           port: modified_count
-          value: steps.update.modified_count
+          value: =steps.update.modified_count

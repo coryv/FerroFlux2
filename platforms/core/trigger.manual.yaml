@@ -4,15 +4,15 @@ meta:
   category: Triggers
   type: Trigger
   platform: core
-  description: "Manually starts the workflow via a button click."
-  version: "1.0.0"
+  description: Manually starts the workflow via a button click.
+  version: 1.0.0
   discovery:
-    purpose: "Manually initiate a workflow run from the dashboard or through a direct API call."
-    usage_context: "Use for testing, one-off tasks, or manually triggered processes like an on-demand report."
+    purpose: Manually initiate a workflow run from the dashboard or through a direct API call.
+    usage_context: Use for testing, one-off tasks, or manually triggered processes like an on-demand report.
     agent_hints:
       - "Does not require external events; runs immediately when triggered manually."
     waml_examples:
-      - title: "Manual Check"
+      - title: Manual Check
         waml: |
           - step: run_manual
             type: trigger
@@ -28,7 +28,7 @@ interface:
     - name: label
       label: Button Label
       type: string
-      default: "Run Workflow"
+      default: Run Workflow
 
 execution:
   # The runner injects `event` context containing user_id and timestamp.
@@ -36,13 +36,13 @@ execution:
     tool: emit
     params:
       port: user_id
-      value: event.user_id
+      value: =event.user_id
 
   - id: emit_time
     tool: emit
     params:
       port: timestamp
-      value: event.timestamp
+      value: =event.timestamp
 
   - id: emit_exec
     tool: emit

@@ -5,24 +5,24 @@ meta:
   category: Issues
   type: Action
   platform: github
-  description: "Creates a new issue in a GitHub repository."
-  version: "1.0.0"
+  description: Creates a new issue in a GitHub repository.
+  version: 1.0.0
   discovery:
-    purpose: "Log a bug, feature request, or task directly into a repository's issue tracker."
-    usage_context: "Use this to automate bug reporting from Sentry alerts, customer support tickets, or development task management. Requires 'owner', 'repo', and 'title'."
+    purpose: Log a bug, feature request, or task directly into a repository's issue tracker.
+    usage_context: Use this to automate bug reporting from Sentry alerts, customer support tickets, or development task management. Requires 'owner', 'repo', and 'title'.
     agent_hints:
       - "Requires the 'owner' (user/org) and 'repo' name string."
       - "Supports markdown in the 'body' and assignment to specific 'assignees'."
     waml_examples:
-      - title: "Create Bug Issue"
+      - title: Create Bug Issue
         waml: |
           - step: log_bug
             call: github.action.issues.create
             with:
-               owner: "octocat"
-               repo: "hello-world"
-               title: "Broken link in footer"
-               body: "Found by the link checker."
+               owner: octocat
+               repo: hello-world
+               title: Broken link in footer
+               body: Found by the link checker.
 
 interface:
   inputs:
@@ -45,15 +45,15 @@ interface:
       type: object
   settings:
     - name: labels
-      label: "Labels (comma-separated)"
+      label: Labels (comma-separated)
       type: string
       required: false
-      placeholder: "bug,enhancement"
+      placeholder: bug,enhancement
     - name: assignees
-      label: "Assignees (comma-separated usernames)"
+      label: Assignees (comma-separated usernames)
       type: string
       required: false
-      placeholder: "octocat,hubot"
+      placeholder: octocat,hubot
 
 execution:
   - id: request
@@ -62,12 +62,12 @@ execution:
       method: POST
       url: >
         platform.base_url + "/repos/" + inputs.owner + "/" + inputs.repo + "/issues"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        title: inputs.title
-        body: inputs.body
-        labels: settings.labels
-        assignees: settings.assignees
+        title: =inputs.title
+        body: =inputs.body
+        labels: =settings.labels
+        assignees: =settings.assignees
     returns:
       status: status_code
       body: response_body
@@ -75,7 +75,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 201
           output: success
@@ -83,7 +83,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -92,9 +92,9 @@ routing:
       - tool: emit
         params:
           port: issue
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -4,15 +4,15 @@ meta:
   category: State
   type: Action
   platform: core
-  description: "Retrieves a value from the workflow's global memory."
-  version: "1.0.0"
+  description: Retrieves a value from the workflow's global memory.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve a value from a workflow variable."
-    usage_context: "Access saved state or results from earlier in the workflow."
+    purpose: Retrieve a value from a workflow variable.
+    usage_context: Access saved state or results from earlier in the workflow.
     agent_hints:
       - "Variables are local to the current workflow instance."
     waml_examples:
-      - title: "Get User ID"
+      - title: Get User ID
         waml: |
           - step: load_id
             call: core.action.get_var
@@ -41,7 +41,7 @@ execution:
   - id: get
     tool: get_var
     params:
-      name: settings.variable_name
+      name: =settings.variable_name
     returns:
       value: var_val
 
@@ -49,7 +49,7 @@ execution:
     tool: emit
     params:
       port: value
-      value: steps.get.value
+      value: =steps.get.value
 
   - id: done
     tool: emit

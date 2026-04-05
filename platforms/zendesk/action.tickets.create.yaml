@@ -5,23 +5,23 @@ meta:
   category: Tickets
   type: Action
   platform: zendesk
-  description: "Creates a new ticket."
-  version: "1.0.0"
+  description: Creates a new ticket.
+  version: 1.0.0
   discovery:
-    purpose: "Create a new support ticket in Zendesk."
-    usage_context: "Use this to automate helpdesk entries from emails, website contact forms, or Slack messages."
+    purpose: Create a new support ticket in Zendesk.
+    usage_context: Use this to automate helpdesk entries from emails, website contact forms, or Slack messages.
     agent_hints:
       - "Requires a title (subject) and a requester (email or user_id)."
       - "Defaults to 'open' status."
     waml_examples:
-      - title: "Create Ticket"
+      - title: Create Ticket
         waml: |
           - step: log_support
             call: zendesk.action.tickets.create
             with:
-               subject: "Inquiry from ${inputs.user_email}"
-               comment: "User reached out regarding billing."
-               requester_email: inputs.user_email
+               subject: '="Inquiry from " + inputs.user_email'
+               comment: User reached out regarding billing.
+               requester_email: =inputs.user_email
 
 interface:
   inputs:
@@ -48,19 +48,19 @@ execution:
       method: POST
       url: >
         platform.base_url + "/tickets.json"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         ticket:
-          subject: inputs.subject
+          subject: =inputs.subject
           comment:
-            body: inputs.comment
-          priority: inputs.priority
+            body: =inputs.comment
+          priority: =inputs.priority
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -69,9 +69,9 @@ routing:
       - tool: emit
         params:
           port: ticket
-          value: steps.request.response_body.ticket
+          value: =steps.request.response_body.ticket
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

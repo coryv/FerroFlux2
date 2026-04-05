@@ -5,23 +5,23 @@ meta:
   category: Charges
   type: Action
   platform: stripe
-  description: "Creates a new charge object."
-  version: "1.0.0"
+  description: Creates a new charge object.
+  version: 1.0.0
   discovery:
-    purpose: "Create a one-time charge for a customer or a specific payment source."
-    usage_context: "Use to process payments for single items, services, or manual invoices."
+    purpose: Create a one-time charge for a customer or a specific payment source.
+    usage_context: Use to process payments for single items, services, or manual invoices.
     agent_hints:
       - "Requires amount (in smallest currency unit, e.g., cents) and currency."
     waml_examples:
-      - title: "Charge Customer"
+      - title: Charge Customer
         waml: |
           - step: charge
             call: stripe.action.charges.create
             with:
                amount: 2000
-               currency: "usd"
-               customer: "cus_12345"
-               description: "Service Fee"
+               currency: usd
+               customer: cus_12345
+               description: Service Fee
 
 interface:
   inputs:
@@ -51,13 +51,13 @@ execution:
       method: POST
       url: >
         platform.base_url + "/charges"
-      headers: platform.headers
+      headers: =platform.headers
       body_type: form
       body:
-        amount: inputs.amount
-        currency: inputs.currency
-        source: inputs.source
-        customer: inputs.customer
+        amount: =inputs.amount
+        currency: =inputs.currency
+        source: =inputs.source
+        customer: =inputs.customer
     returns:
       status: status_code
       body: response_body
@@ -65,7 +65,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -73,7 +73,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -82,9 +82,9 @@ routing:
       - tool: emit
         params:
           port: charge
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

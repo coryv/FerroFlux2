@@ -5,23 +5,23 @@ meta:
   category: Interaction
   type: Trigger
   platform: telegram
-  description: "Polls for callback queries (button clicks)."
-  version: "1.0.0"
+  description: Polls for callback queries (button clicks).
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow when a user clicks an inline button on a bot-sent message."
-    usage_context: "Use to respond to user selections or interactive menu choices."
+    purpose: Initialize a workflow when a user clicks an inline button on a bot-sent message.
+    usage_context: Use to respond to user selections or interactive menu choices.
     agent_hints:
       - "Provides the callback_data and the user details."
     waml_examples:
-      - title: "Button Choice"
+      - title: Button Choice
         waml: |
           - step: on_click
             type: trigger
             call: telegram.trigger.interaction.callback_query
             settings:
-               data: "my_data"
+               data: my_data
             on:
-               Success: "handle_choice"
+               Success: handle_choice
 
 interface:
   inputs: []
@@ -32,7 +32,7 @@ interface:
       type: object
   settings:
     - name: limit
-      label: "Batch Limit"
+      label: Batch Limit
       type: number
       default: 100
 
@@ -56,19 +56,19 @@ execution:
   - id: extract_updates
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/result"
     returns:
       updates: updates_array
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extract_updates.updates_array
+          items: =steps.extract_updates.updates_array
           cursor_key: update_id
           port: query
       - tool: emit
@@ -78,4 +78,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

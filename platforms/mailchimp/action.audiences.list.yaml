@@ -5,15 +5,15 @@ meta:
   category: Audiences
   type: Action
   platform: mailchimp
-  description: "Lists all audiences (lists) in the Mailchimp account."
-  version: "1.0.0"
+  description: Lists all audiences (lists) in the Mailchimp account.
+  version: 1.0.0
   discovery:
-    purpose: "Browse and identify available audience lists for campaign targeting or member syncing."
-    usage_context: "Use this to fetch 'list_id's for other subscriber actions and to audit existing marketing segments."
+    purpose: Browse and identify available audience lists for campaign targeting or member syncing.
+    usage_context: Use this to fetch 'list_id's for other subscriber actions and to audit existing marketing segments.
     agent_hints:
       - "Returns a list of audience objects (id, name, stats, member_count)."
     waml_examples:
-      - title: "Find Audience ID"
+      - title: Find Audience ID
         waml: |
           - step: see_lists
             call: mailchimp.action.audiences.list
@@ -39,7 +39,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/lists"
-      headers: platform.headers
+      headers: =platform.headers
       strategy: offset
       offset_param: offset
       limit_param: count
@@ -50,7 +50,7 @@ execution:
       items: all_items
 
 routing:
-  match: "success"
+  match: success
   cases:
     success:
       - tool: emit
@@ -59,4 +59,4 @@ routing:
       - tool: emit
         params:
           port: audiences
-          value: steps.request.all_items
+          value: =steps.request.all_items

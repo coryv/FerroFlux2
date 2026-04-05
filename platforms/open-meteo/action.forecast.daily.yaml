@@ -5,15 +5,15 @@ meta:
   category: Forecast
   type: Action
   platform: open-meteo
-  description: "Fetch daily weather forecast summaries including high/low temperatures, sunrise/sunset, precipitation totals, and UV index."
-  version: "1.0.0"
+  description: Fetch daily weather forecast summaries including high/low temperatures, sunrise/sunset, precipitation totals, and UV index.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve daily weather forecasts for a specific location."
-    usage_context: "Use to plan outdoor activities, monitor high/low temperatures over the next week, or alert users to future rain."
+    purpose: Retrieve daily weather forecasts for a specific location.
+    usage_context: Use to plan outdoor activities, monitor high/low temperatures over the next week, or alert users to future rain.
     agent_hints:
       - "Requires latitude and longitude."
     waml_examples:
-      - title: "Next Week Forecast"
+      - title: Next Week Forecast
         waml: |
           - step: forecast
             call: open-meteo.action.forecast.daily
@@ -40,34 +40,34 @@ interface:
       type: object
   settings:
     - name: forecast_days
-      label: "Forecast Days"
+      label: Forecast Days
       type: number
       required: false
       default: 7
       min: 1
       max: 16
     - name: daily_variables
-      label: "Daily Variables (comma-separated)"
+      label: Daily Variables (comma-separated)
       type: string
       required: false
-      default: "temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,precipitation_probability_max,weather_code,sunrise,sunset,uv_index_max,wind_speed_10m_max"
-      placeholder: "temperature_2m_max,temperature_2m_min,precipitation_sum,..."
+      default: temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,precipitation_probability_max,weather_code,sunrise,sunset,uv_index_max,wind_speed_10m_max
+      placeholder: temperature_2m_max,temperature_2m_min,precipitation_sum,...
     - name: temperature_unit
-      label: "Temperature Unit"
+      label: Temperature Unit
       type: select
       required: false
-      default: "celsius"
+      default: celsius
       options:
-        - label: "Celsius"
-          value: "celsius"
-        - label: "Fahrenheit"
-          value: "fahrenheit"
+        - label: Celsius
+          value: celsius
+        - label: Fahrenheit
+          value: fahrenheit
     - name: timezone
-      label: "Timezone"
+      label: Timezone
       type: string
       required: false
-      default: "auto"
-      placeholder: "e.g. America/New_York, Europe/London, auto"
+      default: auto
+      placeholder: e.g. America/New_York, Europe/London, auto
 
 execution:
   - id: request
@@ -76,7 +76,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/forecast?latitude=" + inputs.latitude + "&longitude=" + inputs.longitude + "&daily=" + settings.daily_variables + "&forecast_days=" + settings.forecast_days + "&temperature_unit=" + settings.temperature_unit + "&timezone=" + settings.timezone
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -84,7 +84,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -92,12 +92,12 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/daily"
         returns:
@@ -108,9 +108,9 @@ routing:
       - tool: emit
         params:
           port: daily
-          value: steps.request.daily_data
+          value: =steps.request.daily_data
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

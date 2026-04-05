@@ -4,11 +4,11 @@ meta:
   name: Microsoft Outlook
   type: Platform
   category: Communication
-  description: "Enterprise-grade email and calendar management from Microsoft."
-  version: "1.0.0"
+  description: Enterprise-grade email and calendar management from Microsoft.
+  version: 1.0.0
   discovery:
-    purpose: "Manage professional communication, schedules, and contacts within the Microsoft 365 ecosystem."
-    usage_context: "Use this to automate business emails, schedule meetings, and sync calendar events with team workflows."
+    purpose: Manage professional communication, schedules, and contacts within the Microsoft 365 ecosystem.
+    usage_context: Use this to automate business emails, schedule meetings, and sync calendar events with team workflows.
     agent_hints:
       - "Requires OAuth2 authentication."
       - "Note that large attachments may require specific handling."
@@ -16,11 +16,11 @@ meta:
 config:
   base_url: "https://graph.microsoft.com/v1.0"
   headers:
-    Content-Type: "application/json"
+    Content-Type: application/json
     # No Authorization header — injected automatically from the stored connection
 
 settings:
   - name: connection
-    label: "Microsoft Outlook Account"
+    label: Microsoft Outlook Account
     type: connection_select
     required: true

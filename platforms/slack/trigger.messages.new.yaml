@@ -5,22 +5,22 @@ meta:
   category: Messages
   type: Trigger
   platform: slack
-  description: "Triggers when a new message is posted in a Slack channel."
-  version: "1.0.0"
+  description: Triggers when a new message is posted in a Slack channel.
+  version: 1.0.0
   discovery:
-    purpose: "Monitor a specific Slack channel for new activity."
-    usage_context: "Use this to react to customer queries, handle alerts, or build interactive commands in a public or private channel. Fires for every message except bot-sent ones by default."
+    purpose: Monitor a specific Slack channel for new activity.
+    usage_context: Use this to react to customer queries, handle alerts, or build interactive commands in a public or private channel. Fires for every message except bot-sent ones by default.
     agent_hints:
       - "The 'message' output contains the full Slack message object, including 'text', 'user', and 'ts' (timestamp)."
       - "By default, this polls the channel every 1 minute. Responses may be delayed based on this interval."
     waml_examples:
-      - title: "Monitor Support Channel"
+      - title: Monitor Support Channel
         waml: |
           trigger:
             id: support_monitor
             call: slack.trigger.messages.new
             with:
-               channel: "C98765432"
+               channel: C98765432
 
 interface:
   inputs: []
@@ -32,12 +32,12 @@ interface:
 
   settings:
     - name: channel
-      label: "Channel ID"
+      label: Channel ID
       type: string
       required: true
-      placeholder: "C1234567890"
+      placeholder: C1234567890
     - name: poll_interval
-      label: "Poll Interval (minutes)"
+      label: Poll Interval (minutes)
       type: number
       default: 1
       min: 1
@@ -49,7 +49,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/conversations.history?channel=" + settings.channel + "&oldest=" + event.cursor + "&limit=10"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -57,7 +57,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.fetch.status_code
+      value: =steps.fetch.status_code
       cases:
         - condition: 200
           output: success
@@ -65,7 +65,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -74,9 +74,9 @@ routing:
       - tool: emit
         params:
           port: message
-          value: steps.fetch.response_body
+          value: =steps.fetch.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.fetch.response_body
+          value: =steps.fetch.response_body

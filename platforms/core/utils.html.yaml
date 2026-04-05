@@ -4,20 +4,20 @@ meta:
   category: Utilities
   type: Action
   platform: core
-  description: "Extract data from HTML using CSS selectors."
-  version: "1.0.0"
+  description: Extract data from HTML using CSS selectors.
+  version: 1.0.0
   discovery:
-    purpose: "Sanitize, parse, or convert HTML content into other formats."
-    usage_context: "Use to strip HTML tags from email bodies, extract data from web pages, or clean up formatted text before model processing."
+    purpose: Sanitize, parse, or convert HTML content into other formats.
+    usage_context: Use to strip HTML tags from email bodies, extract data from web pages, or clean up formatted text before model processing.
     agent_hints:
       - "Supports stripping tags, escaping, or unescaping HTML."
     waml_examples:
-      - title: "Strip Tags"
+      - title: Strip Tags
         waml: |
           - step: clean_text
             call: core.utils.html
             with:
-               action: "strip_tags"
+               action: strip_tags
                html: "<div>Hello <b>World</b></div>"
 
 interface:
@@ -47,9 +47,9 @@ execution:
   - id: extract
     tool: core.utils.html
     params:
-      html: inputs.html
-      selector: settings.selector
-      attr: settings.attr
+      html: =inputs.html
+      selector: =settings.selector
+      attr: =settings.attr
     returns:
       result: extracted
 
@@ -57,7 +57,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: steps.extract.result
+      value: =steps.extract.result
 
   - id: done
     tool: emit

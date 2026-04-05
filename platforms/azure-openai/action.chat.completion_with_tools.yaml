@@ -5,23 +5,23 @@ meta:
   category: Chat
   type: Action
   platform: azure-openai
-  description: "Generate a chat completion with tool/function calling using an Azure OpenAI deployment."
-  version: "1.0.0"
+  description: Generate a chat completion with tool/function calling using an Azure OpenAI deployment.
+  version: 1.0.0
   discovery:
-    purpose: "Generate chat completions while allowing the model to specify tool calls (functions)."
-    usage_context: "Use to build agentic workflows where the LLM decides which external API to call based on user input."
+    purpose: Generate chat completions while allowing the model to specify tool calls (functions).
+    usage_context: Use to build agentic workflows where the LLM decides which external API to call based on user input.
     agent_hints:
       - "Requires a deployment of a model supporting function calling (e.g. gpt-4o)."
     waml_examples:
-      - title: "Agentic Tool Call"
+      - title: Agentic Tool Call
         waml: |
           - step: run_agent
             call: azure-openai.action.chat.completion_with_tools
             with:
-               deployment_name: "gpt-4o"
+               deployment_name: gpt-4o
                messages: [{role: "user", content: "What is the weather in SF?"}]
                tools:
-                 - type: "function"
+                 - type: function
                    function: { name: "get_weather", parameters: {...} }
 
 interface:
@@ -48,41 +48,41 @@ interface:
 
   settings:
     - name: resource_name
-      label: "Azure Resource Name"
+      label: Azure Resource Name
       type: string
       required: true
-      placeholder: "my-openai-resource"
+      placeholder: my-openai-resource
     - name: deployment
-      label: "Deployment Name"
+      label: Deployment Name
       type: string
       required: true
-      placeholder: "gpt-4o"
+      placeholder: gpt-4o
     - name: api_version
-      label: "API Version"
+      label: API Version
       type: string
-      default: "2024-08-01-preview"
+      default: 2024-08-01-preview
       required: true
     - name: system_prompt
-      label: "System Prompt"
+      label: System Prompt
       type: textarea
-      default: "You are a helpful assistant."
+      default: You are a helpful assistant.
     - name: tool_choice
-      label: "Tool Choice"
+      label: Tool Choice
       type: select
-      default: "auto"
+      default: auto
       options:
-        - label: "Auto (model decides)"
-          value: "auto"
-        - label: "Required (must call a tool)"
-          value: "required"
-        - label: "None (no tool calls)"
-          value: "none"
+        - label: Auto (model decides)
+          value: auto
+        - label: Required (must call a tool)
+          value: required
+        - label: None (no tool calls)
+          value: none
     - name: parallel_tool_calls
-      label: "Allow Parallel Tool Calls"
+      label: Allow Parallel Tool Calls
       type: boolean
       default: true
     - name: temperature
-      label: "Temperature"
+      label: Temperature
       type: number
       default: 1
       min: 0
@@ -95,17 +95,17 @@ execution:
       method: POST
       url: >
         "https://" + settings.resource_name + ".openai.azure.com/openai/deployments/" + settings.deployment + "/chat/completions?api-version=" + settings.api_version
-      headers: platform.headers
+      headers: =platform.headers
       body:
         messages:
           - role: system
-            content: settings.system_prompt
+            content: =settings.system_prompt
           - role: user
-            content: inputs.user_prompt
-        tools: inputs.tools
-        tool_choice: settings.tool_choice
-        parallel_tool_calls: settings.parallel_tool_calls
-        temperature: settings.temperature
+            content: =inputs.user_prompt
+        tools: =inputs.tools
+        tool_choice: =settings.tool_choice
+        parallel_tool_calls: =settings.parallel_tool_calls
+        temperature: =settings.temperature
     returns:
       status: status_code
       body: response_body
@@ -113,7 +113,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -121,19 +121,19 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/choices/0/message/tool_calls"
         returns:
           result: tool_calls_result
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/choices/0/message/content"
         returns:
@@ -152,9 +152,9 @@ routing:
       - tool: emit
         params:
           port: response
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

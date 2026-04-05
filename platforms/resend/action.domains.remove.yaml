@@ -5,21 +5,21 @@ meta:
   category: Domains
   type: Action
   platform: resend
-  description: "Delete a domain from your Resend account by its ID."
-  version: "1.0.0"
+  description: Delete a domain from your Resend account by its ID.
+  version: 1.0.0
   discovery:
-    purpose: "Permanently delete a domain from the Resend account."
-    usage_context: "Use to decommission old sender identities or cleanup sandbox environments."
+    purpose: Permanently delete a domain from the Resend account.
+    usage_context: Use to decommission old sender identities or cleanup sandbox environments.
     agent_hints:
       - "Requires a domain_id."
       - "Deletion is immediate and irreversible."
     waml_examples:
-      - title: "Remove Domain"
+      - title: Remove Domain
         waml: |
           - step: delete
             call: resend.action.domains.remove
             with:
-               domain_id: "71a3999c-5117-406b-8253-91f1b9dc1031"
+               domain_id: 71a3999c-5117-406b-8253-91f1b9dc1031
 
 interface:
   inputs:
@@ -42,7 +42,7 @@ execution:
       method: DELETE
       url: >
         platform.base_url + "/domains/" + inputs.domain_id
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -50,7 +50,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -60,7 +60,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -69,9 +69,9 @@ routing:
       - tool: emit
         params:
           port: result
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -5,23 +5,23 @@ meta:
   category: Reactions
   type: Action
   platform: slack
-  description: "Adds a reaction (emoji) to a specific message."
-  version: "1.0.0"
+  description: Adds a reaction (emoji) to a specific message.
+  version: 1.0.0
   discovery:
-    purpose: "Acknowledge or react to a Slack message with an emoji."
-    usage_context: "Use this to acknowledge notifications, show agreement, or tag messages for later processing. Requires a channel ID, the exact timestamp of the message, and the emoji name."
+    purpose: Acknowledge or react to a Slack message with an emoji.
+    usage_context: Use this to acknowledge notifications, show agreement, or tag messages for later processing. Requires a channel ID, the exact timestamp of the message, and the emoji name.
     agent_hints:
       - "Emoji names should not include colons (e.g., use 'thumbsup' instead of ':thumbsup:')."
       - "The 'timestamp' must be the precise float-style string (e.g. '12345678.123456') returned by message triggers."
     waml_examples:
-      - title: "Add a Checkmark Reaction"
+      - title: Add a Checkmark Reaction
         waml: |
           - step: acknowledge
             call: slack.action.reactions.add
             with:
-               channel: "C12345678"
-               timestamp: steps.trigger.message.ts
-               name: "white_check_mark"
+               channel: C12345678
+               timestamp: =steps.trigger.message.ts
+               name: white_check_mark
 
 interface:
   inputs:
@@ -51,11 +51,11 @@ execution:
       method: POST
       url: >
         platform.base_url + "/reactions.add"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        channel: inputs.channel
-        timestamp: inputs.timestamp
-        name: inputs.name
+        channel: =inputs.channel
+        timestamp: =inputs.timestamp
+        name: =inputs.name
     returns:
       status: status_code
       body: response_body
@@ -63,7 +63,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -71,7 +71,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -80,9 +80,9 @@ routing:
       - tool: emit
         params:
           port: ok
-          value: steps.request.response_body.ok
+          value: =steps.request.response_body.ok
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

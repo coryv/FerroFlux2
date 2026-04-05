@@ -1,27 +1,27 @@
 id: json_query_workflow
-name: "JSON Query Test Workflow"
-description: "Test JMESPath query extraction."
+name: JSON Query Test Workflow
+description: Test JMESPath query extraction.
 
 config:
-  query_path: "'result.name'" # Default query path, can be overridden in test
+  query_path: result.name # Default query path, can be overridden in test
 
 nodes:
   - id: webhook_in
-    name: "Incoming Webhook"
+    name: Incoming Webhook
     type: core.trigger.webhook
 
   - id: jmes_query
-    name: "JMESPath Query"
+    name: JMESPath Query
     type: core.utils.json
     config:
-      operation: "'query'"
-      expression: "config.query_path"
+      operation: query
+      expression: config.query_path
 
   - id: query_logger
-    name: "Log Extracted Value"
+    name: Log Extracted Value
     type: core.action.log
     config:
-      message: "'Extracted: ' + string(inputs.body)"
+      message: "='Extracted: ' + string(inputs.body)"
 
 edges:
   # 1. Webhook to JSON Query

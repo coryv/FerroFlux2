@@ -1,26 +1,26 @@
 meta:
   id: intercom
-  name: "Intercom"
-  category: "Support"
+  name: Intercom
+  category: Support
   type: Platform
   icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/intercom.svg"
   permissions: ["network:api.intercom.io"]
 
 config:
-  description: "Advanced AI-first customer service and engagement platform."
-  version: "1.0.0"
+  description: Advanced AI-first customer service and engagement platform.
+  version: 1.0.0
   discovery:
-    purpose: "Engage customers in real-time, manage support conversations, and segment audience groups."
-    usage_context: "Use this to automate in-app messaging, track user activity, and manage customer support via an AI-powered workspace."
+    purpose: Engage customers in real-time, manage support conversations, and segment audience groups.
+    usage_context: Use this to automate in-app messaging, track user activity, and manage customer support via an AI-powered workspace.
     agent_hints:
       - "Requires an API Token and Workspace ID."
       - "Note the difference between 'Contacts' (Users) and 'Conversations' (Chats)."
   base_url: "https://api.intercom.io"
-  auth_type: "oauth2"
+  auth_type: oauth2
   auth:
-    type: "bearer"
+    type: bearer
   connection_schema:
-    - name: "access_token"
-      type: "string"
+    - name: access_token
+      type: string
       required: true
       is_secret: true

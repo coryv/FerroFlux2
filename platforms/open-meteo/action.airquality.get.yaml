@@ -5,16 +5,16 @@ meta:
   category: Air Quality
   type: Action
   platform: open-meteo
-  description: "Fetch current and forecast air quality data including AQI, PM2.5, PM10, ozone, and other pollutants for a location."
-  version: "1.0.0"
+  description: Fetch current and forecast air quality data including AQI, PM2.5, PM10, ozone, and other pollutants for a location.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve current and forecast air quality data for a specific location."
-    usage_context: "Use to monitor pollution levels, alert users to high pollen or dust, or decide on outdoor health recommendations."
+    purpose: Retrieve current and forecast air quality data for a specific location.
+    usage_context: Use to monitor pollution levels, alert users to high pollen or dust, or decide on outdoor health recommendations.
     agent_hints:
       - "Requires latitude and longitude."
       - "Returns data for PM2.5, PM10, NOx, O3, and more."
     waml_examples:
-      - title: "Check Pollution"
+      - title: Check Pollution
         waml: |
           - step: air_quality
             call: open-meteo.action.airquality.get
@@ -43,30 +43,30 @@ interface:
       type: object
   settings:
     - name: current_variables
-      label: "Current Variables (comma-separated)"
+      label: Current Variables (comma-separated)
       type: string
       required: false
-      default: "european_aqi,us_aqi,pm10,pm2_5,ozone,nitrogen_dioxide,sulphur_dioxide,carbon_monoxide"
-      placeholder: "european_aqi,us_aqi,pm2_5,pm10,..."
+      default: european_aqi,us_aqi,pm10,pm2_5,ozone,nitrogen_dioxide,sulphur_dioxide,carbon_monoxide
+      placeholder: european_aqi,us_aqi,pm2_5,pm10,...
     - name: hourly_variables
-      label: "Hourly Variables (comma-separated)"
+      label: Hourly Variables (comma-separated)
       type: string
       required: false
-      default: "pm10,pm2_5,ozone,nitrogen_dioxide"
-      placeholder: "pm10,pm2_5,ozone,..."
+      default: pm10,pm2_5,ozone,nitrogen_dioxide
+      placeholder: pm10,pm2_5,ozone,...
     - name: forecast_days
-      label: "Forecast Days"
+      label: Forecast Days
       type: number
       required: false
       default: 1
       min: 1
       max: 7
     - name: timezone
-      label: "Timezone"
+      label: Timezone
       type: string
       required: false
-      default: "auto"
-      placeholder: "e.g. America/New_York, auto"
+      default: auto
+      placeholder: e.g. America/New_York, auto
 
 execution:
   - id: request
@@ -75,7 +75,7 @@ execution:
       method: GET
       url: >
         "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=" + inputs.latitude + "&longitude=" + inputs.longitude + "&current=" + settings.current_variables + "&hourly=" + settings.hourly_variables + "&forecast_days=" + settings.forecast_days + "&timezone=" + settings.timezone
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -83,7 +83,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -91,19 +91,19 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/current"
         returns:
           result: current_aq
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/hourly"
         returns:
@@ -114,13 +114,13 @@ routing:
       - tool: emit
         params:
           port: current_air_quality
-          value: steps.request.current_aq
+          value: =steps.request.current_aq
       - tool: emit
         params:
           port: hourly_air_quality
-          value: steps.request.hourly_aq
+          value: =steps.request.hourly_aq
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

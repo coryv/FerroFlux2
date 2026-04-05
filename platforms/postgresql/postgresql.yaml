@@ -3,11 +3,11 @@ meta:
   name: PostgreSQL
   category: Database
   type: Platform
-  description: "Direct connection to PostgreSQL databases via binary TCP protocol."
-  version: "1.0.0"
+  description: Direct connection to PostgreSQL databases via binary TCP protocol.
+  version: 1.0.0
   discovery:
-    purpose: "Advanced relational database with strong support for both structured SQL and JSONB data."
-    usage_context: "Use PostgreSQL for mission-critical relational storage, complex join operations, or as a hybrid between SQL and NoSQL using its native JSONB support."
+    purpose: Advanced relational database with strong support for both structured SQL and JSONB data.
+    usage_context: Use PostgreSQL for mission-critical relational storage, complex join operations, or as a hybrid between SQL and NoSQL using its native JSONB support.
     agent_hints:
       - "Standard PostgreSQL port is 5432."
       - "Always use double quotes for case-sensitive identifiers in queries (e.g., SELECT * FROM \"Users\")."
@@ -20,12 +20,12 @@ config:
 
 settings:
   - name: connection_string
-    label: "Connection String"
+    label: Connection String
     type: string
     required: true
     secret: true
     placeholder: "postgres://user:password@localhost:5432/dbname"
-    description: "The full connection URI for your PostgreSQL database."
+    description: The full connection URI for your PostgreSQL database.
 
 interface:
   inputs: []

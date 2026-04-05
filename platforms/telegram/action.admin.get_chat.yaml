@@ -5,20 +5,20 @@ meta:
   category: Admin
   type: Action
   platform: telegram
-  description: "Retrieve information about a specific chat."
-  version: "1.0.0"
+  description: Retrieve information about a specific chat.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve detailed metadata for a Telegram chat (user, group, or channel)."
-    usage_context: "Use to fetch chat titles, verify group settings, or get the number of members."
+    purpose: Retrieve detailed metadata for a Telegram chat (user, group, or channel).
+    usage_context: Use to fetch chat titles, verify group settings, or get the number of members.
     agent_hints:
       - "Requires the chat_id (e.g., '@mygroup' or a numerical ID)."
     waml_examples:
-      - title: "Get Group Info"
+      - title: Get Group Info
         waml: |
           - step: fetch_chat
             call: telegram.action.admin.get_chat
             with:
-               chat_id: "-100123456789"
+               chat_id: -100123456789
 
 interface:
   inputs:
@@ -42,13 +42,13 @@ execution:
       url: >
         platform.base_url + "/getChat"
       body:
-        chat_id: inputs.chat_id
+        chat_id: =inputs.chat_id
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -57,9 +57,9 @@ routing:
       - tool: emit
         params:
           port: chat
-          value: steps.request.response_body.result
+          value: =steps.request.response_body.result
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -5,23 +5,23 @@ meta:
   category: Historical
   type: Action
   platform: open-meteo
-  description: "Fetch historical weather data for a location and date range using the Open-Meteo archive API."
-  version: "1.0.0"
+  description: Fetch historical weather data for a location and date range using the Open-Meteo archive API.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve historical weather data for a specific date and location."
-    usage_context: "Use to analyze past weather patterns, verify flight conditions for a past date, or correlate historical sales data with weather."
+    purpose: Retrieve historical weather data for a specific date and location.
+    usage_context: Use to analyze past weather patterns, verify flight conditions for a past date, or correlate historical sales data with weather.
     agent_hints:
       - "Requires latitude, longitude, start_date, and end_date (YYYY-MM-DD)."
     waml_examples:
-      - title: "Fetch Past Weather"
+      - title: Fetch Past Weather
         waml: |
           - step: past_weather
             call: open-meteo.action.historical.get
             with:
                latitude: 37.7749
                longitude: -122.4194
-               start_date: "2023-01-01"
-               end_date: "2023-01-07"
+               start_date: 2023-01-01
+               end_date: 2023-01-07
                daily: ["temperature_2m_max", "temperature_2m_min"]
   data_strategy: enrich
 
@@ -46,27 +46,27 @@ interface:
       type: object
   settings:
     - name: hourly_variables
-      label: "Hourly Variables (comma-separated)"
+      label: Hourly Variables (comma-separated)
       type: string
       required: false
-      default: "temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m"
-      placeholder: "temperature_2m,precipitation,wind_speed_10m,..."
+      default: temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m
+      placeholder: temperature_2m,precipitation,wind_speed_10m,...
     - name: temperature_unit
-      label: "Temperature Unit"
+      label: Temperature Unit
       type: select
       required: false
-      default: "celsius"
+      default: celsius
       options:
-        - label: "Celsius"
-          value: "celsius"
-        - label: "Fahrenheit"
-          value: "fahrenheit"
+        - label: Celsius
+          value: celsius
+        - label: Fahrenheit
+          value: fahrenheit
     - name: timezone
-      label: "Timezone"
+      label: Timezone
       type: string
       required: false
-      default: "auto"
-      placeholder: "e.g. America/New_York, Europe/London, auto"
+      default: auto
+      placeholder: e.g. America/New_York, Europe/London, auto
 
 execution:
   - id: request
@@ -75,7 +75,7 @@ execution:
       method: GET
       url: >
         "https://archive-api.open-meteo.com/v1/archive?latitude=" + inputs.latitude + "&longitude=" + inputs.longitude + "&start_date=" + inputs.start_date + "&end_date=" + inputs.end_date + "&hourly=" + settings.hourly_variables + "&temperature_unit=" + settings.temperature_unit + "&timezone=" + settings.timezone
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -83,7 +83,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -91,7 +91,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -100,9 +100,9 @@ routing:
       - tool: emit
         params:
           port: historical
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -5,21 +5,21 @@ meta:
   category: Labels
   type: Action
   platform: trello
-  description: "Adds a label to an existing Trello card."
-  version: "1.0.0"
+  description: Adds a label to an existing Trello card.
+  version: 1.0.0
   discovery:
-    purpose: "Categorize or tag a card for better organization and filtering."
-    usage_context: "Use this to programmatically flag cards with statuses like 'High Priority', 'Bug', or 'Feature Request'."
+    purpose: Categorize or tag a card for better organization and filtering.
+    usage_context: Use this to programmatically flag cards with statuses like 'High Priority', 'Bug', or 'Feature Request'.
     agent_hints:
       - "Requires the card ID and a label ID ('value')."
     waml_examples:
-      - title: "Tag High Priority"
+      - title: Tag High Priority
         waml: |
           - step: tag_it
             call: trello.action.labels.add
             with:
-               id: "65a..."
-               value: "65d..."
+               id: 65a...
+               value: 65d...
 
 interface:
   inputs:
@@ -42,15 +42,15 @@ execution:
       method: POST
       url: >
         platform.base_url + "/cards/" + inputs.idCard + "/idLabels"
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        value: inputs.idLabel
+        value: =inputs.idLabel
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -60,4 +60,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

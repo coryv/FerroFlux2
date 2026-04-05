@@ -4,11 +4,11 @@ meta:
   name: Supabase
   type: Platform
   category: Databases
-  description: "Connects to a specific Supabase instance's REST APIs (PostgREST, Auth, Storage)."
-  version: "1.0.0"
+  description: Connects to a specific Supabase instance's REST APIs (PostgREST, Auth, Storage).
+  version: 1.0.0
   discovery:
-    purpose: "Full-stack Backend-as-a-Service (BaaS) built on top of PostgreSQL."
-    usage_context: "Use Supabase if you need a managed, REST-accessible database with built-in authentication and storage. It provides a more HTTP-friendly way to interact with PostgreSQL compared to direct binary drivers."
+    purpose: Full-stack Backend-as-a-Service (BaaS) built on top of PostgreSQL.
+    usage_context: Use Supabase if you need a managed, REST-accessible database with built-in authentication and storage. It provides a more HTTP-friendly way to interact with PostgreSQL compared to direct binary drivers.
     agent_hints:
       - "Interactions are performed via PostgREST endpoints (standard REST methods)."
       - "Requires a Project Reference ID and an API key (Anon or Service Role)."
@@ -16,16 +16,16 @@ meta:
 config:
   base_url: "https://<PROJECT_REF>.supabase.co/rest/v1"
   headers:
-    Content-Type: "application/json"
-    apikey: "PASTE_YOUR_KEY_HERE"
-    Authorization: "Bearer PASTE_YOUR_KEY_HERE"
+    Content-Type: application/json
+    apikey: PASTE_YOUR_KEY_HERE
+    Authorization: Bearer PASTE_YOUR_KEY_HERE
 
 settings:
   - name: project_ref
-    label: "Supabase Project ID"
+    label: Supabase Project ID
     type: string
     required: true
   - name: api_key
-    label: "Supabase Anon/Service Role Key"
+    label: Supabase Anon/Service Role Key
     type: string
     required: true

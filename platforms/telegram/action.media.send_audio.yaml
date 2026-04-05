@@ -5,22 +5,22 @@ meta:
   category: Media
   type: Action
   platform: telegram
-  description: "Send an audio file to a chat."
-  version: "1.0.0"
+  description: Send an audio file to a chat.
+  version: 1.0.0
   discovery:
-    purpose: "Upload and send an audio file to a Telegram chat."
-    usage_context: "Use to send voice memos, recorded clips, or audio alerts."
+    purpose: Upload and send an audio file to a Telegram chat.
+    usage_context: Use to send voice memos, recorded clips, or audio alerts.
     agent_hints:
       - "Requires a URL to an audio file or a file object."
     waml_examples:
-      - title: "Send Audio Note"
+      - title: Send Audio Note
         waml: |
           - step: send_audio
             call: telegram.action.media.send_audio
             with:
-               chat_id: "123456789"
+               chat_id: 123456789
                audio: "https://example.com/note.mp3"
-               caption: "Voice memo attached."
+               caption: Voice memo attached.
 
 interface:
   inputs:
@@ -53,18 +53,18 @@ execution:
         Content-Type: >
           "multipart/form-data"
       body:
-        chat_id: inputs.chat_id
+        chat_id: =inputs.chat_id
         audio:
-          ticket: inputs.audio
-        caption: inputs.caption
-        title: inputs.title
-        performer: inputs.performer
+          ticket: =inputs.audio
+        caption: =inputs.caption
+        title: =inputs.title
+        performer: =inputs.performer
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -74,4 +74,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -5,21 +5,21 @@ meta:
   category: Objects
   type: Action
   platform: salesforce
-  description: "Retrieves metadata about a Salesforce object (SObject)."
-  version: "1.0.0"
+  description: Retrieves metadata about a Salesforce object (SObject).
+  version: 1.0.0
   discovery:
-    purpose: "Understand the fields, relationships, and capabilities of a specific Salesforce object."
-    usage_context: "Use this to dynamically discover which fields are available on 'Account', 'Lead', or custom objects before performing a query or update."
+    purpose: Understand the fields, relationships, and capabilities of a specific Salesforce object.
+    usage_context: Use this to dynamically discover which fields are available on 'Account', 'Lead', or custom objects before performing a query or update.
     agent_hints:
       - "Requires the 'object' API name (e.g., 'Account', 'CustomObject__c')."
       - "Returns detailed field metadata (type, label, length, picklist values)."
     waml_examples:
-      - title: "Describe Lead Fields"
+      - title: Describe Lead Fields
         waml: |
           - step: get_fields
             call: salesforce.action.objects.describe
             with:
-               object: "Lead"
+               object: Lead
 
 interface:
   inputs:
@@ -42,13 +42,13 @@ execution:
       method: GET
       url: >
         platform.base_url + "/sobjects/" + inputs.sObjectName + "/describe"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -57,9 +57,9 @@ routing:
       - tool: emit
         params:
           port: metadata
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

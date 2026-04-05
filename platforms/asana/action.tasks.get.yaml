@@ -5,21 +5,21 @@ meta:
   category: Tasks
   type: Action
   platform: asana
-  description: "Retrieves detailed information about an Asana task."
-  version: "1.0.0"
+  description: Retrieves detailed information about an Asana task.
+  version: 1.0.0
   discovery:
-    purpose: "Fetch the properties of a specific Asana task."
-    usage_context: "Use this when you have a Task GID and need to find its current status, assignee, or custom field values."
+    purpose: Fetch the properties of a specific Asana task.
+    usage_context: Use this when you have a Task GID and need to find its current status, assignee, or custom field values.
     agent_hints:
       - "Requires the 'task_gid'."
       - "Returns the full task resource object (GID, name, projects, etc.)."
     waml_examples:
-      - title: "Get Task Details"
+      - title: Get Task Details
         waml: |
           - step: read_task
             call: asana.action.tasks.get
             with:
-               task_gid: "1202..."
+               task_gid: 1202...
 
 interface:
   inputs:
@@ -43,7 +43,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/tasks/" + inputs.task_id
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -51,7 +51,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -61,14 +61,14 @@ execution:
   - id: extract
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/data"
     returns:
       result: task_data
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -77,9 +77,9 @@ routing:
       - tool: emit
         params:
           port: task
-          value: steps.extract.task_data
+          value: =steps.extract.task_data
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -5,22 +5,22 @@ meta:
   category: Database
   type: Trigger
   platform: notion
-  description: "Triggers when a new row (page) is added to a Notion database."
-  version: "1.0.0"
+  description: Triggers when a new row (page) is added to a Notion database.
+  version: 1.0.0
   discovery:
-    purpose: "Start a workflow whenever a new entry appears in a Notion tracking system."
-    usage_context: "Use this to automate actions for new leads, notify team members of new tasks, or sync data to a spreadsheet in real-time."
+    purpose: Start a workflow whenever a new entry appears in a Notion tracking system.
+    usage_context: Use this to automate actions for new leads, notify team members of new tasks, or sync data to a spreadsheet in real-time.
     agent_hints:
       - "Polls the database for new pages based on the 'created_time'."
       - "Requires the 'database_id'."
     waml_examples:
-      - title: "Process New Task"
+      - title: Process New Task
         waml: |
           trigger:
             new_row:
                call: notion.trigger.database.new_row
                with:
-                  database_id: "065..."
+                  database_id: 065...
 
 interface:
   inputs: []
@@ -31,12 +31,12 @@ interface:
       type: object
   settings:
     - name: database_id
-      label: "Database ID"
+      label: Database ID
       type: string
       required: true
-      description: "The Notion database ID to poll for new rows."
+      description: The Notion database ID to poll for new rows.
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -47,10 +47,10 @@ execution:
       method: POST
       url: >
         platform.base_url + "/databases/" + settings.database_id + "/query"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         sorts:
-          - property: "Created time"
+          - property: Created time
             direction: descending
         filter:
           timestamp: created_time
@@ -63,12 +63,12 @@ execution:
       body: response_body
 
 routing:
-  match: steps.query.status_code
+  match: =steps.query.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.query.response_body.results
+          items: =steps.query.response_body.results
           cursor_key: created_time
           port: row
       - tool: emit
@@ -78,4 +78,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.query.response_body
+          value: =steps.query.response_body

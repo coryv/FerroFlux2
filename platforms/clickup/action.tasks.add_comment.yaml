@@ -5,22 +5,22 @@ meta:
   category: Tasks
   type: Action
   platform: clickup
-  description: "Adds a comment to a ClickUp task."
-  version: "1.0.0"
+  description: Adds a comment to a ClickUp task.
+  version: 1.0.0
   discovery:
-    purpose: "Communicate updates and provide context on a task."
-    usage_context: "Use this to log progress, notify team members of results, or record completion details within the task's history."
+    purpose: Communicate updates and provide context on a task.
+    usage_context: Use this to log progress, notify team members of results, or record completion details within the task's history.
     agent_hints:
       - "Requires the Task ID."
       - "Supports plain text for the 'comment_text'."
     waml_examples:
-      - title: "Post Status Update"
+      - title: Post Status Update
         waml: |
           - step: say_it
             call: clickup.action.tasks.add_comment
             with:
-               task_id: "862..."
-               comment_text: "Processing complete. Please check the results."
+               task_id: 862...
+               comment_text: Processing complete. Please check the results.
 
 interface:
   inputs:
@@ -46,9 +46,9 @@ execution:
       method: POST
       url: >
         platform.base_url + "/task/" + inputs.task_id + "/comment"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        comment_text: inputs.comment_text
+        comment_text: =inputs.comment_text
         notify_all: >
           (has(inputs.notify_all) ? inputs.notify_all : 'true')
     returns:
@@ -56,7 +56,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -66,4 +66,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

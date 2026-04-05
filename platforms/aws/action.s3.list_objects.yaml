@@ -5,22 +5,22 @@ meta:
   category: Cloud
   type: Action
   platform: aws
-  description: "List objects in an AWS S3 bucket."
-  version: "1.0.0"
+  description: List objects in an AWS S3 bucket.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve a list of object keys and metadata from an S3 bucket."
-    usage_context: "Use to audit cloud storage, find new files for processing, or generate public URLs for recently uploaded assets."
+    purpose: Retrieve a list of object keys and metadata from an S3 bucket.
+    usage_context: Use to audit cloud storage, find new files for processing, or generate public URLs for recently uploaded assets.
     agent_hints:
       - "Requires a bucket_name."
       - "Returns an array of object summaries (key, size, lastModified)."
     waml_examples:
-      - title: "List Bucket"
+      - title: List Bucket
         waml: |
           - step: get_files
             call: aws.action.s3.list_objects
             with:
-               bucket_name: "my-production-bucket"
-               prefix: "uploads/2023/"
+               bucket_name: my-production-bucket
+               prefix: uploads/2023/
 
 interface:
   inputs:
@@ -44,7 +44,7 @@ interface:
     - name: region
       label: Region
       type: string
-      default: "us-east-1"
+      default: us-east-1
     - name: bucket
       label: Bucket Name
       type: string
@@ -56,9 +56,9 @@ execution:
       url: >
         "https://" + (has(settings.bucket) ? settings.bucket : 'inputs.bucket') + ".s3." + settings.region + ".amazonaws.com/"
       method: GET
-      connection: settings.connection
+      connection: =settings.connection
       aws_service: s3
-      aws_region: settings.region
+      aws_region: =settings.region
     returns:
       body: response_body
       status: response_status
@@ -66,9 +66,9 @@ execution:
   - id: check_status
     tool: logic
     params:
-      data: steps.request.response_status
+      data: =steps.request.response_status
       rules:
-        - condition: "val < 400"
+        - condition: "=val < 400"
           output: Success
         - condition: default
           output: Error
@@ -77,7 +77,7 @@ execution:
     tool: emit
     params:
       port: objects
-      value: steps.request.response_body
+      value: =steps.request.response_body
 
   - id: emit_signal
     tool: emit

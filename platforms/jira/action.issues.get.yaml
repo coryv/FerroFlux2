@@ -5,21 +5,21 @@ meta:
   category: Issues
   type: Action
   platform: jira
-  description: "Retrieve details for a specific issue."
-  version: "1.0.0"
+  description: Retrieve details for a specific issue.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve all fields and details for a specific Jira issue."
-    usage_context: "Use this to fetch the current status, description, assignee, or custom field values of a ticket."
+    purpose: Retrieve all fields and details for a specific Jira issue.
+    usage_context: Use this to fetch the current status, description, assignee, or custom field values of a ticket.
     agent_hints:
       - "Requires the issue key (e.g., PROJ-123) or issue ID."
       - "Returns the full issue object."
     waml_examples:
-      - title: "Get Bug Details"
+      - title: Get Bug Details
         waml: |
           - step: fetch_bug
             call: jira.issues.get
             with:
-               issue_id_or_key: "PROJ-123"
+               issue_id_or_key: PROJ-123
 
 interface:
   inputs:
@@ -42,13 +42,13 @@ execution:
       method: GET
       url: >
         platform.base_url + "/issue/" + inputs.issue_id
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -57,9 +57,9 @@ routing:
       - tool: emit
         params:
           port: issue
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -5,22 +5,22 @@ meta:
   category: Emails
   type: Action
   platform: gmail
-  description: "Retrieve a specific attachment from an email and store it in the BlobStore."
-  version: "1.0.0"
+  description: Retrieve a specific attachment from an email and store it in the BlobStore.
+  version: 1.0.0
   discovery:
-    purpose: "Download a file attached to a specific Gmail message."
-    usage_context: "Use this to process received documents, extract data from PDF invoices, or save images to a storage bucket. Requires 'message_id' and 'attachment_id' (retrieved from a message details call)."
+    purpose: Download a file attached to a specific Gmail message.
+    usage_context: Use this to process received documents, extract data from PDF invoices, or save images to a storage bucket. Requires 'message_id' and 'attachment_id' (retrieved from a message details call).
     agent_hints:
       - "The 'attachment_id' is specific to a message; you must find the message first to get the ID."
       - "The output 'blob_id' is a string reference that can be passed to other nodes (e.g., Slack upload or AWS S3)."
     waml_examples:
-      - title: "Downloac Invoice"
+      - title: Downloac Invoice
         waml: |
           - step: fetch_attachment
             call: gmail.emails.get_attachment
             with:
-               message_id: "18e986fe..."
-               attachment_id: "ANGjdJ8..."
+               message_id: 18e986fe...
+               attachment_id: ANGjdJ8...
 
 interface:
   inputs:
@@ -45,13 +45,13 @@ execution:
       method: GET
       url: >
         platform.base_url + "/messages/" + inputs.message_id + "/attachments/" + inputs.attachment_id
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -66,4 +66,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

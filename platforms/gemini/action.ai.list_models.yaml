@@ -5,15 +5,15 @@ meta:
   category: AI
   type: Action
   platform: gemini
-  description: "List the models available through the Gemini API."
-  version: "1.0.0"
+  description: List the models available through the Gemini API.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve a list of available Google Gemini models and their specific capabilities."
-    usage_context: "Use this to dynamically discover supported models (e.g., gemini-1.5-pro vs flash) for different types of LLM workloads."
+    purpose: Retrieve a list of available Google Gemini models and their specific capabilities.
+    usage_context: Use this to dynamically discover supported models (e.g., gemini-1.5-pro vs flash) for different types of LLM workloads.
     agent_hints:
       - "Returns a list of model objects including supported generation methods and context limits."
     waml_examples:
-      - title: "List Models"
+      - title: List Models
         waml: |
           - step: get_models
             call: gemini.action.ai.list_models
@@ -38,7 +38,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/v1beta/models"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -46,7 +46,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -54,7 +54,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -63,9 +63,9 @@ routing:
       - tool: emit
         params:
           port: models
-          value: steps.request.response_body.models
+          value: =steps.request.response_body.models
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

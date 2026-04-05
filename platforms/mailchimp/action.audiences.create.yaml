@@ -5,20 +5,20 @@ meta:
   category: Audiences
   type: Action
   platform: mailchimp
-  description: "Creates a new audience (list) in Mailchimp."
-  version: "1.0.0"
+  description: Creates a new audience (list) in Mailchimp.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a new container for subscribers, such as for a specific project or client."
-    usage_context: "Use this to programmatically segment users into top-level lists based on business logic or new product launches."
+    purpose: Initialize a new container for subscribers, such as for a specific project or client.
+    usage_context: Use this to programmatically segment users into top-level lists based on business logic or new product launches.
     agent_hints:
       - "Requires 'name', 'contact', 'permission_reminder', and 'campaign_defaults'."
     waml_examples:
-      - title: "Create New Audience"
+      - title: Create New Audience
         waml: |
           - step: mk_list
             call: mailchimp.action.audiences.create
             with:
-               name: "Newsletter Q2"
+               name: Newsletter Q2
 
 interface:
   inputs:
@@ -49,19 +49,19 @@ execution:
       method: POST
       url: >
         platform.base_url + "/lists"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        name: inputs.name
-        contact: inputs.contact
-        permission_reminder: inputs.permissionReminder
-        campaign_defaults: inputs.campaignDefaults
-        email_type_option: inputs.emailTypeOption
+        name: =inputs.name
+        contact: =inputs.contact
+        permission_reminder: =inputs.permissionReminder
+        campaign_defaults: =inputs.campaignDefaults
+        email_type_option: =inputs.emailTypeOption
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -70,9 +70,9 @@ routing:
       - tool: emit
         params:
           port: audience
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

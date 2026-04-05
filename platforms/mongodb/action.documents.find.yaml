@@ -4,24 +4,24 @@ meta:
   category: Database
   type: Action
   platform: mongodb
-  description: "Finds multiple documents in a MongoDB collection."
-  version: "1.0.0"
+  description: Finds multiple documents in a MongoDB collection.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve an array of documents that match a query."
-    usage_context: "Use this to list items like all orders from a specific user, or products in a category. Supports limit and skip for pagination."
+    purpose: Retrieve an array of documents that match a query.
+    usage_context: Use this to list items like all orders from a specific user, or products in a category. Supports limit and skip for pagination.
     agent_hints:
       - "Returns an empty array if no documents match."
       - "Use the standard MongoDB filter syntax ($in, $or, etc.)."
     waml_examples:
-      - title: "List Recent Orders"
+      - title: List Recent Orders
         waml: |
           - step: get_orders
             call: mongodb.action.documents.find
             with:
-               collection: "orders"
+               collection: orders
                filter:
-                 user_id: "U789"
-                 status: "completed"
+                 user_id: U789
+                 status: completed
                limit: 20
                sort:
                  created_at: -1
@@ -47,16 +47,16 @@ execution:
   - id: mongo
     tool: mongo_query
     params:
-      connection_string: settings.connection_string
-      database: settings.database
-      collection: inputs.collection
+      connection_string: =settings.connection_string
+      database: =settings.database
+      collection: =inputs.collection
       operation: find
-      filter: inputs.filter
+      filter: =inputs.filter
     returns:
       documents: documents
 
 routing:
-  match: steps.mongo.status
+  match: =steps.mongo.status
   cases:
     default:
       - tool: emit
@@ -65,4 +65,4 @@ routing:
       - tool: emit
         params:
           port: documents
-          value: steps.mongo.documents
+          value: =steps.mongo.documents

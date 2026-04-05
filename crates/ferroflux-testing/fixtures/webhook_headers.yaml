@@ -1,33 +1,33 @@
-name: "Webhook Headers"
-description: "Webhook triggers HTTP GET with custom headers"
+name: Webhook Headers
+description: Webhook triggers HTTP GET with custom headers
 triggers:
-  - id: "webhook_in"
-    name: "Incoming Webhook"
-    type: "core.trigger.webhook"
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
     config:
-      path: "/headers-test"
+      path: /headers-test
 nodes:
-  - id: "http_get"
-    name: "HTTP GET"
-    type: "core.action.http"
+  - id: http_get
+    name: HTTP GET
+    type: core.action.http
     config:
-      url: "/headers-sink"
-      method: "GET"
+      url: /headers-sink
+      method: GET
       headers:
-        Authorization: "Bearer test-token"
-        X-Test: "Value"
-  - id: "log_out"
-    name: "Debug Log"
-    type: "core.action.log"
+        Authorization: Bearer test-token
+        X-Test: Value
+  - id: log_out
+    name: Debug Log
+    type: core.action.log
     config:
-      level: "'INFO'"
-      message: "Headers test complete"
+      level: INFO
+      message: Headers test complete
 edges:
-  - source_id: "webhook_in"
-    source_handle: "Success"
-    target_id: "http_get"
-    target_handle: "Exec"
-  - source_id: "http_get"
-    source_handle: "Success"
-    target_id: "log_out"
-    target_handle: "Exec"
+  - source_id: webhook_in
+    source_handle: Success
+    target_id: http_get
+    target_handle: Exec
+  - source_id: http_get
+    source_handle: Success
+    target_id: log_out
+    target_handle: Exec

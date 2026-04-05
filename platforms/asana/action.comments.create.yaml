@@ -5,22 +5,22 @@ meta:
   category: Comments
   type: Action
   platform: asana
-  description: "Adds a comment (story) to an Asana task."
-  version: "1.0.0"
+  description: Adds a comment (story) to an Asana task.
+  version: 1.0.0
   discovery:
-    purpose: "Communicate updates and provide context on a task."
-    usage_context: "Use this to log progress, notify team members of results, or record completion details within the task's history."
+    purpose: Communicate updates and provide context on a task.
+    usage_context: Use this to log progress, notify team members of results, or record completion details within the task's history.
     agent_hints:
       - "Requires the 'task_gid'."
       - "Supports 'text' or 'html_text' for formatting. Use 'html_text' for mentions and links."
     waml_examples:
-      - title: "Post Status Update"
+      - title: Post Status Update
         waml: |
           - step: say_it
             call: asana.action.comments.create
             with:
-               task_gid: "1202..."
-               text: "Processing complete. Please check the results."
+               task_gid: 1202...
+               text: Processing complete. Please check the results.
 
 interface:
   inputs:
@@ -45,16 +45,16 @@ execution:
       method: POST
       url: >
         platform.base_url + "/tasks/" + inputs.taskGid + "/stories"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         data:
-          text: inputs.text
+          text: =inputs.text
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -63,9 +63,9 @@ routing:
       - tool: emit
         params:
           port: comment
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

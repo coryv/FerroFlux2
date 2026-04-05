@@ -119,7 +119,7 @@ impl Tool for HttpClientTool {
         if aws_config.is_none()
             && let Some(slug) = connection_slug
             && let Some(resolver) = context.secrets
-            && let Ok(conn_data) = resolver.resolve_connection(&ferroflux_iam::TenantId::from("default_tenant"), slug)
+            && let Ok(conn_data) = resolver.resolve_connection(&ferroflux_iam::TenantId::from(context.tenant_id.as_str()), slug)
             && let Some("aws_sigv4") = conn_data.get("auth_type").and_then(|v| v.as_str())
         {
             let service = params.get("aws_service").and_then(|v| v.as_str()).unwrap_or("s3").to_string();
@@ -256,6 +256,8 @@ mod tests {
                 local: $local,
                 memory: $memory,
                 trace_id: "test".to_string(),
+                node_id: "test_node".to_string(),
+                tenant_id: "test_tenant".to_string(),
                 event_bus: None,
                 shadow_mode: false,
                 shadow_masks: $masks,
@@ -268,6 +270,8 @@ mod tests {
                 local: $local,
                 memory: $memory,
                 trace_id: "test".to_string(),
+                node_id: "test_node".to_string(),
+                tenant_id: "test_tenant".to_string(),
                 event_bus: None,
                 shadow_mode: false,
                 shadow_masks: $masks,

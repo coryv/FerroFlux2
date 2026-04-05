@@ -4,15 +4,15 @@ meta:
   category: Utilities
   type: Action
   platform: core
-  description: "Regex match/replace, slugify, and truncate text."
-  version: "1.0.0"
+  description: Regex match/replace, slugify, and truncate text.
+  version: 1.0.0
   discovery:
-    purpose: "Perform text manipulations like regex extraction, template rendering, and case conversion."
-    usage_context: "Use to format strings for emails, extract IDs from logs, or clean up input data."
+    purpose: Perform text manipulations like regex extraction, template rendering, and case conversion.
+    usage_context: Use to format strings for emails, extract IDs from logs, or clean up input data.
     agent_hints:
       - "The 'render' action uses standard templating syntax."
     waml_examples:
-      - title: "Render Template"
+      - title: Render Template
         waml: |
           - step: format
             call: core.utils.text
@@ -63,11 +63,11 @@ execution:
   - id: process
     tool: core.utils.text
     params:
-      operation: settings.operation
-      text: inputs.text
-      pattern: settings.pattern
-      replacement: settings.replacement
-      length: settings.length
+      operation: =settings.operation
+      text: =inputs.text
+      pattern: =settings.pattern
+      replacement: =settings.replacement
+      length: =settings.length
     returns:
       result: processed
 
@@ -75,7 +75,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: steps.process.result
+      value: =steps.process.result
 
   - id: done
     tool: emit

@@ -1,0 +1,58 @@
+id: text_slug_truncate_workflow
+name: Text Slugify and Truncate Test Workflow
+description: Verify slugification and truncation of titles.
+
+nodes:
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
+
+  - id: text_slugify
+    name: Slugify Title
+    type: core.utils.text
+    config:
+      operation: slugify
+
+  - id: text_truncate
+    name: Truncate Slug
+    type: core.utils.text
+    config:
+      operation: truncate
+      length: 10
+
+  - id: slug_logger
+    name: Log Final Slug
+    type: core.action.log
+    config:
+      message: "='Final slug: ' + string(inputs.body)"
+
+edges:
+  # 1. Webhook to Slugify
+  - source_id: webhook_in
+    target_id: text_slugify
+    source_handle: Success
+    target_handle: Exec
+  - source_id: webhook_in
+    target_id: text_slugify
+    source_handle: body
+    target_handle: text
+
+  # 2. Slugify to Truncate
+  - source_id: text_slugify
+    target_id: text_truncate
+    source_handle: Exec
+    target_handle: Exec
+  - source_id: text_slugify
+    target_id: text_truncate
+    source_handle: result
+    target_handle: text
+
+  # 3. Truncate to Logger
+  - source_id: text_truncate
+    target_id: slug_logger
+    source_handle: Exec
+    target_handle: Exec
+  - source_id: text_truncate
+    target_id: slug_logger
+    source_handle: result
+    target_handle: body

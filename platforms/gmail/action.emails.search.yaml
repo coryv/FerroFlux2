@@ -6,15 +6,15 @@ meta:
   type: Action
   platform: gmail
   description: "Search for emails using Gmail's search syntax (e.g. from:someone has:attachment)."
-  version: "1.0.0"
+  version: 1.0.0
   discovery:
-    purpose: "Find emails based on specific criteria within a Gmail account."
-    usage_context: "Use this to locate specific messages, threads, or attachments. Ideal for finding a past invoice, checking for a specific subject line, or gathering unread emails for processing."
+    purpose: Find emails based on specific criteria within a Gmail account.
+    usage_context: Use this to locate specific messages, threads, or attachments. Ideal for finding a past invoice, checking for a specific subject line, or gathering unread emails for processing.
     agent_hints:
       - "The 'query' parameter supports standard Gmail search operators (e.g., 'is:unread', 'from:google.com', 'after:2024/01/01')."
       - "Returns a list of message summaries. You may need to call 'gmail.emails.get' with an ID to see the full content."
     waml_examples:
-      - title: "Find Unread Invoices"
+      - title: Find Unread Invoices
         waml: |
           - step: search_invoices
             call: gmail.emails.search
@@ -46,9 +46,9 @@ execution:
       method: GET
       url: >
         platform.base_url + "/messages"
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        q: inputs.query
+        q: =inputs.query
         maxResults: >
           (has(inputs.limit) ? inputs.limit : '10')
     returns:
@@ -56,7 +56,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -65,9 +65,9 @@ routing:
       - tool: emit
         params:
           port: messages
-          value: steps.request.response_body.messages
+          value: =steps.request.response_body.messages
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

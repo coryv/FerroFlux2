@@ -4,25 +4,25 @@ meta:
   category: Users
   type: Action
   platform: segment
-  description: "Sends an 'identify' event to Segment to create or update a user profile."
-  version: "1.0.0"
+  description: Sends an 'identify' event to Segment to create or update a user profile.
+  version: 1.0.0
   discovery:
-    purpose: "Associate a user with their traits and a unique ID."
-    usage_context: "Use this when a user signs up, logs in, or updates their profile. It links an 'anonymousId' to a permanent 'userId' and maps custom traits like name, email, or plan type."
+    purpose: Associate a user with their traits and a unique ID.
+    usage_context: Use this when a user signs up, logs in, or updates their profile. It links an 'anonymousId' to a permanent 'userId' and maps custom traits like name, email, or plan type.
     agent_hints:
       - "The 'traits' JSON object should contain descriptive user data."
       - "Always include 'email' if available to enable cross-platform identity resolution."
     waml_examples:
-      - title: "Identify New User"
+      - title: Identify New User
         waml: |
           - step: sync_user
             call: segment.action.users.identify
             with:
-               userId: "user_456"
+               userId: user_456
                traits:
-                 name: "Bob Builder"
-                 email: "bob@example.com"
-                 plan: "premium"
+                 name: Bob Builder
+                 email: bob@example.com
+                 plan: premium
   permissions:
     - "network:api.segment.io"
 
@@ -49,11 +49,11 @@ execution:
       method: POST
       url: >
         platform.base_url + "/identify"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        userId: inputs.userId
-        anonymousId: inputs.anonymousId
-        traits: inputs.traits
+        userId: =inputs.userId
+        anonymousId: =inputs.anonymousId
+        traits: =inputs.traits
     returns:
       status: status_code
       body: response_body
@@ -61,7 +61,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -69,7 +69,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -79,4 +79,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

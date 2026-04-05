@@ -4,11 +4,11 @@ meta:
   name: Azure OpenAI
   type: Platform
   category: AI/ML
-  description: "Connects to Azure OpenAI Service — the enterprise-grade OpenAI deployment on Microsoft Azure with data residency, VNet support, and compliance controls."
-  version: "1.0.0"
+  description: Connects to Azure OpenAI Service — the enterprise-grade OpenAI deployment on Microsoft Azure with data residency, VNet support, and compliance controls.
+  version: 1.0.0
   discovery:
-    purpose: "Access enterprise-grade OpenAI models (GPT-4, GPT-3.5) via Microsoft Azure."
-    usage_context: "Use this for corporate AI applications where data residency, private networking, and enterprise SLAs are required."
+    purpose: Access enterprise-grade OpenAI models (GPT-4, GPT-3.5) via Microsoft Azure.
+    usage_context: Use this for corporate AI applications where data residency, private networking, and enterprise SLAs are required.
     agent_hints:
       - "Requires a resource name, API key, and specific deployment name (not just model name)."
       - "Follows Azure-specific API versioning (e.g. 2024-08-01-preview)."
@@ -16,24 +16,24 @@ meta:
 config:
   base_url: "https://RESOURCE_NAME.openai.azure.com/openai"
   headers:
-    Content-Type: "application/json"
-    api-key: "PASTE_YOUR_API_KEY_HERE"
+    Content-Type: application/json
+    api-key: PASTE_YOUR_API_KEY_HERE
 
 settings:
   - name: resource_name
-    label: "Azure Resource Name"
+    label: Azure Resource Name
     type: string
     required: true
-    placeholder: "my-openai-resource"
-    description: "The name of your Azure OpenAI resource (from the Azure portal)."
+    placeholder: my-openai-resource
+    description: The name of your Azure OpenAI resource (from the Azure portal).
   - name: api_key
-    label: "API Key"
+    label: API Key
     type: string
     required: true
     description: "Found under Keys & Endpoint in your Azure OpenAI resource."
   - name: api_version
-    label: "API Version"
+    label: API Version
     type: string
-    default: "2024-08-01-preview"
+    default: 2024-08-01-preview
     required: true
-    description: "Azure OpenAI API version. See Azure docs for latest stable version."
+    description: Azure OpenAI API version. See Azure docs for latest stable version.

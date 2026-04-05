@@ -1,13 +1,13 @@
 meta:
   id: google_analytics
-  name: "Google Analytics"
-  category: "Analytics"
+  name: Google Analytics
+  category: Analytics
   type: Platform
-  description: "Connects to Google Analytics 4 (GA4) to retrieve property-level reports and event data."
-  version: "1.0.0"
+  description: Connects to Google Analytics 4 (GA4) to retrieve property-level reports and event data.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve marketing and engagement insights from Google Analytics 4 (GA4)."
-    usage_context: "Use to automate daily traffic reports, identify high-converting referral sources, or trigger Slack alerts when unusual spikes in activity are detected."
+    purpose: Retrieve marketing and engagement insights from Google Analytics 4 (GA4).
+    usage_context: Use to automate daily traffic reports, identify high-converting referral sources, or trigger Slack alerts when unusual spikes in activity are detected.
     agent_hints:
       - "Requires a GA4 Property ID."
       - "Uses the Data API (v1beta)."
@@ -16,11 +16,11 @@ meta:
 
 config:
   base_url: "https://analyticsdata.googleapis.com/v1beta"
-  auth_type: "oauth2"
+  auth_type: oauth2
   auth:
-    type: "bearer"
+    type: bearer
   connection_schema:
-    - name: "property_id"
-      type: "string"
+    - name: property_id
+      type: string
       required: true
-      description: "GA4 Property ID"
+      description: GA4 Property ID

@@ -5,22 +5,22 @@ meta:
   category: Repositories
   type: Action
   platform: github
-  description: "Lists repositories for the authenticated user or an organization."
-  version: "1.0.0"
+  description: Lists repositories for the authenticated user or an organization.
+  version: 1.0.0
   discovery:
-    purpose: "Browse and identify repositories for project management and automation."
-    usage_context: "Use this to starting a repo-specific automation, find a repository's name by its owner, or audit organization repository health."
+    purpose: Browse and identify repositories for project management and automation.
+    usage_context: Use this to starting a repo-specific automation, find a repository's name by its owner, or audit organization repository health.
     agent_hints:
       - "Can be filtered by 'visibility' (all, public, private), 'type', and 'sort'."
       - "Returns a list of repository summaries (name, owner, description, HTML URL)."
     waml_examples:
-      - title: "List Organization Repos"
+      - title: List Organization Repos
         waml: |
           - step: get_repos
             call: github.action.repos.list
             with:
-               org: "google"
-               type: "public"
+               org: google
+               type: public
 
 interface:
   inputs:
@@ -37,39 +37,39 @@ interface:
       type: array
   settings:
     - name: owner_type
-      label: "Owner Type"
+      label: Owner Type
       type: select
       required: true
-      default: "users"
+      default: users
       options:
-        - label: "User"
-          value: "users"
-        - label: "Organization"
-          value: "orgs"
+        - label: User
+          value: users
+        - label: Organization
+          value: orgs
     - name: per_page
-      label: "Results Per Page"
+      label: Results Per Page
       type: number
       default: 30
       min: 1
       max: 100
     - name: page
-      label: "Page"
+      label: Page
       type: number
       default: 1
       min: 1
     - name: sort
-      label: "Sort By"
+      label: Sort By
       type: select
-      default: "updated"
+      default: updated
       options:
-        - label: "Updated"
-          value: "updated"
-        - label: "Created"
-          value: "created"
-        - label: "Pushed"
-          value: "pushed"
-        - label: "Full Name"
-          value: "full_name"
+        - label: Updated
+          value: updated
+        - label: Created
+          value: created
+        - label: Pushed
+          value: pushed
+        - label: Full Name
+          value: full_name
 
 execution:
   - id: request
@@ -78,7 +78,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/" + settings.owner_type + "/" + inputs.owner + "/repos?per_page=" + settings.per_page + "&page=" + settings.page + "&sort=" + settings.sort
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -86,7 +86,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -94,7 +94,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -103,9 +103,9 @@ routing:
       - tool: emit
         params:
           port: repos
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

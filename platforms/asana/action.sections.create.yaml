@@ -5,22 +5,22 @@ meta:
   category: Sections
   type: Action
   platform: asana
-  description: "Creates a new section within an Asana project."
-  version: "1.0.0"
+  description: Creates a new section within an Asana project.
+  version: 1.0.0
   discovery:
-    purpose: "Organize tasks into columns or logical groups within a project."
-    usage_context: "Use this to create new statuses for a kanban board, add monthly headers to a list, or programmatically structure a new project template."
+    purpose: Organize tasks into columns or logical groups within a project.
+    usage_context: Use this to create new statuses for a kanban board, add monthly headers to a list, or programmatically structure a new project template.
     agent_hints:
       - "Requires the 'project_gid'."
       - "Sections appear in 'Board' view as columns and in 'List' view as headers."
     waml_examples:
-      - title: "Create Kanban Column"
+      - title: Create Kanban Column
         waml: |
           - step: mk_section
             call: asana.action.sections.create
             with:
-               project_gid: "1201..."
-               name: "Review Needed"
+               project_gid: 1201...
+               name: Review Needed
 
 interface:
   inputs:
@@ -45,16 +45,16 @@ execution:
       method: POST
       url: >
         platform.base_url + "/projects/" + inputs.projectGid + "/sections"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         data:
-          name: inputs.name
+          name: =inputs.name
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -63,9 +63,9 @@ routing:
       - tool: emit
         params:
           port: section
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

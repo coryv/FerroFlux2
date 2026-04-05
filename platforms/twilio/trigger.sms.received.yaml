@@ -5,15 +5,15 @@ meta:
   category: SMS
   type: Trigger
   platform: twilio
-  description: "Fires when an inbound SMS is received via Twilio webhook."
-  version: "1.0.0"
+  description: Fires when an inbound SMS is received via Twilio webhook.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow when a new SMS message is received on a Twilio number."
-    usage_context: "Use to automate text message responses, bridge mobile communication with Slack, or process incoming keywords for marketing campaigns."
+    purpose: Initialize a workflow when a new SMS message is received on a Twilio number.
+    usage_context: Use to automate text message responses, bridge mobile communication with Slack, or process incoming keywords for marketing campaigns.
     agent_hints:
       - "Requires a pre-configured Twilio Webhook URL pointing to the FerroFlux intake."
     waml_examples:
-      - title: "SMS Bridge"
+      - title: SMS Bridge
         waml: |
           - step: on_sms
             type: trigger
@@ -28,15 +28,15 @@ interface:
       type: object
   settings:
     - name: auth_token
-      label: "Auth Token"
+      label: Auth Token
       type: string
       required: true
-      description: "Your Twilio account Auth Token — used to verify webhook signatures."
+      description: Your Twilio account Auth Token — used to verify webhook signatures.
     - name: webhook_path
-      label: "Webhook Path"
+      label: Webhook Path
       type: string
-      default: "/twilio/sms"
-      description: "Path suffix for this webhook endpoint."
+      default: /twilio/sms
+      description: Path suffix for this webhook endpoint.
 
 execution:
   # Twilio signs using HMAC-SHA1 over the full URL + sorted POST params concatenated.
@@ -44,9 +44,9 @@ execution:
   - id: verify
     tool: verify_signature
     params:
-      body: event.raw_body
-      secret: settings.auth_token
-      signature: event.headers["x-twilio-signature"]
+      body: =event.raw_body
+      secret: =settings.auth_token
+      signature: '=event.headers["x-twilio-signature"]'
       algorithm: hmac-sha1
       encoding: base64
     returns:
@@ -66,23 +66,23 @@ execution:
         }
         result
       input:
-        raw: event.raw_body
+        raw: =event.raw_body
     returns:
       result: sms_data
 
   - id: check_valid
     tool: logic
     params:
-      condition: steps.verify.is_valid
+      condition: =steps.verify.is_valid
 
 routing:
-  match: steps.check_valid.result
+  match: =steps.check_valid.result
   cases:
     "true":
       - tool: emit
         params:
           port: message
-          value: steps.parse_body.sms_data
+          value: =steps.parse_body.sms_data
       - tool: emit
         params:
           port: Success
@@ -90,4 +90,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "Webhook signature verification failed"
+          value: Webhook signature verification failed

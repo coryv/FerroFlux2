@@ -5,20 +5,20 @@ meta:
   category: Tasks
   type: Action
   platform: asana
-  description: "Permanently deletes a task from Asana."
-  version: "1.0.0"
+  description: Permanently deletes a task from Asana.
+  version: 1.0.0
   discovery:
-    purpose: "Remove a task from the workspace."
-    usage_context: "Use this to clean up temporary or redundant tasks after they are no longer needed. Use with caution as this is irreversible."
+    purpose: Remove a task from the workspace.
+    usage_context: Use this to clean up temporary or redundant tasks after they are no longer needed. Use with caution as this is irreversible.
     agent_hints:
       - "Requires the 'task_gid'."
     waml_examples:
-      - title: "Cleanup Task"
+      - title: Cleanup Task
         waml: |
           - step: rm_task
             call: asana.action.tasks.delete
             with:
-               task_gid: "1202..."
+               task_gid: 1202...
 
 interface:
   inputs:
@@ -39,13 +39,13 @@ execution:
       method: DELETE
       url: >
         platform.base_url + "/tasks/" + inputs.taskGid
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -55,4 +55,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

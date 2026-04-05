@@ -5,23 +5,23 @@ meta:
   category: Rows
   type: Action
   platform: supabase
-  description: "Inserts a new row into a table using PostgREST."
-  version: "1.0.0"
+  description: Inserts a new row into a table using PostgREST.
+  version: 1.0.0
   discovery:
-    purpose: "Insert one or more new rows into a Supabase (PostgreSQL) table via the REST API."
-    usage_context: "Use to persist application data, log new user activity, or synchronize data from external webhooks into a Supabase backend."
+    purpose: Insert one or more new rows into a Supabase (PostgreSQL) table via the REST API.
+    usage_context: Use to persist application data, log new user activity, or synchronize data from external webhooks into a Supabase backend.
     agent_hints:
       - "Requires table_name and a JSON object or array of objects representing the rows."
     waml_examples:
-      - title: "Save Profile"
+      - title: Save Profile
         waml: |
           - step: save
             call: supabase.action.rows.insert
             with:
-               table_name: "profiles"
+               table_name: profiles
                row: { "id": "123", "name": "John Doe" }
-               on_conflict: "do_nothing"
-               returning: "representation"
+               on_conflict: do_nothing
+               returning: representation
 
 interface:
   inputs:
@@ -50,12 +50,12 @@ execution:
       headers:
         Content-Type: >
           "application/json"
-        apikey: settings.api_key
+        apikey: =settings.api_key
         Authorization: >
           "Bearer " + settings.api_key
         Prefer: >
           "return=representation"
-      body: inputs.data
+      body: =inputs.data
     returns:
       status: status_code
       body: response_body
@@ -63,7 +63,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 201
           output: success
@@ -71,7 +71,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -80,9 +80,9 @@ routing:
       - tool: emit
         params:
           port: result
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

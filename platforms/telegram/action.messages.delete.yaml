@@ -5,21 +5,21 @@ meta:
   category: Messages
   type: Action
   platform: telegram
-  description: "Delete a message from a Telegram chat."
-  version: "1.0.0"
+  description: Delete a message from a Telegram chat.
+  version: 1.0.0
   discovery:
-    purpose: "Permanently remove a specific message from a Telegram chat or group."
-    usage_context: "Use to cleanup bot status messages, remove spam, or manage the visibility of transient updates."
+    purpose: Permanently remove a specific message from a Telegram chat or group.
+    usage_context: Use to cleanup bot status messages, remove spam, or manage the visibility of transient updates.
     agent_hints:
       - "Requires chat_id and message_id."
       - "Note that some messages (e.g. from users in private chats) can only be deleted if the bot is an admin."
     waml_examples:
-      - title: "Delete Message"
+      - title: Delete Message
         waml: |
           - step: cleanup
             call: telegram.action.messages.delete
             with:
-               chat_id: "${inputs.chat_id}"
+               chat_id: =inputs.chat_id
                message_id: 101
 
 interface:
@@ -43,16 +43,16 @@ execution:
       method: POST
       url: >
         platform.base_url + "/deleteMessage"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        chat_id: inputs.chat_id
-        message_id: inputs.message_id
+        chat_id: =inputs.chat_id
+        message_id: =inputs.message_id
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -62,4 +62,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

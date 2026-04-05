@@ -5,24 +5,24 @@ meta:
   category: Customers
   type: Action
   platform: stripe
-  description: "Creates a new customer."
-  version: "1.0.0"
+  description: Creates a new customer.
+  version: 1.0.0
   discovery:
-    purpose: "Create a new customer profile in Stripe."
-    usage_context: "Use to store billing details and personal information for users before processing charges or subscriptions."
+    purpose: Create a new customer profile in Stripe.
+    usage_context: Use to store billing details and personal information for users before processing charges or subscriptions.
     agent_hints:
       - "Requires email and name."
       - "Returns a Stripe customer object."
     waml_examples:
-      - title: "Register Customer"
+      - title: Register Customer
         waml: |
           - step: register
             call: stripe.action.customers.create
             with:
-               email: "john.doe@example.com"
-               name: "John Doe"
-               description: "New user from FerroFlux"
-               phone: "+15550000000"
+               email: john.doe@example.com
+               name: John Doe
+               description: New user from FerroFlux
+               phone: +15550000000
                balance: 0
 
 interface:
@@ -49,11 +49,11 @@ execution:
       method: POST
       url: >
         platform.base_url + "/customers"
-      headers: platform.headers
+      headers: =platform.headers
       body_type: form
       body:
-        email: inputs.email
-        name: inputs.name
+        email: =inputs.email
+        name: =inputs.name
     returns:
       status: status_code
       body: response_body
@@ -61,7 +61,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -69,7 +69,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -78,9 +78,9 @@ routing:
       - tool: emit
         params:
           port: customer
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -2,18 +2,18 @@ meta:
   permissions: ["network:www.googleapis.com"]
   id: google-drive.files.updated
   name: File Updated
-  category: Cloud Storage & Files
+  category: "Cloud Storage & Files"
   type: Trigger
   platform: google-drive
-  description: "Fires when a file is modified."
-  version: "1.0.0"
+  description: Fires when a file is modified.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow whenever a file or folder in Google Drive is modified."
-    usage_context: "Use to sync updated spreadsheets to a database, notify team members of document changes, or re-parse updated PDFs."
+    purpose: Initialize a workflow whenever a file or folder in Google Drive is modified.
+    usage_context: Use to sync updated spreadsheets to a database, notify team members of document changes, or re-parse updated PDFs.
     agent_hints:
       - "Polls for recently updated files in the connected account."
     waml_examples:
-      - title: "Sync Updates"
+      - title: Sync Updates
         waml: |
           - step: on_update
             type: trigger
@@ -28,7 +28,7 @@ interface:
       type: object
   settings:
     - name: poll_interval
-      label: "Poll Interval (minutes)"
+      label: Poll Interval (minutes)
       type: number
       required: false
       default: 5
@@ -41,7 +41,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/files"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         orderBy: >
           "modifiedTime desc"
@@ -55,12 +55,12 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/files"
         returns:

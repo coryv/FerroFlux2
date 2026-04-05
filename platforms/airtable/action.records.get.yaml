@@ -5,22 +5,22 @@ meta:
   category: Records
   type: Action
   platform: airtable
-  description: "Retrieves a single record by its ID."
-  version: "1.0.0"
+  description: Retrieves a single record by its ID.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve the details and fields of a specific Airtable record."
-    usage_context: "Use to fetch the current values of an identified row before processing updates or performing specific logic."
+    purpose: Retrieve the details and fields of a specific Airtable record.
+    usage_context: Use to fetch the current values of an identified row before processing updates or performing specific logic.
     agent_hints:
       - "Requires a valid recordId."
     waml_examples:
-      - title: "Fetch Lead Details"
+      - title: Fetch Lead Details
         waml: |
           - step: get_lead
             call: airtable.action.records.get
             with:
-               baseId: "app12345"
-               tableIdOrName: "Leads"
-               recordId: "rec123456789"
+               baseId: app12345
+               tableIdOrName: Leads
+               recordId: rec123456789
 
 interface:
   inputs:
@@ -48,7 +48,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/" + inputs.base_id + "/" + inputs.table_id_or_name + "/" + inputs.record_id
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -56,7 +56,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -64,7 +64,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -73,9 +73,9 @@ routing:
       - tool: emit
         params:
           port: record
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

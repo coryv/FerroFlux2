@@ -5,23 +5,23 @@ meta:
   category: Messages
   type: Trigger
   platform: slack
-  description: "Triggers when the bot is explicitly mentioned (@bot) in a Slack channel."
-  version: "1.0.0"
+  description: Triggers when the bot is explicitly mentioned (@bot) in a Slack channel.
+  version: 1.0.0
   discovery:
-    purpose: "Invoke the bot via a direct mention in a channel."
-    usage_context: "Use this to build 'command-like' interactions where a human explicitly asks the bot for something (e.g., '@bot summarize this thread')."
+    purpose: Invoke the bot via a direct mention in a channel.
+    usage_context: Use this to build 'command-like' interactions where a human explicitly asks the bot for something (e.g., '@bot summarize this thread').
     agent_hints:
       - "The 'bot_user_id' setting is required to correctly filter mentions intended for this specific application."
       - "The mention text can be parsed to extract sub-commands or parameters."
     waml_examples:
-      - title: "Command Response Pattern"
+      - title: Command Response Pattern
         waml: |
           trigger:
             id: mention_listener
             call: slack.trigger.messages.mention
             with:
-               channel: "C98765432"
-               bot_user_id: "U78901234"
+               channel: C98765432
+               bot_user_id: U78901234
 
 interface:
   inputs: []
@@ -33,17 +33,17 @@ interface:
 
   settings:
     - name: channel
-      label: "Channel ID"
+      label: Channel ID
       type: string
       required: true
-      placeholder: "C1234567890"
+      placeholder: C1234567890
     - name: bot_user_id
-      label: "Bot User ID"
+      label: Bot User ID
       type: string
       required: true
-      placeholder: "U1234567890"
+      placeholder: U1234567890
     - name: poll_interval
-      label: "Poll Interval (minutes)"
+      label: Poll Interval (minutes)
       type: number
       default: 1
       min: 1
@@ -55,7 +55,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/conversations.history?channel=" + settings.channel + "&oldest=" + event.cursor + "&limit=20"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -63,7 +63,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.fetch.status_code
+      value: =steps.fetch.status_code
       cases:
         - condition: 200
           output: success
@@ -71,7 +71,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -80,9 +80,9 @@ routing:
       - tool: emit
         params:
           port: message
-          value: steps.fetch.response_body
+          value: =steps.fetch.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.fetch.response_body
+          value: =steps.fetch.response_body

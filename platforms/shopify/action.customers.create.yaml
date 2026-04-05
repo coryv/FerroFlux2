@@ -5,22 +5,22 @@ meta:
   category: Customers
   type: Action
   platform: shopify
-  description: "Creates a new customer."
-  version: "1.0.0"
+  description: Creates a new customer.
+  version: 1.0.0
   discovery:
-    purpose: "Create a new customer profile in the Shopify store."
-    usage_context: "Use to synchronize customer data from external marketing tools or CRM systems."
+    purpose: Create a new customer profile in the Shopify store.
+    usage_context: Use to synchronize customer data from external marketing tools or CRM systems.
     agent_hints:
       - "Requires email and optionally first/last name."
     waml_examples:
-      - title: "New Customer"
+      - title: New Customer
         waml: |
           - step: register_user
             call: shopify.action.customers.create
             with:
-               email: "john.doe@example.com"
-               first_name: "John"
-               last_name: "Doe"
+               email: john.doe@example.com
+               first_name: John
+               last_name: Doe
 
 interface:
   inputs:
@@ -47,18 +47,18 @@ execution:
       method: POST
       url: >
         platform.base_url + "/customers.json"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         customer:
-          first_name: inputs.firstName
-          last_name: inputs.lastName
-          email: inputs.email
+          first_name: =inputs.firstName
+          last_name: =inputs.lastName
+          email: =inputs.email
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -67,9 +67,9 @@ routing:
       - tool: emit
         params:
           port: customer
-          value: steps.request.response_body.customer
+          value: =steps.request.response_body.customer
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -5,22 +5,22 @@ meta:
   category: Files
   type: Trigger
   platform: slack
-  description: "Triggers when a new file is shared in a Slack workspace or channel."
-  version: "1.0.0"
+  description: Triggers when a new file is shared in a Slack workspace or channel.
+  version: 1.0.0
   discovery:
-    purpose: "Monitor Slack for new file uploads and shares."
-    usage_context: "Use this to automate document processing, backup files to another service, or scan for sensitive content. Can filter by a specific channel or monitor the entire authorized workspace."
+    purpose: Monitor Slack for new file uploads and shares.
+    usage_context: Use this to automate document processing, backup files to another service, or scan for sensitive content. Can filter by a specific channel or monitor the entire authorized workspace.
     agent_hints:
       - "The 'file' output contains the Slack file object, with 'url_private' for downloading and 'mimetype' for filtering."
       - "Note that the bot must have 'files:read' scopes to detect files outside of channels it is a member of."
     waml_examples:
-      - title: "Monitor Channel Files"
+      - title: Monitor Channel Files
         waml: |
           trigger:
             id: file_tracker
             call: slack.trigger.files.new
             with:
-               channel: "C12345678"
+               channel: C12345678
 
 interface:
   inputs: []
@@ -31,12 +31,12 @@ interface:
       type: object
   settings:
     - name: channel
-      label: "Channel ID (optional — leave blank for all)"
+      label: Channel ID (optional — leave blank for all)
       type: string
       required: false
-      placeholder: "C1234567890"
+      placeholder: C1234567890
     - name: limit
-      label: "Batch Limit"
+      label: Batch Limit
       type: number
       default: 10
 
@@ -47,9 +47,9 @@ execution:
       method: GET
       url: >
         platform.base_url + "/files.list"
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        channel: settings.channel
+        channel: =settings.channel
         limit: >
           (has(settings.limit) ? settings.limit : '10')
     returns:
@@ -59,19 +59,19 @@ execution:
   - id: extract_files
     tool: json_query
     params:
-      json: steps.fetch.response_body
+      json: =steps.fetch.response_body
       path: >
         "/files"
     returns:
       files: files_array
 
 routing:
-  match: steps.fetch.status_code
+  match: =steps.fetch.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extract_files.files_array
+          items: =steps.extract_files.files_array
           cursor_key: timestamp
           port: file
       - tool: emit
@@ -81,4 +81,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.fetch.response_body
+          value: =steps.fetch.response_body

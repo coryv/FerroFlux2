@@ -5,20 +5,20 @@ meta:
   category: AI
   type: Action
   platform: gemini
-  description: "Delete a file from the Gemini File API."
-  version: "1.0.0"
+  description: Delete a file from the Gemini File API.
+  version: 1.0.0
   discovery:
-    purpose: "Permanently delete a file from the Gemini File API."
-    usage_context: "Use to manage storage limits and clear sensitive metadata after a generation task is complete."
+    purpose: Permanently delete a file from the Gemini File API.
+    usage_context: Use to manage storage limits and clear sensitive metadata after a generation task is complete.
     agent_hints:
       - "Requires a file_id."
     waml_examples:
-      - title: "Delete Uploaded Video"
+      - title: Delete Uploaded Video
         waml: |
           - step: cleanup
             call: gemini.action.ai.delete_file
             with:
-               file_id: "files/12345"
+               file_id: files/12345
 
 interface:
   inputs:
@@ -26,8 +26,8 @@ interface:
       type: flow
     - name: file_id
       type: string
-      description: "Full resource name returned by the File API, e.g. files/abc123"
-      placeholder: "files/abc123"
+      description: Full resource name returned by the File API, e.g. files/abc123
+      placeholder: files/abc123
   outputs:
     - name: Success
       type: flow
@@ -42,7 +42,7 @@ execution:
       method: DELETE
       url: >
         platform.base_url + "/v1beta/" + inputs.file_id
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -50,7 +50,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -60,7 +60,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -70,4 +70,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

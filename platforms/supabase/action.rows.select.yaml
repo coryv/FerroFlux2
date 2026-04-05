@@ -5,23 +5,23 @@ meta:
   category: Rows
   type: Action
   platform: supabase
-  description: "Selects rows from a Supabase table."
-  version: "1.0.0"
+  description: Selects rows from a Supabase table.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve data from a Supabase PostgreSQL table using REST."
-    usage_context: "Use this to fetch records using simple or complex filters. Ideal for front-end driven data fetching or serverless workflows."
+    purpose: Retrieve data from a Supabase PostgreSQL table using REST.
+    usage_context: Use this to fetch records using simple or complex filters. Ideal for front-end driven data fetching or serverless workflows.
     agent_hints:
       - "The 'select' parameter defaults to '*' (all columns). Use a comma-separated list to limit fields."
       - "Filtering uses PostgREST syntax (e.g. 'id=eq.1', 'name=ilike.*john*')."
     waml_examples:
-      - title: "Fetch High-Value Orders"
+      - title: Fetch High-Value Orders
         waml: |
           - step: get_orders
             call: supabase.action.rows.select
             with:
-               table: "orders"
-               select: "id, total_price, customer_id"
-               filter: "total_price=gt.100"
+               table: orders
+               select: id, total_price, customer_id
+               filter: total_price=gt.100
 
 interface:
   inputs:
@@ -52,7 +52,7 @@ execution:
       headers:
         Content-Type: >
           "application/json"
-        apikey: settings.api_key
+        apikey: =settings.api_key
         Authorization: >
           "Bearer " + settings.api_key
     returns:
@@ -62,7 +62,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -70,7 +70,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -79,9 +79,9 @@ routing:
       - tool: emit
         params:
           port: rows
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

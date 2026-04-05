@@ -5,21 +5,21 @@ meta:
   category: Search
   type: Action
   platform: notion
-  description: "Searches for pages, databases, and blocks by title."
-  version: "1.0.0"
+  description: Searches for pages, databases, and blocks by title.
+  version: 1.0.0
   discovery:
-    purpose: "Find any accessible Notion resource by its human-readable name."
-    usage_context: "Use this when you have a name (like 'Q1 Project') and need to find its 'id'. Returns matches across the entire authorized workspace."
+    purpose: Find any accessible Notion resource by its human-readable name.
+    usage_context: Use this when you have a name (like 'Q1 Project') and need to find its 'id'. Returns matches across the entire authorized workspace.
     agent_hints:
       - "The 'query' looks at titles and content titles."
       - "You can filter by 'object' type ('page', 'database') and sort results."
     waml_examples:
-      - title: "Search for Projects"
+      - title: Search for Projects
         waml: |
           - step: find_notion_resource
             call: notion.action.search.post
             with:
-               query: "Acme"
+               query: Acme
                filter: { value: "database", property: "object" }
 
 interface:
@@ -48,13 +48,13 @@ execution:
       method: POST
       url: >
         platform.base_url + "/search"
-      headers: platform.headers
+      headers: =platform.headers
       strategy: cursor
       cursor_param: start_cursor
       body:
-        query: inputs.query
-        filter: inputs.filter
-        sort: inputs.sort
+        query: =inputs.query
+        filter: =inputs.filter
+        sort: =inputs.sort
     returns:
       items: pages
       total_pages: page_count
@@ -69,7 +69,7 @@ execution:
           output: success
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -78,4 +78,4 @@ routing:
       - tool: emit
         params:
           port: results
-          value: steps.request.pages
+          value: =steps.request.pages

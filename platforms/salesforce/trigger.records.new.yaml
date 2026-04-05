@@ -5,23 +5,23 @@ meta:
   category: Records
   type: Trigger
   platform: salesforce
-  description: "Triggers when a new record of a specific Salesforce object type is created."
-  version: "1.0.0"
+  description: Triggers when a new record of a specific Salesforce object type is created.
+  version: 1.0.0
   discovery:
-    purpose: "Start a workflow whenever a new record (e.g. Lead, Opportunity) appears in Salesforce."
-    usage_context: "Use this to react to new signups, automate follow-ups for new leads, or sync new accounts to an external database."
+    purpose: Start a workflow whenever a new record (e.g. Lead, Opportunity) appears in Salesforce.
+    usage_context: Use this to react to new signups, automate follow-ups for new leads, or sync new accounts to an external database.
     agent_hints:
       - "Polls Salesforce for new records created after the last check."
       - "Requires the 'object' name (e.g. 'Lead')."
       - "Yields the full record data to the next step."
     waml_examples:
-      - title: "React to New Leads"
+      - title: React to New Leads
         waml: |
           trigger:
             new_lead:
                call: salesforce.trigger.records.new
                with:
-                  object: "Lead"
+                  object: Lead
 
 interface:
   inputs: []
@@ -32,11 +32,11 @@ interface:
       type: object
   settings:
     - name: sObjectName
-      label: "SObject Name"
+      label: SObject Name
       type: string
       required: true
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -47,7 +47,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/query"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         q: >
           "SELECT Id FROM " + settings.sObjectName + " WHERE CreatedDate > " + state.last_poll + " ORDER BY CreatedDate ASC"
@@ -56,12 +56,12 @@ execution:
       body: response_body
 
 routing:
-  match: steps.query.status_code
+  match: =steps.query.status_code
   cases:
     "200":
       - tool: foreach
         params:
-          items: steps.query.response_body.records
+          items: =steps.query.response_body.records
           action:
             - tool: emit
               params:

@@ -5,16 +5,16 @@ meta:
   category: Comments
   type: Action
   platform: zendesk
-  description: "Lists comments on a ticket."
-  version: "1.0.0"
+  description: Lists comments on a ticket.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve all comments (conversation history) for a specific Zendesk ticket."
-    usage_context: "Use to fetch ticket transcripts for summary analysis, archival, or sync to other tools."
+    purpose: Retrieve all comments (conversation history) for a specific Zendesk ticket.
+    usage_context: Use to fetch ticket transcripts for summary analysis, archival, or sync to other tools.
     agent_hints:
       - "Requires the ticket_id."
       - "Returns an array of comment objects including body, author, and visibility."
     waml_examples:
-      - title: "Get Transcript"
+      - title: Get Transcript
         waml: |
           - step: get_history
             call: zendesk.action.comments.list
@@ -42,7 +42,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/tickets/" + inputs.ticketId + "/comments.json"
-      headers: platform.headers
+      headers: =platform.headers
       strategy: cursor
       cursor_path: >
         "/meta/after_cursor"
@@ -54,7 +54,7 @@ execution:
       items: all_items
 
 routing:
-  match: "success"
+  match: success
   cases:
     success:
       - tool: emit
@@ -63,4 +63,4 @@ routing:
       - tool: emit
         params:
           port: comments
-          value: steps.request.all_items
+          value: =steps.request.all_items

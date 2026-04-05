@@ -4,23 +4,23 @@ meta:
   category: WhatsApp
   type: Action
   platform: whatsapp
-  description: "Sends an image to a user on WhatsApp."
-  version: "1.0.0"
+  description: Sends an image to a user on WhatsApp.
+  version: 1.0.0
   discovery:
-    purpose: "Share photos, screenshots, or visual marketing materials via WhatsApp."
-    usage_context: "Use this to send receipts, product photos, or promotional images to customers."
+    purpose: Share photos, screenshots, or visual marketing materials via WhatsApp.
+    usage_context: Use this to send receipts, product photos, or promotional images to customers.
     agent_hints:
       - "Requires a 'to' phone number and an 'image_url' or 'file_id'."
       - "The 'caption' parameter allows adding text alongside the image."
     waml_examples:
-      - title: "Send Photo"
+      - title: Send Photo
         waml: |
           - step: show_it
             call: whatsapp.action.messages.send_image
             with:
-               to: "+15551234567"
+               to: +15551234567
                image_url: "https://example.com/photo.png"
-               caption: "Here is your order photo."
+               caption: Here is your order photo.
   permissions:
     - "network:graph.facebook.com"
 
@@ -49,10 +49,10 @@ execution:
       method: POST
       url: >
         platform.base_url + "/" + settings.phone_number_id + "/messages"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         messaging_product: whatsapp
-        to: inputs.to
+        to: =inputs.to
         type: image
         image: >
           "{ \"link\": \"" + inputs.image_url + "\", \"caption\": \"" + inputs.caption + "\" }"
@@ -63,7 +63,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -73,14 +73,14 @@ execution:
   - id: extract_id
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/messages/0/id"
     returns:
       result: mid
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -89,9 +89,9 @@ routing:
       - tool: emit
         params:
           port: message_id
-          value: steps.extract_id.mid
+          value: =steps.extract_id.mid
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

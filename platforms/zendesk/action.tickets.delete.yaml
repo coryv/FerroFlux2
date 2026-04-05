@@ -5,16 +5,16 @@ meta:
   category: Tickets
   type: Action
   platform: zendesk
-  description: "Deletes a ticket."
-  version: "1.0.0"
+  description: Deletes a ticket.
+  version: 1.0.0
   discovery:
-    purpose: "Permanently remove a ticket from Zendesk."
-    usage_context: "Use to clean up spam, duplicates, or test data."
+    purpose: Permanently remove a ticket from Zendesk.
+    usage_context: Use to clean up spam, duplicates, or test data.
     agent_hints:
       - "Requires the ticket_id."
       - "Note: This action is irreversible."
     waml_examples:
-      - title: "Delete Spam"
+      - title: Delete Spam
         waml: |
           - step: remove_spam
             call: zendesk.action.tickets.delete
@@ -40,13 +40,13 @@ execution:
       method: DELETE
       url: >
         platform.base_url + "/tickets/" + inputs.ticketId + ".json"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -56,4 +56,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

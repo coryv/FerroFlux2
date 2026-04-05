@@ -5,21 +5,21 @@ meta:
   category: Discounts
   type: Action
   platform: shopify
-  description: "Creates a new PriceRule (Discount)."
-  version: "1.0.0"
+  description: Creates a new PriceRule (Discount).
+  version: 1.0.0
   discovery:
-    purpose: "Create a discount code in Shopify."
-    usage_context: "Use to generate promotional codes for marketing campaigns or as concessions for customer support."
+    purpose: Create a discount code in Shopify.
+    usage_context: Use to generate promotional codes for marketing campaigns or as concessions for customer support.
     agent_hints:
       - "Requires a code and a price_rule_id."
     waml_examples:
-      - title: "Create Promo Code"
+      - title: Create Promo Code
         waml: |
           - step: promo
             call: shopify.action.discounts.create
             with:
-               price_rule_id: "765432109"
-               code: "WELCOME-10"
+               price_rule_id: 765432109
+               code: WELCOME-10
 
 interface:
   inputs:
@@ -52,15 +52,15 @@ execution:
       method: POST
       url: >
         platform.base_url + "/price_rules.json"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         price_rule:
-          title: inputs.title
-          target_type: inputs.targetType
-          target_selection: inputs.targetSelection
-          allocation_method: inputs.allocationMethod
-          value_type: inputs.valueType
-          value: inputs.value
+          title: =inputs.title
+          target_type: =inputs.targetType
+          target_selection: =inputs.targetSelection
+          allocation_method: =inputs.allocationMethod
+          value_type: =inputs.valueType
+          value: =inputs.value
           starts_at: >
             "2024-01-01T00:00:00Z"
     returns:
@@ -68,7 +68,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -77,9 +77,9 @@ routing:
       - tool: emit
         params:
           port: priceRule
-          value: steps.request.response_body.price_rule
+          value: =steps.request.response_body.price_rule
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

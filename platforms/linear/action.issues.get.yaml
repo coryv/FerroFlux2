@@ -5,21 +5,21 @@ meta:
   category: Issues
   type: Action
   platform: linear
-  description: "Retrieves detailed information about a Linear issue."
-  version: "1.0.0"
+  description: Retrieves detailed information about a Linear issue.
+  version: 1.0.0
   discovery:
-    purpose: "Fetch the properties, status, and comments of a specific Linear issue."
-    usage_context: "Use this when you have an Issue UUID and need to check its current state (Draft, In Progress, Done) or identify the Assignee."
+    purpose: Fetch the properties, status, and comments of a specific Linear issue.
+    usage_context: Use this when you have an Issue UUID and need to check its current state (Draft, In Progress, Done) or identify the Assignee.
     agent_hints:
       - "Requires the 'id' (UUID)."
       - "Returns the full issue object, including its team and project associations."
     waml_examples:
-      - title: "Get Issue Details"
+      - title: Get Issue Details
         waml: |
           - step: read_issue
             call: linear.action.issues.get
             with:
-               id: "issue_uuid_123"
+               id: issue_uuid_123
 
 interface:
   inputs:
@@ -40,8 +40,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: platform.base_url
-      headers: platform.headers
+      url: =platform.base_url
+      headers: =platform.headers
       body:
         query: >
           "query Issue($id: String!) { issue(id: $id) { id title description state { name } assignee { name } } }"
@@ -52,7 +52,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -61,9 +61,9 @@ routing:
       - tool: emit
         params:
           port: issue
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

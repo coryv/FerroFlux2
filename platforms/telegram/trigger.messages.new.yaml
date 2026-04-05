@@ -5,15 +5,15 @@ meta:
   category: Messages
   type: Trigger
   platform: telegram
-  description: "Polling trigger for new messages in Telegram."
-  version: "1.0.0"
+  description: Polling trigger for new messages in Telegram.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow when an incoming text message is received."
-    usage_context: "Use to build conversational bots or to log feedback from users."
+    purpose: Initialize a workflow when an incoming text message is received.
+    usage_context: Use to build conversational bots or to log feedback from users.
     agent_hints:
       - "Provides the full message object, including chat_id and text."
     waml_examples:
-      - title: "Log Inbound Message"
+      - title: Log Inbound Message
         waml: |
           - step: log_msg
             type: trigger
@@ -29,11 +29,11 @@ interface:
 
   settings:
     - name: limit
-      label: "Batch Limit"
+      label: Batch Limit
       type: number
       default: 100
     - name: timeout
-      label: "Long Polling Timeout (sec)"
+      label: Long Polling Timeout (sec)
       type: number
       default: 30
 
@@ -45,9 +45,9 @@ execution:
       url: >
         platform.base_url + "/getUpdates"
       query:
-        offset: event.cursor
-        limit: settings.limit
-        timeout: settings.timeout
+        offset: =event.cursor
+        limit: =settings.limit
+        timeout: =settings.timeout
     returns:
       status: status_code
       body: response_body
@@ -55,7 +55,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -65,19 +65,19 @@ execution:
   - id: extract_updates
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/result"
     returns:
       result: updates_array
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: iterate
         params:
-          items: steps.extract_updates.updates_array
+          items: =steps.extract_updates.updates_array
           cursor_key: update_id
           cursor_increment: 1
           # This tells the engine to emit one event per item in updates_array
@@ -87,4 +87,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

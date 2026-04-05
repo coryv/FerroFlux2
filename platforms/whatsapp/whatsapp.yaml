@@ -3,11 +3,11 @@ meta:
   name: WhatsApp Business
   type: Platform
   category: Communication
-  description: "Official WhatsApp Business API for rich messaging and automation."
-  version: "1.0.0"
+  description: Official WhatsApp Business API for rich messaging and automation.
+  version: 1.0.0
   discovery:
-    purpose: "Send rich text, images, and documents to users via their primary messaging app."
-    usage_context: "Use this for official customer alerts, interactive service bots, and personal client communication."
+    purpose: Send rich text, images, and documents to users via their primary messaging app.
+    usage_context: Use this for official customer alerts, interactive service bots, and personal client communication.
     agent_hints:
       - "Requires a Phone Number ID and System User Access Token from Meta."
       - "Note that business-initiated conversations require pre-approved templates."
@@ -17,15 +17,15 @@ meta:
 config:
   base_url: "https://graph.facebook.com/v21.0"
   headers:
-    Content-Type: "application/json"
-    Authorization: "Bearer PASTE_YOUR_ACCESS_TOKEN_HERE"
+    Content-Type: application/json
+    Authorization: Bearer PASTE_YOUR_ACCESS_TOKEN_HERE
 
 settings:
   - name: access_token
-    label: "Access Token"
+    label: Access Token
     type: string
     required: true
   - name: phone_number_id
-    label: "Phone Number ID"
+    label: Phone Number ID
     type: string
     required: true

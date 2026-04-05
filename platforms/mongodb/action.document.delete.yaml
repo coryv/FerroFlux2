@@ -4,23 +4,23 @@ meta:
   category: Documents
   type: Action
   platform: mongodb
-  description: "Deletes a single document from a MongoDB collection."
-  version: "1.0.0"
+  description: Deletes a single document from a MongoDB collection.
+  version: 1.0.0
   discovery:
-    purpose: "Remove a specific document from a database collection."
-    usage_context: "Use this when you need to delete a specific record (e.g., removing a user profile or a specific log entry). Requires a filter to identify the document."
+    purpose: Remove a specific document from a database collection.
+    usage_context: Use this when you need to delete a specific record (e.g., removing a user profile or a specific log entry). Requires a filter to identify the document.
     agent_hints:
       - "The filter is a BSON/JSON object. If multiple documents match, only the first one found is deleted."
       - "Always provide a unique identifier (like '_id') in the filter to avoid accidental deletions."
     waml_examples:
-      - title: "Delete User by ID"
+      - title: Delete User by ID
         waml: |
           - step: delete_user
             call: mongodb.action.document.delete
             with:
-               collection: "users"
+               collection: users
                filter:
-                 _id: "507f1f77bcf86cd799439011"
+                 _id: 507f1f77bcf86cd799439011
 
 interface:
   inputs:
@@ -28,7 +28,7 @@ interface:
       type: flow
     - name: collection
       type: string
-      description: "The name of the collection to delete from."
+      description: The name of the collection to delete from.
     - name: filter
       type: object
       description: "The filter to apply (e.g. { status: 'inactive' })."
@@ -45,10 +45,10 @@ execution:
     tool: mongo_query
     params:
       operation: delete
-      connection_string: settings.connection_string
-      database: settings.database
-      collection: inputs.collection
-      filter: inputs.filter
+      connection_string: =settings.connection_string
+      database: =settings.database
+      collection: =inputs.collection
+      filter: =inputs.filter
     returns:
       deleted_count: deleted_count
 
@@ -62,4 +62,4 @@ routing:
       - tool: emit
         params:
           port: deleted_count
-          value: steps.delete.deleted_count
+          value: =steps.delete.deleted_count

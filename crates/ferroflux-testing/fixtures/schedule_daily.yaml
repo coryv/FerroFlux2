@@ -1,21 +1,21 @@
-name: "Schedule Daily"
-description: "Schedule trigger runs daily and logs"
+name: Schedule Daily
+description: Schedule trigger runs daily and logs
 triggers:
-  - id: "scheduler_in"
-    name: "Daily Trigger"
-    type: "core.trigger.schedule"
+  - id: scheduler_in
+    name: Daily Trigger
+    type: core.trigger.schedule
     config:
-      mode: "daily"
+      mode: daily
       time: "09:00"
 nodes:
-  - id: "log_out"
-    name: "Debug Log"
-    type: "core.action.log"
+  - id: log_out
+    name: Debug Log
+    type: core.action.log
     config:
-      level: "'INFO'"
-      message: "Scheduled run active"
+      level: INFO
+      message: Scheduled run active
 edges:
-  - source_id: "scheduler_in"
-    source_handle: "Success"
-    target_id: "log_out"
-    target_handle: "Exec"
+  - source_id: scheduler_in
+    source_handle: Success
+    target_id: log_out
+    target_handle: Exec

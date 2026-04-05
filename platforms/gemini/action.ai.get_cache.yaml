@@ -5,21 +5,21 @@ meta:
   category: AI
   type: Action
   platform: gemini
-  description: "Get metadata for a specific context cache by its name."
-  version: "1.0.0"
+  description: Get metadata for a specific context cache by its name.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve metadata for a specific context cache in the Gemini API."
-    usage_context: "Use to verify cache expiration, model compatibility, and reuse tokens for massive context retrieval."
+    purpose: Retrieve metadata for a specific context cache in the Gemini API.
+    usage_context: Use to verify cache expiration, model compatibility, and reuse tokens for massive context retrieval.
     agent_hints:
       - "Requires a cache_name."
       - "Returns the cache object including TTL and token count."
     waml_examples:
-      - title: "Verify Cache"
+      - title: Verify Cache
         waml: |
           - step: check_cache
             call: gemini.action.ai.get_cache
             with:
-               cache_name: "cachedContents/12345"
+               cache_name: cachedContents/12345
 
 interface:
   inputs:
@@ -27,8 +27,8 @@ interface:
       type: flow
     - name: cache_id
       type: string
-      description: "Full resource name returned by Create Context Cache, e.g. cachedContents/abc123"
-      placeholder: "cachedContents/abc123"
+      description: Full resource name returned by Create Context Cache, e.g. cachedContents/abc123
+      placeholder: cachedContents/abc123
   outputs:
     - name: Success
       type: flow
@@ -45,7 +45,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/v1beta/" + inputs.cache_id
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -53,7 +53,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -61,7 +61,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -70,9 +70,9 @@ routing:
       - tool: emit
         params:
           port: cache
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -5,21 +5,21 @@ meta:
   category: Issues
   type: Action
   platform: jira
-  description: "Permanently delete a specific issue."
-  version: "1.0.0"
+  description: Permanently delete a specific issue.
+  version: 1.0.0
   discovery:
-    purpose: "Permanently remove an issue from a Jira project."
-    usage_context: "Use to cleanup test data, remove accidentally created tickets, or manage lifecycle of transient issues."
+    purpose: Permanently remove an issue from a Jira project.
+    usage_context: Use to cleanup test data, remove accidentally created tickets, or manage lifecycle of transient issues.
     agent_hints:
       - "Requires issueIdOrKey."
       - "Deletion is irreversible."
     waml_examples:
-      - title: "Delete Issue"
+      - title: Delete Issue
         waml: |
           - step: cleanup
             call: jira.action.issues.delete
             with:
-               issueIdOrKey: "PROJ-123"
+               issueIdOrKey: PROJ-123
 
 interface:
   inputs:
@@ -40,13 +40,13 @@ execution:
       method: DELETE
       url: >
         platform.base_url + "/issue/" + inputs.issue_id
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -56,4 +56,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

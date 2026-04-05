@@ -5,21 +5,21 @@ meta:
   category: Lists
   type: Action
   platform: clickup
-  description: "Creates a new list within a ClickUp folder or space."
-  version: "1.0.0"
+  description: Creates a new list within a ClickUp folder or space.
+  version: 1.0.0
   discovery:
-    purpose: "Create a container for tasks within a specific project area."
-    usage_context: "Use this to automate list creation for new project phases, sprints, or client onboarding checklists."
+    purpose: Create a container for tasks within a specific project area.
+    usage_context: Use this to automate list creation for new project phases, sprints, or client onboarding checklists.
     agent_hints:
       - "Requires the numeric 'folder_id' or 'space_id' and 'name'."
     waml_examples:
-      - title: "Create Task List"
+      - title: Create Task List
         waml: |
           - step: mk_list
             call: clickup.action.lists.create
             with:
-               folder_id: "123456"
-               name: "Bug Tracking"
+               folder_id: 123456
+               name: Bug Tracking
 
 interface:
   inputs:
@@ -48,17 +48,17 @@ execution:
       method: POST
       url: >
         platform.base_url + "/folder/" + inputs.folder_id + "/list"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        name: inputs.name
-        content: inputs.content
-        status: inputs.status
+        name: =inputs.name
+        content: =inputs.content
+        status: =inputs.status
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -67,9 +67,9 @@ routing:
       - tool: emit
         params:
           port: list
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

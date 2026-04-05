@@ -5,23 +5,23 @@ meta:
   category: Deals
   type: Action
   platform: hubspot
-  description: "Creates a new deal in HubSpot CRM."
-  version: "1.0.0"
+  description: Creates a new deal in HubSpot CRM.
+  version: 1.0.0
   discovery:
-    purpose: "Add a new sales opportunity to a pipeline."
-    usage_context: "Use this to track new business, manage renewals, or log representative sales activity. Requires 'dealname' and 'pipeline'."
+    purpose: Add a new sales opportunity to a pipeline.
+    usage_context: Use this to track new business, manage renewals, or log representative sales activity. Requires 'dealname' and 'pipeline'.
     agent_hints:
       - "Note that 'dealstage' and 'pipeline' must match internal HubSpot IDs (use the metadata API to find these)."
       - "Custom properties like 'amount', 'close_date', and 'deal_owner' can also be provided."
     waml_examples:
-      - title: "Create New Deal"
+      - title: Create New Deal
         waml: |
           - step: log_deal
             call: hubspot.action.deals.create
             with:
                properties:
-                 dealname: "Acme Q2 Expansion"
-                 dealstage: "appointmentscheduled"
+                 dealname: Acme Q2 Expansion
+                 dealstage: appointmentscheduled
                  amount: 5000
 
 interface:
@@ -46,9 +46,9 @@ execution:
       method: POST
       url: >
         platform.base_url + "/objects/deals"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        properties: inputs.properties
+        properties: =inputs.properties
     returns:
       status: status_code
       body: response_body
@@ -56,7 +56,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 201
           output: success
@@ -64,7 +64,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -73,9 +73,9 @@ routing:
       - tool: emit
         params:
           port: deal
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -1,26 +1,26 @@
 meta:
   id: sendgrid
-  name: "SendGrid"
-  description: "Enterprise email delivery service for marketing and transactional messages."
-  version: "1.0.0"
-  category: "Marketing"
+  name: SendGrid
+  description: Enterprise email delivery service for marketing and transactional messages.
+  version: 1.0.0
+  category: Marketing
   type: Platform
   icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/sendgrid.svg"
   permissions: ["network:api.sendgrid.com"]
   discovery:
-    purpose: "Send high-volume transactional and marketing emails with advanced deliverability tools."
-    usage_context: "Use this for large-scale notification systems, marketing automation, and SMTP relay replacement."
+    purpose: Send high-volume transactional and marketing emails with advanced deliverability tools.
+    usage_context: Use this for large-scale notification systems, marketing automation, and SMTP relay replacement.
     agent_hints:
       - "Requires a SendGrid API Key with 'Mail Send' permissions."
       - "Supports dynamic templates and substitution tags."
 
 config:
   base_url: "https://api.sendgrid.com/v3"
-  auth_type: "api_key"
+  auth_type: api_key
   auth:
-    type: "bearer"
+    type: bearer
   connection_schema:
-    - name: "api_key"
-      type: "string"
+    - name: api_key
+      type: string
       required: true
       is_secret: true

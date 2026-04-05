@@ -5,21 +5,21 @@ meta:
   category: Messages
   type: Action
   platform: slack
-  description: "Send a direct message to a specific user."
-  version: "1.0.0"
+  description: Send a direct message to a specific user.
+  version: 1.0.0
   discovery:
-    purpose: "Send a private message to an individual Slack user."
-    usage_context: "Use this for personalized notifications, private alerts, or starting a one-on-one conversation with a user. This action handles opening the DM conversation automatically."
+    purpose: Send a private message to an individual Slack user.
+    usage_context: Use this for personalized notifications, private alerts, or starting a one-on-one conversation with a user. This action handles opening the DM conversation automatically.
     agent_hints:
       - "The 'user_id' can be retrieved from message triggers or by using 'slack.action.users.get'."
       - "Sending repeatedly to the same user may be perceived as spam; use sparingly."
     waml_examples:
-      - title: "Send a Welcome DM"
+      - title: Send a Welcome DM
         waml: |
           - step: welcome_user
             call: slack.action.messages.send_dm
             with:
-               user_id: "U12345678"
+               user_id: U12345678
                text: "Hello! Welcome to the workspace. How can I help you today?"
 
 interface:
@@ -43,9 +43,9 @@ execution:
       method: POST
       url: >
         platform.base_url + "/conversations.open"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        users: inputs.user_id
+        users: =inputs.user_id
     returns:
       status: status_code
       body: body
@@ -56,16 +56,16 @@ execution:
       method: POST
       url: >
         platform.base_url + "/chat.postMessage"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        channel: steps.open_dm.body.channel.id
-        text: inputs.text
+        channel: =steps.open_dm.body.channel.id
+        text: =inputs.text
     returns:
       status: status_code
       body: body
 
 routing:
-  match: steps.send_message.status_code
+  match: =steps.send_message.status_code
   cases:
     "200":
       - tool: emit
@@ -75,4 +75,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.send_message.body
+          value: =steps.send_message.body

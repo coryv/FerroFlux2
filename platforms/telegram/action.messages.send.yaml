@@ -5,23 +5,23 @@ meta:
   category: Messages
   type: Action
   platform: telegram
-  description: "Send a text message to a Telegram chat."
-  version: "1.0.0"
+  description: Send a text message to a Telegram chat.
+  version: 1.0.0
   discovery:
-    purpose: "Send a text message to a specific Telegram user or group."
-    usage_context: "Use this to send automated notifications, alerts, or bot responses."
+    purpose: Send a text message to a specific Telegram user or group.
+    usage_context: Use this to send automated notifications, alerts, or bot responses.
     agent_hints:
       - "Requires a chat_id (numerical or group username) and message text."
       - "Supports 'MarkdownV2' and 'HTML' for formatting."
     waml_examples:
-      - title: "Send Alert"
+      - title: Send Alert
         waml: |
           - step: notify
             call: telegram.action.messages.send
             with:
-               chat_id: "123456789"
+               chat_id: 123456789
                text: "*System Alert:* Error detected"
-               parse_mode: "MarkdownV2"
+               parse_mode: MarkdownV2
 
 interface:
   inputs:
@@ -40,17 +40,17 @@ interface:
       type: object
   settings:
     - name: parse_mode
-      label: "Parse Mode"
+      label: Parse Mode
       type: select
       required: false
-      default: "MarkdownV2"
+      default: MarkdownV2
       options:
-        - value: "MarkdownV2"
-          label: "MarkdownV2"
-        - value: "HTML"
-          label: "HTML"
-        - value: "None"
-          label: "None"
+        - value: MarkdownV2
+          label: MarkdownV2
+        - value: HTML
+          label: HTML
+        - value: None
+          label: None
 
 execution:
   - id: request
@@ -59,11 +59,11 @@ execution:
       method: POST
       url: >
         platform.base_url + "/sendMessage"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        chat_id: inputs.chat_id
-        text: inputs.text
-        parse_mode: settings.parse_mode
+        chat_id: =inputs.chat_id
+        text: =inputs.text
+        parse_mode: =settings.parse_mode
     returns:
       status: status_code
       body: response_body
@@ -71,7 +71,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -79,7 +79,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -88,9 +88,9 @@ routing:
       - tool: emit
         params:
           port: message
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -4,21 +4,21 @@ meta:
   category: Audio
   type: Action
   platform: groq
-  description: "Transcribes an audio file into text using Groq's fast inference."
-  version: "1.0.0"
+  description: Transcribes an audio file into text using Groq's fast inference.
+  version: 1.0.0
   discovery:
-    purpose: "Convert voice recordings, meetings, or voice commands into structured text with high speed."
-    usage_context: "Use this for real-time transcription, accessibility tools, or converting voice memos into tasks."
+    purpose: Convert voice recordings, meetings, or voice commands into structured text with high speed.
+    usage_context: Use this for real-time transcription, accessibility tools, or converting voice memos into tasks.
     agent_hints:
       - "Requires a supported audio file format and size limits."
       - "Specify the 'model' (e.g. 'whisper-large-v3')."
     waml_examples:
-      - title: "Transcribe Voice Memo"
+      - title: Transcribe Voice Memo
         waml: |
           - step: transcribe
             call: groq.action.audio.transcribe
             with:
-               model: "whisper-large-v3"
+               model: whisper-large-v3
                file: "https://example.com/memo.wav"
   permissions:
     - "network:api.groq.com"
@@ -31,7 +31,7 @@ interface:
       type: blob
     - name: model
       type: string
-      default: "whisper-large-v3"
+      default: whisper-large-v3
   outputs:
     - name: Success
       type: flow
@@ -47,16 +47,16 @@ execution:
       method: POST
       url: >
         platform.base_url + "/audio/transcriptions"
-      headers: platform.headers
+      headers: =platform.headers
       body_type: multipart
       parts:
         - name: file
-          content_var: inputs.audio
+          content_var: =inputs.audio
           filename: audio.mp3
           content_type: >
             "application/octet-stream"
         - name: model
-          content: inputs.model
+          content: =inputs.model
     returns:
       status: status_code
       body: response_body
@@ -64,7 +64,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -72,7 +72,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -81,9 +81,9 @@ routing:
       - tool: emit
         params:
           port: text
-          value: steps.request.response_body.text
+          value: =steps.request.response_body.text
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

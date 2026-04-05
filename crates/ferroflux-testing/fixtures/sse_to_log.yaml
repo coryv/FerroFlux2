@@ -1,20 +1,20 @@
-name: "SSE Trigger to Log"
-description: "Listen to an SSE endpoint and logs each event"
+name: SSE Trigger to Log
+description: Listen to an SSE endpoint and logs each event
 triggers:
-  - id: "sse_in"
-    name: "SSE Listener"
-    type: "core.trigger.sse"
+  - id: sse_in
+    name: SSE Listener
+    type: core.trigger.sse
     config:
       url: "https://api.example.com/events"
 nodes:
-  - id: "log_out"
-    name: "Debug Log"
-    type: "core.action.log"
+  - id: log_out
+    name: Debug Log
+    type: core.action.log
     config:
-      level: "'INFO'"
-      message: "SSE Event Received"
+      level: INFO
+      message: SSE Event Received
 edges:
-  - source_id: "sse_in"
-    source_handle: "Success"
-    target_id: "log_out"
-    target_handle: "Exec"
+  - source_id: sse_in
+    source_handle: Success
+    target_id: log_out
+    target_handle: Exec

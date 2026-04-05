@@ -5,25 +5,25 @@ meta:
   category: Records
   type: Action
   platform: salesforce
-  description: "Creates a new record for a specific Salesforce object."
-  version: "1.0.0"
+  description: Creates a new record for a specific Salesforce object.
+  version: 1.0.0
   discovery:
-    purpose: "Add a new entry to a Salesforce table (e.g., Lead, Contact, Opportunity)."
-    usage_context: "Use this to ingest new leads from a website, create tasks from emails, or generate new opportunities after a discovery call."
+    purpose: Add a new entry to a Salesforce table (e.g., Lead, Contact, Opportunity).
+    usage_context: Use this to ingest new leads from a website, create tasks from emails, or generate new opportunities after a discovery call.
     agent_hints:
       - "The 'fields' parameter is a JSON object of field API names and values."
       - "Custom fields must end with '__c'."
     waml_examples:
-      - title: "Create New Lead"
+      - title: Create New Lead
         waml: |
           - step: create_lead
             call: salesforce.action.records.create
             with:
-               object: "Lead"
+               object: Lead
                fields:
-                 FirstName: "Alice"
-                 LastName: "Sales"
-                 Company: "Acme Corp"
+                 FirstName: Alice
+                 LastName: Sales
+                 Company: Acme Corp
 
 interface:
   inputs:
@@ -48,14 +48,14 @@ execution:
       method: POST
       url: >
         platform.base_url + "/sobjects/" + inputs.sObjectName + "/"
-      headers: platform.headers
-      body: inputs.fields
+      headers: =platform.headers
+      body: =inputs.fields
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -64,9 +64,9 @@ routing:
       - tool: emit
         params:
           port: record
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

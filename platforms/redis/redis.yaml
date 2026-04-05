@@ -3,11 +3,11 @@ meta:
   name: Redis
   type: Platform
   category: Database
-  description: "Connects to Redis instances for high-speed caching and state management."
-  version: "1.0.0"
+  description: Connects to Redis instances for high-speed caching and state management.
+  version: 1.0.0
   discovery:
-    purpose: "In-memory key-value store for ultra-fast caching and temporary state."
-    usage_context: "Use Redis to store session data, rate limits, or transient computation results that need to be accessed with sub-millisecond latency. Not intended for primary, durable record storage."
+    purpose: In-memory key-value store for ultra-fast caching and temporary state.
+    usage_context: Use Redis to store session data, rate limits, or transient computation results that need to be accessed with sub-millisecond latency. Not intended for primary, durable record storage.
     agent_hints:
       - "Standard Redis port is 6379."
       - "Note that data is usually volatile unless a persistence layer like AOF/RDB is configured."
@@ -18,6 +18,6 @@ config:
 
 settings:
   - name: connection
-    label: "Redis Connection"
+    label: Redis Connection
     type: connection_select
     required: true

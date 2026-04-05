@@ -5,26 +5,26 @@ meta:
   category: Chat
   type: Action
   platform: azure-openai
-  description: "Analyze images with an Azure OpenAI vision-capable deployment (e.g., GPT-4o)."
-  version: "1.0.0"
+  description: Analyze images with an Azure OpenAI vision-capable deployment (e.g., GPT-4o).
+  version: 1.0.0
   discovery:
-    purpose: "Analyze and describe images using GPT-4 Vision models hosted in Azure."
-    usage_context: "Use to automate image tagging, extract data from receipts, or provide accessibility descriptions for visual content."
+    purpose: Analyze and describe images using GPT-4 Vision models hosted in Azure.
+    usage_context: Use to automate image tagging, extract data from receipts, or provide accessibility descriptions for visual content.
     agent_hints:
       - "Requires a vision-capable model deployment (e.g. gpt-4o or gpt-4-vision)."
     waml_examples:
-      - title: "Describe Image"
+      - title: Describe Image
         waml: |
           - step: see
             call: azure-openai.action.chat.completion_vision
             with:
-               deployment_name: "gpt-4o"
+               deployment_name: gpt-4o
                messages:
-                 - role: "user"
+                 - role: user
                    content:
-                     - type: "text"
+                     - type: text
                        text: "What is in this image?"
-                     - type: "image_url"
+                     - type: image_url
                        image_url: { url: "${inputs.img_url}" }
 
 interface:
@@ -47,38 +47,38 @@ interface:
 
   settings:
     - name: resource_name
-      label: "Azure Resource Name"
+      label: Azure Resource Name
       type: string
       required: true
-      placeholder: "my-openai-resource"
+      placeholder: my-openai-resource
     - name: deployment
-      label: "Deployment Name"
+      label: Deployment Name
       type: string
       required: true
-      placeholder: "gpt-4o"
-      description: "Must be a vision-capable deployment (e.g., gpt-4o, gpt-4-vision)."
+      placeholder: gpt-4o
+      description: Must be a vision-capable deployment (e.g., gpt-4o, gpt-4-vision).
     - name: api_version
-      label: "API Version"
+      label: API Version
       type: string
-      default: "2024-08-01-preview"
+      default: 2024-08-01-preview
       required: true
     - name: system_prompt
-      label: "System Prompt"
+      label: System Prompt
       type: textarea
-      default: "You are a helpful assistant."
+      default: You are a helpful assistant.
     - name: image_detail
-      label: "Image Detail"
+      label: Image Detail
       type: select
-      default: "auto"
+      default: auto
       options:
-        - label: "Auto"
-          value: "auto"
-        - label: "Low (faster, cheaper)"
-          value: "low"
-        - label: "High (more accurate)"
-          value: "high"
+        - label: Auto
+          value: auto
+        - label: Low (faster, cheaper)
+          value: low
+        - label: High (more accurate)
+          value: high
     - name: max_tokens
-      label: "Max Tokens"
+      label: Max Tokens
       type: number
       default: 1024
 
@@ -89,20 +89,20 @@ execution:
       method: POST
       url: >
         "https://" + settings.resource_name + ".openai.azure.com/openai/deployments/" + settings.deployment + "/chat/completions?api-version=" + settings.api_version
-      headers: platform.headers
+      headers: =platform.headers
       body:
         messages:
           - role: system
-            content: settings.system_prompt
+            content: =settings.system_prompt
           - role: user
             content:
               - type: text
-                text: inputs.user_prompt
+                text: =inputs.user_prompt
               - type: image_url
                 image_url:
-                  url: inputs.image_url
-                  detail: settings.image_detail
-        max_tokens: settings.max_tokens
+                  url: =inputs.image_url
+                  detail: =settings.image_detail
+        max_tokens: =settings.max_tokens
     returns:
       status: status_code
       body: response_body
@@ -110,7 +110,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -118,12 +118,12 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/choices/0/message/content"
         returns:
@@ -138,9 +138,9 @@ routing:
       - tool: emit
         params:
           port: response
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

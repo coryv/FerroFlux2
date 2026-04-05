@@ -4,11 +4,11 @@ meta:
   name: Monday.com
   type: Platform
   category: Project Management
-  description: "Manage boards, items, and updates on Monday.com using GraphQL."
-  version: "1.0.0"
+  description: Manage boards, items, and updates on Monday.com using GraphQL.
+  version: 1.0.0
   discovery:
-    purpose: "Visual project management and Work OS platform."
-    usage_context: "Use Monday.com for managing high-level projects, tracking item statuses across boards, and building custom operational dashboards."
+    purpose: Visual project management and Work OS platform.
+    usage_context: Use Monday.com for managing high-level projects, tracking item statuses across boards, and building custom operational dashboards.
     agent_hints:
       - "Uses GraphQL for all operations. Check specific nodes for query fragments."
       - "Identifies resources using numeric IDs (Board ID, Item ID)."
@@ -19,11 +19,11 @@ config:
   headers:
     Authorization: >
       "Bearer " + auth.access_token
-    Content-Type: "application/json"
-    API-Version: "2023-10"
+    Content-Type: application/json
+    API-Version: 2023-10
 
 settings:
   - name: api_token
-    label: "Personal API Token (Optional fallback)"
+    label: Personal API Token (Optional fallback)
     type: password
     required: false

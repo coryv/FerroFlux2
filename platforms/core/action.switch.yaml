@@ -5,24 +5,24 @@ meta:
   type: Action
   node_subtype: Router
   platform: core
-  description: "Routes data based on complex conditional rules (Segment-like)."
-  version: "1.0.0"
+  description: Routes data based on complex conditional rules (Segment-like).
+  version: 1.0.0
   discovery:
-    purpose: "Evaluate a value against multiple cases and execute the matching branch."
-    usage_context: "Use to implement conditional branching logic in workflows (e.g., if status is 'done', do X; if 'error', do Y)."
+    purpose: Evaluate a value against multiple cases and execute the matching branch.
+    usage_context: Use to implement conditional branching logic in workflows (e.g., if status is 'done', do X; if 'error', do Y).
     agent_hints:
       - "Works like a programming switch/case statement."
     waml_examples:
-      - title: "Route by Status"
+      - title: Route by Status
         waml: |
           - step: check_status
             call: core.action.switch
             with:
-               value: steps.get_status.output
+               value: =steps.get_status.output
                cases:
-                 - match: "SUCCESS"
+                 - match: SUCCESS
                    steps: [...]
-                 - match: "FAILURE"
+                 - match: FAILURE
                    steps: [...]
 
 interface:
@@ -39,23 +39,23 @@ interface:
       type: flow
     - name: default
       type: flow
-      description: "Fallback path if no rules match."
+      description: Fallback path if no rules match.
     # Additional outputs correspond to 'output' names in rules.
     # User must ensure ports exist or strict checking is disabled.
 
   settings:
     - name: rules
-      label: "Rules Configuration"
-      type: list 
-      description: "List of logic rules with conditions and output names."
+      label: Rules Configuration
+      type: list
+      description: List of logic rules with conditions and output names.
       default: []
 
 execution:
   - id: check
     tool: logic
     params:
-      data: inputs.data
-      rules: settings.rules
+      data: =inputs.data
+      rules: =settings.rules
     returns:
       match: target_port
 
@@ -63,4 +63,4 @@ execution:
     tool: emit
     params:
       port: steps.check.match
-      value: inputs.data
+      value: =inputs.data

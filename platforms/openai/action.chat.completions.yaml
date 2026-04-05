@@ -5,26 +5,26 @@ meta:
   category: AI/ML
   type: Action
   platform: openai
-  description: "Creates a model response for a given chat conversation."
-  version: "1.0.0"
+  description: Creates a model response for a given chat conversation.
+  version: 1.0.0
   discovery:
-    purpose: "Generate text, reasoning, or code responses from OpenAI language models."
-    usage_context: "Use this for general-purpose chat, summarization, translation, or creative writing. Supports 'system', 'user', and 'assistant' message roles."
+    purpose: Generate text, reasoning, or code responses from OpenAI language models.
+    usage_context: Use this for general-purpose chat, summarization, translation, or creative writing. Supports 'system', 'user', and 'assistant' message roles.
     agent_hints:
       - "Specify the 'model' (e.g. 'gpt-4o', 'gpt-4o-mini')."
       - "Set 'temperature' and 'max_tokens' to control creativity and length."
     waml_examples:
-      - title: "Simple Chat Completion"
+      - title: Simple Chat Completion
         waml: |
           - step: ask_ai
             call: openai.action.chat.completions
             with:
-               model: "gpt-4o-mini"
+               model: gpt-4o-mini
                messages:
-                  - role: "system"
-                    content: "You are a helpful assistant."
-                  - role: "user"
-                    content: "Summarize the latest news."
+                  - role: system
+                    content: You are a helpful assistant.
+                  - role: user
+                    content: Summarize the latest news.
   data_strategy: enrich
 
 interface:
@@ -47,12 +47,12 @@ interface:
     - name: model
       label: Model
       type: string
-      default: "gpt-4-turbo-preview"
+      default: gpt-4-turbo-preview
       options_provider: openai.list_models
     - name: system_prompt
       label: System Prompt
       type: string
-      default: "You are a helpful assistant."
+      default: You are a helpful assistant.
 
 execution:
   - id: req
@@ -61,14 +61,14 @@ execution:
       method: POST
       url: >
         platform.base_url + "/chat/completions"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        model: settings.model
+        model: =settings.model
         messages:
           - role: system
-            content: settings.system_prompt
+            content: =settings.system_prompt
           - role: user
-            content: inputs.user_prompt
+            content: =inputs.user_prompt
     returns:
       status: status_code
       body: response_body
@@ -76,7 +76,7 @@ execution:
   - id: check_error
     tool: switch
     params:
-      value: steps.req.status
+      value: =steps.req.status
       cases:
         - condition: 200
           output: success
@@ -84,12 +84,12 @@ execution:
           output: error
 
 routing:
-  match: steps.check_error.branch
+  match: =steps.check_error.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: steps.req.body
+          json: =steps.req.body
           path: >
             "/choices/0/message/content"
         returns:
@@ -105,7 +105,7 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.req.body
+          value: =steps.req.body
 
 context:
-  model: settings.model
+  model: =settings.model

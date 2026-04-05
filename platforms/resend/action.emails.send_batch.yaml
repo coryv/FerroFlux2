@@ -5,26 +5,26 @@ meta:
   category: Emails
   type: Action
   platform: resend
-  description: "Send up to 100 emails in a single API call using Resend's batch endpoint."
-  version: "1.0.0"
+  description: Send up to 100 emails in a single API call using Resend's batch endpoint.
+  version: 1.0.0
   discovery:
-    purpose: "Send multiple emails in a single batch request via Resend."
-    usage_context: "Use to automate bulk notifications, marketing newsletters, or system-wide alerts to multiple recipients."
+    purpose: Send multiple emails in a single batch request via Resend.
+    usage_context: Use to automate bulk notifications, marketing newsletters, or system-wide alerts to multiple recipients.
     agent_hints:
       - "Requires an array of email objects including 'to', 'from', 'subject', and 'html' or 'text'."
     waml_examples:
-      - title: "Bulk Send"
+      - title: Bulk Send
         waml: |
           - step: send_batch
             call: resend.action.emails.send_batch
             with:
                emails:
-                 - from: "onboarding@resend.dev"
-                   to: "user1@example.com"
+                 - from: onboarding@resend.dev
+                   to: user1@example.com
                    subject: "Welcome!"
                    html: "<h1>Hi User 1</h1>"
-                 - from: "onboarding@resend.dev"
-                   to: "user2@example.com"
+                 - from: onboarding@resend.dev
+                   to: user2@example.com
                    subject: "Welcome!"
                    html: "<h1>Hi User 2</h1>"
 
@@ -49,8 +49,8 @@ execution:
       method: POST
       url: >
         platform.base_url + "/emails/batch"
-      headers: platform.headers
-      body: inputs.emails
+      headers: =platform.headers
+      body: =inputs.emails
     returns:
       status: status_code
       body: response_body
@@ -58,7 +58,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -68,7 +68,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -77,9 +77,9 @@ routing:
       - tool: emit
         params:
           port: results
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

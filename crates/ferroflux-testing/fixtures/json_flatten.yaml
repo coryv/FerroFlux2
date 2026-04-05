@@ -1,0 +1,41 @@
+id: json_flatten_workflow
+name: JSON Flatten Test Workflow
+description: Test flattening of deeply nested JSON objects into dot-notation.
+
+nodes:
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
+
+  - id: jmes_flatten
+    name: Flatten JSON
+    type: core.utils.json
+    config:
+      operation: flatten
+
+  - id: flatten_logger
+    name: Log Flattened Result
+    type: core.action.log
+    config:
+      message: "='Flattened: ' + string(inputs.body)"
+
+edges:
+  # 1. Webhook to Flatten
+  - source_id: webhook_in
+    target_id: jmes_flatten
+    source_handle: Success
+    target_handle: Exec
+  - source_id: webhook_in
+    target_id: jmes_flatten
+    source_handle: body
+    target_handle: input
+
+  # 2. Flatten to Logger
+  - source_id: jmes_flatten
+    target_id: flatten_logger
+    source_handle: Exec
+    target_handle: Exec
+  - source_id: jmes_flatten
+    target_id: flatten_logger
+    source_handle: result
+    target_handle: body

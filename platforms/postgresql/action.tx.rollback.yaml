@@ -4,15 +4,15 @@ meta:
   category: Transaction
   type: Action
   platform: postgresql
-  description: "Rolls back the active SQL transaction and discards any changes."
-  version: "1.0.0"
+  description: Rolls back the active SQL transaction and discards any changes.
+  version: 1.0.0
   discovery:
-    purpose: "Cancel the current transaction and discard all pending changes."
-    usage_context: "Call this in an error path or catch block when a step within a database transaction fails."
+    purpose: Cancel the current transaction and discard all pending changes.
+    usage_context: Call this in an error path or catch block when a step within a database transaction fails.
     agent_hints:
       - "Ensures the database returns to the state it was in before 'begin_transaction' was called."
     waml_examples:
-      - title: "Rollback Update"
+      - title: Rollback Update
         waml: |
           - step: rollback_tx
             call: postgresql.action.tx.rollback
@@ -33,7 +33,7 @@ execution:
     tool: sql_query
     params:
       operation: rollback
-      connection_string: settings.connection_string
+      connection_string: =settings.connection_string
     returns:
       status: status
 

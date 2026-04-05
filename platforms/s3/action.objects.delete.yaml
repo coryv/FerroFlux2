@@ -5,21 +5,21 @@ meta:
   category: Objects
   type: Action
   platform: s3
-  description: "Delete an object from an S3 bucket."
-  version: "1.0.0"
+  description: Delete an object from an S3 bucket.
+  version: 1.0.0
   discovery:
-    purpose: "Permanently remove a specific object from an S3 bucket."
-    usage_context: "Use to cleanup temporary project files, remove old backups, or delete user assets that have been flagged as obsolete."
+    purpose: Permanently remove a specific object from an S3 bucket.
+    usage_context: Use to cleanup temporary project files, remove old backups, or delete user assets that have been flagged as obsolete.
     agent_hints:
       - "Requires bucket_name and key."
     waml_examples:
-      - title: "Delete Object"
+      - title: Delete Object
         waml: |
           - step: remove
             call: s3.action.objects.delete
             with:
-               bucket_name: "my-bucket"
-               key: "uploads/old_file.zip"
+               bucket_name: my-bucket
+               key: uploads/old_file.zip
 
 interface:
   inputs:
@@ -36,10 +36,10 @@ interface:
       type: flow
   settings:
     - name: region
-      label: "Region"
+      label: Region
       type: string
       required: true
-      default: "us-east-1"
+      default: us-east-1
 
 execution:
   - id: request
@@ -50,15 +50,15 @@ execution:
         "https://" + inputs.bucket + ".s3." + settings.region + ".amazonaws.com/" + inputs.key
       aws_auth:
         service: s3
-        region: settings.region
-        access_key: settings.access_key
-        secret_key: settings.secret_key
+        region: =settings.region
+        access_key: =settings.access_key
+        secret_key: =settings.secret_key
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -68,4 +68,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

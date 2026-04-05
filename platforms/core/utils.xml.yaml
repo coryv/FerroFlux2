@@ -4,21 +4,21 @@ meta:
   category: Utilities
   type: Action
   platform: core
-  description: "Converts XML strings to JSON."
-  version: "1.0.0"
+  description: Converts XML strings to JSON.
+  version: 1.0.0
   discovery:
-    purpose: "Parse XML documents into JSON objects or vice-versa."
-    usage_context: "Use to integrate with legacy SOAP services, parse RSS feeds, or handle industry-standard XML data exchanges."
+    purpose: Parse XML documents into JSON objects or vice-versa.
+    usage_context: Use to integrate with legacy SOAP services, parse RSS feeds, or handle industry-standard XML data exchanges.
     agent_hints:
       - "Supports CDATA and attribute preservation."
     waml_examples:
-      - title: "Parse RSS Feed"
+      - title: Parse RSS Feed
         waml: |
           - step: rss
             call: core.utils.xml
             with:
-               action: "parse"
-               xml: "${steps.get_feed.output}"
+               action: parse
+               xml: =steps.get_feed.output
 
 interface:
   inputs:
@@ -38,7 +38,7 @@ execution:
   - id: parse
     tool: core.utils.xml
     params:
-      xml: inputs.xml
+      xml: =inputs.xml
     returns:
       result: xml_result
 
@@ -46,7 +46,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: steps.parse.result
+      value: =steps.parse.result
 
   - id: done
     tool: emit

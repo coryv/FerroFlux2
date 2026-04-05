@@ -5,15 +5,15 @@ meta:
   category: Calls
   type: Trigger
   platform: twilio
-  description: "Fires when an inbound call is received via Twilio webhook."
-  version: "1.0.0"
+  description: Fires when an inbound call is received via Twilio webhook.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow when an incoming voice call is received on a Twilio number."
-    usage_context: "Use to build automated IVR menus, route calls to external agents, or log incoming phone activity for sales triage."
+    purpose: Initialize a workflow when an incoming voice call is received on a Twilio number.
+    usage_context: Use to build automated IVR menus, route calls to external agents, or log incoming phone activity for sales triage.
     agent_hints:
       - "Requires a pre-configured Twilio Webhook URL pointing to the FerroFlux intake."
     waml_examples:
-      - title: "Call Route"
+      - title: Call Route
         waml: |
           - step: on_call
             type: trigger
@@ -28,18 +28,18 @@ interface:
       type: object
   settings:
     - name: auth_token
-      label: "Auth Token"
+      label: Auth Token
       type: string
       required: true
-      description: "Your Twilio account Auth Token — used to verify webhook signatures."
+      description: Your Twilio account Auth Token — used to verify webhook signatures.
 
 execution:
   - id: verify
     tool: verify_signature
     params:
-      body: event.raw_body
-      secret: settings.auth_token
-      signature: event.headers["x-twilio-signature"]
+      body: =event.raw_body
+      secret: =settings.auth_token
+      signature: '=event.headers["x-twilio-signature"]'
       algorithm: hmac-sha1
       encoding: base64
     returns:
@@ -59,23 +59,23 @@ execution:
         }
         result
       input:
-        raw: event.raw_body
+        raw: =event.raw_body
     returns:
       result: call_data
 
   - id: check_valid
     tool: logic
     params:
-      condition: steps.verify.is_valid
+      condition: =steps.verify.is_valid
 
 routing:
-  match: steps.check_valid.result
+  match: =steps.check_valid.result
   cases:
     "true":
       - tool: emit
         params:
           port: call
-          value: steps.parse_body.call_data
+          value: =steps.parse_body.call_data
       - tool: emit
         params:
           port: Success
@@ -83,4 +83,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: "Webhook signature verification failed"
+          value: Webhook signature verification failed

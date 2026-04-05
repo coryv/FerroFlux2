@@ -5,21 +5,21 @@ meta:
   category: Tasks
   type: Action
   platform: asana
-  description: "Marks an Asana task as completed."
-  version: "1.0.0"
+  description: Marks an Asana task as completed.
+  version: 1.0.0
   discovery:
-    purpose: "Change a task's status to 'Completed' in the project tracking."
-    usage_context: "Use this to close out work items after a workflow successfully finishes a process, such as sending an invoice or processing a file."
+    purpose: Change a task's status to 'Completed' in the project tracking.
+    usage_context: Use this to close out work items after a workflow successfully finishes a process, such as sending an invoice or processing a file.
     agent_hints:
       - "Requires the 'task_gid'."
       - "Note that completing a task may trigger other automated workflows in Asana."
     waml_examples:
-      - title: "Close Task"
+      - title: Close Task
         waml: |
           - step: finish_task
             call: asana.action.tasks.complete
             with:
-               task_gid: "1202..."
+               task_gid: 1202...
                completed: true
 
 interface:
@@ -43,7 +43,7 @@ execution:
       method: PUT
       url: >
         platform.base_url + "/tasks/" + inputs.taskGid
-      headers: platform.headers
+      headers: =platform.headers
       body:
         data:
           completed: true
@@ -52,7 +52,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -61,9 +61,9 @@ routing:
       - tool: emit
         params:
           port: task
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

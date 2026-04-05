@@ -5,16 +5,16 @@ meta:
   category: Contacts
   type: Trigger
   platform: hubspot
-  description: "Triggers when a new contact is created in HubSpot CRM."
-  version: "1.0.0"
+  description: Triggers when a new contact is created in HubSpot CRM.
+  version: 1.0.0
   discovery:
-    purpose: "Start a workflow whenever a new person is added to HubSpot."
-    usage_context: "Use this to trigger welcome emails, sync new leads to a CRM, or initiate a marketing onboarding flow."
+    purpose: Start a workflow whenever a new person is added to HubSpot.
+    usage_context: Use this to trigger welcome emails, sync new leads to a CRM, or initiate a marketing onboarding flow.
     agent_hints:
       - "Polls HubSpot for new contacts created after the last check."
       - "Yields the full contact object (properties) to the next step."
     waml_examples:
-      - title: "Welcome New Contacts"
+      - title: Welcome New Contacts
         waml: |
           trigger:
             new_lead:
@@ -31,12 +31,12 @@ interface:
       type: object
   settings:
     - name: properties
-      label: "Properties to Fetch"
+      label: Properties to Fetch
       type: string
-      default: "firstname,lastname,email,phone,company,createdate"
-      description: "Comma-separated list of contact properties to include."
+      default: firstname,lastname,email,phone,company,createdate
+      description: Comma-separated list of contact properties to include.
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -47,11 +47,11 @@ execution:
       method: GET
       url: >
         platform.base_url + "/crm/v3/objects/contacts"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         limit: 50
-        properties: settings.properties
-        sort: "-createdate"
+        properties: =settings.properties
+        sort: -createdate
         filterGroups: >
           has(event.cursor) ? '[{"filters":[{"propertyName":"createdate","operator":"GTE","value":"' + event.cursor + '"}]}]' : "[]"
     returns:
@@ -59,12 +59,12 @@ execution:
       body: response_body
 
 routing:
-  match: steps.query.status_code
+  match: =steps.query.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.query.response_body.results
+          items: =steps.query.response_body.results
           cursor_key: properties.createdate
           port: contact
       - tool: emit
@@ -74,4 +74,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.query.response_body
+          value: =steps.query.response_body

@@ -5,21 +5,21 @@ meta:
   category: Rows
   type: Trigger
   platform: google_sheets
-  description: "Polls a Google Sheet for newly appended rows by tracking row count."
-  version: "1.0.0"
+  description: Polls a Google Sheet for newly appended rows by tracking row count.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow when a new row is added to a Google Sheet."
-    usage_context: "Use to process new spreadsheet entries, trigger alerts for new log entries, or sync sheet data to an external database."
+    purpose: Initialize a workflow when a new row is added to a Google Sheet.
+    usage_context: Use to process new spreadsheet entries, trigger alerts for new log entries, or sync sheet data to an external database.
     agent_hints:
       - "Polls for new rows based on the total number of rows in the sheet."
     waml_examples:
-      - title: "Monitor New Entries"
+      - title: Monitor New Entries
         waml: |
           - step: on_row
             type: trigger
             call: google_sheets.trigger.rows.new
             settings:
-               spreadsheet_id: "12345abcdefg"
+               spreadsheet_id: 12345abcdefg
                range: "Sheet1!A1"
 
 interface:
@@ -31,20 +31,20 @@ interface:
       type: object
   settings:
     - name: spreadsheet_id
-      label: "Spreadsheet ID"
+      label: Spreadsheet ID
       type: string
       required: true
     - name: sheet_range
-      label: "Range"
+      label: Range
       type: string
-      default: "Sheet1"
+      default: Sheet1
       description: "Sheet name or A1 range to watch (e.g. Sheet1 or Sheet1!A:Z)"
     - name: has_header_row
-      label: "First Row is Header"
+      label: First Row is Header
       type: boolean
       default: true
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -55,7 +55,7 @@ execution:
       method: GET
       url: >
         "https://sheets.googleapis.com/v4/spreadsheets/" + settings.spreadsheet_id + "/values/" + settings.sheet_range
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -87,18 +87,18 @@ execution:
         }
         #{ new_rows: new_rows, next_cursor: values.len() }
       input:
-        values: steps.fetch_values.response_body.values
-        has_header: settings.has_header_row
+        values: =steps.fetch_values.response_body.values
+        has_header: =settings.has_header_row
     returns:
       result: extracted
 
 routing:
-  match: steps.fetch_values.status_code
+  match: =steps.fetch_values.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extracted.new_rows
+          items: =steps.extracted.new_rows
           cursor_key: _row_index
           port: row
       - tool: emit
@@ -108,4 +108,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.fetch_values.response_body
+          value: =steps.fetch_values.response_body

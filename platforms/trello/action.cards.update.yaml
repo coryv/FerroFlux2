@@ -5,22 +5,22 @@ meta:
   category: Cards
   type: Action
   platform: trello
-  description: "Updates an existing Trello card by its ID."
-  version: "1.0.0"
+  description: Updates an existing Trello card by its ID.
+  version: 1.0.0
   discovery:
-    purpose: "Modify fields on a Trello card, such as its name, description, due date, or status."
-    usage_context: "Use this to update task details, change card positioning (pos), or attach metadata to a task as it moves through a workflow."
+    purpose: Modify fields on a Trello card, such as its name, description, due date, or status.
+    usage_context: Use this to update task details, change card positioning (pos), or attach metadata to a task as it moves through a workflow.
     agent_hints:
       - "Requires the card ID."
       - "The body parameters only contain the fields you wish to change (partial update)."
     waml_examples:
-      - title: "Update Card Description"
+      - title: Update Card Description
         waml: |
           - step: log_notes
             call: trello.action.cards.update
             with:
-               id: "65a..."
-               desc: "Final requirements approved by stakeholders."
+               id: 65a...
+               desc: Final requirements approved by stakeholders.
 
 interface:
   inputs:
@@ -49,17 +49,17 @@ execution:
       method: PUT
       url: >
         platform.base_url + "/cards/" + inputs.id
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        name: inputs.name
-        desc: inputs.desc
-        closed: inputs.closed
+        name: =inputs.name
+        desc: =inputs.desc
+        closed: =inputs.closed
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -68,9 +68,9 @@ routing:
       - tool: emit
         params:
           port: card
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

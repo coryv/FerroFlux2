@@ -5,23 +5,23 @@ meta:
   category: Messages
   type: Action
   platform: outlook
-  description: "Forwards an email message to one or more recipients."
-  version: "1.0.0"
+  description: Forwards an email message to one or more recipients.
+  version: 1.0.0
   discovery:
-    purpose: "Share incoming information, process alerts, or escalate support emails to the relevant team members."
-    usage_context: "Use this to automate information sharing when an email matches specific criteria (e.g. 'Project Alpha' keywords)."
+    purpose: Share incoming information, process alerts, or escalate support emails to the relevant team members.
+    usage_context: Use this to automate information sharing when an email matches specific criteria (e.g. 'Project Alpha' keywords).
     agent_hints:
       - "Requires 'id' (message_id) and 'toRecipients' array."
       - "The 'comment' parameter adds a note before the forwarded content."
     waml_examples:
-      - title: "Forward Alert"
+      - title: Forward Alert
         waml: |
           - step: pass_it
             call: outlook.action.messages.forward
             with:
-               id: "AAMk..."
+               id: AAMk...
                toRecipients: [{ emailAddress: { address: "dev@acme.com" } }]
-               comment: "Please look into this server alert."
+               comment: Please look into this server alert.
 
 interface:
   inputs:
@@ -46,9 +46,9 @@ execution:
       method: POST
       url: >
         platform.base_url + "/me/messages/" + inputs.message_id + "/forward"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        comment: inputs.comment
+        comment: =inputs.comment
         toRecipients: >
           (has(inputs.to_recipients) ? inputs.to_recipients : '[]')
     returns:
@@ -56,7 +56,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "202":
       - tool: emit
@@ -66,4 +66,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

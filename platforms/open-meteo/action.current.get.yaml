@@ -5,15 +5,15 @@ meta:
   category: Current Conditions
   type: Action
   platform: open-meteo
-  description: "Fetch current weather conditions for a given latitude and longitude, including temperature, wind, and precipitation."
-  version: "1.0.0"
+  description: Fetch current weather conditions for a given latitude and longitude, including temperature, wind, and precipitation.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve the current weather conditions for a specific location."
-    usage_context: "Use to check temperature, weather code, and wind speed now."
+    purpose: Retrieve the current weather conditions for a specific location.
+    usage_context: Use to check temperature, weather code, and wind speed now.
     agent_hints:
       - "Requires latitude and longitude."
     waml_examples:
-      - title: "Check Current Temp"
+      - title: Check Current Temp
         waml: |
           - step: weather
             call: open-meteo.action.current.get
@@ -39,35 +39,35 @@ interface:
       type: object
   settings:
     - name: temperature_unit
-      label: "Temperature Unit"
+      label: Temperature Unit
       type: select
       required: false
-      default: "celsius"
+      default: celsius
       options:
-        - label: "Celsius"
-          value: "celsius"
-        - label: "Fahrenheit"
-          value: "fahrenheit"
+        - label: Celsius
+          value: celsius
+        - label: Fahrenheit
+          value: fahrenheit
     - name: wind_speed_unit
-      label: "Wind Speed Unit"
+      label: Wind Speed Unit
       type: select
       required: false
-      default: "kmh"
+      default: kmh
       options:
-        - label: "km/h"
-          value: "kmh"
-        - label: "mph"
-          value: "mph"
-        - label: "m/s"
-          value: "ms"
-        - label: "knots"
-          value: "kn"
+        - label: km/h
+          value: kmh
+        - label: mph
+          value: mph
+        - label: m/s
+          value: ms
+        - label: knots
+          value: kn
     - name: current_variables
-      label: "Current Variables (comma-separated)"
+      label: Current Variables (comma-separated)
       type: string
       required: false
-      default: "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,is_day"
-      placeholder: "temperature_2m,relative_humidity_2m,wind_speed_10m,..."
+      default: temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,is_day
+      placeholder: temperature_2m,relative_humidity_2m,wind_speed_10m,...
 
 execution:
   - id: request
@@ -76,7 +76,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/forecast?latitude=" + inputs.latitude + "&longitude=" + inputs.longitude + "&current=" + settings.current_variables + "&temperature_unit=" + settings.temperature_unit + "&wind_speed_unit=" + settings.wind_speed_unit + "&timezone=" + platform.default_timezone
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -84,7 +84,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -92,12 +92,12 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/current"
         returns:
@@ -108,9 +108,9 @@ routing:
       - tool: emit
         params:
           port: current_weather
-          value: steps.request.current_data
+          value: =steps.request.current_data
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

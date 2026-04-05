@@ -5,21 +5,21 @@ meta:
   category: Items
   type: Action
   platform: monday
-  description: "Creates a new item (row) on a Monday.com board."
-  version: "1.0.0"
+  description: Creates a new item (row) on a Monday.com board.
+  version: 1.0.0
   discovery:
-    purpose: "Add a new record to your Monday Work OS project board."
-    usage_context: "Use this to log new requests, create tasks from emails, or sync records from other systems into Monday's table view."
+    purpose: Add a new record to your Monday Work OS project board.
+    usage_context: Use this to log new requests, create tasks from emails, or sync records from other systems into Monday's table view.
     agent_hints:
       - "Requires the numeric 'board_id' and 'item_name'."
       - "Optionally specify a 'group_id' and 'column_values' as continuous JSON."
     waml_examples:
-      - title: "Create Roadmap Item"
+      - title: Create Roadmap Item
         waml: |
           - step: log_task
             call: monday.action.items.create
             with:
-               board_id: "1234567"
+               board_id: 1234567
                item_name: "Sprint 5: Auth Refactor"
                column_values: '{"status": {"label": "Working on it"}}'
 
@@ -46,8 +46,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: platform.base_url
-      headers: platform.headers
+      url: =platform.base_url
+      headers: =platform.headers
       body:
         query: |
           mutation ($boardId: ID!, $itemName: String!, $columnValues: JSON!) {
@@ -56,8 +56,8 @@ execution:
             }
           }
         variables:
-          boardId: inputs.board_id
-          itemName: inputs.item_name
+          boardId: =inputs.board_id
+          itemName: =inputs.item_name
           columnValues: >
             (has(inputs.column_values) ? inputs.column_values : '{}')
     returns:
@@ -65,7 +65,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -74,9 +74,9 @@ routing:
       - tool: emit
         params:
           port: item_id
-          value: steps.request.response_body.data.create_item.id
+          value: =steps.request.response_body.data.create_item.id
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

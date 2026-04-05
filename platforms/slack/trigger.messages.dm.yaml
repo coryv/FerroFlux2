@@ -5,22 +5,22 @@ meta:
   category: Messages
   type: Trigger
   platform: slack
-  description: "Triggers when a new direct message is received from a specific user."
-  version: "1.0.0"
+  description: Triggers when a new direct message is received from a specific user.
+  version: 1.0.0
   discovery:
-    purpose: "Monitor a private 1-on-1 conversation with a specific Slack user."
-    usage_context: "Use this to build an interactive bot that only responds to a specific person, or to track incoming private feedback. This trigger handles opening/identifying the DM channel automatically."
+    purpose: Monitor a private 1-on-1 conversation with a specific Slack user.
+    usage_context: Use this to build an interactive bot that only responds to a specific person, or to track incoming private feedback. This trigger handles opening/identifying the DM channel automatically.
     agent_hints:
       - "The 'user_id' is the ID of the person the bot is talking to."
       - "This trigger polls for history; it is not a real-time websocket event."
     waml_examples:
-      - title: "Monitor Personal DM"
+      - title: Monitor Personal DM
         waml: |
           trigger:
             id: dm_listener
             call: slack.trigger.messages.dm
             with:
-               user_id: "U12345678"
+               user_id: U12345678
 
 interface:
   inputs: []
@@ -32,12 +32,12 @@ interface:
 
   settings:
     - name: user_id
-      label: "User ID (conversation partner)"
+      label: User ID (conversation partner)
       type: string
       required: true
-      placeholder: "U1234567890"
+      placeholder: U1234567890
     - name: poll_interval
-      label: "Poll Interval (minutes)"
+      label: Poll Interval (minutes)
       type: number
       default: 1
       min: 1
@@ -49,9 +49,9 @@ execution:
       method: POST
       url: >
         platform.base_url + "/conversations.open"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        users: settings.user_id
+        users: =settings.user_id
     returns:
       status: status_code
       body: open_body
@@ -62,7 +62,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/conversations.history?channel=" + steps.open_dm.open_body.channel.id + "&oldest=" + event.cursor + "&limit=10"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -70,7 +70,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.fetch.status_code
+      value: =steps.fetch.status_code
       cases:
         - condition: 200
           output: success
@@ -78,7 +78,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -87,9 +87,9 @@ routing:
       - tool: emit
         params:
           port: message
-          value: steps.fetch.response_body
+          value: =steps.fetch.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.fetch.response_body
+          value: =steps.fetch.response_body

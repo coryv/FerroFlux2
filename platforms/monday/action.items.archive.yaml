@@ -5,20 +5,20 @@ meta:
   category: Items
   type: Action
   platform: monday
-  description: "Archives an item on a Monday.com board."
-  version: "1.0.0"
+  description: Archives an item on a Monday.com board.
+  version: 1.0.0
   discovery:
-    purpose: "Move an item from the active board into the archive."
-    usage_context: "Use this to clean up completed work items while still preserving their data for historical reference."
+    purpose: Move an item from the active board into the archive.
+    usage_context: Use this to clean up completed work items while still preserving their data for historical reference.
     agent_hints:
       - "Requires the numeric 'item_id'."
     waml_examples:
-      - title: "Archive Finished Task"
+      - title: Archive Finished Task
         waml: |
           - step: cleanup_row
             call: monday.action.items.archive
             with:
-               item_id: "890..."
+               item_id: 890...
 
 interface:
   inputs:
@@ -37,8 +37,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: platform.base_url
-      headers: platform.headers
+      url: =platform.base_url
+      headers: =platform.headers
       body:
         query: |
           mutation ($itemId: ID!) {
@@ -47,13 +47,13 @@ execution:
             }
           }
         variables:
-          itemId: inputs.item_id
+          itemId: =inputs.item_id
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -63,4 +63,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

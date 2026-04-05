@@ -5,15 +5,15 @@ meta:
   category: Deployments
   type: Action
   platform: azure-openai
-  description: "List all model deployments in an Azure OpenAI resource."
-  version: "1.0.0"
+  description: List all model deployments in an Azure OpenAI resource.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve a list of all model deployments in the Azure OpenAI resource."
-    usage_context: "Use to dynamically discover which models (GPT-4, Embeddings, Vision) are active and available for use in an Azure environment."
+    purpose: Retrieve a list of all model deployments in the Azure OpenAI resource.
+    usage_context: Use to dynamically discover which models (GPT-4, Embeddings, Vision) are active and available for use in an Azure environment.
     agent_hints:
       - "Returns a list of deployment objects including model name and status."
     waml_examples:
-      - title: "List Deployments"
+      - title: List Deployments
         waml: |
           - step: get_deployments
             call: azure-openai.action.deployments.list
@@ -32,14 +32,14 @@ interface:
 
   settings:
     - name: resource_name
-      label: "Azure Resource Name"
+      label: Azure Resource Name
       type: string
       required: true
-      placeholder: "my-openai-resource"
+      placeholder: my-openai-resource
     - name: api_version
-      label: "API Version"
+      label: API Version
       type: string
-      default: "2024-08-01-preview"
+      default: 2024-08-01-preview
       required: true
 
 execution:
@@ -49,7 +49,7 @@ execution:
       method: GET
       url: >
         "https://" + settings.resource_name + ".openai.azure.com/openai/deployments?api-version=" + settings.api_version
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -57,7 +57,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -65,12 +65,12 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/data"
         returns:
@@ -86,4 +86,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

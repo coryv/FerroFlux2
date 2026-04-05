@@ -4,11 +4,11 @@ meta:
   name: Microsoft OneDrive
   type: Platform
   category: Storage
-  description: "Connects to the Microsoft OneDrive API."
-  version: "1.0.0"
+  description: Connects to the Microsoft OneDrive API.
+  version: 1.0.0
   discovery:
-    purpose: "Cloud storage within the Microsoft 365 ecosystem."
-    usage_context: "Use OneDrive for managing files that need to be accessible within Excel, Word, or SharePoint. Ideal for enterprise file workflows and Windows-centric environments."
+    purpose: Cloud storage within the Microsoft 365 ecosystem.
+    usage_context: Use OneDrive for managing files that need to be accessible within Excel, Word, or SharePoint. Ideal for enterprise file workflows and Windows-centric environments.
     agent_hints:
       - "Uses the Microsoft Graph API (/me/drive/root/children)."
       - "Pathing follows a nested directory structure similar to a local filesystem."
@@ -16,11 +16,11 @@ meta:
 config:
   base_url: "https://graph.microsoft.com/v1.0"
   headers:
-    Content-Type: "application/json"
+    Content-Type: application/json
     # No Authorization header — injected automatically from the stored connection
 
 settings:
   - name: connection
-    label: "Microsoft OneDrive Account"
+    label: Microsoft OneDrive Account
     type: connection_select
     required: true

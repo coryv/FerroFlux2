@@ -5,27 +5,27 @@ meta:
   category: Blocks
   type: Action
   platform: notion
-  description: "Adds child blocks to an existing Notion block (Page or Block)."
-  version: "1.0.0"
+  description: Adds child blocks to an existing Notion block (Page or Block).
+  version: 1.0.0
   discovery:
-    purpose: "Append content, such as text, images, or todos, to a Notion page or other container."
-    usage_context: "Use this to log activity, add comments to a page, or build up a document dynamically from workflow data."
+    purpose: Append content, such as text, images, or todos, to a Notion page or other container.
+    usage_context: Use this to log activity, add comments to a page, or build up a document dynamically from workflow data.
     agent_hints:
       - "Requires the 'block_id' of the parent."
       - "The 'children' parameter is an array of Notion block objects."
     waml_examples:
-      - title: "Append Paragraph"
+      - title: Append Paragraph
         waml: |
           - step: log_line
             call: notion.action.blocks.children.append
             with:
-               block_id: "75a..."
+               block_id: 75a...
                children:
-                 - object: "block"
-                   type: "paragraph"
+                 - object: block
+                   type: paragraph
                    paragraph:
                      rich_text:
-                       - type: "text"
+                       - type: text
                          text: { content: "Workflow executed successfully." }
 
 interface:
@@ -52,9 +52,9 @@ execution:
       method: PATCH
       url: >
         platform.base_url + "/blocks/" + inputs.block_id + "/children"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        children: inputs.children
+        children: =inputs.children
     returns:
       status: status_code
       body: response_body
@@ -62,7 +62,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -70,7 +70,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -79,9 +79,9 @@ routing:
       - tool: emit
         params:
           port: block
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

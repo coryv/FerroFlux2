@@ -5,22 +5,22 @@ meta:
   category: Subscribers
   type: Action
   platform: mailchimp
-  description: "Permanently deletes a subscriber from an audience."
-  version: "1.0.0"
+  description: Permanently deletes a subscriber from an audience.
+  version: 1.0.0
   discovery:
-    purpose: "Clean up audience lists, remove inactive users, or comply with data deletion requests (e.g. GDPR)."
-    usage_context: "Use this to manage list hygiene by purging bounces or users who haven't opened an email in 6 months."
+    purpose: Clean up audience lists, remove inactive users, or comply with data deletion requests (e.g. GDPR).
+    usage_context: Use this to manage list hygiene by purging bounces or users who haven't opened an email in 6 months.
     agent_hints:
       - "Requires 'list_id' and 'subscriber_hash' (MD5 of email)."
       - "Note that this is irreversible and will remove all history for the subscriber."
     waml_examples:
-      - title: "Purge Inactive User"
+      - title: Purge Inactive User
         waml: |
           - step: rm_user
             call: mailchimp.action.subscribers.remove
             with:
-               list_id: "123..."
-               subscriber_hash: "555..."
+               list_id: 123...
+               subscriber_hash: 555...
 
 interface:
   inputs:
@@ -43,13 +43,13 @@ execution:
       method: DELETE
       url: >
         platform.base_url + "/lists/" + inputs.listId + "/members/" + inputs.subscriberHash
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -59,4 +59,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

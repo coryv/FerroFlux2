@@ -5,16 +5,16 @@ meta:
   category: Calendar
   type: Action
   platform: outlook
-  description: "Lists events from a specific Outlook calendar."
-  version: "1.0.0"
+  description: Lists events from a specific Outlook calendar.
+  version: 1.0.0
   discovery:
-    purpose: "Browse and identify upcoming meetings or schedule conflicts."
-    usage_context: "Use this to fetch daily schedules, sync calendar data to a team dashboard, or audit meeting attendance."
+    purpose: Browse and identify upcoming meetings or schedule conflicts.
+    usage_context: Use this to fetch daily schedules, sync calendar data to a team dashboard, or audit meeting attendance.
     agent_hints:
       - "Returns a list of event objects (subject, start, end, attendees)."
       - "Supports query parameters for filtering by time range."
     waml_examples:
-      - title: "List Today's Meetings"
+      - title: List Today's Meetings
         waml: |
           - step: see_schedule
             call: outlook.action.calendar.list
@@ -43,7 +43,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/me/events"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         "$top": >
           (has(inputs.limit) ? inputs.limit : '10')
@@ -54,7 +54,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -63,9 +63,9 @@ routing:
       - tool: emit
         params:
           port: events
-          value: steps.request.response_body.value
+          value: =steps.request.response_body.value
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

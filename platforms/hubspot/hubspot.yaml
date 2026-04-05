@@ -4,11 +4,11 @@ meta:
   name: HubSpot
   type: Platform
   category: CRM
-  description: "Connects to the HubSpot API."
-  version: "1.0.0"
+  description: Connects to the HubSpot API.
+  version: 1.0.0
   discovery:
-    purpose: "Customer Relationship Management (CRM) and inbound marketing platform."
-    usage_context: "Use HubSpot for managing customer data, tracking marketing interactions, and automating sales workflows. It is optimized for marketing-sales alignment."
+    purpose: Customer Relationship Management (CRM) and inbound marketing platform.
+    usage_context: Use HubSpot for managing customer data, tracking marketing interactions, and automating sales workflows. It is optimized for marketing-sales alignment.
     agent_hints:
       - "Uses the HubID for account identification (injected via connection)."
       - "The CRM API v3 uses standard REST patterns for objects (Contacts, Companies, Deals)."
@@ -16,10 +16,10 @@ meta:
 config:
   base_url: "https://api.hubapi.com/crm/v3"
   headers:
-    Content-Type: "application/json"
+    Content-Type: application/json
 
 settings:
   - name: connection
-    label: "HubSpot Account"
+    label: HubSpot Account
     type: connection_select
     required: true

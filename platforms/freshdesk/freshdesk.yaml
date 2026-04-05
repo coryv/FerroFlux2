@@ -3,11 +3,11 @@ meta:
   name: Freshdesk
   category: Support
   type: Platform
-  description: "Cloud-based customer support software and helpdesk solution."
-  version: "1.0.0"
+  description: Cloud-based customer support software and helpdesk solution.
+  version: 1.0.0
   discovery:
-    purpose: "Manage customer tickets, track service levels, and automate support across multiple channels."
-    usage_context: "Use this to create tickets from external alerts, manage agent assignments, and sync customer data from CRMs."
+    purpose: Manage customer tickets, track service levels, and automate support across multiple channels.
+    usage_context: Use this to create tickets from external alerts, manage agent assignments, and sync customer data from CRMs.
     agent_hints:
       - "Requires a subdomain and an API Key."
       - "Use 'requester_id' or 'email' for identifying customers."
@@ -17,16 +17,16 @@ meta:
 config:
   base_url: >
     "https://" + domain + ".freshdesk.com/api/v2"
-  auth_type: "basic"
+  auth_type: basic
   icon_url: "https://unpkg.com/simple-icons@v9.0.0/icons/freshdesk.svg"
 
 settings:
-  - name: "domain"
-    label: "Freshdesk Domain (e.g. company)"
-    type: "string"
+  - name: domain
+    label: Freshdesk Domain (e.g. company)
+    type: string
     required: true
-  - name: "api_key"
-    label: "API Key"
-    type: "string"
+  - name: api_key
+    label: API Key
+    type: string
     required: true
     is_secret: true

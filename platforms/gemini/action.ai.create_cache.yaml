@@ -5,21 +5,21 @@ meta:
   category: AI
   type: Action
   platform: gemini
-  description: "Creates a new context cache for large datasets."
-  version: "1.0.0"
+  description: Creates a new context cache for large datasets.
+  version: 1.0.0
   discovery:
-    purpose: "Store large amounts of data (e.g. documentation, codebases, video) in Gemini's infrastructure for rapid, cost-effective reuse."
-    usage_context: "Use this when you have a large 'static' context that will be referenced across multiple generation calls. Reduces latency and per-token costs."
+    purpose: Store large amounts of data (e.g. documentation, codebases, video) in Gemini's infrastructure for rapid, cost-effective reuse.
+    usage_context: Use this when you have a large 'static' context that will be referenced across multiple generation calls. Reduces latency and per-token costs.
     agent_hints:
       - "Requires a 'model' (e.g. 'gemini-1.5-pro-002')."
       - "Caches have a TTL (Time To Live); check 'ttl' and 'expireTime' parameters."
     waml_examples:
-      - title: "Cache Technical Docs"
+      - title: Cache Technical Docs
         waml: |
           - step: mk_cache
             call: gemini.action.ai.create_cache
             with:
-               model: "models/gemini-1.5-pro-002"
+               model: models/gemini-1.5-pro-002
                contents:
                   - parts: [{ text: "Full API Documentation..." }]
 
@@ -40,12 +40,12 @@ interface:
       type: object
   settings:
     - name: ttl_seconds
-      label: "TTL (Seconds)"
+      label: TTL (Seconds)
       type: number
       required: false
       default: 3600
     - name: display_name
-      label: "Display Name"
+      label: Display Name
       type: string
       required: false
 
@@ -56,12 +56,12 @@ execution:
       method: POST
       url: >
         platform.base_url + "/v1beta/cachedContents"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         model: >
           "models/" + inputs.model
-        displayName: settings.display_name
-        contents: inputs.contents
+        displayName: =settings.display_name
+        contents: =inputs.contents
         ttl: >
           settings.ttl_seconds + "s"
     returns:
@@ -71,7 +71,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -81,7 +81,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -90,9 +90,9 @@ routing:
       - tool: emit
         params:
           port: cache
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

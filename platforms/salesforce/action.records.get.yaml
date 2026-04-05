@@ -5,22 +5,22 @@ meta:
   category: Records
   type: Action
   platform: salesforce
-  description: "Retrieves a single Salesforce record by its unique ID."
-  version: "1.0.0"
+  description: Retrieves a single Salesforce record by its unique ID.
+  version: 1.0.0
   discovery:
-    purpose: "Fetch the details of a specific record."
-    usage_context: "Use this when you already have the 15 or 18-character Salesforce ID and need to get its current state."
+    purpose: Fetch the details of a specific record.
+    usage_context: Use this when you already have the 15 or 18-character Salesforce ID and need to get its current state.
     agent_hints:
       - "Requires the 'object' name and the 'id'."
       - "Returns all fields of the record by default."
     waml_examples:
-      - title: "Get Account Details"
+      - title: Get Account Details
         waml: |
           - step: get_account
             call: salesforce.action.records.get
             with:
-               object: "Account"
-               id: "0018c00002PqcYxAAJ"
+               object: Account
+               id: 0018c00002PqcYxAAJ
 
 interface:
   inputs:
@@ -47,15 +47,15 @@ execution:
       method: GET
       url: >
         platform.base_url + "/sobjects/" + inputs.sObjectName + "/" + inputs.recordId
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        fields: inputs.fields
+        fields: =inputs.fields
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -64,9 +64,9 @@ routing:
       - tool: emit
         params:
           port: record
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

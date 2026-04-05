@@ -5,21 +5,21 @@ meta:
   category: AI
   type: Action
   platform: ollama_cloud
-  description: "Continue a conversation with a model using message history."
-  version: "1.0.0"
+  description: Continue a conversation with a model using message history.
+  version: 1.0.0
   discovery:
-    purpose: "Generate conversational responses using open-source models hosted in Ollama Cloud."
-    usage_context: "Use to build cost-effective AI assistants, automate text transformation, or perform sentiment analysis using Llama 3 or Mistral."
+    purpose: Generate conversational responses using open-source models hosted in Ollama Cloud.
+    usage_context: Use to build cost-effective AI assistants, automate text transformation, or perform sentiment analysis using Llama 3 or Mistral.
     agent_hints:
       - "Requires a 'model' name (e.g. 'llama3' or 'mistral')."
       - "Returns a structured chat response object."
     waml_examples:
-      - title: "Chat with Llama"
+      - title: Chat with Llama
         waml: |
           - step: chat
             call: ollama_cloud.action.ai.chat
             with:
-               model: "llama3"
+               model: llama3
                messages: [{ role: "user", content: "Hello!" }]
 
 interface:
@@ -41,12 +41,12 @@ interface:
       type: object
   settings:
     - name: temperature
-      label: "Temperature"
+      label: Temperature
       type: number
       required: false
       default: 0.7
     - name: num_predict
-      label: "Max Tokens (num_predict)"
+      label: Max Tokens (num_predict)
       type: number
       required: false
       default: 2048
@@ -58,15 +58,15 @@ execution:
       method: POST
       url: >
         platform.base_url + "/chat"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        model: inputs.model
-        messages: inputs.messages
-        tools: inputs.tools
+        model: =inputs.model
+        messages: =inputs.messages
+        tools: =inputs.tools
         stream: false
         options:
-          temperature: settings.temperature
-          num_predict: settings.num_predict
+          temperature: =settings.temperature
+          num_predict: =settings.num_predict
     returns:
       status: status_code
       body: response_body
@@ -74,7 +74,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -82,7 +82,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -91,9 +91,9 @@ routing:
       - tool: emit
         params:
           port: response
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

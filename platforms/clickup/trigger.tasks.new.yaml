@@ -5,22 +5,22 @@ meta:
   category: Tasks
   type: Trigger
   platform: clickup
-  description: "Triggers when a new task is created in a ClickUp list."
-  version: "1.0.0"
+  description: Triggers when a new task is created in a ClickUp list.
+  version: 1.0.0
   discovery:
-    purpose: "Start a workflow whenever a new work item appears in ClickUp."
-    usage_context: "Use this to notify team members on Slack, sync new tasks to an external tool, or trigger automated task assignment."
+    purpose: Start a workflow whenever a new work item appears in ClickUp.
+    usage_context: Use this to notify team members on Slack, sync new tasks to an external tool, or trigger automated task assignment.
     agent_hints:
       - "Polls the list for new tasks based on the 'date_created'."
       - "Requires the numeric 'list_id'."
     waml_examples:
-      - title: "Sync New Tasks"
+      - title: Sync New Tasks
         waml: |
           trigger:
             new_task:
                call: clickup.trigger.tasks.new
                with:
-                  list_id: "12345678"
+                  list_id: 12345678
 
 interface:
   inputs: []
@@ -31,7 +31,7 @@ interface:
       type: object
   settings:
     - name: list_id
-      label: "List ID"
+      label: List ID
       type: string
       required: true
 
@@ -42,7 +42,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/list/" + settings.list_id + "/task"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         order_by: created
         reverse: true
@@ -53,19 +53,19 @@ execution:
   - id: extract_tasks
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/tasks"
     returns:
       tasks: tasks_array
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extract_tasks.tasks_array
+          items: =steps.extract_tasks.tasks_array
           cursor_key: id
           port: task
       - tool: emit
@@ -75,4 +75,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

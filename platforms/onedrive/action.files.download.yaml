@@ -5,21 +5,21 @@ meta:
   category: Files
   type: Action
   platform: onedrive
-  description: "Downloads a file from Microsoft OneDrive and stores it in the BlobStore."
-  version: "1.0.0"
+  description: Downloads a file from Microsoft OneDrive and stores it in the BlobStore.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve a file from OneDrive for processing in the workflow."
-    usage_context: "Use this to fetch images, spreadsheets (Excel), or PDFs for further processing steps like OCR or email attachments."
+    purpose: Retrieve a file from OneDrive for processing in the workflow.
+    usage_context: Use this to fetch images, spreadsheets (Excel), or PDFs for further processing steps like OCR or email attachments.
     agent_hints:
       - "Requires the explicit 'path' to the file (e.g. '/Archive/report_2023.xlsx')."
       - "Returns a 'blob_id' which can be sent to other platforms."
     waml_examples:
-      - title: "Download Excel Template"
+      - title: Download Excel Template
         waml: |
           - step: fetch_template
             call: onedrive.action.files.download
             with:
-               path: "/Templates/Budget.xlsx"
+               path: /Templates/Budget.xlsx
 
 interface:
   inputs:
@@ -42,14 +42,14 @@ execution:
       method: GET
       url: >
         platform.base_url + "/me/drive/items/" + inputs.file_id + "/content"
-      headers: platform.headers
+      headers: =platform.headers
       response_type: blob
     returns:
       status: status_code
       body: response_blob
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -58,9 +58,9 @@ routing:
       - tool: emit
         params:
           port: file
-          value: steps.request.response_blob
+          value: =steps.request.response_blob
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_blob
+          value: =steps.request.response_blob

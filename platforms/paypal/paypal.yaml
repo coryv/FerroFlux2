@@ -1,13 +1,13 @@
 meta:
   id: paypal
-  name: "PayPal"
-  category: "Payments"
+  name: PayPal
+  category: Payments
   type: Platform
-  description: "Global payment processor for online money transfers and commerce."
-  version: "1.0.0"
+  description: Global payment processor for online money transfers and commerce.
+  version: 1.0.0
   discovery:
-    purpose: "Process financial transactions and manage orders via the PayPal platform."
-    usage_context: "Use to automate payment verification, generate invoices for services, or manage recurring subscription billing for digital products."
+    purpose: Process financial transactions and manage orders via the PayPal platform.
+    usage_context: Use to automate payment verification, generate invoices for services, or manage recurring subscription billing for digital products.
     agent_hints:
       - "Requires Client ID and Client Secret for OAuth2."
       - "Supports both Sandbox and Live environments."
@@ -16,14 +16,14 @@ meta:
 
 config:
   base_url: "https://api-m.paypal.com"
-  auth_type: "oauth2"
+  auth_type: oauth2
   auth:
-    type: "bearer"
+    type: bearer
   connection_schema:
-    - name: "client_id"
-      type: "string"
+    - name: client_id
+      type: string
       required: true
-    - name: "client_secret"
-      type: "string"
+    - name: client_secret
+      type: string
       required: true
       is_secret: true

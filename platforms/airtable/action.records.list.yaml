@@ -5,22 +5,22 @@ meta:
   category: Records
   type: Action
   platform: airtable
-  description: "Lists records in a table with pagination and filtering."
-  version: "1.0.0"
+  description: Lists records in a table with pagination and filtering.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve a list of records from a specific Airtable base and table."
-    usage_context: "Use to fetch CRM data, inventory lists, or task status updates for reporting and processing."
+    purpose: Retrieve a list of records from a specific Airtable base and table.
+    usage_context: Use to fetch CRM data, inventory lists, or task status updates for reporting and processing.
     agent_hints:
       - "Requires baseId and tableIdOrName."
       - "Supports the 'filterByFormula' parameter for server-side filtering."
     waml_examples:
-      - title: "List Open Tasks"
+      - title: List Open Tasks
         waml: |
           - step: fetch_tasks
             call: airtable.action.records.list
             with:
-               baseId: "app12345"
-               tableIdOrName: "Tasks"
+               baseId: app12345
+               tableIdOrName: Tasks
                filterByFormula: "{Status} = 'Done'"
                maxRecords: 100
 
@@ -52,12 +52,12 @@ execution:
       method: GET
       url: >
         platform.base_url + "/" + inputs.base_id + "/" + inputs.table_id_or_name
-      headers: platform.headers
+      headers: =platform.headers
       strategy: cursor
       cursor_param: offset
       query:
-        filterByFormula: inputs.filterByFormula
-        maxRecords: inputs.maxRecords
+        filterByFormula: =inputs.filterByFormula
+        maxRecords: =inputs.maxRecords
     returns:
       items: records
       total_pages: page_count
@@ -72,7 +72,7 @@ execution:
           output: success
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -81,4 +81,4 @@ routing:
       - tool: emit
         params:
           port: records
-          value: steps.request.records
+          value: =steps.request.records

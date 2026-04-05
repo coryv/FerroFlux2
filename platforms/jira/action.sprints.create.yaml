@@ -5,21 +5,21 @@ meta:
   category: Board
   type: Action
   platform: jira
-  description: "Creates a sprint."
-  version: "1.0.0"
+  description: Creates a sprint.
+  version: 1.0.0
   discovery:
-    purpose: "Create a new sprint in a Jira software board."
-    usage_context: "Use to automate sprint planning, setup intervals from a project timeline, or initiate development cycles."
+    purpose: Create a new sprint in a Jira software board.
+    usage_context: Use to automate sprint planning, setup intervals from a project timeline, or initiate development cycles.
     agent_hints:
       - "Requires boardId and name."
     waml_examples:
-      - title: "Start Sprint"
+      - title: Start Sprint
         waml: |
           - step: new_sprint
             call: jira.action.sprints.create
             with:
                boardId: 101
-               name: "Sprint 23 - Backend Revamp"
+               name: Sprint 23 - Backend Revamp
                startDate: "2023-10-01T09:00:00Z"
                endDate: "2023-10-14T17:00:00Z"
 
@@ -46,16 +46,16 @@ execution:
       method: POST
       url: >
         "https://" + settings.domain + ".atlassian.net/rest/agile/1.0/sprint"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        name: inputs.name
-        originBoardId: inputs.originBoardId
+        name: =inputs.name
+        originBoardId: =inputs.originBoardId
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -64,9 +64,9 @@ routing:
       - tool: emit
         params:
           port: sprint
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

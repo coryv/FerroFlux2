@@ -5,21 +5,21 @@ meta:
   category: Pages
   type: Action
   platform: confluence
-  description: "Create a new page in a Confluence space."
-  version: "1.0.0"
+  description: Create a new page in a Confluence space.
+  version: 1.0.0
   discovery:
-    purpose: "Create a new page in a specific Confluence space."
-    usage_context: "Use to generate project status reports, documentation from code templates, or meeting minute summaries."
+    purpose: Create a new page in a specific Confluence space.
+    usage_context: Use to generate project status reports, documentation from code templates, or meeting minute summaries.
     agent_hints:
       - "Requires spaceId, title, and body content."
     waml_examples:
-      - title: "Create Report Page"
+      - title: Create Report Page
         waml: |
           - step: write_page
             call: confluence.action.pages.create
             with:
-               spaceId: "543216789"
-               title: "Monthly Project Report"
+               spaceId: 543216789
+               title: Monthly Project Report
                body: "<h1>Report</h1><p>Status: Green</p>"
 
 interface:
@@ -49,11 +49,11 @@ execution:
       method: POST
       url: >
         platform.base_url + "/pages"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        spaceId: inputs.space_id
-        title: inputs.title
-        parentId: inputs.parent_id
+        spaceId: =inputs.space_id
+        title: =inputs.title
+        parentId: =inputs.parent_id
         body:
           storage:
             value: >
@@ -64,7 +64,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -73,9 +73,9 @@ routing:
       - tool: emit
         params:
           port: page
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

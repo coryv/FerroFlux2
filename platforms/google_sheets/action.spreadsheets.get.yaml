@@ -5,21 +5,21 @@ meta:
   category: Spreadsheets
   type: Action
   platform: google_sheets
-  description: "Get properties and metadata of a spreadsheet."
-  version: "1.0.0"
+  description: Get properties and metadata of a spreadsheet.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve metadata for an entire Google Sheets spreadsheet."
-    usage_context: "Use to fetch sheet names, sheet IDs, formatting rules, or the spreadsheet title."
+    purpose: Retrieve metadata for an entire Google Sheets spreadsheet.
+    usage_context: Use to fetch sheet names, sheet IDs, formatting rules, or the spreadsheet title.
     agent_hints:
       - "Requires a Spreadsheet ID."
       - "Returns the full spreadsheet object including metadata and sheet properties."
     waml_examples:
-      - title: "Get Sheet Metadata"
+      - title: Get Sheet Metadata
         waml: |
           - step: fetch_meta
             call: google_sheets.action.spreadsheets.get
             with:
-               spreadsheet_id: "12345abcdefg"
+               spreadsheet_id: 12345abcdefg
 
 interface:
   inputs:
@@ -43,7 +43,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/" + inputs.spreadsheet_id
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -51,7 +51,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -59,7 +59,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -68,9 +68,9 @@ routing:
       - tool: emit
         params:
           port: spreadsheet
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

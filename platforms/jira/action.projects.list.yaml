@@ -6,14 +6,14 @@ meta:
   type: Action
   platform: jira
   description: "TODO: Describe what this node does."
-  version: "1.0.0"
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve a list of all accessible Jira projects."
-    usage_context: "Use this to discover project keys or IDs required for creating or searching issues."
+    purpose: Retrieve a list of all accessible Jira projects.
+    usage_context: Use this to discover project keys or IDs required for creating or searching issues.
     agent_hints:
       - "Returns an array of project objects including key, name, and id."
     waml_examples:
-      - title: "List Projects"
+      - title: List Projects
         waml: |
           - step: get_projects
             call: jira.projects.list
@@ -47,7 +47,7 @@ execution:
         "GET            # TODO: GET | POST | PUT | DELETE | PATCH"
       url: >
         platform.base_url + "/TODO"
-      headers: platform.headers
+      headers: =platform.headers
       # body:                >
         # "# Uncomment for POST/PUT/PATCH"
       #   field: inputs.field_name
@@ -59,15 +59,15 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
-        - condition: "\"200\"   # TODO: add all success codes (201, 202, 204, etc.)"
+        - condition: '\"200\' # TODO: add all success codes (201, 202, 204, etc.)"
           output: success
         - condition: default
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -76,9 +76,9 @@ routing:
       - tool: emit
         params:
           port: result
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

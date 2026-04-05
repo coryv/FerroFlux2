@@ -5,16 +5,16 @@ meta:
   category: Issues
   type: Trigger
   platform: linear
-  description: "Triggers in real-time when a new issue is created in Linear (webhook)."
-  version: "1.0.0"
+  description: Triggers in real-time when a new issue is created in Linear (webhook).
+  version: 1.0.0
   discovery:
-    purpose: "React instantly to new bugs or tasks logged in Linear."
-    usage_context: "Use this for time-sensitive notifications (e.g. Critical Bug alerts) or for maintaining real-time data syncs across platforms."
+    purpose: React instantly to new bugs or tasks logged in Linear.
+    usage_context: Use this for time-sensitive notifications (e.g. Critical Bug alerts) or for maintaining real-time data syncs across platforms.
     agent_hints:
       - "Requires a webhook URL to be configured in Linear."
       - "Processes incoming JSON payloads from Linear's webhook system."
     waml_examples:
-      - title: "Real-time Bug Alert"
+      - title: Real-time Bug Alert
         waml: |
           trigger:
             raw_bug:
@@ -30,18 +30,18 @@ interface:
       type: object
   settings:
     - name: webhook_secret
-      label: "Webhook Signing Secret"
+      label: Webhook Signing Secret
       type: string
       required: true
-      description: "The signing secret from your Linear webhook configuration."
+      description: The signing secret from your Linear webhook configuration.
 
 execution:
   - id: verify
     tool: verify_signature
     params:
-      body: event.raw_body
-      secret: settings.webhook_secret
-      signature: event.headers["linear-signature"]
+      body: =event.raw_body
+      secret: =settings.webhook_secret
+      signature: '=event.headers["linear-signature"]'
       algorithm: hmac-sha256
       encoding: hex
     returns:
@@ -54,13 +54,13 @@ execution:
         steps.verify.is_valid && event.body.action == "create" && event.body.type == "Issue"
 
 routing:
-  match: steps.check_event.result
+  match: =steps.check_event.result
   cases:
     "true":
       - tool: emit
         params:
           port: issue
-          value: event.body.data
+          value: =event.body.data
       - tool: emit
         params:
           port: Success

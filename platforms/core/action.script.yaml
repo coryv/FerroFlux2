@@ -4,15 +4,15 @@ meta:
   category: Logic
   type: Action
   platform: core
-  description: "Runs custom Rhai logic for complex transformations."
-  version: "1.0.0"
+  description: Runs custom Rhai logic for complex transformations.
+  version: 1.0.0
   discovery:
-    purpose: "Execute custom script logic (JS/TS)."
-    usage_context: "Use for complex logic, mapping structures, or data processing."
+    purpose: Execute custom script logic (JS/TS).
+    usage_context: Use for complex logic, mapping structures, or data processing.
     agent_hints:
       - "Scripts have access to workflow state and inputs."
     waml_examples:
-      - title: "Transform Data"
+      - title: Transform Data
         waml: |
           - step: transform
             call: core.action.script
@@ -42,7 +42,7 @@ execution:
   - id: script_exec
     tool: rhai
     params:
-      script: settings.script
+      script: =settings.script
 
     returns:
       result: script_result

@@ -1,131 +1,131 @@
-name: "Nested Condition Chains"
-description: "Branching based on 'type' and 'value' fields in webhook body."
+name: Nested Condition Chains
+description: Branching based on 'type' and 'value' fields in webhook body.
 triggers:
-  - id: "webhook_in"
-    name: "Incoming Webhook"
-    type: "core.trigger.webhook"
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
     config:
-      path: "/nested"
+      path: /nested
 nodes:
-  - id: "get_type"
-    name: "Extract Type"
-    type: "core.utils.json"
+  - id: get_type
+    name: Extract Type
+    type: core.utils.json
     config:
-      operation: "'query'"
-      expression: "'type'"
-  - id: "get_value"
-    name: "Extract Value"
-    type: "core.utils.json"
+      operation: query
+      expression: type
+  - id: get_value
+    name: Extract Value
+    type: core.utils.json
     config:
-      operation: "'query'"
-      expression: "'value'"
-  - id: "const_order"
-    name: "Constant 'order'"
-    type: "core.action.script"
+      operation: query
+      expression: value
+  - id: const_order
+    name: Constant 'order'
+    type: core.action.script
     config:
-      script: "'return \"order\";'"
-  - id: "const_500"
-    name: "Constant 500"
-    type: "core.action.script"
+      script: "'return \\\\\"order\\\\\";'"
+  - id: const_500
+    name: Constant 500
+    type: core.action.script
     config:
-      script: "'return 500;'"
-  - id: "check_type"
-    name: "Check if Order"
-    type: "core.logic.condition"
+      script: return 500;
+  - id: check_type
+    name: Check if Order
+    type: core.logic.condition
     config:
-      operator: "'=='"
-  - id: "check_value"
-    name: "Check if High Value"
-    type: "core.logic.condition"
+      operator:
+  - id: check_value
+    name: Check if High Value
+    type: core.logic.condition
     config:
       operator: "'>'"
-  - id: "log_not_order"
-    name: "Not an Order"
-    type: "core.action.log"
+  - id: log_not_order
+    name: Not an Order
+    type: core.action.log
     config:
-      level: "'INFO'"
-      message: "'Received non-order type'"
-  - id: "log_high_order"
-    name: "High Value Order"
-    type: "core.action.log"
+      level: INFO
+      message: Received non-order type
+  - id: log_high_order
+    name: High Value Order
+    type: core.action.log
     config:
-      level: "'INFO'"
-      message: "'Received HIGH value order'"
-  - id: "log_low_order"
-    name: "Low Value Order"
-    type: "core.action.log"
+      level: INFO
+      message: Received HIGH value order
+  - id: log_low_order
+    name: Low Value Order
+    type: core.action.log
     config:
-      level: "'INFO'"
-      message: "'Received LOW value order'"
+      level: INFO
+      message: Received LOW value order
 
 edges:
   # 1. Flow to extraction and constants
-  - source_id: "webhook_in"
-    source_handle: "Success"
-    target_id: "get_type"
-    target_handle: "Exec"
-  - source_id: "webhook_in"
-    source_handle: "body"
-    target_id: "get_type"
-    target_handle: "input"
+  - source_id: webhook_in
+    source_handle: Success
+    target_id: get_type
+    target_handle: Exec
+  - source_id: webhook_in
+    source_handle: body
+    target_id: get_type
+    target_handle: input
 
-  - source_id: "get_type"
-    source_handle: "Exec"
-    target_id: "get_value"
-    target_handle: "Exec"
-  - source_id: "webhook_in"
-    source_handle: "body"
-    target_id: "get_value"
-    target_handle: "input"
+  - source_id: get_type
+    source_handle: Exec
+    target_id: get_value
+    target_handle: Exec
+  - source_id: webhook_in
+    source_handle: body
+    target_id: get_value
+    target_handle: input
 
-  - source_id: "get_value"
-    source_handle: "Exec"
-    target_id: "const_order"
-    target_handle: "Exec"
-  - source_id: "const_order"
-    source_handle: "Exec"
-    target_id: "const_500"
-    target_handle: "Exec"
+  - source_id: get_value
+    source_handle: Exec
+    target_id: const_order
+    target_handle: Exec
+  - source_id: const_order
+    source_handle: Exec
+    target_id: const_500
+    target_handle: Exec
 
   # 2. First Condition: Check Type
-  - source_id: "const_500"
-    source_handle: "Exec"
-    target_id: "check_type"
-    target_handle: "Exec"
-  - source_id: "get_type"
-    source_handle: "result"
-    target_id: "check_type"
-    target_handle: "a"
-  - source_id: "const_order"
-    source_handle: "result"
-    target_id: "check_type"
-    target_handle: "b"
+  - source_id: const_500
+    source_handle: Exec
+    target_id: check_type
+    target_handle: Exec
+  - source_id: get_type
+    source_handle: result
+    target_id: check_type
+    target_handle: a
+  - source_id: const_order
+    source_handle: result
+    target_id: check_type
+    target_handle: b
 
   # 3. Branching from check_type
-  - source_id: "check_type"
-    source_handle: "False"
-    target_id: "log_not_order"
-    target_handle: "Exec"
+  - source_id: check_type
+    source_handle: False
+    target_id: log_not_order
+    target_handle: Exec
   
-  - source_id: "check_type"
-    source_handle: "True"
-    target_id: "check_value"
-    target_handle: "Exec"
-  - source_id: "get_value"
-    source_handle: "result"
-    target_id: "check_value"
-    target_handle: "a"
-  - source_id: "const_500"
-    source_handle: "result"
-    target_id: "check_value"
-    target_handle: "b"
+  - source_id: check_type
+    source_handle: True
+    target_id: check_value
+    target_handle: Exec
+  - source_id: get_value
+    source_handle: result
+    target_id: check_value
+    target_handle: a
+  - source_id: const_500
+    source_handle: result
+    target_id: check_value
+    target_handle: b
 
   # 4. Branching from check_value
-  - source_id: "check_value"
-    source_handle: "True"
-    target_id: "log_high_order"
-    target_handle: "Exec"
-  - source_id: "check_value"
-    source_handle: "False"
-    target_id: "log_low_order"
-    target_handle: "Exec"
+  - source_id: check_value
+    source_handle: True
+    target_id: log_high_order
+    target_handle: Exec
+  - source_id: check_value
+    source_handle: False
+    target_id: log_low_order
+    target_handle: Exec

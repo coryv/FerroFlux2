@@ -5,16 +5,16 @@ meta:
   category: Tickets
   type: Action
   platform: zendesk
-  description: "Gets a ticket's details."
-  version: "1.0.0"
+  description: Gets a ticket's details.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve complete details for a single Zendesk ticket."
-    usage_context: "Use this to fetch current status, priority, description, or custom field values of a support request."
+    purpose: Retrieve complete details for a single Zendesk ticket.
+    usage_context: Use this to fetch current status, priority, description, or custom field values of a support request.
     agent_hints:
       - "Requires the ticket_id."
       - "Returns the full ticket object."
     waml_examples:
-      - title: "Get Ticket Details"
+      - title: Get Ticket Details
         waml: |
           - step: fetch_ticket
             call: zendesk.action.tickets.get
@@ -42,13 +42,13 @@ execution:
       method: GET
       url: >
         platform.base_url + "/tickets/" + inputs.ticketId + ".json"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -57,9 +57,9 @@ routing:
       - tool: emit
         params:
           port: ticket
-          value: steps.request.response_body.ticket
+          value: =steps.request.response_body.ticket
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

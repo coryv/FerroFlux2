@@ -5,21 +5,21 @@ meta:
   category: Comments
   type: Action
   platform: trello
-  description: "Adds a comment to an existing Trello card."
-  version: "1.0.0"
+  description: Adds a comment to an existing Trello card.
+  version: 1.0.0
   discovery:
-    purpose: "Communicate updates and provide context on a task card."
-    usage_context: "Use this to log progress, notify team members of results, or record completion details within the card's history."
+    purpose: Communicate updates and provide context on a task card.
+    usage_context: Use this to log progress, notify team members of results, or record completion details within the card's history.
     agent_hints:
       - "Requires the card ID."
     waml_examples:
-      - title: "Post Status Update"
+      - title: Post Status Update
         waml: |
           - step: say_it
             call: trello.action.comments.create
             with:
-               id: "65a..."
-               text: "Processing complete. Please check the results."
+               id: 65a...
+               text: Processing complete. Please check the results.
 
 interface:
   inputs:
@@ -44,15 +44,15 @@ execution:
       method: POST
       url: >
         platform.base_url + "/cards/" + inputs.idCard + "/actions/comments"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        text: inputs.text
+        text: =inputs.text
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -61,9 +61,9 @@ routing:
       - tool: emit
         params:
           port: comment
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

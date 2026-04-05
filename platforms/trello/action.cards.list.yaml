@@ -5,21 +5,21 @@ meta:
   category: Cards
   type: Action
   platform: trello
-  description: "Lists cards within a specific Trello list."
-  version: "1.0.0"
+  description: Lists cards within a specific Trello list.
+  version: 1.0.0
   discovery:
-    purpose: "Browse and find tasks belonging to a specific list."
-    usage_context: "Use this to fetch all tasks in a 'Backlog' list, sync board items to a spreadsheet, or audit card ages."
+    purpose: Browse and find tasks belonging to a specific list.
+    usage_context: Use this to fetch all tasks in a 'Backlog' list, sync board items to a spreadsheet, or audit card ages.
     agent_hints:
       - "Requires the 'idList' (Short string ID)."
       - "Returns a list of card summaries (ID, name, pos, etc.)."
     waml_examples:
-      - title: "List List Cards"
+      - title: List List Cards
         waml: |
           - step: get_todo
             call: trello.action.cards.list
             with:
-               id: "65a..."
+               id: 65a...
 
 interface:
   inputs:
@@ -42,13 +42,13 @@ execution:
       method: GET
       url: >
         platform.base_url + "/lists/" + inputs.idList + "/cards"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -57,9 +57,9 @@ routing:
       - tool: emit
         params:
           port: cards
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -5,15 +5,15 @@ meta:
   category: Messages
   type: Trigger
   platform: microsoft_teams
-  description: "Polls a Microsoft Teams channel for new messages."
-  version: "1.0.0"
+  description: Polls a Microsoft Teams channel for new messages.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow whenever a new message is posted in a Microsoft Teams channel or chat."
-    usage_context: "Use to build Teams-based chatbots, automate keyword-based ticket creation, or log channel activity for audit purposes."
+    purpose: Initialize a workflow whenever a new message is posted in a Microsoft Teams channel or chat.
+    usage_context: Use to build Teams-based chatbots, automate keyword-based ticket creation, or log channel activity for audit purposes.
     agent_hints:
       - "Requires a active subscription (webhook) via Microsoft Graph."
     waml_examples:
-      - title: "On Message"
+      - title: On Message
         waml: |
           - step: on_teams_msg
             type: trigger
@@ -28,15 +28,15 @@ interface:
       type: object
   settings:
     - name: team_id
-      label: "Team ID"
+      label: Team ID
       type: string
       required: true
     - name: channel_id
-      label: "Channel ID"
+      label: Channel ID
       type: string
       required: true
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -47,7 +47,7 @@ execution:
       method: GET
       url: >
         "https://graph.microsoft.com/v1.0/teams/" + settings.team_id + "/channels/" + settings.channel_id + "/messages/delta"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         $filter: >
           has(event.cursor) ? "createdDateTime ge " + event.cursor : null
@@ -57,12 +57,12 @@ execution:
       body: response_body
 
 routing:
-  match: steps.query.status_code
+  match: =steps.query.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.query.response_body.value
+          items: =steps.query.response_body.value
           cursor_key: createdDateTime
           port: message
       - tool: emit
@@ -72,4 +72,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.query.response_body
+          value: =steps.query.response_body

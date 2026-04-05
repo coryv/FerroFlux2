@@ -5,21 +5,21 @@ meta:
   category: Issues
   type: Action
   platform: jira
-  description: "Adds a new comment to an issue."
-  version: "1.0.0"
+  description: Adds a new comment to an issue.
+  version: 1.0.0
   discovery:
-    purpose: "Add a comment to an existing Jira issue."
-    usage_context: "Use to log updates or communicate within a ticket."
+    purpose: Add a comment to an existing Jira issue.
+    usage_context: Use to log updates or communicate within a ticket.
     agent_hints:
       - "Requires issue key (e.g., PROJ-123) and comment body."
     waml_examples:
-      - title: "Log Update"
+      - title: Log Update
         waml: |
           - step: log
             call: jira.issues.add_comment
             with:
-               issue_id_or_key: "PROJ-123"
-               body: "Automatic comment from workflow"
+               issue_id_or_key: PROJ-123
+               body: Automatic comment from workflow
 
 interface:
   inputs:
@@ -45,9 +45,9 @@ execution:
       method: POST
       url: >
         "https://" + settings.domain + ".atlassian.net/rest/api/3/issue/" + inputs.issueIdOrKey + "/comment"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        body: inputs.body
+        body: =inputs.body
     returns:
       status: status_code
       body: response_body
@@ -55,7 +55,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 201
           output: success
@@ -63,7 +63,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -72,9 +72,9 @@ routing:
       - tool: emit
         params:
           port: comment
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

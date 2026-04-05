@@ -5,21 +5,21 @@ meta:
   category: Issues
   type: Action
   platform: jira
-  description: "Perform a status transition on an issue (e.g. Move to Done)."
-  version: "1.0.0"
+  description: Perform a status transition on an issue (e.g. Move to Done).
+  version: 1.0.0
   discovery:
-    purpose: "Move a Jira issue to a different status (transition)."
-    usage_context: "Use to automate workflow status changes, e.g., moving tickets to 'Done' when a PR is merged."
+    purpose: Move a Jira issue to a different status (transition).
+    usage_context: Use to automate workflow status changes, e.g., moving tickets to 'Done' when a PR is merged.
     agent_hints:
       - "Requires the issue key (e.g., PROJ-123) and the transition ID or name (e.g., 'Done')."
     waml_examples:
-      - title: "Resolve Issue"
+      - title: Resolve Issue
         waml: |
           - step: resolve
             call: jira.issues.transition
             with:
-               issue_id_or_key: "PROJ-123"
-               transition_name: "Done"
+               issue_id_or_key: PROJ-123
+               transition_name: Done
 
 interface:
   inputs:
@@ -42,7 +42,7 @@ execution:
       method: POST
       url: >
         platform.base_url + "/issue/" + inputs.issue_id + "/transitions"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         transition:
           id: inputs.transition_id
@@ -51,7 +51,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -61,4 +61,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -5,24 +5,24 @@ meta:
   category: Contacts
   type: Action
   platform: hubspot
-  description: "Creates a new contact in HubSpot CRM."
-  version: "1.0.0"
+  description: Creates a new contact in HubSpot CRM.
+  version: 1.0.0
   discovery:
-    purpose: "Add a new individual to your HubSpot marketing and sales database."
-    usage_context: "Use this to capture new leads from a signup form, import contacts from an external system, or add new subscribers to a mailing list."
+    purpose: Add a new individual to your HubSpot marketing and sales database.
+    usage_context: Use this to capture new leads from a signup form, import contacts from an external system, or add new subscribers to a mailing list.
     agent_hints:
       - "Email is usually the primary identifier for deduplication in HubSpot."
       - "Properties must match internal HubSpot property names (e.g. 'firstname', 'lastname', 'email')."
     waml_examples:
-      - title: "Create New Contact"
+      - title: Create New Contact
         waml: |
           - step: add_contact
             call: hubspot.action.contacts.create
             with:
                properties:
-                 email: "jane.doe@example.com"
-                 firstname: "Jane"
-                 lastname: "Doe"
+                 email: jane.doe@example.com
+                 firstname: Jane
+                 lastname: Doe
 
 interface:
   inputs:
@@ -46,9 +46,9 @@ execution:
       method: POST
       url: >
         platform.base_url + "/objects/contacts"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        properties: inputs.properties
+        properties: =inputs.properties
     returns:
       status: status_code
       body: response_body
@@ -56,7 +56,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 201
           output: success
@@ -64,7 +64,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -73,9 +73,9 @@ routing:
       - tool: emit
         params:
           port: contact
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -4,22 +4,22 @@ meta:
   category: Documents
   type: Action
   platform: mongodb
-  description: "Inserts a document into a collection. Automatically participates in any active session for the current flow."
-  version: "1.0.0"
+  description: Inserts a document into a collection. Automatically participates in any active session for the current flow.
+  version: 1.0.0
   discovery:
-    purpose: "Insert a single JSON document into a MongoDB collection."
-    usage_context: "Use to persist application data, log events, or save state for asynchronous processing."
+    purpose: Insert a single JSON document into a MongoDB collection.
+    usage_context: Use to persist application data, log events, or save state for asynchronous processing.
     agent_hints:
       - "Requires database, collection, and the document (JSON)."
       - "The _id field will be automatically generated if not provided."
     waml_examples:
-      - title: "Log Event"
+      - title: Log Event
         waml: |
           - step: log
             call: mongodb.action.document.insert
             with:
-               database: "analytics"
-               collection: "events"
+               database: analytics
+               collection: events
                document: { "type": "click", "user": "123", "ts": "${now()}" }
 
 interface:
@@ -28,10 +28,10 @@ interface:
       type: flow
     - name: collection
       type: string
-      description: "The name of the collection to insert into."
+      description: The name of the collection to insert into.
     - name: document
       type: object
-      description: "The document to insert."
+      description: The document to insert.
   outputs:
     - name: Success
       type: flow
@@ -45,10 +45,10 @@ execution:
     tool: mongo_query
     params:
       operation: insert
-      connection_string: settings.connection_string
-      database: settings.database
-      collection: inputs.collection
-      document: inputs.document
+      connection_string: =settings.connection_string
+      database: =settings.database
+      collection: =inputs.collection
+      document: =inputs.document
     returns:
       inserted_id: inserted_id
 
@@ -62,4 +62,4 @@ routing:
       - tool: emit
         params:
           port: inserted_id
-          value: steps.insert.inserted_id
+          value: =steps.insert.inserted_id

@@ -4,20 +4,20 @@ meta:
   category: Utilities
   type: Action
   platform: core
-  description: "Transforms input data using a template."
-  version: "1.0.0"
+  description: Transforms input data using a template.
+  version: 1.0.0
   discovery:
-    purpose: "Map, filter, and reshape JSON data structures."
-    usage_context: "Use to transform API responses into a specific format required by a downstream tool or database."
+    purpose: Map, filter, and reshape JSON data structures.
+    usage_context: Use to transform API responses into a specific format required by a downstream tool or database.
     agent_hints:
       - "Uses a declarative mapping syntax (Jolt-like) for complex object transformations."
     waml_examples:
-      - title: "Rename Fields"
+      - title: Rename Fields
         waml: |
           - step: map
             call: core.utils.transform
             with:
-               data: steps.get_user.output
+               data: =steps.get_user.output
                mapping:
                  "first_name": "customerName"
                  "id": "externalId"
@@ -42,7 +42,7 @@ interface:
       type: code
       description: >
         "Use " + inputs.data + " to access input."
-      default: inputs.data
+      default: =inputs.data
 
 execution:
   # Just emits the resolved template string/value.
@@ -54,7 +54,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: settings.template
+      value: =settings.template
 
   - id: done
     tool: emit

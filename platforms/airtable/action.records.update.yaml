@@ -5,22 +5,22 @@ meta:
   category: Records
   type: Action
   platform: airtable
-  description: "Updates a single record in a table."
-  version: "1.0.0"
+  description: Updates a single record in a table.
+  version: 1.0.0
   discovery:
-    purpose: "Modify one or more fields in an existing Airtable record."
-    usage_context: "Use to update inventory quantities, change the status of a project task, or append notes to a customer record."
+    purpose: Modify one or more fields in an existing Airtable record.
+    usage_context: Use to update inventory quantities, change the status of a project task, or append notes to a customer record.
     agent_hints:
       - "Requires a valid recordId and an object containing the fields to update."
     waml_examples:
-      - title: "Update Status"
+      - title: Update Status
         waml: |
           - step: update
             call: airtable.action.records.update
             with:
-               baseId: "app12345"
-               tableIdOrName: "Tasks"
-               recordId: "rec12345"
+               baseId: app12345
+               tableIdOrName: Tasks
+               recordId: rec12345
                fields: { "Status": "Done" }
 
 interface:
@@ -51,9 +51,9 @@ execution:
       method: PATCH
       url: >
         platform.base_url + "/" + inputs.base_id + "/" + inputs.table_id_or_name + "/" + inputs.record_id
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        fields: inputs.fields
+        fields: =inputs.fields
     returns:
       status: status_code
       body: response_body
@@ -61,7 +61,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -69,7 +69,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -78,9 +78,9 @@ routing:
       - tool: emit
         params:
           port: record
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

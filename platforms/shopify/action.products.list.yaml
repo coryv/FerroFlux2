@@ -5,15 +5,15 @@ meta:
   category: Products
   type: Action
   platform: shopify
-  description: "Lists store products."
-  version: "1.0.0"
+  description: Lists store products.
+  version: 1.0.0
   discovery:
-    purpose: "Search and retrieve a list of products from the Shopify catalog."
-    usage_context: "Use to fetch product IDs for inventory management or to sync a catalog to an external marketing platform."
+    purpose: Search and retrieve a list of products from the Shopify catalog.
+    usage_context: Use to fetch product IDs for inventory management or to sync a catalog to an external marketing platform.
     agent_hints:
       - "Returns an array of product objects including title, id, and variants."
     waml_examples:
-      - title: "List Products"
+      - title: List Products
         waml: |
           - step: get_products
             call: shopify.action.products.list
@@ -39,7 +39,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/products.json"
-      headers: platform.headers
+      headers: =platform.headers
       strategy: cursor
       cursor_path: link
       cursor_param: page_info
@@ -49,7 +49,7 @@ execution:
       items: all_items
 
 routing:
-  match: "success"
+  match: success
   cases:
     success:
       - tool: emit
@@ -58,4 +58,4 @@ routing:
       - tool: emit
         params:
           port: products
-          value: steps.request.all_items
+          value: =steps.request.all_items

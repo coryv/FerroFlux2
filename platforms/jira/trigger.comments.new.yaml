@@ -6,14 +6,14 @@ meta:
   type: Trigger
   platform: jira
   description: "TODO: Describe when this trigger fires."
-  version: "1.0.0"
+  version: 1.0.0
   discovery:
-    purpose: "Triggers a workflow whenever a new comment is added to a Jira issue."
-    usage_context: "Use to notify team members, sync comments to other platforms (like Slack), or trigger automated responses."
+    purpose: Triggers a workflow whenever a new comment is added to a Jira issue.
+    usage_context: Use to notify team members, sync comments to other platforms (like Slack), or trigger automated responses.
     agent_hints:
       - "Provides the comment body, author, and associated issue details."
     waml_examples:
-      - title: "Comment Notification"
+      - title: Comment Notification
         waml: |
           - step: log_comment
             type: trigger
@@ -28,7 +28,7 @@ interface:
       type: object
   settings:
     - name: poll_interval
-      label: "Poll Interval (minutes)"
+      label: Poll Interval (minutes)
       type: number
       required: false
       default: 1
@@ -41,7 +41,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/TODO"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         since: >
           "\"" + event.cursor + "\"   # Stateful cursor for incremental polling"
@@ -52,7 +52,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -61,4 +61,4 @@ routing:
       - tool: emit
         params:
           port: result
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -4,11 +4,11 @@ meta:
   name: Trello
   type: Platform
   category: Productivity
-  description: "Connects to the Trello API."
-  version: "1.0.0"
+  description: Connects to the Trello API.
+  version: 1.0.0
   discovery:
-    purpose: "Kanban-style project management for tracking tasks on boards, lists, and cards."
-    usage_context: "Use Trello for lightweight, visual task management and organizing simple team projects. Ideal for Trello-based power users."
+    purpose: Kanban-style project management for tracking tasks on boards, lists, and cards.
+    usage_context: Use Trello for lightweight, visual task management and organizing simple team projects. Ideal for Trello-based power users.
     agent_hints:
       - "Identifies resources using short, readable IDs (e.g. '65a...')."
       - "Note that Boards contain Lists, and Lists contain Cards."
@@ -16,10 +16,10 @@ meta:
 config:
   base_url: "https://api.trello.com/1"
   headers:
-    Content-Type: "application/json"
+    Content-Type: application/json
 
 settings:
   - name: connection
-    label: "Trello Account"
+    label: Trello Account
     type: connection_select
     required: true

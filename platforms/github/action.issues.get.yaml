@@ -5,22 +5,22 @@ meta:
   category: Issues
   type: Action
   platform: github
-  description: "Retrieves detailed information about a GitHub issue."
-  version: "1.0.0"
+  description: Retrieves detailed information about a GitHub issue.
+  version: 1.0.0
   discovery:
-    purpose: "Fetch the properties, status, and comments of a specific repository issue."
-    usage_context: "Use this to check issue status (Open, Closed), read developer comments, or identify the current assignees before performing an update."
+    purpose: Fetch the properties, status, and comments of a specific repository issue.
+    usage_context: Use this to check issue status (Open, Closed), read developer comments, or identify the current assignees before performing an update.
     agent_hints:
       - "Requires 'owner', 'repo', and the 'issue_number' (integer)."
       - "Returns the full issue object, including its labels, milestone, and state changes."
     waml_examples:
-      - title: "Get Issue Details"
+      - title: Get Issue Details
         waml: |
           - step: read_issue
             call: github.action.issues.get
             with:
-               owner: "octocat"
-               repo: "hello-world"
+               owner: octocat
+               repo: hello-world
                issue_number: 123
 
 interface:
@@ -48,7 +48,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/repos/" + inputs.owner + "/" + inputs.repo + "/issues/" + inputs.issue_number
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -56,7 +56,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -64,7 +64,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -73,9 +73,9 @@ routing:
       - tool: emit
         params:
           port: issue
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

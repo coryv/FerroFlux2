@@ -5,21 +5,21 @@ meta:
   category: Databases
   type: Action
   platform: notion
-  description: "Gets a list of Pages contained in the database, filtered and ordered according to the request."
-  version: "1.0.0"
+  description: Gets a list of Pages contained in the database, filtered and ordered according to the request.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve or search for pages within a specific Notion database."
-    usage_context: "Use to fetch task lists, employee directories, or content calendars for automated reporting or synchronization."
+    purpose: Retrieve or search for pages within a specific Notion database.
+    usage_context: Use to fetch task lists, employee directories, or content calendars for automated reporting or synchronization.
     agent_hints:
       - "Requires a database_id."
       - "Supports complex filtering and sorting based on database properties."
     waml_examples:
-      - title: "Query Tasks"
+      - title: Query Tasks
         waml: |
           - step: fetch_tasks
             call: notion.action.databases.query
             with:
-               database_id: "acb123456789"
+               database_id: acb123456789
                filter: { "property": "Status", "select": { "equals": "Done" } }
 
 interface:
@@ -48,12 +48,12 @@ execution:
       method: POST
       url: >
         platform.base_url + "/databases/" + inputs.database_id + "/query"
-      headers: platform.headers
+      headers: =platform.headers
       strategy: cursor
       cursor_param: start_cursor
       body:
-        filter: inputs.filter
-        sorts: inputs.sorts
+        filter: =inputs.filter
+        sorts: =inputs.sorts
     returns:
       items: pages
       total_pages: page_count
@@ -68,7 +68,7 @@ execution:
           output: success
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -77,4 +77,4 @@ routing:
       - tool: emit
         params:
           port: pages
-          value: steps.request.pages
+          value: =steps.request.pages

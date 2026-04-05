@@ -5,21 +5,21 @@ meta:
   category: Files
   type: Action
   platform: onedrive
-  description: "Lists the contents of a Microsoft OneDrive folder."
-  version: "1.0.0"
+  description: Lists the contents of a Microsoft OneDrive folder.
+  version: 1.0.0
   discovery:
-    purpose: "Browse files and folders in a specific OneDrive path."
-    usage_context: "Use this to find files to process, check for new uploads, or audit directory structures. Ideal for starting a Microsoft-centric file automation."
+    purpose: Browse files and folders in a specific OneDrive path.
+    usage_context: Use this to find files to process, check for new uploads, or audit directory structures. Ideal for starting a Microsoft-centric file automation.
     agent_hints:
       - "Path must start with a '/' or be empty for the root folder."
       - "Returns a list of drive items (id, name, webUrl, etc.)."
     waml_examples:
-      - title: "List Shared Documents"
+      - title: List Shared Documents
         waml: |
           - step: browse_docs
             call: onedrive.action.files.list
             with:
-               path: "/Documents/Shared"
+               path: /Documents/Shared
 
 interface:
   inputs:
@@ -42,7 +42,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/me/drive/" + (inputs.folder_id != '' ? "items/" + inputs.folder_id : root) + "/children"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -50,7 +50,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -60,14 +60,14 @@ execution:
   - id: extract_entries
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/value"
     returns:
       result: entries_array
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -76,9 +76,9 @@ routing:
       - tool: emit
         params:
           port: entries
-          value: steps.extract_entries.entries_array
+          value: =steps.extract_entries.entries_array
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

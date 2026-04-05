@@ -5,23 +5,23 @@ meta:
   category: Files
   type: Action
   platform: dropbox
-  description: "Upload a file to Dropbox."
-  version: "1.0.0"
+  description: Upload a file to Dropbox.
+  version: 1.0.0
   discovery:
-    purpose: "Upload a file from the local environment or a remote URL to Dropbox storage."
-    usage_context: "Use to back up generated reports, save user-submitted assets, or migrate data from other cloud storage platforms."
+    purpose: Upload a file from the local environment or a remote URL to Dropbox storage.
+    usage_context: Use to back up generated reports, save user-submitted assets, or migrate data from other cloud storage platforms.
     agent_hints:
       - "Requires a path (e.g. '/uploads/report.pdf') and the file content."
       - "Follows Dropbox's chunked upload protocol for large files."
     waml_examples:
-      - title: "Upload PDF"
+      - title: Upload PDF
         waml: |
           - step: upload
             call: dropbox.action.files.upload
             with:
-               path: "/backups/report_${now()}.pdf"
-               content: "${steps.generate_pdf.output.blob}"
-               mode: "overwrite"
+               path: '="/backups/report_" + now() + ".pdf"'
+               content: =steps.generate_pdf.output.blob
+               mode: overwrite
 
 interface:
   inputs:
@@ -40,17 +40,17 @@ interface:
       type: object
   settings:
     - name: mode
-      label: "Override Mode"
+      label: Override Mode
       type: select
       required: false
-      default: "add"
+      default: add
       options:
-        - value: "add"
-          label: "Add (fail if exists)"
-        - value: "overwrite"
-          label: "Overwrite"
-        - value: "update"
-          label: "Update"
+        - value: add
+          label: Add (fail if exists)
+        - value: overwrite
+          label: Overwrite
+        - value: update
+          label: Update
 
 execution:
   - id: request
@@ -64,15 +64,15 @@ execution:
           '{"path": "' + inputs.path + '", "mode": "' + settings.mode + '", "autorename": true, "mute": false}'
         Content-Type: >
           "application/octet-stream"
-        Authorization: platform.headers.Authorization
+        Authorization: =platform.headers.Authorization
       body_type: binary
-      body_var: inputs.file
+      body_var: =inputs.file
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -81,9 +81,9 @@ routing:
       - tool: emit
         params:
           port: metadata
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -1,20 +1,20 @@
-name: "Simple ETL Workflow"
-description: "Webhook to Log"
+name: Simple ETL Workflow
+description: Webhook to Log
 triggers:
-  - id: "webhook_in"
-    name: "Incoming Webhook"
-    type: "core.trigger.webhook"
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
     config:
-        path: "/etl-webhook"
+        path: /etl-webhook
 nodes:
-  - id: "log_out"
-    name: "Log Message"
-    type: "core.action.log"
+  - id: log_out
+    name: Log Message
+    type: core.action.log
     config:
-      level: "INFO"
-      message: "Received data: {{ get 'body.data' }}"
+      level: INFO
+      message: "Received data: inputs.body.data"
 edges:
-  - source_id: "webhook_in"
-    source_handle: "body"
-    target_id: "log_out"
-    target_handle: "body"
+  - source_id: webhook_in
+    source_handle: body
+    target_id: log_out
+    target_handle: body

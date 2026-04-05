@@ -5,21 +5,21 @@ meta:
   category: Messages
   type: Trigger
   platform: telegram
-  description: "Polls for specific bot commands (e.g. /start)."
-  version: "1.0.0"
+  description: Polls for specific bot commands (e.g. /start).
+  version: 1.0.0
   discovery:
-    purpose: "Trigger a workflow when a specific bot command is received."
-    usage_context: "Use to handle user commands like /help, /start, or custom commands for bot interactions."
+    purpose: Trigger a workflow when a specific bot command is received.
+    usage_context: Use to handle user commands like /help, /start, or custom commands for bot interactions.
     agent_hints:
       - "The command is matched from the beginning of the message (e.g., /start)."
     waml_examples:
-      - title: "Start Command"
+      - title: Start Command
         waml: |
           - step: on_start
             type: trigger
             call: telegram.trigger.messages.command
             settings:
-               command: "start"
+               command: start
 
 interface:
   inputs: []
@@ -32,7 +32,7 @@ interface:
       type: string
   settings:
     - name: command_filter
-      label: "Command Filter (Optional, e.g. start)"
+      label: Command Filter (Optional, e.g. start)
       type: string
 
 execution:
@@ -53,19 +53,19 @@ execution:
   - id: extract_updates
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/result"
     returns:
       updates: updates_array
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extract_updates.updates_array
+          items: =steps.extract_updates.updates_array
           cursor_key: update_id
           port: message
       - tool: emit
@@ -75,4 +75,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

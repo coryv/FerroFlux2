@@ -5,21 +5,21 @@ meta:
   category: Issues
   type: Action
   platform: jira
-  description: "Add a comment to a specific Jira issue."
-  version: "1.0.0"
+  description: Add a comment to a specific Jira issue.
+  version: 1.0.0
   discovery:
-    purpose: "Add a new comment to an existing Jira issue."
-    usage_context: "Use to log progress updates, record results from automated tests, or notify team members of ticket changes."
+    purpose: Add a new comment to an existing Jira issue.
+    usage_context: Use to log progress updates, record results from automated tests, or notify team members of ticket changes.
     agent_hints:
       - "Requires the issue key (e.g., PROJ-123) and the comment text."
     waml_examples:
-      - title: "Post Update"
+      - title: Post Update
         waml: |
           - step: comment
             call: jira.comments.add
             with:
-               issue_id_or_key: "PROJ-123"
-               body: "Deployment successful."
+               issue_id_or_key: PROJ-123
+               body: Deployment successful.
 
 interface:
   inputs:
@@ -42,7 +42,7 @@ execution:
       method: POST
       url: >
         platform.base_url + "/issue/" + inputs.issue_id + "/comment"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         body:
           type: doc
@@ -51,13 +51,13 @@ execution:
             - type: paragraph
               content:
                 - type: text
-                  text: inputs.body
+                  text: =inputs.body
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -67,4 +67,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -2,24 +2,24 @@ meta:
   permissions: ["network:www.googleapis.com"]
   id: google-drive.folders.create
   name: Create Folder
-  category: Cloud Storage & Files
+  category: "Cloud Storage & Files"
   type: Action
   platform: google-drive
-  description: "Creates a new folder in Google Drive."
-  version: "1.0.0"
+  description: Creates a new folder in Google Drive.
+  version: 1.0.0
   discovery:
-    purpose: "Create a new directory for organizing files in Google Drive."
-    usage_context: "Use this to create project-specific folders, monthly archive directories, or shared workspace areas as part of an automation."
+    purpose: Create a new directory for organizing files in Google Drive.
+    usage_context: Use this to create project-specific folders, monthly archive directories, or shared workspace areas as part of an automation.
     agent_hints:
       - "Specify a 'name' for the folder."
       - "You can provide 'parents' (folder IDs) to create the folder inside an existing directory. If omitted, it will be created in the root."
     waml_examples:
-      - title: "Create Month Folder"
+      - title: Create Month Folder
         waml: |
           - step: mk_dir
             call: google-drive.action.folders.create
             with:
-               name: "April 2024"
+               name: April 2024
                parents: ["parent_folder_id_123"]
 
 interface:
@@ -43,9 +43,9 @@ execution:
       method: POST
       url: >
         platform.base_url + "/files"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        name: inputs.name
+        name: =inputs.name
         mimeType: >
           "application/vnd.google-apps.folder"
     returns:
@@ -53,7 +53,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -62,9 +62,9 @@ routing:
       - tool: emit
         params:
           port: folder
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

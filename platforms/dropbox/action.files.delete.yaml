@@ -5,21 +5,21 @@ meta:
   category: Files
   type: Action
   platform: dropbox
-  description: "Deletes a file or folder from Dropbox."
-  version: "1.0.0"
+  description: Deletes a file or folder from Dropbox.
+  version: 1.0.0
   discovery:
-    purpose: "Permanently remove a file or directory in Dropbox."
-    usage_context: "Use this to clean up temporary assets, remove outdated reports, or manage account storage quotas. Use with caution as this is irreversible."
+    purpose: Permanently remove a file or directory in Dropbox.
+    usage_context: Use this to clean up temporary assets, remove outdated reports, or manage account storage quotas. Use with caution as this is irreversible.
     agent_hints:
       - "Requires the explicit 'path' to the item (e.g. '/Temp/log.txt')."
       - "Deleting a folder will delete all its contents."
     waml_examples:
-      - title: "Cleanup Old Reports"
+      - title: Cleanup Old Reports
         waml: |
           - step: delete_report
             call: dropbox.action.files.delete
             with:
-               path: "/Reports/Archive/2023.pdf"
+               path: /Reports/Archive/2023.pdf
 
 interface:
   inputs:
@@ -42,15 +42,15 @@ execution:
       method: POST
       url: >
         platform.base_url + "/files/delete_v2"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        path: inputs.path
+        path: =inputs.path
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -59,9 +59,9 @@ routing:
       - tool: emit
         params:
           port: metadata
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

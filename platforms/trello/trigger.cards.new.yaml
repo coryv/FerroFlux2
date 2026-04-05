@@ -5,22 +5,22 @@ meta:
   category: Cards
   type: Trigger
   platform: trello
-  description: "Triggers when a new card is created on a Trello board."
-  version: "1.0.0"
+  description: Triggers when a new card is created on a Trello board.
+  version: 1.0.0
   discovery:
-    purpose: "Start a workflow whenever a new work item appears in Trello."
-    usage_context: "Use this to notify team members on Slack, sync new tasks to an external tool, or trigger automated task assignment."
+    purpose: Start a workflow whenever a new work item appears in Trello.
+    usage_context: Use this to notify team members on Slack, sync new tasks to an external tool, or trigger automated task assignment.
     agent_hints:
       - "Polls the board for new cards based on the 'date_created' timestamp."
       - "Requires the board ID ('idBoard')."
     waml_examples:
-      - title: "Sync New Cards"
+      - title: Sync New Cards
         waml: |
           trigger:
             new_card:
                call: trello.trigger.cards.new
                with:
-                  idBoard: "65e..."
+                  idBoard: 65e...
 
 interface:
   inputs: []
@@ -31,11 +31,11 @@ interface:
       type: object
   settings:
     - name: board_id
-      label: "Board ID"
+      label: Board ID
       type: string
       required: true
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -46,7 +46,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/1/boards/" + settings.board_id + "/actions"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         filter: createCard
         since: >
@@ -62,17 +62,17 @@ execution:
       script: >
         input.actions.map(|a| a.data.card)
       input:
-        actions: steps.query.response_body
+        actions: =steps.query.response_body
     returns:
       result: cards_array
 
 routing:
-  match: steps.query.status_code
+  match: =steps.query.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extract_cards.cards_array
+          items: =steps.extract_cards.cards_array
           cursor_key: date
           port: card
       - tool: emit
@@ -82,4 +82,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.query.response_body
+          value: =steps.query.response_body

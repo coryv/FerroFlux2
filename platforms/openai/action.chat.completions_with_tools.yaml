@@ -5,27 +5,27 @@ meta:
   category: AI/ML
   type: Action
   platform: openai
-  description: "Creates a model response with native tool calling support."
-  version: "1.0.0"
+  description: Creates a model response with native tool calling support.
+  version: 1.0.0
   discovery:
-    purpose: "Enable AI models to call external functions and tools for specialized tasks (e.g. database lookups, calculation)."
-    usage_context: "Use this when you want the AI to interact with your business logic. Requires a 'tools' array with JSON schemas for each function."
+    purpose: Enable AI models to call external functions and tools for specialized tasks (e.g. database lookups, calculation).
+    usage_context: Use this when you want the AI to interact with your business logic. Requires a 'tools' array with JSON schemas for each function.
     agent_hints:
       - "Specify the 'model' and the 'tools' definition."
       - "The model will return 'tool_calls' in its choice, which the engine then executes."
     waml_examples:
-      - title: "Tool Calling Setup"
+      - title: Tool Calling Setup
         waml: |
           - step: consult_ai
             call: openai.action.chat.completions_with_tools
             with:
-               model: "gpt-4o"
+               model: gpt-4o
                tools:
-                  - type: "function"
+                  - type: function
                     function:
-                       name: "get_weather"
+                       name: get_weather
                        parameters: 
-                          type: "object"
+                          type: object
                           properties:
                              location: { type: "string" }
 
@@ -55,24 +55,24 @@ interface:
     - name: model
       label: Model
       type: string
-      default: "gpt-4o"
+      default: gpt-4o
     - name: system_prompt
       label: System Prompt
       type: string
-      default: "You are a helpful assistant."
+      default: You are a helpful assistant.
     - name: tool_choice
       label: Tool Choice
       type: select
-      default: "auto"
+      default: auto
       options:
-        - label: "Auto (model decides)"
-          value: "auto"
-        - label: "Required (must call a tool)"
-          value: "required"
-        - label: "None (no tool calls)"
-          value: "none"
+        - label: Auto (model decides)
+          value: auto
+        - label: Required (must call a tool)
+          value: required
+        - label: None (no tool calls)
+          value: none
     - name: parallel_tool_calls
-      label: "Allow Parallel Tool Calls"
+      label: Allow Parallel Tool Calls
       type: boolean
       default: true
 
@@ -83,17 +83,17 @@ execution:
       method: POST
       url: >
         platform.base_url + "/chat/completions"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        model: settings.model
+        model: =settings.model
         messages:
           - role: system
-            content: settings.system_prompt
+            content: =settings.system_prompt
           - role: user
-            content: inputs.user_prompt
-        tools: inputs.tools
-        tool_choice: settings.tool_choice
-        parallel_tool_calls: settings.parallel_tool_calls
+            content: =inputs.user_prompt
+        tools: =inputs.tools
+        tool_choice: =settings.tool_choice
+        parallel_tool_calls: =settings.parallel_tool_calls
     returns:
       status: status_code
       body: response_body
@@ -101,7 +101,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -109,7 +109,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -118,10 +118,10 @@ routing:
       - tool: emit
         params:
           port: response
-          value: steps.request.response_body
+          value: =steps.request.response_body
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/choices/0/message/tool_calls"
         returns:
@@ -132,7 +132,7 @@ routing:
           value: tool_calls_result
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/choices/0/message/content"
         returns:
@@ -145,4 +145,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

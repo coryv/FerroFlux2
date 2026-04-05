@@ -4,23 +4,23 @@ meta:
   category: LLM
   type: Action
   platform: groq
-  description: "Creates a model response using Groq's high-speed LPU inference."
-  version: "1.0.0"
+  description: Creates a model response using Groq's high-speed LPU inference.
+  version: 1.0.0
   discovery:
-    purpose: "Generate text, reasoning, or code responses from high-performance open-source models with minimal latency."
-    usage_context: "Best for real-time applications, low-latency agents, or high-throughput tasks where speed is the primary constraint."
+    purpose: Generate text, reasoning, or code responses from high-performance open-source models with minimal latency.
+    usage_context: Best for real-time applications, low-latency agents, or high-throughput tasks where speed is the primary constraint.
     agent_hints:
       - "Specify the 'model' (e.g. 'llama-3.1-70b-versatile', 'mixtral-8x7b-32768')."
       - "Note that Groq enforces strict rate limits; monitor response headers."
     waml_examples:
-      - title: "Fast Llama Chat"
+      - title: Fast Llama Chat
         waml: |
           - step: ask_groq
             call: groq.action.chat.completion
             with:
-               model: "llama-3.1-70b-versatile"
+               model: llama-3.1-70b-versatile
                messages:
-                  - role: "user"
+                  - role: user
                     content: "Translate this sentence to Spanish: 'The sky is blue'."
   permissions:
     - "network:api.groq.com"
@@ -31,7 +31,7 @@ interface:
       type: flow
     - name: model
       type: string
-      default: "llama3-8b-8192"
+      default: llama3-8b-8192
     - name: messages
       type: array
     - name: temperature
@@ -52,11 +52,11 @@ execution:
       method: POST
       url: >
         platform.base_url + "/chat/completions"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        model: inputs.model
-        messages: inputs.messages
-        temperature: inputs.temperature
+        model: =inputs.model
+        messages: =inputs.messages
+        temperature: =inputs.temperature
     returns:
       status: status_code
       body: response_body
@@ -64,7 +64,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -74,14 +74,14 @@ execution:
   - id: extract_text
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/choices/0/message/content"
     returns:
       result: content
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -90,9 +90,9 @@ routing:
       - tool: emit
         params:
           port: text
-          value: steps.extract_text.content
+          value: =steps.extract_text.content
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

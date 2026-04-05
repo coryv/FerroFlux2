@@ -5,21 +5,21 @@ meta:
   category: Cards
   type: Action
   platform: trello
-  description: "Creates a new card in a specific Trello list."
-  version: "1.0.0"
+  description: Creates a new card in a specific Trello list.
+  version: 1.0.0
   discovery:
-    purpose: "Add a new task or note to a Trello board."
-    usage_context: "Use this to automate task creation from external triggers, such as email, form submissions, or incident reports. Requires a 'idList' and 'name'."
+    purpose: Add a new task or note to a Trello board.
+    usage_context: Use this to automate task creation from external triggers, such as email, form submissions, or incident reports. Requires a 'idList' and 'name'.
     agent_hints:
       - "Requires the 'idList' (Short string ID)."
       - "Supports setting due dates, labels, and descriptions."
     waml_examples:
-      - title: "Create Bug Card"
+      - title: Create Bug Card
         waml: |
           - step: mk_card
             call: trello.action.cards.create
             with:
-               idList: "65a..."
+               idList: 65a...
                name: "Report: Broken Login"
 
 interface:
@@ -48,11 +48,11 @@ execution:
       method: POST
       url: >
         platform.base_url + "/cards"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        idList: inputs.idList
-        name: inputs.name
-        desc: inputs.desc
+        idList: =inputs.idList
+        name: =inputs.name
+        desc: =inputs.desc
     returns:
       status: status_code
       body: response_body
@@ -60,7 +60,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -68,7 +68,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -77,9 +77,9 @@ routing:
       - tool: emit
         params:
           port: card
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

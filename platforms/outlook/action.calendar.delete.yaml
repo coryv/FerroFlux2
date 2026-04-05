@@ -5,23 +5,23 @@ meta:
   category: Calendar
   type: Action
   platform: outlook
-  description: "Permanently delete a specific calendar event."
-  version: "1.0.0"
+  description: Permanently delete a specific calendar event.
+  version: 1.0.0
   discovery:
-    purpose: "Permanently remove an event from an Outlook calendar."
-    usage_context: "Use to cleanup canceled meetings, remove placeholders, or manage shared availability."
+    purpose: Permanently remove an event from an Outlook calendar.
+    usage_context: Use to cleanup canceled meetings, remove placeholders, or manage shared availability.
     agent_hints:
       - "Requires event_id."
     waml_examples:
-      - title: "Cancel Event"
+      - title: Cancel Event
         waml: |
           - step: delete
             call: outlook.action.calendar.delete
             with:
-               event_id: "AAMkAG..."
-               comment: "No longer needed."
+               event_id: AAMkAG...
+               comment: No longer needed.
                notify_attendees: true
-               notify_message: "The meeting has been cancelled."
+               notify_message: The meeting has been cancelled.
 
 interface:
   inputs:
@@ -42,13 +42,13 @@ execution:
       method: DELETE
       url: >
         platform.base_url + "/me/events/" + inputs.event_id
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -58,4 +58,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

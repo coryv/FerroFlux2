@@ -5,23 +5,23 @@ meta:
   category: Projects
   type: Action
   platform: asana
-  description: "Creates a new project in an Asana workspace."
-  version: "1.0.0"
+  description: Creates a new project in an Asana workspace.
+  version: 1.0.0
   discovery:
-    purpose: "Provision a new container for tasks and collaboration."
-    usage_context: "Use this to create project-specific areas for new clients, monthly marketing campaigns, or team sprints."
+    purpose: Provision a new container for tasks and collaboration.
+    usage_context: Use this to create project-specific areas for new clients, monthly marketing campaigns, or team sprints.
     agent_hints:
       - "Requires a 'name' and 'workspace'."
       - "You can specify 'team' and 'notes' as optional parameters."
     waml_examples:
-      - title: "Create Client Project"
+      - title: Create Client Project
         waml: |
           - step: mk_project
             call: asana.action.projects.create
             with:
-               name: "Acme Web Redesign"
-               workspace: "123..."
-               team: "456..."
+               name: Acme Web Redesign
+               workspace: 123...
+               team: 456...
 
 interface:
   inputs:
@@ -46,17 +46,17 @@ execution:
       method: POST
       url: >
         platform.base_url + "/projects"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         data:
-          workspace: inputs.workspaceGid
-          name: inputs.name
+          workspace: =inputs.workspaceGid
+          name: =inputs.name
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -65,9 +65,9 @@ routing:
       - tool: emit
         params:
           port: project
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

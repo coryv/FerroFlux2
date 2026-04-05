@@ -2,25 +2,25 @@ meta:
   permissions: ["network:www.googleapis.com"]
   id: google-drive.files.move
   name: Move File
-  category: Cloud Storage & Files
+  category: "Cloud Storage & Files"
   type: Action
   platform: google-drive
-  description: "Moves a file or folder in Google Drive to a new destination folder."
-  version: "1.0.0"
+  description: Moves a file or folder in Google Drive to a new destination folder.
+  version: 1.0.0
   discovery:
-    purpose: "Change the parent folder of a file or directory."
-    usage_context: "Use this to organize archives, move processed invoices to a 'Complete' folder, or re-structure a workspace."
+    purpose: Change the parent folder of a file or directory.
+    usage_context: Use this to organize archives, move processed invoices to a 'Complete' folder, or re-structure a workspace.
     agent_hints:
       - "Requires the 'file_id' of the item and the 'folder_id' of the destination."
       - "Does not delete the file; only moves its location reference."
     waml_examples:
-      - title: "Archive File"
+      - title: Archive File
         waml: |
           - step: archive_doc
             call: google-drive.action.files.move
             with:
-               file_id: "1abc..."
-               folder_id: "archive_folder_id_123"
+               file_id: 1abc...
+               folder_id: archive_folder_id_123
 
 interface:
   inputs:
@@ -47,16 +47,16 @@ execution:
       method: PATCH
       url: >
         platform.base_url + "/files/" + inputs.fileId
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        addParents: inputs.addParents
-        removeParents: inputs.removeParents
+        addParents: =inputs.addParents
+        removeParents: =inputs.removeParents
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -65,9 +65,9 @@ routing:
       - tool: emit
         params:
           port: file
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

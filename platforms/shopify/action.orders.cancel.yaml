@@ -5,22 +5,22 @@ meta:
   category: Orders
   type: Action
   platform: shopify
-  description: "Cancels an existing Shopify order."
-  version: "1.0.0"
+  description: Cancels an existing Shopify order.
+  version: 1.0.0
   discovery:
-    purpose: "Cancel an existing Shopify order."
-    usage_context: "Use to automate order cancellations based on fraud detection, payment failure, or customer requests."
+    purpose: Cancel an existing Shopify order.
+    usage_context: Use to automate order cancellations based on fraud detection, payment failure, or customer requests.
     agent_hints:
       - "Requires the order_id."
     waml_examples:
-      - title: "Cancel Fraudulent Order"
+      - title: Cancel Fraudulent Order
         waml: |
           - step: cancel
             call: shopify.action.orders.cancel
             with:
-               order_id: "543216789"
-               reason: "fraud"
-               note: "Automated cancellation due to high fraud risk score."
+               order_id: 543216789
+               reason: fraud
+               note: Automated cancellation due to high fraud risk score.
                email: true
 
 interface:
@@ -44,13 +44,13 @@ execution:
       method: POST
       url: >
         platform.base_url + "/orders/" + inputs.orderId + "/cancel.json"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -59,9 +59,9 @@ routing:
       - tool: emit
         params:
           port: order
-          value: steps.request.response_body.order
+          value: =steps.request.response_body.order
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

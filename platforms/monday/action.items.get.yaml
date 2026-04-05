@@ -5,21 +5,21 @@ meta:
   category: Items
   type: Action
   platform: monday
-  description: "Retrieves detailed information about an item on a Monday board."
-  version: "1.0.0"
+  description: Retrieves detailed information about an item on a Monday board.
+  version: 1.0.0
   discovery:
-    purpose: "Fetch the properties, status, and column values of a specific Monday row."
-    usage_context: "Use this when you have an Item ID and need to read its data before performing logic or updating other systems."
+    purpose: Fetch the properties, status, and column values of a specific Monday row.
+    usage_context: Use this when you have an Item ID and need to read its data before performing logic or updating other systems.
     agent_hints:
       - "Requires the numeric 'item_id'."
       - "Returns the full item object, including its column values and group association."
     waml_examples:
-      - title: "Get Item Details"
+      - title: Get Item Details
         waml: |
           - step: read_row
             call: monday.action.items.get
             with:
-               item_id: "890..."
+               item_id: 890...
 
 interface:
   inputs:
@@ -40,8 +40,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: platform.base_url
-      headers: platform.headers
+      url: =platform.base_url
+      headers: =platform.headers
       body:
         query: |
           query ($itemId: ID!) {
@@ -61,13 +61,13 @@ execution:
             }
           }
         variables:
-          itemId: inputs.item_id
+          itemId: =inputs.item_id
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -82,4 +82,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

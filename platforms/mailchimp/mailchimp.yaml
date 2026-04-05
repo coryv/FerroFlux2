@@ -3,12 +3,12 @@ meta:
   id: mailchimp
   name: Mailchimp
   type: Platform
-  category: Marketing & Email
-  description: "Leading platform for email marketing, automation, and audience growth."
-  version: "1.0.0"
+  category: "Marketing & Email"
+  description: Leading platform for email marketing, automation, and audience growth.
+  version: 1.0.0
   discovery:
-    purpose: "Manage subscriber lists, design marketing campaigns, and track audience engagement."
-    usage_context: "Use this to automate newsletter signups, sync customer data from CRMs, and trigger marketing journeys."
+    purpose: Manage subscriber lists, design marketing campaigns, and track audience engagement.
+    usage_context: Use this to automate newsletter signups, sync customer data from CRMs, and trigger marketing journeys.
     agent_hints:
       - "Requires an API Key and Data Center prefix (e.g. 'us19')."
       - "Strict rate limits apply to batch operations."
@@ -17,13 +17,13 @@ config:
   base_url: >
     "https://" + settings.server_prefix + ".api.mailchimp.com/3.0"
   headers:
-    Content-Type: "application/json"
+    Content-Type: application/json
     Authorization: >
       "Basic " + settings.api_key_base64
 
 settings:
   - name: server_prefix
-    label: "Server Prefix (e.g. us1)"
+    label: Server Prefix (e.g. us1)
     type: string
     required: true
   - name: api_key_base64

@@ -4,11 +4,11 @@ meta:
   name: Bitbucket
   type: Platform
   category: Developer Tools
-  description: "Enterprise-grade source control and collaboration from Atlassian."
-  version: "1.0.0"
+  description: Enterprise-grade source control and collaboration from Atlassian.
+  version: 1.0.0
   discovery:
-    purpose: "Manage Git repositories, pull requests, and pipelines within a workspace."
-    usage_context: "Use this to automate code reviews and repository tasks, especially in teams using the Atlassian stack (Jira, Confluence)."
+    purpose: Manage Git repositories, pull requests, and pipelines within a workspace.
+    usage_context: Use this to automate code reviews and repository tasks, especially in teams using the Atlassian stack (Jira, Confluence).
     agent_hints:
       - "Requires a workspace and repository slug for most operations."
       - "Uses OAuth or App Passwords for authentication."
@@ -16,10 +16,10 @@ meta:
 config:
   base_url: "https://api.bitbucket.org/2.0"
   headers:
-    Content-Type: "application/json"
+    Content-Type: application/json
 
 settings:
   - name: connection
-    label: "Bitbucket Account (Basic Auth / App Password)"
+    label: Bitbucket Account (Basic Auth / App Password)
     type: connection_select
     required: true

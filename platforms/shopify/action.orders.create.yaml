@@ -5,25 +5,25 @@ meta:
   category: Orders
   type: Action
   platform: shopify
-  description: "Creates a new Shopify order."
-  version: "1.0.0"
+  description: Creates a new Shopify order.
+  version: 1.0.0
   discovery:
-    purpose: "Create a new order record in Shopify."
-    usage_context: "Use to sync orders from external marketplaces, draft orders, or manual sales channels."
+    purpose: Create a new order record in Shopify.
+    usage_context: Use to sync orders from external marketplaces, draft orders, or manual sales channels.
     agent_hints:
       - "Requires line items and optionally customer details."
     waml_examples:
-      - title: "Create External Order"
+      - title: Create External Order
         waml: |
           - step: new_order
             call: shopify.action.orders.create
             with:
                line_items:
-                 - title: "Custom Widget"
+                 - title: Custom Widget
                    price: 19.99
                    quantity: 1
                customer:
-                 email: "customer@example.com"
+                 email: customer@example.com
 
 interface:
   inputs:
@@ -48,17 +48,17 @@ execution:
       method: POST
       url: >
         platform.base_url + "/orders.json"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         order:
-          line_items: inputs.lineItems
-          email: inputs.email
+          line_items: =inputs.lineItems
+          email: =inputs.email
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -67,9 +67,9 @@ routing:
       - tool: emit
         params:
           port: order
-          value: steps.request.response_body.order
+          value: =steps.request.response_body.order
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

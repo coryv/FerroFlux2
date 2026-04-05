@@ -5,22 +5,22 @@ meta:
   category: Messages
   type: Action
   platform: twilio
-  description: "Sends a new SMS or WhatsApp message via Twilio."
-  version: "1.0.0"
+  description: Sends a new SMS or WhatsApp message via Twilio.
+  version: 1.0.0
   discovery:
-    purpose: "Send automated notifications, alerts, or personal messages to any phone number globally."
-    usage_context: "Use this for two-factor authentication (2FA), shipping alerts, or automated customer support."
+    purpose: Send automated notifications, alerts, or personal messages to any phone number globally.
+    usage_context: Use this for two-factor authentication (2FA), shipping alerts, or automated customer support.
     agent_hints:
       - "Requires a verified 'From' number or Messaging Service SID."
       - "Note that messages to WhatsApp require a 'whatsapp:' prefix on numbers."
     waml_examples:
-      - title: "Send SMS Alert"
+      - title: Send SMS Alert
         waml: |
           - step: notify
             call: twilio.action.messages.create
             with:
-               to: "+15550001111"
-               body: "Your order #123 is out for delivery!"
+               to: +15550001111
+               body: '"Your order' #123 is out for delivery!"
 
 interface:
   inputs:
@@ -48,12 +48,12 @@ execution:
       method: POST
       url: >
         platform.base_url + "/" + settings.account_sid + "/Messages.json"
-      headers: platform.headers
+      headers: =platform.headers
       body_type: form
       body:
-        To: inputs.to
-        From: inputs.from
-        Body: inputs.body
+        To: =inputs.to
+        From: =inputs.from
+        Body: =inputs.body
     returns:
       status: status_code
       body: response_body
@@ -61,7 +61,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 201
           output: success
@@ -69,7 +69,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -78,9 +78,9 @@ routing:
       - tool: emit
         params:
           port: message
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

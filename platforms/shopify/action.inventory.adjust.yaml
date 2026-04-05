@@ -5,21 +5,21 @@ meta:
   category: Inventory
   type: Action
   platform: shopify
-  description: "Adjusts the inventory level of an item at a location."
-  version: "1.0.0"
+  description: Adjusts the inventory level of an item at a location.
+  version: 1.0.0
   discovery:
-    purpose: "Adjust the inventory level of a product variant at a specific location."
-    usage_context: "Use to update stock levels based on warehouse receipts, manual audits, or external sales."
+    purpose: Adjust the inventory level of a product variant at a specific location.
+    usage_context: Use to update stock levels based on warehouse receipts, manual audits, or external sales.
     agent_hints:
       - "Requires inventory_item_id, location_id, and available_adjustment amount."
     waml_examples:
-      - title: "Restock Item"
+      - title: Restock Item
         waml: |
           - step: restock
             call: shopify.action.inventory.adjust
             with:
-               inventory_item_id: "808950896"
-               location_id: "905684977"
+               inventory_item_id: 808950896
+               location_id: 905684977
                available_adjustment: 10
 
 interface:
@@ -47,17 +47,17 @@ execution:
       method: POST
       url: >
         platform.base_url + "/inventory_levels/adjust.json"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        inventory_item_id: inputs.inventoryItemId
-        location_id: inputs.locationId
-        available_adjustment: inputs.availableAdjustment
+        inventory_item_id: =inputs.inventoryItemId
+        location_id: =inputs.locationId
+        available_adjustment: =inputs.availableAdjustment
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -66,9 +66,9 @@ routing:
       - tool: emit
         params:
           port: inventoryLevel
-          value: steps.request.response_body.inventory_level
+          value: =steps.request.response_body.inventory_level
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

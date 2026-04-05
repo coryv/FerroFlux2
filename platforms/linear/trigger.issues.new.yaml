@@ -5,22 +5,22 @@ meta:
   category: Issues
   type: Trigger
   platform: linear
-  description: "Triggers when a new issue is created in a Linear team (polling)."
-  version: "1.0.0"
+  description: Triggers when a new issue is created in a Linear team (polling).
+  version: 1.0.0
   discovery:
-    purpose: "Start a workflow whenever a new bug or task is logged in Linear."
-    usage_context: "Use this to notify team members on Slack, sync new issues to a project database, or triage incoming bugs."
+    purpose: Start a workflow whenever a new bug or task is logged in Linear.
+    usage_context: Use this to notify team members on Slack, sync new issues to a project database, or triage incoming bugs.
     agent_hints:
       - "Polls Linear for new issues created after the last check."
       - "Requires the 'teamId' UUID."
     waml_examples:
-      - title: "Sync New Bugs"
+      - title: Sync New Bugs
         waml: |
           trigger:
             new_issue:
                call: linear.trigger.issues.new
                with:
-                  teamId: "team_uuid_123"
+                  teamId: team_uuid_123
 
 interface:
   inputs: []
@@ -31,11 +31,11 @@ interface:
       type: object
   settings:
     - name: team_id
-      label: "Team ID"
+      label: Team ID
       type: string
-      description: "Filter to a specific team (optional)."
+      description: Filter to a specific team (optional).
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -46,7 +46,7 @@ execution:
       method: POST
       url: >
         platform.base_url + "/graphql"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         query: >
           "query($cursor: String, $teamId: ID) { issues(filter: { createdAt: { gt: $cursor } team: { id: { eq: $teamId } } } orderBy: createdAt) { nodes { id title description state { name } assignee { name } createdAt updatedAt priority team { name } } } }"
@@ -62,18 +62,18 @@ execution:
   - id: extract_issues
     tool: json_query
     params:
-      json: steps.query.response_body
-      path: "/data/issues/nodes"
+      json: =steps.query.response_body
+      path: /data/issues/nodes
     returns:
       result: issues_array
 
 routing:
-  match: steps.query.status_code
+  match: =steps.query.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extract_issues.issues_array
+          items: =steps.extract_issues.issues_array
           cursor_key: createdAt
           port: issue
       - tool: emit
@@ -83,4 +83,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.query.response_body
+          value: =steps.query.response_body

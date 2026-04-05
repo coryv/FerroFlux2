@@ -5,20 +5,20 @@ meta:
   category: Calendar
   type: Action
   platform: outlook
-  description: "Update an existing calendar event."
-  version: "1.0.0"
+  description: Update an existing calendar event.
+  version: 1.0.0
   discovery:
-    purpose: "Modify the details of an existing Outlook calendar event."
-    usage_context: "Use to reschedule meetings, update attendee lists, or change meeting details in response to workflow triggers."
+    purpose: Modify the details of an existing Outlook calendar event.
+    usage_context: Use to reschedule meetings, update attendee lists, or change meeting details in response to workflow triggers.
     agent_hints:
       - "Requires event_id and updated fields (subject, start, end)."
     waml_examples:
-      - title: "Reschedule Meeting"
+      - title: Reschedule Meeting
         waml: |
           - step: reschedule
             call: outlook.action.calendar.update
             with:
-               event_id: "AAMkAG..."
+               event_id: AAMkAG...
                subject: "Updated: Product Review"
                start: { dateTime: "2023-11-01T14:30:00", timeZone: "UTC" }
                end: { dateTime: "2023-11-01T15:30:00", timeZone: "UTC" }
@@ -48,21 +48,21 @@ execution:
       method: PATCH
       url: >
         platform.base_url + "/me/events/" + inputs.event_id
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        subject: inputs.subject
+        subject: =inputs.subject
         start:
-          dateTime: inputs.start_time
+          dateTime: =inputs.start_time
           timeZone: UTC
         end:
-          dateTime: inputs.end_time
+          dateTime: =inputs.end_time
           timeZone: UTC
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -72,4 +72,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

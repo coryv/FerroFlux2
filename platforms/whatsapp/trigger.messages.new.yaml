@@ -5,15 +5,15 @@ meta:
   category: Messages
   type: Trigger
   platform: whatsapp
-  description: "Fires when a new message is received via WhatsApp Webhook."
-  version: "1.0.0"
+  description: Fires when a new message is received via WhatsApp Webhook.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow whenever a new message is received in the WhatsApp Business account."
-    usage_context: "Use to build WhatsApp chatbots, automate customer support triage, or respond to order status inquiries in real-time."
+    purpose: Initialize a workflow whenever a new message is received in the WhatsApp Business account.
+    usage_context: Use to build WhatsApp chatbots, automate customer support triage, or respond to order status inquiries in real-time.
     agent_hints:
       - "Requires a verified webhook configuration for the WhatsApp Business Platform."
     waml_examples:
-      - title: "Chatbot Trigger"
+      - title: Chatbot Trigger
         waml: |
           - step: on_whatsapp_message
             type: trigger
@@ -28,10 +28,10 @@ interface:
       type: object
   settings:
     - name: webhook_verify_token
-      label: "Webhook Verify Token"
+      label: Webhook Verify Token
       type: string
       required: true
-      description: "The token you set in the Meta App Dashboard to verify your webhook."
+      description: The token you set in the Meta App Dashboard to verify your webhook.
 
 execution:
   # This trigger assumes the workflow is triggered by an inbound webhook.
@@ -40,7 +40,7 @@ execution:
   - id: extract_message
     tool: json_query
     params:
-      json: event.body
+      json: =event.body
       path: >
         "/entry/0/changes/0/value/messages/0"
     returns:
@@ -57,5 +57,5 @@ routing:
       - tool: emit
         params:
           port: message
-          value: steps.extract_message.result
+          value: =steps.extract_message.result
     "false": []

@@ -5,21 +5,21 @@ meta:
   category: Folders
   type: Action
   platform: clickup
-  description: "Creates a new folder within a ClickUp space."
-  version: "1.0.0"
+  description: Creates a new folder within a ClickUp space.
+  version: 1.0.0
   discovery:
-    purpose: "Organize lists and tasks into a logical container within a space."
-    usage_context: "Use this to programmatically structure new projects, create client-specific areas, or group related work items."
+    purpose: Organize lists and tasks into a logical container within a space.
+    usage_context: Use this to programmatically structure new projects, create client-specific areas, or group related work items.
     agent_hints:
       - "Requires the numeric 'space_id' and 'name'."
     waml_examples:
-      - title: "Create Project Folder"
+      - title: Create Project Folder
         waml: |
           - step: mk_folder
             call: clickup.action.folders.create
             with:
-               space_id: "123456"
-               name: "Q2 Marketing Campaign"
+               space_id: 123456
+               name: Q2 Marketing Campaign
 
 interface:
   inputs:
@@ -44,15 +44,15 @@ execution:
       method: POST
       url: >
         platform.base_url + "/space/" + inputs.space_id + "/folder"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        name: inputs.name
+        name: =inputs.name
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -61,9 +61,9 @@ routing:
       - tool: emit
         params:
           port: folder
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

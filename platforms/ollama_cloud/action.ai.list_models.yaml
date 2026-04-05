@@ -5,15 +5,15 @@ meta:
   category: AI
   type: Action
   platform: ollama_cloud
-  description: "List all models available on the Ollama Cloud instance."
-  version: "1.0.0"
+  description: List all models available on the Ollama Cloud instance.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve a list of all locally and cloud-available models in the Ollama instance."
-    usage_context: "Use to dynamically discover which open-source models (e.g. Llama 3, Mistral, CodeLlama) are installed and ready for inference."
+    purpose: Retrieve a list of all locally and cloud-available models in the Ollama instance.
+    usage_context: Use to dynamically discover which open-source models (e.g. Llama 3, Mistral, CodeLlama) are installed and ready for inference.
     agent_hints:
       - "Returns an array of model objects with names and sizes."
     waml_examples:
-      - title: "List Models"
+      - title: List Models
         waml: |
           - step: get_models
             call: ollama_cloud.action.ai.list_models
@@ -38,7 +38,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/tags"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -46,7 +46,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -54,7 +54,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -63,9 +63,9 @@ routing:
       - tool: emit
         params:
           port: models
-          value: steps.request.response_body.models
+          value: =steps.request.response_body.models
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

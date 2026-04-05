@@ -4,19 +4,19 @@ meta:
   category: Database
   type: Action
   platform: redis
-  description: "Gets the value of a single key from Redis."
-  version: "1.0.0"
+  description: Gets the value of a single key from Redis.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve a value associated with a specific key from the in-memory store."
-    usage_context: "Use this to fetch configuration flags, cached results, or temporary state with minimal latency."
+    purpose: Retrieve a value associated with a specific key from the in-memory store.
+    usage_context: Use this to fetch configuration flags, cached results, or temporary state with minimal latency.
     agent_hints:
       - "Returns 'null' if the key does not exist."
       - "Note that Redis values are typically strings unless otherwise parsed."
     waml_examples:
-      - title: "Get Cached Token"
+      - title: Get Cached Token
         waml: |
           - step: get_token
-            call: redis.action.keys.get
+            call: =redis.action.keys.get
             with:
                key: "auth:token:user_123"
 
@@ -39,14 +39,14 @@ execution:
   - id: redis
     tool: redis_query
     params:
-      connection_string: settings.connection_string
+      connection_string: =settings.connection_string
       operation: get
-      key: inputs.key
+      key: =inputs.key
     returns:
       value: value
 
 routing:
-  match: steps.redis.status
+  match: =steps.redis.status
   cases:
     default:
       - tool: emit
@@ -55,4 +55,4 @@ routing:
       - tool: emit
         params:
           port: value
-          value: steps.redis.value
+          value: =steps.redis.value

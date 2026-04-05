@@ -4,15 +4,15 @@ meta:
   category: Utilities
   type: Action
   platform: core
-  description: "Pauses execution for a specified duration."
-  version: "1.0.0"
+  description: Pauses execution for a specified duration.
+  version: 1.0.0
   discovery:
-    purpose: "Pause workflow execution for a set duration."
-    usage_context: "Use to respect external rate limits or wait for async jobs."
+    purpose: Pause workflow execution for a set duration.
+    usage_context: Use to respect external rate limits or wait for async jobs.
     agent_hints:
       - "Wait time is in milliseconds."
     waml_examples:
-      - title: "Wait 2 Seconds"
+      - title: Wait 2 Seconds
         waml: |
           - step: wait
             call: core.action.delay
@@ -59,7 +59,7 @@ execution:
   - id: sleep
     tool: sleep
     params:
-      duration_ms: settings.duration
+      duration_ms: =settings.duration
       # Note: User must enter MS if I map it directly.
       # To support Units, I would need a 'calc_ms' tool or more complex templating.
       

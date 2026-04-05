@@ -2,27 +2,27 @@ meta:
   permissions: ["network:www.googleapis.com"]
   id: google-drive.permissions.create
   name: Share File
-  category: Cloud Storage & Files
+  category: "Cloud Storage & Files"
   type: Action
   platform: google-drive
-  description: "Creates a new permission for a Google Drive file or folder."
-  version: "1.0.0"
+  description: Creates a new permission for a Google Drive file or folder.
+  version: 1.0.0
   discovery:
-    purpose: "Grant access to a file or folder to a specific user, group, or domain."
-    usage_context: "Use this to share reports with clients, grant edit access to team members, or make a file publicly viewable."
+    purpose: Grant access to a file or folder to a specific user, group, or domain.
+    usage_context: Use this to share reports with clients, grant edit access to team members, or make a file publicly viewable.
     agent_hints:
       - "Requires the 'file_id' and the 'role' (owner, organizer, fileOrganizer, writer, commenter, reader)."
       - "The 'type' can be 'user', 'group', 'domain', or 'anyone'."
     waml_examples:
-      - title: "Share Report as Reader"
+      - title: Share Report as Reader
         waml: |
           - step: share_file
             call: google-drive.action.permissions.create
             with:
-               file_id: "1abc..."
-               role: "reader"
-               type: "user"
-               email_address: "client@example.com"
+               file_id: 1abc...
+               role: reader
+               type: user
+               email_address: client@example.com
 
 interface:
   inputs:
@@ -51,17 +51,17 @@ execution:
       method: POST
       url: >
         platform.base_url + "/files/" + inputs.fileId + "/permissions"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        role: inputs.role
+        role: =inputs.role
         type: inputs.type
-        emailAddress: inputs.emailAddress
+        emailAddress: =inputs.emailAddress
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -70,9 +70,9 @@ routing:
       - tool: emit
         params:
           port: permission
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

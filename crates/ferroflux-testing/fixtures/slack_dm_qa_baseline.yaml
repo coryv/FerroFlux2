@@ -1,20 +1,20 @@
-name: "Slack DM QA Baseline Workflow"
+name: Slack DM QA Baseline Workflow
 description: "Webhook receives { user_id, text } and sends a Slack DM via slack.messages.send_dm"
 triggers:
-  - id: "webhook_in"
-    name: "Incoming Webhook"
-    type: "core.trigger.webhook"
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
     config:
-        path: "/slack-dm-qa"
+        path: /slack-dm-qa
 nodes:
-  - id: "send_dm"
-    name: "Send Direct Message"
-    type: "slack.messages.send_dm"
+  - id: send_dm
+    name: Send Direct Message
+    type: slack.messages.send_dm
     config:
-      user_id: "{{ get 'body.user_id' }}"
-      text: "{{ get 'body.text' }}"
+      user_id: =inputs.body.user_id
+      text: =inputs.body.text
 edges:
-  - source_id: "webhook_in"
-    source_handle: "body"
-    target_id: "send_dm"
-    target_handle: "body"
+  - source_id: webhook_in
+    source_handle: body
+    target_id: send_dm
+    target_handle: body

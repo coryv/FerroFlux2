@@ -4,11 +4,11 @@ meta:
   name: Google Sheets
   type: Platform
   category: Spreadsheets
-  description: "Connects to the Google Sheets API."
-  version: "1.0.0"
+  description: Connects to the Google Sheets API.
+  version: 1.0.0
   discovery:
-    purpose: "Read, write, and manage spreadsheets in Google Sheets."
-    usage_context: "Use this to automate data entry, generate business reports, and synchronize tabular data across services."
+    purpose: Read, write, and manage spreadsheets in Google Sheets.
+    usage_context: Use this to automate data entry, generate business reports, and synchronize tabular data across services.
     agent_hints:
       - "Requires a Spreadsheet ID and OAuth2 authentication."
       - "Uses the Google Sheets API v4."
@@ -16,10 +16,10 @@ meta:
 config:
   base_url: "https://sheets.googleapis.com/v4/spreadsheets"
   headers:
-    Content-Type: "application/json"
+    Content-Type: application/json
 
 settings:
   - name: connection
-    label: "Google Account"
+    label: Google Account
     type: connection_select
     required: true

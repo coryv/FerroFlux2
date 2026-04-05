@@ -5,21 +5,21 @@ meta:
   category: Projects
   type: Action
   platform: asana
-  description: "Lists projects in an Asana workspace or team."
-  version: "1.0.0"
+  description: Lists projects in an Asana workspace or team.
+  version: 1.0.0
   discovery:
-    purpose: "Browse and find projects available to the authorized user."
-    usage_context: "Use this to starting a project-based automation, find a project by name, or audit workspace activity."
+    purpose: Browse and find projects available to the authorized user.
+    usage_context: Use this to starting a project-based automation, find a project by name, or audit workspace activity.
     agent_hints:
       - "Can be filtered by 'workspace' or 'team'."
       - "Returns a list of project summaries (GID, name, resource_type)."
     waml_examples:
-      - title: "List Team Projects"
+      - title: List Team Projects
         waml: |
           - step: get_projects
             call: asana.action.projects.list
             with:
-               team: "1201..."
+               team: 1201...
 
 interface:
   inputs:
@@ -42,9 +42,9 @@ execution:
       method: GET
       url: >
         platform.base_url + "/projects"
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        workspace: inputs.workspaceGid
+        workspace: =inputs.workspaceGid
       strategy: offset
       offset_param: offset
       limit_param: limit
@@ -55,7 +55,7 @@ execution:
       items: all_items
 
 routing:
-  match: "success"
+  match: success
   cases:
     success:
       - tool: emit
@@ -64,4 +64,4 @@ routing:
       - tool: emit
         params:
           port: projects
-          value: steps.request.all_items
+          value: =steps.request.all_items

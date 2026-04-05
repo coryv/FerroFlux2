@@ -5,21 +5,21 @@ meta:
   category: Projects
   type: Action
   platform: asana
-  description: "Retrieves detailed information about an Asana project."
-  version: "1.0.0"
+  description: Retrieves detailed information about an Asana project.
+  version: 1.0.0
   discovery:
-    purpose: "Fetch the properties of a specific Asana project."
-    usage_context: "Use this when you have a Project GID and need to find its owner, due date, or the team it belongs to."
+    purpose: Fetch the properties of a specific Asana project.
+    usage_context: Use this when you have a Project GID and need to find its owner, due date, or the team it belongs to.
     agent_hints:
       - "Requires the 'project_gid'."
       - "Returns the full project resource object."
     waml_examples:
-      - title: "Get Project Details"
+      - title: Get Project Details
         waml: |
           - step: read_project
             call: asana.action.projects.get
             with:
-               project_gid: "1201..."
+               project_gid: 1201...
 
 interface:
   inputs:
@@ -42,13 +42,13 @@ execution:
       method: GET
       url: >
         platform.base_url + "/projects/" + inputs.projectGid
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -57,9 +57,9 @@ routing:
       - tool: emit
         params:
           port: project
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

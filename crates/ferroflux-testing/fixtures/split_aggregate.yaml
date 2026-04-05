@@ -1,50 +1,50 @@
-name: "Split and Aggregate"
+name: Split and Aggregate
 description: "Input Array -> Process Items -> Recombine Batch"
 triggers:
-  - id: "webhook_in"
-    name: "Incoming Webhook"
-    type: "core.trigger.webhook"
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
     config:
-      path: "/batch"
+      path: /batch
 nodes:
-  - id: "data"
-    name: "Batch Source"
-    type: "core.action.script"
+  - id: data
+    name: Batch Source
+    type: core.action.script
     config:
       script: "return [1, 2, 3, 4, 5];"
-  - id: "splitter"
-    name: "Process Items"
-    type: "core.action.split"
+  - id: splitter
+    name: Process Items
+    type: core.action.split
     config: {}
-  - id: "agg"
-    name: "Batcher"
-    type: "core.action.aggregate"
+  - id: agg
+    name: Batcher
+    type: core.action.aggregate
     config:
       batch_size: 5
-  - id: "logger"
-    name: "Final Output"
-    type: "core.action.log"
+  - id: logger
+    name: Final Output
+    type: core.action.log
     config:
-      level: "'INFO'"
-      message: "Batch complete"
+      level: INFO
+      message: Batch complete
 edges:
-  - source_id: "webhook_in"
-    source_handle: "Success"
-    target_id: "data"
-    target_handle: "Exec"
-  - source_id: "data"
-    source_handle: "Success"
-    target_id: "splitter"
-    target_handle: "Exec"
-  - source_id: "data"
-    source_handle: "result"
-    target_id: "splitter"
-    target_handle: "array"
-  - source_id: "splitter"
-    source_handle: "item"
-    target_id: "agg"
-    target_handle: "item"
-  - source_id: "agg"
-    source_handle: "Exec"
-    target_id: "logger"
-    target_handle: "Exec"
+  - source_id: webhook_in
+    source_handle: Success
+    target_id: data
+    target_handle: Exec
+  - source_id: data
+    source_handle: Success
+    target_id: splitter
+    target_handle: Exec
+  - source_id: data
+    source_handle: result
+    target_id: splitter
+    target_handle: array
+  - source_id: splitter
+    source_handle: item
+    target_id: agg
+    target_handle: item
+  - source_id: agg
+    source_handle: Exec
+    target_id: logger
+    target_handle: Exec

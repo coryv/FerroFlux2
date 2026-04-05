@@ -4,22 +4,22 @@ meta:
   name: Resend
   type: Platform
   category: Communication
-  description: "The modern email API for developers to send transactional emails."
-  version: "1.0.0"
+  description: The modern email API for developers to send transactional emails.
+  version: 1.0.0
   discovery:
-    purpose: "Send high-deliverability transactional emails and manage sending domains."
-    usage_context: "Best for programmatic notifications, welcome emails, and password resets with a focus on developer experience."
+    purpose: Send high-deliverability transactional emails and manage sending domains.
+    usage_context: Best for programmatic notifications, welcome emails, and password resets with a focus on developer experience.
     agent_hints:
       - "Optimized for speed and high deliverability."
 
 config:
   base_url: "https://api.resend.com"
   headers:
-    Content-Type: "application/json"
-    Authorization: "Bearer PASTE_YOUR_KEY_HERE"
+    Content-Type: application/json
+    Authorization: Bearer PASTE_YOUR_KEY_HERE
 
 settings:
   - name: api_key
-    label: "API Key"
+    label: API Key
     type: string
     required: true

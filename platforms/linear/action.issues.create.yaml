@@ -5,23 +5,23 @@ meta:
   category: Issues
   type: Action
   platform: linear
-  description: "Creates a new issue in a Linear team."
-  version: "1.0.0"
+  description: Creates a new issue in a Linear team.
+  version: 1.0.0
   discovery:
-    purpose: "Add a new bug, feature, or task to a Linear engineering board."
-    usage_context: "Use this to automate issue creation from customer feedback, bug reports, or sprint planning. Requires a 'teamId' and 'title'."
+    purpose: Add a new bug, feature, or task to a Linear engineering board.
+    usage_context: Use this to automate issue creation from customer feedback, bug reports, or sprint planning. Requires a 'teamId' and 'title'.
     agent_hints:
       - "Uses UUIDs for 'teamId', 'projectId', and 'assigneeId'."
       - "Returns the new issue object with its ID and identifier (e.g. 'ENG-123')."
     waml_examples:
-      - title: "Create Bug Issue"
+      - title: Create Bug Issue
         waml: |
           - step: log_bug
             call: linear.action.issues.create
             with:
-               teamId: "team_uuid_123"
+               teamId: team_uuid_123
                title: "High priority: Fix auth leak"
-               description: "Found in production logs."
+               description: Found in production logs.
                priority: 1
 
 interface:
@@ -48,15 +48,15 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: platform.base_url
-      headers: platform.headers
+      url: =platform.base_url
+      headers: =platform.headers
       body:
         query: >
           "mutation IssueCreate($teamId: String!, $title: String!, $description: String) { issueCreate(input: { teamId: $teamId, title: $title, description: $description }) { success issue { id title } } }"
         variables:
-          teamId: inputs.teamId
-          title: inputs.title
-          description: inputs.description
+          teamId: =inputs.teamId
+          title: =inputs.title
+          description: =inputs.description
     returns:
       status: status_code
       body: response_body
@@ -64,7 +64,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -72,7 +72,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -81,9 +81,9 @@ routing:
       - tool: emit
         params:
           port: issue
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

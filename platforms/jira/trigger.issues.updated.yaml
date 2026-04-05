@@ -5,15 +5,15 @@ meta:
   category: Issues
   type: Trigger
   platform: jira
-  description: "Polls Jira for issues that have been updated recently."
-  version: "1.0.0"
+  description: Polls Jira for issues that have been updated recently.
+  version: 1.0.0
   discovery:
-    purpose: "Triggers whenever a Jira issue is modified (fields changed, transitioning status)."
-    usage_context: "Use to automate post-update actions like notifying team leads, syncing statuses to Trello, or updating documentation."
+    purpose: Triggers whenever a Jira issue is modified (fields changed, transitioning status).
+    usage_context: Use to automate post-update actions like notifying team leads, syncing statuses to Trello, or updating documentation.
     agent_hints:
       - "Provides details on what fields were changed and the updated issue state."
     waml_examples:
-      - title: "Issue Change Sync"
+      - title: Issue Change Sync
         waml: |
           - step: log_change
             type: trigger
@@ -28,11 +28,11 @@ interface:
       type: object
   settings:
     - name: project_key
-      label: "Project Key"
+      label: Project Key
       type: string
       required: true
     - name: limit
-      label: "Batch Limit"
+      label: Batch Limit
       type: number
       default: 50
 
@@ -43,7 +43,7 @@ execution:
       method: POST
       url: >
         platform.base_url + "/search"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         jql: >
           "project = '" + settings.project_key + "' AND updated > '" + (has(event.cursor) ? event.cursor : '1970-01-01 00:00') + "' ORDER BY updated ASC"
@@ -56,19 +56,19 @@ execution:
   - id: extract_issues
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/issues"
     returns:
       issues: issues_array
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extract_issues.issues_array
+          items: =steps.extract_issues.issues_array
           cursor_key: fields.updated
           port: issue
       - tool: emit
@@ -78,4 +78,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -5,22 +5,22 @@ meta:
   category: Cards
   type: Trigger
   platform: trello
-  description: "Triggers when a Trello card is moved between lists."
-  version: "1.0.0"
+  description: Triggers when a Trello card is moved between lists.
+  version: 1.0.0
   discovery:
-    purpose: "Start a workflow whenever a task moves to a new stage (e.g. from 'In Progress' to 'Done')."
-    usage_context: "Use this to notify stakeholders of project progress, trigger follow-up actions when a task is finished, or sync status changes to an external CRM."
+    purpose: Start a workflow whenever a task moves to a new stage (e.g. from 'In Progress' to 'Done').
+    usage_context: Use this to notify stakeholders of project progress, trigger follow-up actions when a task is finished, or sync status changes to an external CRM.
     agent_hints:
       - "Polls the board for card movement events."
       - "Requires the board ID ('idBoard')."
     waml_examples:
-      - title: "Notify on Done"
+      - title: Notify on Done
         waml: |
           trigger:
             task_done:
                call: trello.trigger.cards.moved
                with:
-                  idBoard: "65e..."
+                  idBoard: 65e...
 
 interface:
   inputs: []
@@ -35,11 +35,11 @@ interface:
       type: object
   settings:
     - name: board_id
-      label: "Board ID"
+      label: Board ID
       type: string
       required: true
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -50,9 +50,9 @@ execution:
       method: GET
       url: >
         platform.base_url + "/1/boards/" + settings.board_id + "/actions"
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        filter: updateCard:idList
+        filter: "updateCard:idList"
         since: >
           has(event.cursor) ? event.cursor : "1970-01-01T00:00:00.000Z"
         limit: 50
@@ -61,12 +61,12 @@ execution:
       body: response_body
 
 routing:
-  match: steps.query.status_code
+  match: =steps.query.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.query.response_body
+          items: =steps.query.response_body
           cursor_key: date
           port: card
           emit_extra:
@@ -79,4 +79,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.query.response_body
+          value: =steps.query.response_body

@@ -4,24 +4,24 @@ meta:
   category: Analytics
   type: Action
   platform: posthog
-  description: "Identify and update properties for a user in PostHog."
-  version: "1.0.0"
+  description: Identify and update properties for a user in PostHog.
+  version: 1.0.0
   discovery:
-    purpose: "Associate a user with specific traits (e.g. email, name, subscription tier) to enable targeted analysis and cohort building."
-    usage_context: "Use this when a user's status changes (e.g. upgraded to Pro) or when you gain more information about an anonymous user."
+    purpose: Associate a user with specific traits (e.g. email, name, subscription tier) to enable targeted analysis and cohort building.
+    usage_context: Use this when a user's status changes (e.g. upgraded to Pro) or when you gain more information about an anonymous user.
     agent_hints:
       - "Requires a 'distinct_id'."
       - "Properties passed will be merged with existing user properties."
     waml_examples:
-      - title: "Identify Pro User"
+      - title: Identify Pro User
         waml: |
           - step: update_user
             call: posthog.action.users.identify
             with:
-               distinct_id: "user_123"
+               distinct_id: user_123
                $set:
-                  email: "user@example.com"
-                  tier: "Pro"
+                  email: user@example.com
+                  tier: Pro
   permissions:
     - "network:app.posthog.com"
 
@@ -46,12 +46,12 @@ execution:
       method: POST
       url: >
         platform.base_url + "/capture"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        api_key: settings.project_api_key
+        api_key: =settings.project_api_key
         event: >
           "$identify"
-        distinct_id: inputs.distinct_id
+        distinct_id: =inputs.distinct_id
         "$set": inputs.properties
     returns:
       status: status_code
@@ -60,7 +60,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -68,7 +68,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -78,4 +78,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

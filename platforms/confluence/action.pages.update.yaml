@@ -5,21 +5,21 @@ meta:
   category: Pages
   type: Action
   platform: confluence
-  description: "Update the title or body of an existing page."
-  version: "1.0.0"
+  description: Update the title or body of an existing page.
+  version: 1.0.0
   discovery:
-    purpose: "Modify the title or content of an existing Confluence page."
-    usage_context: "Use to automate ongoing project status updates, append notes, or keep technical documentation in sync with code changes."
+    purpose: Modify the title or content of an existing Confluence page.
+    usage_context: Use to automate ongoing project status updates, append notes, or keep technical documentation in sync with code changes.
     agent_hints:
       - "Requires pageId, new title, and updated body content."
     waml_examples:
-      - title: "Update Page Content"
+      - title: Update Page Content
         waml: |
           - step: update_page
             call: confluence.action.pages.update
             with:
-               pageId: "123456789"
-               title: "Updated Project Specs"
+               pageId: 123456789
+               title: Updated Project Specs
                body: "<h1>New Specifications</h1><p>Status: Updated</p>"
 
 interface:
@@ -47,12 +47,12 @@ execution:
       method: PUT
       url: >
         platform.base_url + "/pages/" + inputs.page_id
-      headers: platform.headers
+      headers: =platform.headers
       body:
         id: inputs.page_id
         version:
-          number: inputs.version
-        title: inputs.title
+          number: =inputs.version
+        title: =inputs.title
         body:
           storage:
             value: >
@@ -63,7 +63,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -73,4 +73,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

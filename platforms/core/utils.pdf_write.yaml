@@ -4,20 +4,20 @@ meta:
   category: Utilities
   type: Action
   platform: core
-  description: "Create simple PDFs from text."
-  version: "1.0.0"
+  description: Create simple PDFs from text.
+  version: 1.0.0
   discovery:
-    purpose: "Generate PDF documents from raw text or templates."
-    usage_context: "Use to create invoices, reports, or contracts as PDF files."
+    purpose: Generate PDF documents from raw text or templates.
+    usage_context: Use to create invoices, reports, or contracts as PDF files.
     agent_hints:
       - "The 'content' field accepts basic markdown or plaintext."
     waml_examples:
-      - title: "Create Invoice PDF"
+      - title: Create Invoice PDF
         waml: |
           - step: write_pdf
             call: core.utils.pdf_write
             with:
-               filename: "invoice.pdf"
+               filename: invoice.pdf
                content: "# Invoice\n\n- Item 1: $10.00"
 
 interface:
@@ -43,8 +43,8 @@ execution:
   - id: write
     tool: core.utils.pdf_write
     params:
-      title: settings.title
-      content: inputs.content
+      title: =settings.title
+      content: =inputs.content
     returns:
       result: pdf_base64
 
@@ -52,7 +52,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: steps.write.result
+      value: =steps.write.result
 
   - id: done
     tool: emit

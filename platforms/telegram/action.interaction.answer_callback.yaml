@@ -5,21 +5,21 @@ meta:
   category: Interaction
   type: Action
   platform: telegram
-  description: "Send answers to callback queries sent from inline keyboards."
-  version: "1.0.0"
+  description: Send answers to callback queries sent from inline keyboards.
+  version: 1.0.0
   discovery:
-    purpose: "Answer a callback query from an inline keyboard button click."
-    usage_context: "Use to confirm button clicks or show a 'toast' notification to the user."
+    purpose: Answer a callback query from an inline keyboard button click.
+    usage_context: Use to confirm button clicks or show a 'toast' notification to the user.
     agent_hints:
       - "Requires the callback_query_id from the trigger."
     waml_examples:
-      - title: "Acknowledge Button"
+      - title: Acknowledge Button
         waml: |
           - step: ack
             call: telegram.action.interaction.answer_callback
             with:
-               callback_query_id: steps.trigger.callback_query_id
-               text: "Processing your request..."
+               callback_query_id: =steps.trigger.callback_query_id
+               text: Processing your request...
 
 interface:
   inputs:
@@ -46,8 +46,8 @@ execution:
       url: >
         platform.base_url + "/answerCallbackQuery"
       body:
-        callback_query_id: inputs.callback_query_id
-        text: inputs.text
+        callback_query_id: =inputs.callback_query_id
+        text: =inputs.text
         show_alert: >
           (has(inputs.show_alert) ? inputs.show_alert : 'false')
     returns:
@@ -55,7 +55,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -65,4 +65,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

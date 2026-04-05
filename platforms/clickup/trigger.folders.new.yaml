@@ -5,22 +5,22 @@ meta:
   category: Folders
   type: Trigger
   platform: clickup
-  description: "Triggers when a new folder is created in a ClickUp space."
-  version: "1.0.0"
+  description: Triggers when a new folder is created in a ClickUp space.
+  version: 1.0.0
   discovery:
-    purpose: "Start a workflow whenever a new project container (folder) is added."
-    usage_context: "Use this to automate folder-level setup, notify managers of new projects, or sync folder metadata to an archive."
+    purpose: Start a workflow whenever a new project container (folder) is added.
+    usage_context: Use this to automate folder-level setup, notify managers of new projects, or sync folder metadata to an archive.
     agent_hints:
       - "Polls the space for new folders based on the 'date_created'."
       - "Requires the numeric 'space_id'."
     waml_examples:
-      - title: "Notify on New Folder"
+      - title: Notify on New Folder
         waml: |
           trigger:
             new_folder:
                call: clickup.trigger.folders.new
                with:
-                  space_id: "123456"
+                  space_id: 123456
 
 interface:
   inputs: []
@@ -31,7 +31,7 @@ interface:
       type: object
   settings:
     - name: space_id
-      label: "Space ID"
+      label: Space ID
       type: string
       required: true
 
@@ -42,7 +42,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/space/" + settings.space_id + "/folder"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -50,19 +50,19 @@ execution:
   - id: extract_folders
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/folders"
     returns:
       folders: folders_array
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extract_folders.folders_array
+          items: =steps.extract_folders.folders_array
           cursor_key: id
           port: folder
       - tool: emit
@@ -72,4 +72,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -1,13 +1,13 @@
 meta:
   id: woocommerce
-  name: "WooCommerce"
-  category: "E-commerce"
+  name: WooCommerce
+  category: E-commerce
   type: Platform
-  description: "Connects to WooCommerce (WordPress) for managing store products, orders, and customers."
-  version: "1.0.0"
+  description: Connects to WooCommerce (WordPress) for managing store products, orders, and customers.
+  version: 1.0.0
   discovery:
-    purpose: "Manage e-commerce operations on WooCommerce-powered storefronts."
-    usage_context: "Use to automate order fulfillment, sync product inventory from external ERPs, or notify teams of high-value sales."
+    purpose: Manage e-commerce operations on WooCommerce-powered storefronts.
+    usage_context: Use to automate order fulfillment, sync product inventory from external ERPs, or notify teams of high-value sales.
     agent_hints:
       - "Requires a valid Consumer Key and Consumer Secret."
       - "Follows the WooCommerce REST API standard."
@@ -17,17 +17,17 @@ meta:
 config:
   base_url: >
     "https://" + store_url + "/wp-json/wc/v3"
-  auth_type: "basic"
+  auth_type: basic
   auth:
-    type: "basic"
+    type: basic
   connection_schema:
-    - name: "store_url"
-      type: "string"
+    - name: store_url
+      type: string
       required: true
-    - name: "consumer_key"
-      type: "string"
+    - name: consumer_key
+      type: string
       required: true
-    - name: "consumer_secret"
-      type: "string"
+    - name: consumer_secret
+      type: string
       required: true
       is_secret: true

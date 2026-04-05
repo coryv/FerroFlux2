@@ -5,15 +5,15 @@ meta:
   category: Teams
   type: Action
   platform: linear
-  description: "Lists teams within your Linear workspace."
-  version: "1.0.0"
+  description: Lists teams within your Linear workspace.
+  version: 1.0.0
   discovery:
-    purpose: "Browse and identify teams for issue assignment and project scoping."
-    usage_context: "Use this when you need a team's UUID (like 'ENG' or 'DESIGN') to create new issues or projects."
+    purpose: Browse and identify teams for issue assignment and project scoping.
+    usage_context: Use this when you need a team's UUID (like 'ENG' or 'DESIGN') to create new issues or projects.
     agent_hints:
       - "Returns a list of teams with their keys (e.g. 'ENG') and UUID IDs."
     waml_examples:
-      - title: "List Workspace Teams"
+      - title: List Workspace Teams
         waml: |
           - step: get_teams
             call: linear.action.teams.list
@@ -37,8 +37,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: platform.base_url
-      headers: platform.headers
+      url: =platform.base_url
+      headers: =platform.headers
       body:
         query: >
           "query Teams { teams { nodes { id name key } } }"
@@ -47,7 +47,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -56,9 +56,9 @@ routing:
       - tool: emit
         params:
           port: teams
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

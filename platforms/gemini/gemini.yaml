@@ -4,11 +4,11 @@ meta:
   name: Google Gemini
   type: Platform
   category: AI/ML
-  description: "Google's most capable AI models, integrated with the Google ecosystem."
-  version: "1.0.0"
+  description: Google's most capable AI models, integrated with the Google ecosystem.
+  version: 1.0.0
   discovery:
-    purpose: "Access Gemini 1.5 Pro and Flash with massive context windows (1.5M+ tokens)."
-    usage_context: "Best for multimodal tasks (video, audio, PDF) and long-range information retrieval."
+    purpose: Access Gemini 1.5 Pro and Flash with massive context windows (1.5M+ tokens).
+    usage_context: Best for multimodal tasks (video, audio, PDF) and long-range information retrieval.
     agent_hints:
       - "Gemini supports native tool calling and structured output."
       - "Excellent for cross-referencing repositories of data."
@@ -16,11 +16,11 @@ meta:
 config:
   base_url: "https://generativelanguage.googleapis.com"
   headers:
-    Content-Type: "application/json"
-    x-goog-api-key: "PASTE_YOUR_KEY_HERE"
+    Content-Type: application/json
+    x-goog-api-key: PASTE_YOUR_KEY_HERE
 
 settings:
   - name: api_key
-    label: "API Key"
+    label: API Key
     type: string
     required: true

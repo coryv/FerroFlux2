@@ -1,68 +1,68 @@
-name: "Binary Condition"
-description: "Script provides data, mapped to a and b handles"
+name: Binary Condition
+description: Script provides data, mapped to a and b handles
 triggers:
-  - id: "webhook_in"
-    name: "Incoming Webhook"
-    type: "core.trigger.webhook"
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
     config:
-      path: "/condition"
+      path: /condition
 nodes:
-  - id: "set_a"
-    name: "Set A"
-    type: "core.action.script"
+  - id: set_a
+    name: Set A
+    type: core.action.script
     config:
-      script: "return 150;"
-  - id: "set_b"
-    name: "Set B"
-    type: "core.action.script"
+      script: return 150;
+  - id: set_b
+    name: Set B
+    type: core.action.script
     config:
-      script: "return 100;"
-  - id: "check_val"
-    name: "Compare"
-    type: "core.logic.condition"
+      script: return 100;
+  - id: check_val
+    name: Compare
+    type: core.logic.condition
     config:
       operator: ">"
-  - id: "log_true"
-    name: "True Log"
-    type: "core.action.log"
+  - id: log_true
+    name: True Log
+    type: core.action.log
     config:
-      level: "'INFO'"
-      message: "a > b"
-  - id: "log_false"
-    name: "False Log"
-    type: "core.action.log"
+      level: INFO
+      message: "=a > b"
+  - id: log_false
+    name: False Log
+    type: core.action.log
     config:
-      level: "'INFO'"
+      level: INFO
       message: "a <= b"
 edges:
-  - source_id: "webhook_in"
-    source_handle: "Success"
-    target_id: "set_a"
-    target_handle: "Exec"
+  - source_id: webhook_in
+    source_handle: Success
+    target_id: set_a
+    target_handle: Exec
 
-  - source_id: "set_a"
-    source_handle: "Success"
-    target_id: "set_b"
-    target_handle: "Exec"
-  - source_id: "set_a"
-    source_handle: "result"
-    target_id: "check_val"
-    target_handle: "a"
+  - source_id: set_a
+    source_handle: Success
+    target_id: set_b
+    target_handle: Exec
+  - source_id: set_a
+    source_handle: result
+    target_id: check_val
+    target_handle: a
 
-  - source_id: "set_b"
-    source_handle: "Success"
-    target_id: "check_val"
-    target_handle: "Exec"
-  - source_id: "set_b"
-    source_handle: "result"
-    target_id: "check_val"
-    target_handle: "b"
+  - source_id: set_b
+    source_handle: Success
+    target_id: check_val
+    target_handle: Exec
+  - source_id: set_b
+    source_handle: result
+    target_id: check_val
+    target_handle: b
 
-  - source_id: "check_val"
-    source_handle: "True"
-    target_id: "log_true"
-    target_handle: "Exec"
-  - source_id: "check_val"
-    source_handle: "False"
-    target_id: "log_false"
-    target_handle: "Exec"
+  - source_id: check_val
+    source_handle: True
+    target_id: log_true
+    target_handle: Exec
+  - source_id: check_val
+    source_handle: False
+    target_id: log_false
+    target_handle: Exec

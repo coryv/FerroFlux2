@@ -5,20 +5,20 @@ meta:
   category: Geocoding
   type: Action
   platform: open-meteo
-  description: "Search for a city or location by name and return its latitude, longitude, and metadata for use in weather queries."
-  version: "1.0.0"
+  description: Search for a city or location by name and return its latitude, longitude, and metadata for use in weather queries.
+  version: 1.0.0
   discovery:
-    purpose: "Search for coordinates (latitude/longitude) of a city or location name."
-    usage_context: "Use this to resolve user-provided location names before calling weather actions."
+    purpose: Search for coordinates (latitude/longitude) of a city or location name.
+    usage_context: Use this to resolve user-provided location names before calling weather actions.
     agent_hints:
       - "Returns a list of matching results with their coordinates."
     waml_examples:
-      - title: "Find City"
+      - title: Find City
         waml: |
           - step: find_loc
             call: open-meteo.action.geocoding.search
             with:
-               name: "San Francisco"
+               name: San Francisco
                count: 1
   data_strategy: enrich
 
@@ -41,18 +41,18 @@ interface:
       type: number
   settings:
     - name: count
-      label: "Max Results"
+      label: Max Results
       type: number
       required: false
       default: 1
       min: 1
       max: 100
     - name: language
-      label: "Language"
+      label: Language
       type: string
       required: false
-      default: "en"
-      placeholder: "e.g. en, de, fr"
+      default: en
+      placeholder: e.g. en, de, fr
 
 execution:
   - id: request
@@ -61,7 +61,7 @@ execution:
       method: GET
       url: >
         "https://geocoding-api.open-meteo.com/v1/search?name=" + inputs.city_name + "&count=" + settings.count + "&language=" + settings.language + "&format=json"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -69,7 +69,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -77,26 +77,26 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/results"
         returns:
           result: location_list
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/results/0/latitude"
         returns:
           result: first_latitude
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/results/0/longitude"
         returns:
@@ -107,17 +107,17 @@ routing:
       - tool: emit
         params:
           port: results
-          value: steps.request.location_list
+          value: =steps.request.location_list
       - tool: emit
         params:
           port: latitude
-          value: steps.request.first_latitude
+          value: =steps.request.first_latitude
       - tool: emit
         params:
           port: longitude
-          value: steps.request.first_longitude
+          value: =steps.request.first_longitude
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

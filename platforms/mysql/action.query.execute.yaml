@@ -4,22 +4,22 @@ meta:
   category: Query
   type: Action
   platform: mysql
-  description: "Executes an arbitrary SQL query against a MySQL database."
-  version: "1.0.0"
+  description: Executes an arbitrary SQL query against a MySQL database.
+  version: 1.0.0
   discovery:
-    purpose: "Perform custom SQL operations (INSERT, UPDATE, DELETE, or DDL)."
-    usage_context: "Use this when specialized SQL is required, such as creating tables, performing complex updates, or using database-specific functions that aren't covered by standard 'select' or 'insert' nodes."
+    purpose: Perform custom SQL operations (INSERT, UPDATE, DELETE, or DDL).
+    usage_context: Use this when specialized SQL is required, such as creating tables, performing complex updates, or using database-specific functions that aren't covered by standard 'select' or 'insert' nodes.
     agent_hints:
       - "The 'query' must be valid MySQL SQL."
       - "Returns the number of affected rows or the last inserted ID where applicable."
       - "Use '?' for parameters to prevent SQL injection."
     waml_examples:
-      - title: "Update Many Records"
+      - title: Update Many Records
         waml: |
           - step: bulk_update
             call: mysql.action.query.execute
             with:
-               query: "UPDATE `orders` SET `status` = ? WHERE `created_at` < ?"
+               query: "=UPDATE `orders` SET `status` = ? WHERE `created_at` < ?"
                params: ["archived", "2023-01-01"]
 
 interface:
@@ -31,7 +31,7 @@ interface:
       description: "The SQL query to execute (e.g. SELECT * FROM users WHERE id = ?)."
     - name: bind
       type: array
-      description: "Optional. Array of values to bind to parameters in the query."
+      description: Optional. Array of values to bind to parameters in the query.
   outputs:
     - name: Success
       type: flow
@@ -39,16 +39,16 @@ interface:
       type: flow
     - name: rows
       type: array
-      description: "The result sets returned by the query."
+      description: The result sets returned by the query.
 
 execution:
   - id: execute
     tool: sql_query
     params:
       operation: execute
-      connection_string: settings.connection_string
-      query: inputs.query
-      bind: inputs.bind
+      connection_string: =settings.connection_string
+      query: =inputs.query
+      bind: =inputs.bind
     returns:
       rows: rows
 
@@ -62,4 +62,4 @@ routing:
       - tool: emit
         params:
           port: rows
-          value: steps.execute.rows
+          value: =steps.execute.rows

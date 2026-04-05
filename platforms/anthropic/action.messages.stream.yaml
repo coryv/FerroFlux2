@@ -5,24 +5,24 @@ meta:
   category: AI/ML
   type: Action
   platform: anthropic
-  description: "Streams a model response as a series of events from Anthropic Claude."
-  version: "1.0.0"
+  description: Streams a model response as a series of events from Anthropic Claude.
+  version: 1.0.0
   discovery:
-    purpose: "Generate AI responses in real-time for improved perceived latency in chat applications."
-    usage_context: "Use this when you want to show the AI's output as it's being generated, rather than waiting for the entire response to complete."
+    purpose: Generate AI responses in real-time for improved perceived latency in chat applications.
+    usage_context: Use this when you want to show the AI's output as it's being generated, rather than waiting for the entire response to complete.
     agent_hints:
       - "Requires a streaming-capable interface to handle incoming Server-Sent Events (SSE)."
       - "Provides incremental 'text_delta' events for immediate UI updates."
     waml_examples:
-      - title: "Stream Live Response"
+      - title: Stream Live Response
         waml: |
           - step: watch_claude
             call: anthropic.action.messages.stream
             with:
-               model: "claude-3-5-sonnet-20240620"
+               model: claude-3-5-sonnet-20240620
                messages:
-                  - role: "user"
-                    content: "Draft a lengthy technical RFC."
+                  - role: user
+                    content: Draft a lengthy technical RFC.
 
 interface:
   inputs:
@@ -41,24 +41,24 @@ interface:
       type: object
   settings:
     - name: model
-      label: "Model"
+      label: Model
       type: select
       required: true
-      default: "claude-3-5-sonnet-20241022"
+      default: claude-3-5-sonnet-20241022
       options:
-        - value: "claude-3-7-sonnet-20250219"
-          label: "Claude 3.7 Sonnet"
-        - value: "claude-3-5-sonnet-20241022"
-          label: "Claude 3.5 Sonnet"
-        - value: "claude-3-5-haiku-20241022"
-          label: "Claude 3.5 Haiku"
+        - value: claude-3-7-sonnet-20250219
+          label: Claude 3.7 Sonnet
+        - value: claude-3-5-sonnet-20241022
+          label: Claude 3.5 Sonnet
+        - value: claude-3-5-haiku-20241022
+          label: Claude 3.5 Haiku
     - name: max_tokens
-      label: "Max Tokens"
+      label: Max Tokens
       type: number
       required: false
       default: 1024
     - name: temperature
-      label: "Temperature"
+      label: Temperature
       type: number
       required: false
       default: 0.7
@@ -70,22 +70,22 @@ execution:
       method: POST
       url: >
         platform.base_url + "/messages"
-      headers: platform.headers
+      headers: =platform.headers
       stream: true
       step_id: llm_stream
       body:
-        model: settings.model
-        messages: inputs.messages
-        system: inputs.system
-        max_tokens: settings.max_tokens
-        temperature: settings.temperature
+        model: =settings.model
+        messages: =inputs.messages
+        system: =inputs.system
+        max_tokens: =settings.max_tokens
+        temperature: =settings.temperature
         stream: true
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -94,9 +94,9 @@ routing:
       - tool: emit
         params:
           port: message
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

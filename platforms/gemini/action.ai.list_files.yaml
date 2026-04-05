@@ -5,15 +5,15 @@ meta:
   category: AI
   type: Action
   platform: gemini
-  description: "Lists all files uploaded to the Gemini File API."
-  version: "1.0.0"
+  description: Lists all files uploaded to the Gemini File API.
+  version: 1.0.0
   discovery:
-    purpose: "Audit and manage multimodal assets (video, audio, PDF) for Gemini generation."
-    usage_context: "Use this to track available documents for context windows or clean up old assets."
+    purpose: Audit and manage multimodal assets (video, audio, PDF) for Gemini generation.
+    usage_context: Use this to track available documents for context windows or clean up old assets.
     agent_hints:
       - "Returns metadata like 'displayName', 'mimeType', and 'state'."
     waml_examples:
-      - title: "Find Uploaded Docs"
+      - title: Find Uploaded Docs
         waml: |
           - step: see_docs
             call: gemini.action.ai.list_files
@@ -40,7 +40,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/v1beta/files"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -48,7 +48,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -56,7 +56,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -65,9 +65,9 @@ routing:
       - tool: emit
         params:
           port: files
-          value: steps.request.response_body.files
+          value: =steps.request.response_body.files
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

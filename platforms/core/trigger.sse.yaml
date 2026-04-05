@@ -4,16 +4,16 @@ meta:
   category: Triggers
   type: Trigger
   platform: core
-  description: "Triggers on each event received from a Server-Sent Events (SSE) endpoint."
-  version: "1.0.0"
+  description: Triggers on each event received from a Server-Sent Events (SSE) endpoint.
+  version: 1.0.0
   discovery:
-    purpose: "Listen for real-time events from a Server-Sent Events (SSE) stream."
-    usage_context: "Use for live data feeds like stock market updates, AI streaming logs, or real-time monitoring."
+    purpose: Listen for real-time events from a Server-Sent Events (SSE) stream.
+    usage_context: Use for live data feeds like stock market updates, AI streaming logs, or real-time monitoring.
     agent_hints:
       - "Maintains a persistent connection to the specified URL."
       - "Retries connection automatically on loss."
     waml_examples:
-      - title: "Live Updates"
+      - title: Live Updates
         waml: |
           - step: listen
             type: trigger
@@ -54,31 +54,31 @@ interface:
       label: SSE Endpoint URL
       type: string
       required: true
-      description: "Full URL of the SSE endpoint to subscribe to"
+      description: Full URL of the SSE endpoint to subscribe to
 
     - name: connection
       label: Connection
       type: connection
       required: false
-      description: "Optional connection for authenticated SSE endpoints (Bearer, OAuth2, etc.)"
+      description: Optional connection for authenticated SSE endpoints (Bearer, OAuth2, etc.)
 
     - name: headers
       label: Extra Headers
       type: object
       required: false
-      description: "Additional HTTP headers to send with the connection request"
+      description: Additional HTTP headers to send with the connection request
 
     - name: reconnect_delay_ms
       label: Reconnect Delay (ms)
       type: number
       default: 5000
-      description: "How long to wait before reconnecting after a connection drop"
+      description: How long to wait before reconnecting after a connection drop
 
     - name: max_reconnect_attempts
       label: Max Reconnect Attempts
       type: number
       default: 0
-      description: "Maximum number of reconnect attempts (0 = unlimited)"
+      description: Maximum number of reconnect attempts (0 = unlimited)
 
 execution:
   # Runtime injects `event` containing data, raw, event_type, id from the SSE frame
@@ -86,25 +86,25 @@ execution:
     tool: emit
     params:
       port: data
-      value: event.data
+      value: =event.data
 
   - id: emit_raw
     tool: emit
     params:
       port: raw
-      value: event.raw
+      value: =event.raw
 
   - id: emit_event_type
     tool: emit
     params:
       port: event_type
-      value: event.event_type
+      value: =event.event_type
 
   - id: emit_id
     tool: emit
     params:
       port: id
-      value: event.id
+      value: =event.id
 
   - id: emit_exec
     tool: emit

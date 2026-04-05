@@ -5,21 +5,21 @@ meta:
   category: Comments
   type: Action
   platform: linear
-  description: "Adds a comment to an existing Linear issue."
-  version: "1.0.0"
+  description: Adds a comment to an existing Linear issue.
+  version: 1.0.0
   discovery:
-    purpose: "Communicate updates, provide feedback, or link external resources to a Linear issue."
-    usage_context: "Use this to log debugging results, attach deployment URLs, or notify engineers of customer feedback by mentioning them in a comment."
+    purpose: Communicate updates, provide feedback, or link external resources to a Linear issue.
+    usage_context: Use this to log debugging results, attach deployment URLs, or notify engineers of customer feedback by mentioning them in a comment.
     agent_hints:
       - "Requires the 'issueId' (UUID)."
       - "Supports markdown for formatting."
     waml_examples:
-      - title: "Post Build Result"
+      - title: Post Build Result
         waml: |
           - step: log_result
             call: linear.action.comments.create
             with:
-               issueId: "issue_uuid_123"
+               issueId: issue_uuid_123
                body: "Deployment successful to [Staging](https://staging.example.com)."
 
 interface:
@@ -43,20 +43,20 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: platform.base_url
-      headers: platform.headers
+      url: =platform.base_url
+      headers: =platform.headers
       body:
         query: >
           "mutation CommentCreate($issueId: String!, $body: String!) { commentCreate(input: { issueId: $issueId, body: $body }) { success comment { id body } } }"
         variables:
-          issueId: inputs.issueId
-          body: inputs.body
+          issueId: =inputs.issueId
+          body: =inputs.body
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -65,9 +65,9 @@ routing:
       - tool: emit
         params:
           port: comment
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

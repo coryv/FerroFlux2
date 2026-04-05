@@ -5,22 +5,22 @@ meta:
   category: Cards
   type: Action
   platform: trello
-  description: "Moves an existing Trello card to a different list or board."
-  version: "1.0.0"
+  description: Moves an existing Trello card to a different list or board.
+  version: 1.0.0
   discovery:
-    purpose: "Organize tasks by changing their container (list) or project area (board)."
-    usage_context: "Use this to move cards from 'In Progress' to 'Done', or to transition a card across different project boards."
+    purpose: Organize tasks by changing their container (list) or project area (board).
+    usage_context: Use this to move cards from 'In Progress' to 'Done', or to transition a card across different project boards.
     agent_hints:
       - "Requires the card ID."
       - "You must specify 'idList' and optionally 'idBoard'."
     waml_examples:
-      - title: "Move to Done"
+      - title: Move to Done
         waml: |
           - step: move_it
             call: trello.action.cards.move
             with:
-               id: "65a..."
-               idList: "65b..."
+               id: 65a...
+               idList: 65b...
 
 interface:
   inputs:
@@ -47,16 +47,16 @@ execution:
       method: PUT
       url: >
         platform.base_url + "/cards/" + inputs.id
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        idList: inputs.idList
-        idBoard: inputs.idBoard
+        idList: =inputs.idList
+        idBoard: =inputs.idBoard
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -65,9 +65,9 @@ routing:
       - tool: emit
         params:
           port: card
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

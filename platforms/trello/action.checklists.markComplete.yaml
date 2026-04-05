@@ -5,22 +5,22 @@ meta:
   category: Checklists
   type: Action
   platform: trello
-  description: "Marks a checklist item as complete or incomplete."
-  version: "1.0.0"
+  description: Marks a checklist item as complete or incomplete.
+  version: 1.0.0
   discovery:
-    purpose: "Check or uncheck an item in a Trello checklist."
-    usage_context: "Use this to automate task progress tracking as workflow steps succeed."
+    purpose: Check or uncheck an item in a Trello checklist.
+    usage_context: Use this to automate task progress tracking as workflow steps succeed.
     agent_hints:
       - "Requires the card ID ('idCard'), and 'idCheckItem'."
     waml_examples:
-      - title: "Check Off Task"
+      - title: Check Off Task
         waml: |
           - step: finish_todo
             call: trello.action.checklists.markComplete
             with:
-               idCard: "65a..."
-               idCheckItem: "65c..."
-               state: "complete"
+               idCard: 65a...
+               idCheckItem: 65c...
+               state: complete
 
 interface:
   inputs:
@@ -45,7 +45,7 @@ execution:
       method: PUT
       url: >
         platform.base_url + "/cards/" + inputs.idCard + "/checkItem/" + inputs.idCheckItem
-      headers: platform.headers
+      headers: =platform.headers
       body:
         state: complete
     returns:
@@ -53,7 +53,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -62,9 +62,9 @@ routing:
       - tool: emit
         params:
           port: checkItem
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

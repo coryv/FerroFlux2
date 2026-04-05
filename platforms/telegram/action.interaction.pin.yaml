@@ -5,20 +5,20 @@ meta:
   category: Interaction
   type: Action
   platform: telegram
-  description: "Pin a specific message in a chat."
-  version: "1.0.0"
+  description: Pin a specific message in a chat.
+  version: 1.0.0
   discovery:
-    purpose: "Pin a specific message in a Telegram chat or group."
-    usage_context: "Use to highlight important alerts, instructions, or current tasks within a chat."
+    purpose: Pin a specific message in a Telegram chat or group.
+    usage_context: Use to highlight important alerts, instructions, or current tasks within a chat.
     agent_hints:
       - "Requires the chat_id and the message_id."
     waml_examples:
-      - title: "Pin Alert"
+      - title: Pin Alert
         waml: |
           - step: pin_msg
             call: telegram.action.interaction.pin
             with:
-               chat_id: "123456789"
+               chat_id: 123456789
                message_id: 1024
 
 interface:
@@ -46,8 +46,8 @@ execution:
       url: >
         platform.base_url + "/pinChatMessage"
       body:
-        chat_id: inputs.chat_id
-        message_id: inputs.message_id
+        chat_id: =inputs.chat_id
+        message_id: =inputs.message_id
         disable_notification: >
           (has(inputs.disable_notification) ? inputs.disable_notification : 'false')
     returns:
@@ -55,7 +55,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -65,4 +65,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

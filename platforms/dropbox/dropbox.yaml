@@ -4,11 +4,11 @@ meta:
   name: Dropbox
   type: Platform
   category: Storage
-  description: "Connects to the Dropbox API."
-  version: "1.0.0"
+  description: Connects to the Dropbox API.
+  version: 1.0.0
   discovery:
-    purpose: "Cloud-based file storage and synchronization service."
-    usage_context: "Use Dropbox for storing large binary files, media assets, or documents that need to be shared or backed up outside of FerroFlux. Ideal for personal and team file management."
+    purpose: Cloud-based file storage and synchronization service.
+    usage_context: Use Dropbox for storing large binary files, media assets, or documents that need to be shared or backed up outside of FerroFlux. Ideal for personal and team file management.
     agent_hints:
       - "File paths in Dropbox always start with a '/' or are relative to the root (e.g., '/Reports/Monthly.pdf')."
       - "Note that the API uses Bearer tokens for authorization, which are handled by the connection."
@@ -16,11 +16,11 @@ meta:
 config:
   base_url: "https://api.dropboxapi.com/2"
   headers:
-    Content-Type: "application/json"
+    Content-Type: application/json
     # No Authorization header — injected automatically from the stored connection
 
 settings:
   - name: connection
-    label: "Dropbox Account"
+    label: Dropbox Account
     type: connection_select
     required: true

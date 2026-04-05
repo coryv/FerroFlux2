@@ -5,22 +5,22 @@ meta:
   category: Users
   type: Action
   platform: zendesk
-  description: "Creates a new user."
-  version: "1.0.0"
+  description: Creates a new user.
+  version: 1.0.0
   discovery:
-    purpose: "Create a new user profile in Zendesk."
-    usage_context: "Use to synchronize customer or internal user data from external systems like Slack, Gmail, or a CRM."
+    purpose: Create a new user profile in Zendesk.
+    usage_context: Use to synchronize customer or internal user data from external systems like Slack, Gmail, or a CRM.
     agent_hints:
       - "Requires email and name."
     waml_examples:
-      - title: "Register User"
+      - title: Register User
         waml: |
           - step: register
             call: zendesk.action.users.create
             with:
-               email: "customer@example.com"
-               name: "John Doe"
-               role: "end-user"
+               email: customer@example.com
+               name: John Doe
+               role: end-user
 
 interface:
   inputs:
@@ -47,18 +47,18 @@ execution:
       method: POST
       url: >
         platform.base_url + "/users.json"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         user:
-          name: inputs.name
-          email: inputs.email
-          role: inputs.role
+          name: =inputs.name
+          email: =inputs.email
+          role: =inputs.role
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -67,9 +67,9 @@ routing:
       - tool: emit
         params:
           port: user
-          value: steps.request.response_body.user
+          value: =steps.request.response_body.user
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

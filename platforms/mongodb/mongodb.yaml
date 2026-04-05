@@ -3,11 +3,11 @@ meta:
   name: MongoDB
   category: Database
   type: Platform
-  description: "Direct connection to MongoDB clusters via binary protocol."
-  version: "1.0.0"
+  description: Direct connection to MongoDB clusters via binary protocol.
+  version: 1.0.0
   discovery:
-    purpose: "NoSQL document-based database for flexible, JSON-like storage."
-    usage_context: "Use MongoDB when your data schema is evolving, or when you need to store large, nested objects that don't fit well into traditional relational tables. Ideal for logs, user profiles, and catalog data."
+    purpose: NoSQL document-based database for flexible, JSON-like storage.
+    usage_context: Use MongoDB when your data schema is evolving, or when you need to store large, nested objects that don't fit well into traditional relational tables. Ideal for logs, user profiles, and catalog data.
     agent_hints:
       - "Queries use the standard MongoDB BSON/JSON syntax."
       - "Requires a connection string (URI) and a target database name."
@@ -20,17 +20,17 @@ config:
 
 settings:
   - name: connection_string
-    label: "Connection String"
+    label: Connection String
     type: string
     required: true
     secret: true
     placeholder: "mongodb+srv://user:password@cluster.mongodb.net/dbname"
-    description: "The full connection URI for your MongoDB cluster."
+    description: The full connection URI for your MongoDB cluster.
   - name: database
-    label: "Default Database"
+    label: Default Database
     type: string
     required: true
-    description: "The name of the database to use by default."
+    description: The name of the database to use by default.
 
 interface:
   inputs: []

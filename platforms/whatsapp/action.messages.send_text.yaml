@@ -4,21 +4,21 @@ meta:
   category: WhatsApp
   type: Action
   platform: whatsapp
-  description: "Sends a direct text message to a user on WhatsApp."
-  version: "1.0.0"
+  description: Sends a direct text message to a user on WhatsApp.
+  version: 1.0.0
   discovery:
-    purpose: "Engage customers in real-time, respond to inquiries, or share links via WhatsApp."
-    usage_context: "Use this for conversational support, customer check-ins, and two-way business messaging."
+    purpose: Engage customers in real-time, respond to inquiries, or share links via WhatsApp.
+    usage_context: Use this for conversational support, customer check-ins, and two-way business messaging.
     agent_hints:
       - "Requires a 'to' phone number and a 'body' string."
       - "Note: Business-initiated messages should generally use templates first."
     waml_examples:
-      - title: "Send WhatsApp Greeting"
+      - title: Send WhatsApp Greeting
         waml: |
           - step: say_hello
             call: whatsapp.action.messages.send_text
             with:
-               to: "+15551234567"
+               to: +15551234567
                body: "Hi there! How can we help you today?"
   permissions:
     - "network:graph.facebook.com"
@@ -46,11 +46,11 @@ execution:
       method: POST
       url: >
         platform.base_url + "/" + settings.phone_number_id + "/messages"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         messaging_product: whatsapp
         recipient_type: individual
-        to: inputs.to
+        to: =inputs.to
         type: text
         text: >
           "{ \"body\": \"" + inputs.body + "\" }"
@@ -61,7 +61,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -71,14 +71,14 @@ execution:
   - id: extract_id
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/messages/0/id"
     returns:
       result: mid
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -87,9 +87,9 @@ routing:
       - tool: emit
         params:
           port: message_id
-          value: steps.extract_id.mid
+          value: =steps.extract_id.mid
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

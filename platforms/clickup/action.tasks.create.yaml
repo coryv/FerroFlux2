@@ -5,24 +5,24 @@ meta:
   category: Tasks
   type: Action
   platform: clickup
-  description: "Creates a new task in a specific ClickUp list."
-  version: "1.0.0"
+  description: Creates a new task in a specific ClickUp list.
+  version: 1.0.0
   discovery:
-    purpose: "Add a new work item to a ClickUp board or list."
-    usage_context: "Use this to automate task creation from external triggers, such as new emails or form submissions. Requires a 'list_id' and 'name'."
+    purpose: Add a new work item to a ClickUp board or list.
+    usage_context: Use this to automate task creation from external triggers, such as new emails or form submissions. Requires a 'list_id' and 'name'.
     agent_hints:
       - "Requires the numeric 'list_id'."
       - "Supports setting assignees, tags, status, and custom fields."
     waml_examples:
-      - title: "Create Urgent Task"
+      - title: Create Urgent Task
         waml: |
           - step: mk_task
             call: clickup.action.tasks.create
             with:
-               list_id: "12345678"
-               name: "Emergency deployment"
+               list_id: 12345678
+               name: Emergency deployment
                priority: 1
-               status: "to do"
+               status: to do
 
 interface:
   inputs:
@@ -51,17 +51,17 @@ execution:
       method: POST
       url: >
         platform.base_url + "/list/" + inputs.list_id + "/task"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        name: inputs.name
-        description: inputs.description
-        status: inputs.status
+        name: =inputs.name
+        description: =inputs.description
+        status: =inputs.status
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -70,9 +70,9 @@ routing:
       - tool: emit
         params:
           port: task
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

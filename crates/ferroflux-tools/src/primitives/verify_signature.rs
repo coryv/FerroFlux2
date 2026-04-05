@@ -133,6 +133,8 @@ mod tests {
                 local,
                 memory,
                 trace_id: "test".to_string(),
+                node_id: "test_node".to_string(),
+                tenant_id: "test_tenant".to_string(),
                 event_bus: None,
                 shadow_mode: false,
                 shadow_masks: masks,

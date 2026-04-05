@@ -5,20 +5,20 @@ meta:
   category: Values
   type: Action
   platform: google_sheets
-  description: "Appends values to a spreadsheet."
-  version: "1.0.0"
+  description: Appends values to a spreadsheet.
+  version: 1.0.0
   discovery:
-    purpose: "Append values to a new row in a specific sheet range."
-    usage_context: "Use to log form submissions, record transaction history, or audit logs in a spreadsheet."
+    purpose: Append values to a new row in a specific sheet range.
+    usage_context: Use to log form submissions, record transaction history, or audit logs in a spreadsheet.
     agent_hints:
       - "Requires a Spreadsheet ID and the cell range (e.g., 'Sheet1!A1')."
     waml_examples:
-      - title: "Log Entry"
+      - title: Log Entry
         waml: |
           - step: log_data
             call: google_sheets.action.values.append
             with:
-               spreadsheet_id: "12345abcdefg"
+               spreadsheet_id: 12345abcdefg
                range: "Logs!A1"
                values: ["${now()}", "User Signup", "${inputs.email}"]
 
@@ -41,15 +41,15 @@ interface:
       type: object
   settings:
     - name: value_input_option
-      label: "Value Input Option"
+      label: Value Input Option
       type: select
       required: true
-      default: "USER_ENTERED"
+      default: USER_ENTERED
       options:
-        - value: "RAW"
-          label: "Raw"
-        - value: "USER_ENTERED"
-          label: "User Entered"
+        - value: RAW
+          label: Raw
+        - value: USER_ENTERED
+          label: User Entered
 
 execution:
   - id: request
@@ -58,9 +58,9 @@ execution:
       method: POST
       url: >
         platform.base_url + "/" + inputs.spreadsheet_id + "/values/" + inputs.range + ":append?valueInputOption=" + settings.value_input_option
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        values: inputs.values
+        values: =inputs.values
     returns:
       status: status_code
       body: response_body
@@ -68,7 +68,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -76,7 +76,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -85,9 +85,9 @@ routing:
       - tool: emit
         params:
           port: response
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

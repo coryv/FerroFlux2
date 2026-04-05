@@ -4,17 +4,17 @@ meta:
   category: Database
   type: Action
   platform: mysql
-  description: "Executes a SELECT query against a MySQL database."
-  version: "1.0.0"
+  description: Executes a SELECT query against a MySQL database.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve rows from a database table using SQL."
-    usage_context: "Use this to fetch records for processing, such as getting a list of pending orders or looking up a user's details. Supports parameterized queries for security."
+    purpose: Retrieve rows from a database table using SQL.
+    usage_context: Use this to fetch records for processing, such as getting a list of pending orders or looking up a user's details. Supports parameterized queries for security.
     agent_hints:
       - "The 'query' must be valid MySQL SQL (e.g., uses backticks for identifiers)."
       - "The 'params' array matches the '?' placeholders in your query in order."
       - "Returns an array of objects where keys are column names."
     waml_examples:
-      - title: "Fetch Active Users"
+      - title: Fetch Active Users
         waml: |
           - step: get_users
             call: mysql.action.rows.select
@@ -44,14 +44,14 @@ execution:
   - id: sql
     tool: sql_query
     params:
-      connection_string: settings.connection_string
+      connection_string: =settings.connection_string
       query: >
         "SELECT * FROM " + inputs.table + " LIMIT " + (has(inputs.limit) ? inputs.limit : '100')
     returns:
       rows: rows
 
 routing:
-  match: steps.sql.status
+  match: =steps.sql.status
   cases:
     default:
       - tool: emit
@@ -60,4 +60,4 @@ routing:
       - tool: emit
         params:
           port: rows
-          value: steps.sql.rows
+          value: =steps.sql.rows

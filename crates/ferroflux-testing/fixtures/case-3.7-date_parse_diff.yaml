@@ -1,0 +1,77 @@
+name: Date Parse and Diff Pipeline
+description: Parses two dates, calculates the diff, and outputs the result
+triggers:
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
+    config:
+      path: /test-date
+nodes:
+  - id: extract_start_date
+    name: Extract Start Date
+    type: core.utils.json
+    config:
+      operation: query
+      expression: start_date
+  - id: extract_end_date
+    name: Extract End Date
+    type: core.utils.json
+    config:
+      operation: query
+      expression: end_date
+  - id: diff_node
+    name: Calculate Difference
+    type: core.utils.date
+    config:
+      operation: diff
+      date:
+      format: "%Y-%m-%dT%H:%M:%SZ"
+  - id: verify
+    name: Verify Output
+    type: core.action.http
+    config:
+      method: POST
+      url: /verify-diff
+edges:
+  # Webhook to Extractions
+  - source_id: webhook_in
+    source_handle: Success
+    target_id: extract_start_date
+    target_handle: Exec
+  - source_id: webhook_in
+    source_handle: body
+    target_id: extract_start_date
+    target_handle: input
+
+  - source_id: webhook_in
+    source_handle: Success
+    target_id: extract_end_date
+    target_handle: Exec
+  - source_id: webhook_in
+    source_handle: body
+    target_id: extract_end_date
+    target_handle: input
+
+  # Extractions to Diff
+  - source_id: extract_end_date
+    source_handle: Exec
+    target_id: diff_node
+    target_handle: Exec
+  - source_id: extract_start_date
+    source_handle: result
+    target_id: diff_node
+    target_handle: date1
+  - source_id: extract_end_date
+    source_handle: result
+    target_id: diff_node
+    target_handle: date2
+
+  # Diff to Verify
+  - source_id: diff_node
+    source_handle: Exec
+    target_id: verify
+    target_handle: Exec
+  - source_id: diff_node
+    source_handle: result
+    target_id: verify
+    target_handle: body

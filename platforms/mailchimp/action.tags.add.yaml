@@ -5,22 +5,22 @@ meta:
   category: Subscribers
   type: Action
   platform: mailchimp
-  description: "Adds marketing tags to a specific subscriber."
-  version: "1.0.0"
+  description: Adds marketing tags to a specific subscriber.
+  version: 1.0.0
   discovery:
-    purpose: "Categorize subscribers into custom segments (e.g. 'Influencer', 'VIP', 'Event Attendee')."
-    usage_context: "Use this to trigger automated journeys or filter campaigns based on dynamic subscriber behaviors."
+    purpose: Categorize subscribers into custom segments (e.g. 'Influencer', 'VIP', 'Event Attendee').
+    usage_context: Use this to trigger automated journeys or filter campaigns based on dynamic subscriber behaviors.
     agent_hints:
       - "Requires 'list_id' and 'subscriber_hash' (MD5 of email)."
       - "Pass an array of 'tags' to be added."
     waml_examples:
-      - title: "Tag Pro User"
+      - title: Tag Pro User
         waml: |
           - step: tag_user
             call: mailchimp.action.tags.add
             with:
-               list_id: "123..."
-               subscriber_hash: "555..."
+               list_id: 123...
+               subscriber_hash: 555...
                tags: [{ name: "Tier: Pro", status: "active" }]
 
 interface:
@@ -46,17 +46,17 @@ execution:
       method: POST
       url: >
         platform.base_url + "/lists/" + inputs.listId + "/members/" + inputs.subscriberHash + "/tags"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         tags:
-          - name: inputs.tagName
+          - name: =inputs.tagName
             status: active
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -66,4 +66,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

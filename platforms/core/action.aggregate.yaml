@@ -5,20 +5,20 @@ meta:
   type: Action
   node_subtype: Accumulator
   platform: core
-  description: "Collects items into a batch (array)."
-  version: "1.0.0"
+  description: Collects items into a batch (array).
+  version: 1.0.0
   discovery:
-    purpose: "Group and recombine multiple items from a stream or collection."
-    usage_context: "Use after parallel processing steps or to batch items before sending to a final destination."
+    purpose: Group and recombine multiple items from a stream or collection.
+    usage_context: Use after parallel processing steps or to batch items before sending to a final destination.
     agent_hints:
       - "Maintains state until a completion signal or limit is reached."
     waml_examples:
-      - title: "Batch Results"
+      - title: Batch Results
         waml: |
           - step: collect_results
             call: core.action.aggregate
             with:
-              items: steps.process.output
+              items: =steps.process.output
 
 interface:
   inputs:
@@ -41,8 +41,8 @@ execution:
   - id: agg
     tool: aggregate
     params:
-      item: inputs.item
-      limit: settings.batch_size
+      item: =inputs.item
+      limit: =settings.batch_size
     returns:
       batch: result_array
       ready: is_ready
@@ -50,13 +50,13 @@ execution:
   - id: check_ready
     tool: logic
     params:
-      data: steps.agg.is_ready
+      data: =steps.agg.is_ready
       rules:
-        - condition: "val == true"
+        - condition: =val == true
           output: Exec
 
   - id: emit_batch
     tool: emit
     params:
       port: batch
-      value: steps.agg.result_array
+      value: =steps.agg.result_array

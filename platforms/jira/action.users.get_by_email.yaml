@@ -5,20 +5,20 @@ meta:
   category: Users
   type: Action
   platform: jira
-  description: "Search for a Jira user by their email address."
-  version: "1.0.0"
+  description: Search for a Jira user by their email address.
+  version: 1.0.0
   discovery:
-    purpose: "Map an email address to a Jira account ID."
-    usage_context: "Use to find Jira users based on context from other communications tools like Slack or Gmail."
+    purpose: Map an email address to a Jira account ID.
+    usage_context: Use to find Jira users based on context from other communications tools like Slack or Gmail.
     agent_hints:
       - "Returns a user object including accountId."
     waml_examples:
-      - title: "Find User ID"
+      - title: Find User ID
         waml: |
           - step: find_user
             call: jira.users.get_by_email
             with:
-               email: "user@example.com"
+               email: user@example.com
 
 interface:
   inputs:
@@ -41,15 +41,15 @@ execution:
       method: GET
       url: >
         platform.base_url + "/user/search"
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        query: inputs.email
+        query: =inputs.email
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -64,4 +64,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

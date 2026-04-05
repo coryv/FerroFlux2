@@ -3,15 +3,15 @@ meta:
   name: Core
   category: System
   type: Platform
-  description: "Core primitive actions and utilities."
-  version: "1.0.0"
+  description: Core primitive actions and utilities.
+  version: 1.0.0
   discovery:
-    purpose: "Provide fundamental logic, data manipulation, and system utilities."
-    usage_context: "Use these primitives to glue complex integrations together, manage variables, and handle basic control flow."
+    purpose: Provide fundamental logic, data manipulation, and system utilities.
+    usage_context: Use these primitives to glue complex integrations together, manage variables, and handle basic control flow.
     agent_hints:
       - "These tools are internal to FerroFlux and usually don't require external connections."
       - "Heavily utilized in almost every advanced workflow."
 
 config:
-  base_url: ""
+  base_url:
   headers: {}

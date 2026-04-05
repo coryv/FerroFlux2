@@ -4,15 +4,15 @@ meta:
   category: Deployments
   type: Action
   platform: vercel
-  description: "Lists all deployments for the authorized Vercel account or team."
-  version: "1.0.0"
+  description: Lists all deployments for the authorized Vercel account or team.
+  version: 1.0.0
   discovery:
-    purpose: "Browse the history of builds and deployments."
-    usage_context: "Use this to audit recent changes, find the latest successful deployment for a project, or clean up old preview environments."
+    purpose: Browse the history of builds and deployments.
+    usage_context: Use this to audit recent changes, find the latest successful deployment for a project, or clean up old preview environments.
     agent_hints:
       - "Supports filtering by 'projectId' and 'app' name."
     waml_examples:
-      - title: "List Recent Builds"
+      - title: List Recent Builds
         waml: |
           - step: list_deploys
             call: vercel.action.deployments.list
@@ -45,10 +45,10 @@ execution:
       method: GET
       url: >
         platform.base_url + "/v6/deployments"
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        app: inputs.app
-        limit: inputs.limit
+        app: =inputs.app
+        limit: =inputs.limit
     returns:
       status: status_code
       body: response_body
@@ -56,7 +56,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -64,7 +64,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -73,9 +73,9 @@ routing:
       - tool: emit
         params:
           port: deployments
-          value: steps.request.response_body.deployments
+          value: =steps.request.response_body.deployments
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

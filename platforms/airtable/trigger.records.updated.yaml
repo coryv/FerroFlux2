@@ -5,22 +5,22 @@ meta:
   category: Records
   type: Trigger
   platform: airtable
-  description: "Polls an Airtable table for recently updated records."
-  version: "1.0.0"
+  description: Polls an Airtable table for recently updated records.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow whenever a record in an Airtable table is updated."
-    usage_context: "Use to sync changes to a production database, notify team members of content updates, or trigger downstream processing (e.g., generating a PDF from a record)."
+    purpose: Initialize a workflow whenever a record in an Airtable table is updated.
+    usage_context: Use to sync changes to a production database, notify team members of content updates, or trigger downstream processing (e.g., generating a PDF from a record).
     agent_hints:
       - "Polls for recently updated records in a specific base and table."
     waml_examples:
-      - title: "Sync Updates"
+      - title: Sync Updates
         waml: |
           - step: on_update
             type: trigger
             call: airtable.trigger.records.updated
             settings:
-               baseId: "app12345"
-               tableIdOrName: "Inventory"
+               baseId: app12345
+               tableIdOrName: Inventory
 
 interface:
   inputs: []
@@ -31,15 +31,15 @@ interface:
       type: object
   settings:
     - name: base_id
-      label: "Base ID"
+      label: Base ID
       type: string
       required: true
     - name: table_name
-      label: "Table Name"
+      label: Table Name
       type: string
       required: true
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -50,7 +50,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/" + settings.base_id + "/" + settings.table_name
-      headers: platform.headers
+      headers: =platform.headers
       query:
         sort[0][field]: "Last Modified Time"
         sort[0][direction]: asc
@@ -62,13 +62,13 @@ execution:
       body: response_body
 
 routing:
-  match: steps.query.status_code
+  match: =steps.query.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.query.response_body.records
-          cursor_key: fields["Last Modified Time"]
+          items: =steps.query.response_body.records
+          cursor_key: 'fields["Last Modified Time"]'
           port: record
       - tool: emit
         params:
@@ -77,4 +77,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.query.response_body
+          value: =steps.query.response_body

@@ -4,21 +4,21 @@ meta:
   category: Errors
   type: Action
   platform: sentry
-  description: "Retrieves detailed information about a specific Sentry issue."
-  version: "1.0.0"
+  description: Retrieves detailed information about a specific Sentry issue.
+  version: 1.0.0
   discovery:
-    purpose: "Fetch the properties, frequency, and first/last seen data of a specific error issue."
-    usage_context: "Use this to check the severity of an error, read its stack trace, or identify which releases are affected."
+    purpose: Fetch the properties, frequency, and first/last seen data of a specific error issue.
+    usage_context: Use this to check the severity of an error, read its stack trace, or identify which releases are affected.
     agent_hints:
       - "Requires the 'issue_id' (numeric string)."
       - "Returns metadata like 'culprit', 'culprit_id', and 'status'."
     waml_examples:
-      - title: "Get Error Details"
+      - title: Get Error Details
         waml: |
           - step: read_error
             call: sentry.action.issues.get
             with:
-               issue_id: "123456"
+               issue_id: 123456
   permissions:
     - "network:sentry.io"
 
@@ -43,7 +43,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/issues/" + inputs.issue_id + "/"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -51,7 +51,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -59,7 +59,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -68,9 +68,9 @@ routing:
       - tool: emit
         params:
           port: issue
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

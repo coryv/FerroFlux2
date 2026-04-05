@@ -4,15 +4,15 @@ meta:
   category: Triggers
   type: Trigger
   platform: core
-  description: "Triggers the workflow at scheduled intervals."
-  version: "1.0.0"
+  description: Triggers the workflow at scheduled intervals.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow on a recurring schedule or at a specific point in time."
-    usage_context: "Use to automate routine tasks like daily backups, weekly email newsletters, or monthly financial reporting."
+    purpose: Initialize a workflow on a recurring schedule or at a specific point in time.
+    usage_context: Use to automate routine tasks like daily backups, weekly email newsletters, or monthly financial reporting.
     agent_hints:
       - "Supports cron expressions or human-readable intervals (e.g. 'every 5 minutes')."
     waml_examples:
-      - title: "Daily Sync"
+      - title: Daily Sync
         waml: |
           - step: daily_job
             type: trigger
@@ -30,14 +30,14 @@ interface:
     - name: mode
       label: Recurrence
       type: select
-      default: "interval"
+      default: interval
       options:
-        - label: "Recurring Interval"
-          value: "interval"
-        - label: "Specific Time (Daily)"
-          value: "daily"
-        - label: "Specific Time (Weekly)"
-          value: "weekly"
+        - label: Recurring Interval
+          value: interval
+        - label: Specific Time (Daily)
+          value: daily
+        - label: Specific Time (Weekly)
+          value: weekly
     
     # Interval Mode Settings
     - name: interval_value
@@ -45,34 +45,34 @@ interface:
       type: number
       default: 15
       min: 1
-      show_if: "mode == 'interval'"
+      show_if: =mode == 'interval'
       
     - name: interval_unit
       label: Unit
       type: select
-      default: "minutes"
+      default: minutes
       options: ["hours", "minutes", "seconds"]
-      show_if: "mode == 'interval'"
+      show_if: =mode == 'interval'
 
     # Calendar Mode Settings
     - name: time
-      label: Time (HH:MM)
+      label: "Time (HH:MM)"
       type: time
       default: "09:00"
-      show_if: "mode == 'daily' || mode == 'weekly'"
+      show_if: "=mode == 'daily' || mode == 'weekly'"
       
     - name: days
       label: Days of Week
       type: multi-select
       options: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-      show_if: "mode == 'weekly'"
+      show_if: =mode == 'weekly'
 
 execution:
   - id: emit_time
     tool: emit
     params:
       port: timestamp
-      value: event.timestamp
+      value: =event.timestamp
 
   - id: emit_exec
     tool: emit

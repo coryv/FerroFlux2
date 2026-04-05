@@ -5,22 +5,22 @@ meta:
   category: Tasks
   type: Action
   platform: clickup
-  description: "Updates an existing ClickUp task by its ID."
-  version: "1.0.0"
+  description: Updates an existing ClickUp task by its ID.
+  version: 1.0.0
   discovery:
-    purpose: "Modify fields on a ClickUp task, such as its name, description, status, or priority."
-    usage_context: "Use this to change a task's status as it moves through a pipeline, re-assign it to a team member, or mark it as complete."
+    purpose: Modify fields on a ClickUp task, such as its name, description, status, or priority.
+    usage_context: Use this to change a task's status as it moves through a pipeline, re-assign it to a team member, or mark it as complete.
     agent_hints:
       - "Requires the Task ID."
       - "The body parameters only contain the fields you wish to change (partial update)."
     waml_examples:
-      - title: "Move to Review"
+      - title: Move to Review
         waml: |
           - step: review_it
             call: clickup.action.tasks.update
             with:
-               task_id: "862..."
-               status: "review"
+               task_id: 862...
+               status: review
 
 interface:
   inputs:
@@ -47,17 +47,17 @@ execution:
       method: PUT
       url: >
         platform.base_url + "/task/" + inputs.task_id
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        name: inputs.name
-        description: inputs.description
-        status: inputs.status
+        name: =inputs.name
+        description: =inputs.description
+        status: =inputs.status
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -67,4 +67,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

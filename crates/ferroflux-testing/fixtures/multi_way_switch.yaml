@@ -1,60 +1,60 @@
-name: "Multi-Way Switch"
+name: Multi-Way Switch
 description: "Route based on status: active, pending, or archived"
 triggers:
-  - id: "webhook_in"
-    name: "Incoming Webhook"
-    type: "core.trigger.webhook"
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
     config:
-      path: "/switch"
+      path: /switch
 nodes:
-  - id: "set_status"
-    name: "Set Status"
-    type: "core.action.script"
+  - id: set_status
+    name: Set Status
+    type: core.action.script
     config:
-      script: "return 'pending';"
-  - id: "route"
-    name: "Router"
-    type: "core.action.switch"
+      script: return 'pending';
+  - id: route
+    name: Router
+    type: core.action.switch
     config:
       rules:
-        - output: "ActivePath"
+        - output: ActivePath
           condition:
-            field: ""
-            operator: "=="
-            value: "active"
-        - output: "PendingPath"
+            field:
+            operator:
+            value: active
+        - output: PendingPath
           condition:
-            field: ""
-            operator: "=="
-            value: "pending"
-        - output: "ArchivePath"
+            field:
+            operator:
+            value: pending
+        - output: ArchivePath
           condition:
-            field: ""
-            operator: "=="
-            value: "archived"
-        - output: "default"
+            field:
+            operator:
+            value: archived
+        - output: default
           condition:
-            operator: "default"
-  - id: "log_pending"
-    name: "Pending Log"
-    type: "core.action.log"
+            operator: default
+  - id: log_pending
+    name: Pending Log
+    type: core.action.log
     config:
-      level: "'INFO'"
-      message: "Processing PENDING"
+      level: INFO
+      message: Processing PENDING
 edges:
-  - source_id: "webhook_in"
-    source_handle: "Success"
-    target_id: "set_status"
-    target_handle: "Exec"
-  - source_id: "set_status"
-    source_handle: "Success"
-    target_id: "route"
-    target_handle: "Exec"
-  - source_id: "set_status"
-    source_handle: "result"
-    target_id: "route"
-    target_handle: "data"
-  - source_id: "route"
-    source_handle: "PendingPath"
-    target_id: "log_pending"
-    target_handle: "Exec"
+  - source_id: webhook_in
+    source_handle: Success
+    target_id: set_status
+    target_handle: Exec
+  - source_id: set_status
+    source_handle: Success
+    target_id: route
+    target_handle: Exec
+  - source_id: set_status
+    source_handle: result
+    target_id: route
+    target_handle: data
+  - source_id: route
+    source_handle: PendingPath
+    target_id: log_pending
+    target_handle: Exec

@@ -4,11 +4,11 @@ meta:
   name: Asana
   type: Platform
   category: Productivity
-  description: "Connects to the Asana API."
-  version: "1.0.0"
+  description: Connects to the Asana API.
+  version: 1.0.0
   discovery:
-    purpose: "Work management and task tracking platform."
-    usage_context: "Use Asana for orchestrating team workflows, tracking individual tasks, and managing complex project timelines. Ideal for structured collaboration."
+    purpose: Work management and task tracking platform.
+    usage_context: Use Asana for orchestrating team workflows, tracking individual tasks, and managing complex project timelines. Ideal for structured collaboration.
     agent_hints:
       - "Identifies resources using GIDs (Global IDs, e.g. '1201...')."
       - "Note that and task can belong to multiple projects simultaneously."
@@ -16,12 +16,12 @@ meta:
 config:
   base_url: "https://app.asana.com/api/1.0"
   headers:
-    Content-Type: "application/json"
+    Content-Type: application/json
     Authorization: >
       "Bearer " + settings.api_key
 
 settings:
   - name: api_key
-    label: "Personal Access Token"
+    label: Personal Access Token
     type: string
     required: true

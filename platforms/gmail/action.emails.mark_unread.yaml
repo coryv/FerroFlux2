@@ -5,20 +5,20 @@ meta:
   category: Emails
   type: Action
   platform: gmail
-  description: "Marks a specific Gmail message as unread."
-  version: "1.0.0"
+  description: Marks a specific Gmail message as unread.
+  version: 1.0.0
   discovery:
-    purpose: "Reset the read status of a Gmail message."
-    usage_context: "Use this if an automation fails to process a message and you want a human to see it as 'new' in their inbox."
+    purpose: Reset the read status of a Gmail message.
+    usage_context: Use this if an automation fails to process a message and you want a human to see it as 'new' in their inbox.
     agent_hints:
       - "Technically adds the 'UNREAD' system label to the message."
     waml_examples:
-      - title: "Failed Processing Alert"
+      - title: Failed Processing Alert
         waml: |
           - step: flag_for_human
             call: gmail.emails.mark_unread
             with:
-               message_id: "18e986fe..."
+               message_id: 18e986fe...
 
 interface:
   inputs:
@@ -39,7 +39,7 @@ execution:
       method: POST
       url: >
         platform.base_url + "/messages/" + inputs.message_id + "/modify"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         addLabelIds: >
           "[\"UNREAD\"]"
@@ -48,7 +48,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -58,4 +58,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

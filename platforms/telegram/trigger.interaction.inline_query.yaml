@@ -5,15 +5,15 @@ meta:
   category: Interaction
   type: Trigger
   platform: telegram
-  description: "Polls for inline queries from users typing the bot's username."
-  version: "1.0.0"
+  description: Polls for inline queries from users typing the bot's username.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow when an inline query (e.g., @bot query) is received."
-    usage_context: "Use to provide dynamic search results or interactive content directly from the message box."
+    purpose: Initialize a workflow when an inline query (e.g., @bot query) is received.
+    usage_context: Use to provide dynamic search results or interactive content directly from the message box.
     agent_hints:
       - "Provides the query string and the user who initiated it."
     waml_examples:
-      - title: "Inline Search"
+      - title: Inline Search
         waml: |
           - step: search
             type: trigger
@@ -28,7 +28,7 @@ interface:
       type: object
   settings:
     - name: limit
-      label: "Batch Limit"
+      label: Batch Limit
       type: number
       default: 100
 
@@ -52,19 +52,19 @@ execution:
   - id: extract_updates
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/result"
     returns:
       updates: updates_array
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extract_updates.updates_array
+          items: =steps.extract_updates.updates_array
           cursor_key: update_id
           port: query
       - tool: emit
@@ -74,4 +74,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

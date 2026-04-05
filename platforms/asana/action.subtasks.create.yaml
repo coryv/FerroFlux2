@@ -5,22 +5,22 @@ meta:
   category: Tasks
   type: Action
   platform: asana
-  description: "Creates a new subtask for an existing Asana task."
-  version: "1.0.0"
+  description: Creates a new subtask for an existing Asana task.
+  version: 1.0.0
   discovery:
-    purpose: "Break down a larger task into smaller, manageable work items."
-    usage_context: "Use this to create checklists, individual trackable items for a milestone, or to add specific steps to a template task."
+    purpose: Break down a larger task into smaller, manageable work items.
+    usage_context: Use this to create checklists, individual trackable items for a milestone, or to add specific steps to a template task.
     agent_hints:
       - "Requires the 'task_gid' of the parent task."
       - "Subtasks do not automatically inherit the parent's project or assignee."
     waml_examples:
-      - title: "Add Subtask Step"
+      - title: Add Subtask Step
         waml: |
           - step: mk_subtask
             call: asana.action.subtasks.create
             with:
-               task_gid: "1202..."
-               name: "Review QA results"
+               task_gid: 1202...
+               name: Review QA results
                notes: "Specific criteria: Code style, unit tests, and performance."
 
 interface:
@@ -48,17 +48,17 @@ execution:
       method: POST
       url: >
         platform.base_url + "/tasks/" + inputs.taskGid + "/subtasks"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         data:
-          name: inputs.name
-          notes: inputs.notes
+          name: =inputs.name
+          notes: =inputs.notes
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -67,9 +67,9 @@ routing:
       - tool: emit
         params:
           port: task
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

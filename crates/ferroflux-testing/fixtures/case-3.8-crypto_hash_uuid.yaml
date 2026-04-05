@@ -1,0 +1,52 @@
+name: Crypto Hash and UUID Pipeline
+description: Hashes a string, then generates a UUID
+triggers:
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
+    config:
+      path: /test-crypto
+nodes:
+  - id: hasher
+    name: Compute SHA256
+    type: core.utils.crypto
+    config:
+      operation: hash
+      algorithm: sha256
+  - id: uuid_gen
+    name: Generate UUID
+    type: core.utils.crypto
+    config:
+      operation: uuid
+  - id: verify
+    name: Verify Output
+    type: core.action.http
+    config:
+      method: POST
+      url: /verify-crypto
+edges:
+  # Webhook to Hasher
+  - source_id: webhook_in
+    source_handle: Success
+    target_id: hasher
+    target_handle: Exec
+  - source_id: webhook_in
+    source_handle: body
+    target_id: hasher
+    target_handle: input
+
+  # Hasher to UUID Gen
+  - source_id: hasher
+    source_handle: Exec
+    target_id: uuid_gen
+    target_handle: Exec
+
+  # UUID Gen to Verify
+  - source_id: uuid_gen
+    source_handle: Exec
+    target_id: verify
+    target_handle: Exec
+  - source_id: uuid_gen
+    source_handle: result
+    target_id: verify
+    target_handle: body

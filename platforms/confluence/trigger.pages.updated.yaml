@@ -5,15 +5,15 @@ meta:
   category: Pages
   type: Trigger
   platform: confluence
-  description: "Polls Confluence for recently updated pages."
-  version: "1.0.0"
+  description: Polls Confluence for recently updated pages.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow whenever a Confluence page is modified."
-    usage_context: "Use to track documentation changes, notify stakeholders of wiki updates, or sync content to other knowledge management tools."
+    purpose: Initialize a workflow whenever a Confluence page is modified.
+    usage_context: Use to track documentation changes, notify stakeholders of wiki updates, or sync content to other knowledge management tools.
     agent_hints:
       - "Provides information on the modified page and the user who made the changes."
     waml_examples:
-      - title: "Page Update Sync"
+      - title: Page Update Sync
         waml: |
           - step: log_change
             type: trigger
@@ -28,10 +28,10 @@ interface:
       type: object
   settings:
     - name: space_id
-      label: "Space ID (Optional)"
+      label: Space ID (Optional)
       type: string
     - name: limit
-      label: "Batch Limit"
+      label: Batch Limit
       type: number
       default: 20
 
@@ -42,9 +42,9 @@ execution:
       method: GET
       url: >
         platform.base_url + "/pages"
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        spaceId: settings.space_id
+        spaceId: =settings.space_id
         sort: >
           "-modified-date"
         limit: >
@@ -56,19 +56,19 @@ execution:
   - id: extract_pages
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/results"
     returns:
       pages: pages_array
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extract_pages.pages_array
+          items: =steps.extract_pages.pages_array
           cursor_key: version.number
           port: page
       - tool: emit
@@ -78,4 +78,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

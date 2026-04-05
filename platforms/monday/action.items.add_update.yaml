@@ -5,22 +5,22 @@ meta:
   category: Items
   type: Action
   platform: monday
-  description: "Adds a new update (note) to a Monday.com item."
-  version: "1.0.0"
+  description: Adds a new update (note) to a Monday.com item.
+  version: 1.0.0
   discovery:
-    purpose: "Communicate updates, provide context, and log history on a board item."
-    usage_context: "Use this to post progress reports, notify team members of results, or record completion details within the item's update feed."
+    purpose: Communicate updates, provide context, and log history on a board item.
+    usage_context: Use this to post progress reports, notify team members of results, or record completion details within the item's update feed.
     agent_hints:
       - "Requires the numeric 'item_id' and the 'body' text."
       - "Updates appear in the 'Activity' column of the Monday board."
     waml_examples:
-      - title: "Post Task Update"
+      - title: Post Task Update
         waml: |
           - step: say_it
             call: monday.action.items.add_update
             with:
-               item_id: "890..."
-               body: "Processing complete. Please check the results."
+               item_id: 890...
+               body: Processing complete. Please check the results.
 
 interface:
   inputs:
@@ -41,8 +41,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: platform.base_url
-      headers: platform.headers
+      url: =platform.base_url
+      headers: =platform.headers
       body:
         query: |
           mutation ($itemId: ID!, $body: String!) {
@@ -51,14 +51,14 @@ execution:
             }
           }
         variables:
-          itemId: inputs.item_id
-          body: inputs.body
+          itemId: =inputs.item_id
+          body: =inputs.body
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -68,4 +68,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

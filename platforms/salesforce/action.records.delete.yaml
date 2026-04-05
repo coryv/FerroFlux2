@@ -5,21 +5,21 @@ meta:
   category: Records
   type: Action
   platform: salesforce
-  description: "Permanently deletes a Salesforce record by its ID."
-  version: "1.0.0"
+  description: Permanently deletes a Salesforce record by its ID.
+  version: 1.0.0
   discovery:
-    purpose: "Remove a record from Salesforce storage."
-    usage_context: "Use this to delete test data, remove duplicates, or clean up outdated records. Use with caution as this is irreversible."
+    purpose: Remove a record from Salesforce storage.
+    usage_context: Use this to delete test data, remove duplicates, or clean up outdated records. Use with caution as this is irreversible.
     agent_hints:
       - "Requires the 'object' name and the 'id'."
     waml_examples:
-      - title: "Delete Duplicate Lead"
+      - title: Delete Duplicate Lead
         waml: |
           - step: rm_lead
             call: salesforce.action.records.delete
             with:
-               object: "Lead"
-               id: "00Q..."
+               object: Lead
+               id: 00Q...
 
 interface:
   inputs:
@@ -42,13 +42,13 @@ execution:
       method: DELETE
       url: >
         platform.base_url + "/sobjects/" + inputs.sObjectName + "/" + inputs.recordId
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -58,4 +58,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

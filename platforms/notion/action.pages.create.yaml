@@ -5,15 +5,15 @@ meta:
   category: Pages
   type: Action
   platform: notion
-  description: "Creates a new page in the specified database or as a child of an existing page."
-  version: "1.0.0"
+  description: Creates a new page in the specified database or as a child of an existing page.
+  version: 1.0.0
   discovery:
-    purpose: "Create a new page as a child of an existing page or within a database."
-    usage_context: "Use to automate note-taking, log new items from an external intake form, or generate reports directly in Notion."
+    purpose: Create a new page as a child of an existing page or within a database.
+    usage_context: Use to automate note-taking, log new items from an external intake form, or generate reports directly in Notion.
     agent_hints:
       - "Requires a parent (database_id or page_id) and properties."
     waml_examples:
-      - title: "Create Document"
+      - title: Create Document
         waml: |
           - step: new_note
             call: notion.action.pages.create
@@ -47,11 +47,11 @@ execution:
       method: POST
       url: >
         platform.base_url + "/pages"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        parent: inputs.parent
-        properties: inputs.properties
-        children: inputs.children
+        parent: =inputs.parent
+        properties: =inputs.properties
+        children: =inputs.children
     returns:
       status: status_code
       body: response_body
@@ -59,7 +59,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -67,7 +67,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -76,9 +76,9 @@ routing:
       - tool: emit
         params:
           port: page
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -5,25 +5,25 @@ meta:
   category: Contacts
   type: Action
   platform: hubspot
-  description: "Searches for contacts in HubSpot CRM using filters."
-  version: "1.0.0"
+  description: Searches for contacts in HubSpot CRM using filters.
+  version: 1.0.0
   discovery:
-    purpose: "Find specific contacts based on their properties or behavioral data."
-    usage_context: "Use this to find a contact by email, list all contacts in a specific city, or find 'Qualified' leads for a follow-up workflow."
+    purpose: Find specific contacts based on their properties or behavioral data.
+    usage_context: Use this to find a contact by email, list all contacts in a specific city, or find 'Qualified' leads for a follow-up workflow.
     agent_hints:
       - "The 'filterGroups' parameter follows the HubSpot Search API structure."
       - "Note that common operators include 'EQ' (equals), 'NEQ' (not equals), 'GT', 'LT'."
     waml_examples:
-      - title: "Find Contact by Email"
+      - title: Find Contact by Email
         waml: |
           - step: find_user
             call: hubspot.action.contacts.search
             with:
                filterGroups:
                  - filters:
-                     - propertyName: "email"
-                       operator: "EQ"
-                       value: "user@example.com"
+                     - propertyName: email
+                       operator: EQ
+                       value: user@example.com
 
 interface:
   inputs:
@@ -51,11 +51,11 @@ execution:
       method: POST
       url: >
         platform.base_url + "/objects/contacts/search"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        filterGroups: inputs.filterGroups
-        sorts: inputs.sorts
-        properties: inputs.properties
+        filterGroups: =inputs.filterGroups
+        sorts: =inputs.sorts
+        properties: =inputs.properties
     returns:
       status: status_code
       body: response_body
@@ -63,7 +63,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -73,14 +73,14 @@ execution:
   - id: extract
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/results"
     returns:
       result: contacts
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -89,9 +89,9 @@ routing:
       - tool: emit
         params:
           port: contacts
-          value: steps.extract.contacts
+          value: =steps.extract.contacts
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

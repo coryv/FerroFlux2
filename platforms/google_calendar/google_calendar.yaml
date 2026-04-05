@@ -4,11 +4,11 @@ meta:
   name: Google Calendar
   type: Platform
   category: Calendar
-  description: "Connects to the Google Calendar API."
-  version: "1.0.0"
+  description: Connects to the Google Calendar API.
+  version: 1.0.0
   discovery:
-    purpose: "Manage individual and shared Google Calendars, events, and scheduling."
-    usage_context: "Use this to automate meeting coordination, synchronize project timelines with calendars, and manage availability."
+    purpose: Manage individual and shared Google Calendars, events, and scheduling.
+    usage_context: Use this to automate meeting coordination, synchronize project timelines with calendars, and manage availability.
     agent_hints:
       - "Requires OAuth2 authentication."
       - "Defaults to the 'primary' calendar unless a specific calendar_id is provided."
@@ -16,10 +16,10 @@ meta:
 config:
   base_url: "https://www.googleapis.com/calendar/v3/calendars"
   headers:
-    Content-Type: "application/json"
+    Content-Type: application/json
 
 settings:
   - name: connection
-    label: "Google Account (OAuth)"
+    label: Google Account (OAuth)
     type: connection_select
     required: true

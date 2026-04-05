@@ -5,15 +5,15 @@ meta:
   category: Customers
   type: Trigger
   platform: shopify
-  description: "Triggers when a new customer registers."
-  version: "1.0.0"
+  description: Triggers when a new customer registers.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow when a new customer is registered in Shopify."
-    usage_context: "Use to trigger onboarding sequences, update internal CRMs, or send welcome gifts."
+    purpose: Initialize a workflow when a new customer is registered in Shopify.
+    usage_context: Use to trigger onboarding sequences, update internal CRMs, or send welcome gifts.
     agent_hints:
       - "Provides the full customer object, including email, name, and marketing preferences."
     waml_examples:
-      - title: "Welcome Sequence"
+      - title: Welcome Sequence
         waml: |
           - step: on_customer
             type: trigger
@@ -28,7 +28,7 @@ interface:
       type: object
   settings:
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -39,7 +39,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/customers.json"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         created_at_min: state.last_poll
     returns:
@@ -47,12 +47,12 @@ execution:
       body: response_body
 
 routing:
-  match: steps.query.status_code
+  match: =steps.query.status_code
   cases:
     "200":
       - tool: foreach
         params:
-          items: steps.query.response_body.customers
+          items: =steps.query.response_body.customers
           action:
             - tool: emit
               params:

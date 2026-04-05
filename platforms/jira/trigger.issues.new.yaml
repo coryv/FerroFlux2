@@ -5,22 +5,22 @@ meta:
   category: Issues
   type: Trigger
   platform: jira
-  description: "Polls Jira for newly created issues in a specific project."
-  version: "1.0.0"
+  description: Polls Jira for newly created issues in a specific project.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow when a new Jira issue is created."
-    usage_context: "Use to automate project intake, notify Slack when bugs are filed, or sync issues to an external CRM."
+    purpose: Initialize a workflow when a new Jira issue is created.
+    usage_context: Use to automate project intake, notify Slack when bugs are filed, or sync issues to an external CRM.
     agent_hints:
       - "Can be filtered by project key or issue type."
     waml_examples:
-      - title: "Bug Intake"
+      - title: Bug Intake
         waml: |
           - step: on_bug
             type: trigger
             call: jira.trigger.issues.new
             settings:
-               project: "PROJ"
-               issuetype: "Bug"
+               project: PROJ
+               issuetype: Bug
 
 interface:
   inputs: []
@@ -31,11 +31,11 @@ interface:
       type: object
   settings:
     - name: project_key
-      label: "Project Key"
+      label: Project Key
       type: string
       required: true
     - name: limit
-      label: "Batch Limit"
+      label: Batch Limit
       type: number
       default: 50
 
@@ -46,7 +46,7 @@ execution:
       method: POST
       url: >
         platform.base_url + "/search"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         jql: >
           "project = '" + settings.project_key + "' AND created > '" + (has(event.cursor) ? event.cursor : '1970-01-01 00:00') + "' ORDER BY created ASC"
@@ -59,19 +59,19 @@ execution:
   - id: extract_issues
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/issues"
     returns:
       issues: issues_array
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.extract_issues.issues_array
+          items: =steps.extract_issues.issues_array
           cursor_key: fields.created
           port: issue
       - tool: emit
@@ -81,4 +81,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

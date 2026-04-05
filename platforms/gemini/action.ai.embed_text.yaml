@@ -5,22 +5,22 @@ meta:
   category: AI
   type: Action
   platform: gemini
-  description: "Generates vector embeddings for a given text string."
-  version: "1.0.0"
+  description: Generates vector embeddings for a given text string.
+  version: 1.0.0
   discovery:
-    purpose: "Convert text into numerical vectors for semantic search or clustering."
-    usage_context: "Use this to build RAG (Retrieval Augmented Generation) pipelines, find similar documents, or classify text based on meaning."
+    purpose: Convert text into numerical vectors for semantic search or clustering.
+    usage_context: Use this to build RAG (Retrieval Augmented Generation) pipelines, find similar documents, or classify text based on meaning.
     agent_hints:
       - "Specify the 'model' (e.g. 'text-embedding-004')."
       - "The resulting vector can be stored in a vector database like Pinecone or Supabase."
     waml_examples:
-      - title: "Embed Document"
+      - title: Embed Document
         waml: |
           - step: vectorize
             call: gemini.action.ai.embed_text
             with:
-               model: "text-embedding-004"
-               text: "The quick brown fox jumps over the lazy dog."
+               model: text-embedding-004
+               text: The quick brown fox jumps over the lazy dog.
 
 interface:
   inputs:
@@ -46,11 +46,11 @@ execution:
       method: POST
       url: >
         platform.base_url + "/v1beta/models/" + inputs.model + ":embedContent"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         content:
           parts:
-            - text: inputs.text
+            - text: =inputs.text
     returns:
       status: status_code
       body: response_body
@@ -58,7 +58,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -66,12 +66,12 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/embedding/values"
         returns:
@@ -87,4 +87,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

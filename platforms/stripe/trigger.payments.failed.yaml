@@ -5,15 +5,15 @@ meta:
   category: Payments
   type: Trigger
   platform: stripe
-  description: "Fires when a Stripe payment_intent.payment_failed webhook event is received."
-  version: "1.0.0"
+  description: Fires when a Stripe payment_intent.payment_failed webhook event is received.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow whenever a Stripe payment attempt fails."
-    usage_context: "Use to notify customers of failed transactions, retry payments, or flag suspicious activity for review."
+    purpose: Initialize a workflow whenever a Stripe payment attempt fails.
+    usage_context: Use to notify customers of failed transactions, retry payments, or flag suspicious activity for review.
     agent_hints:
       - "Provides error details and the associated user/customer ID."
     waml_examples:
-      - title: "Payment Failure Alert"
+      - title: Payment Failure Alert
         waml: |
           - step: on_fail
             type: trigger
@@ -28,10 +28,10 @@ interface:
       type: object
   settings:
     - name: webhook_secret
-      label: "Webhook Signing Secret"
+      label: Webhook Signing Secret
       type: string
       required: true
-      description: "Your Stripe webhook signing secret (whsec_...). Found in the Stripe Dashboard under Webhooks."
+      description: Your Stripe webhook signing secret (whsec_...). Found in the Stripe Dashboard under Webhooks.
 
 execution:
   - id: parse_stripe_sig
@@ -48,17 +48,17 @@ execution:
         }
         #{ timestamp: t_val, signature: v1_val, signed_payload: t_val + "." + input.raw_body }
       input:
-        raw_signature: event.headers["stripe-signature"]
-        raw_body: event.raw_body
+        raw_signature: '=event.headers["stripe-signature"]'
+        raw_body: =event.raw_body
     returns:
       result: stripe_sig
 
   - id: verify
     tool: verify_signature
     params:
-      body: steps.stripe_sig.result.signed_payload
-      secret: settings.webhook_secret
-      signature: steps.stripe_sig.result.signature
+      body: =steps.stripe_sig.result.signed_payload
+      secret: =settings.webhook_secret
+      signature: =steps.stripe_sig.result.signature
       algorithm: hmac-sha256
       encoding: hex
     returns:
@@ -71,13 +71,13 @@ execution:
         steps.verify.is_valid && event.body.type == "payment_intent.payment_failed"
 
 routing:
-  match: steps.check_event_type.result
+  match: =steps.check_event_type.result
   cases:
     "true":
       - tool: emit
         params:
           port: payment_intent
-          value: event.body.data.object
+          value: =event.body.data.object
       - tool: emit
         params:
           port: Success

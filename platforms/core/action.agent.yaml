@@ -4,21 +4,21 @@ meta:
   category: AI
   type: Action
   platform: core
-  description: "LLM Agent that processes prompts and produces responses."
-  version: "1.0.0"
+  description: LLM Agent that processes prompts and produces responses.
+  version: 1.0.0
   discovery:
-    purpose: "Execute an LLM-powered agent for intelligent data processing."
-    usage_context: "Use this for complex logic, summarizing text, extracting entities, or making autonomous decisions."
+    purpose: Execute an LLM-powered agent for intelligent data processing.
+    usage_context: Use this for complex logic, summarizing text, extracting entities, or making autonomous decisions.
     agent_hints:
       - "Requires a system prompt and configuration."
       - "Output is typically a structured object or text string."
     waml_examples:
-      - title: "Summarize Text"
+      - title: Summarize Text
         waml: |
           - step: summarize
             call: core.action.agent
             with:
-              prompt: "Summarize this text: ${inputs.text}"
+              prompt: '="Summarize this text: " + inputs.text'
 
 interface:
   inputs:
@@ -40,7 +40,7 @@ interface:
     - name: model
       label: Model
       type: string
-      default: "gpt-4o"
+      default: gpt-4o
     - name: prompt
       label: Prompt
       type: textarea
@@ -50,21 +50,21 @@ interface:
     - name: output_var
       label: Output Variable
       type: string
-      default: "agent_response"
+      default: agent_response
 
     - name: system_instruction
       label: System Instruction
       type: textarea
-      default: "You are a helpful assistant."
+      default: You are a helpful assistant.
 
 execution:
   - id: llm
     tool: agent
     params:
-      provider: settings.provider
-      model: settings.model
-      system: settings.system_instruction
-      prompt: settings.prompt
+      provider: =settings.provider
+      model: =settings.model
+      system: =settings.system_instruction
+      prompt: =settings.prompt
     returns:
       result: response_text
 
@@ -72,7 +72,7 @@ execution:
     tool: emit
     params:
       port: settings.output_var
-      value: steps.llm.response_text
+      value: =steps.llm.response_text
 
   - id: emit_exec
     tool: emit

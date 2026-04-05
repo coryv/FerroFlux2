@@ -69,8 +69,8 @@ pub fn resolve_connection_auth(
     Ok((url_str, dynamic_headers))
 }
 
-fn tenant_id_from_context(_context: &ToolContext) -> ferroflux_iam::TenantId {
-    ferroflux_iam::TenantId::from("default_tenant")
+fn tenant_id_from_context(context: &ToolContext) -> ferroflux_iam::TenantId {
+    ferroflux_iam::TenantId::from(context.tenant_id.as_str())
 }
 
 fn access_token_from_conn(conn: &Value) -> Result<String> {
@@ -295,13 +295,70 @@ pub fn execute_streaming_request(
     _trace_id: &str,
     _step_id: &str,
 ) -> Result<(u16, HashMap<String, String>, Value)> {
-    // Basic stub for now to satisfy compilation
-    execute_request(req)
+    let method = reqwest::Method::from_bytes(req.method.as_bytes()).context("Invalid method")?;
+    let mut builder = req.client.request(method, req.url).headers(req.headers);
+
+    if let Some(body) = req.body {
+        builder = builder.json(&body);
+    }
+
+    let resp = builder.send().context("Streaming request failed")?;
+    let status = resp.status().as_u16();
+    let mut headers = HashMap::new();
+    for (name, value) in resp.headers() {
+        headers.insert(name.to_string(), value.to_str().unwrap_or_default().to_string());
+    }
+
+    if status >= 400 {
+        let body: Value = resp.json().unwrap_or(Value::Null);
+        return Ok((status, headers, body));
+    }
+
+    // SSE Aggregation Logic
+    let mut full_text = String::new();
+    let mut chunk_count = 0;
+    
+    use std::io::{BufRead, BufReader};
+    let reader = BufReader::new(resp);
+    
+    for line in reader.lines() {
+        let line = line?;
+        if let Some(data) = line.strip_prefix("data: ") {
+            if data == "[DONE]" {
+                continue;
+            }
+            if let Ok(val) = serde_json::from_str::<Value>(data) {
+                chunk_count += 1;
+                // Try OpenAI format: choices[0].delta.content
+                if let Some(content) = val.pointer("/choices/0/delta/content").and_then(|v| v.as_str()) {
+                    full_text.push_str(content);
+                } 
+                // Try Anthropic format: delta.text
+                else if let Some(content) = val.pointer("/delta/text").and_then(|v| v.as_str()) {
+                    full_text.push_str(content);
+                }
+                // Try Gemini format: candidates[0].content.parts[0].text
+                else if let Some(content) = val.pointer("/candidates/0/content/parts/0/text").and_then(|v| v.as_str()) {
+                    full_text.push_str(content);
+                }
+            }
+        }
+    }
+
+    Ok((status, headers, serde_json::json!({
+        "text": full_text,
+        "total_chunks": chunk_count
+    })))
 }
 
 pub fn set_query_param(url: &str, key: &str, value: &str) -> Result<String> {
     let mut parsed = url::Url::parse(url).context("Invalid URL for query param")?;
-    parsed.query_pairs_mut().append_pair(key, value);
+    let pairs: Vec<_> = parsed.query_pairs()
+        .filter(|(k, _)| k != key)
+        .map(|(k, v)| (k.into_owned(), v.into_owned()))
+        .collect();
+    
+    parsed.query_pairs_mut().clear().extend_pairs(pairs).append_pair(key, value);
     Ok(parsed.to_string())
 }
 

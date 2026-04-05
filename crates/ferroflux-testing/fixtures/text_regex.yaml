@@ -1,0 +1,77 @@
+id: text_regex_workflow
+name: Text Regex Match and Replace Test Workflow
+description: Verify regex extraction and redaction of email addresses.
+
+nodes:
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
+
+  - id: regex_match
+    name: Extract Emails
+    type: core.utils.text
+    config:
+      operation: match
+      pattern: "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
+
+  - id: regex_replace
+    name: Redact Emails
+    type: core.utils.text
+    config:
+      operation: replace
+      pattern: "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
+      replacement: "[REDACTED]"
+
+  - id: match_logger
+    name: Log Extracted Emails
+    type: core.action.log
+    config:
+      message: "='Found emails: ' + string(inputs.body)"
+
+  - id: replace_logger
+    name: Log Redacted Text
+    type: core.action.log
+    config:
+      message: "='Redacted text: ' + string(inputs.body)"
+
+edges:
+  # 1. Webhook to Match
+  - source_id: webhook_in
+    target_id: regex_match
+    source_handle: Success
+    target_handle: Exec
+  - source_id: webhook_in
+    target_id: regex_match
+    source_handle: body
+    target_handle: text
+
+  # 2. Match to Match Logger
+  - source_id: regex_match
+    target_id: match_logger
+    source_handle: Exec
+    target_handle: Exec
+  - source_id: regex_match
+    target_id: regex_match # Internal link? No!
+    # Wait! I want to link result to logger.
+    source_handle: result
+    target_handle: body
+
+  # 3. Webhook to Replace (parallel)
+  - source_id: webhook_in
+    target_id: regex_replace
+    source_handle: Success
+    target_handle: Exec
+  - source_id: webhook_in
+    target_id: regex_replace
+    source_handle: body
+    target_handle: text
+
+  # 4. Replace to Replace Logger
+  - source_id: regex_replace
+    target_id: replace_logger
+    source_handle: Exec
+    target_handle: Exec
+  - source_id: regex_replace
+    target_id: replace_logger
+    source_handle: result
+    target_handle: body

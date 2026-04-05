@@ -5,21 +5,21 @@ meta:
   category: Values
   type: Action
   platform: google_sheets
-  description: "Returns a range of values from a spreadsheet."
-  version: "1.0.0"
+  description: Returns a range of values from a spreadsheet.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve values from a specific cell range in a Google Sheet."
-    usage_context: "Use to fetch configuration data, lookup values from a master table, or read values for processing in a workflow."
+    purpose: Retrieve values from a specific cell range in a Google Sheet.
+    usage_context: Use to fetch configuration data, lookup values from a master table, or read values for processing in a workflow.
     agent_hints:
       - "Requires a Spreadsheet ID and the cell range (e.g., 'Sheet1!A1:B10')."
       - "Returns a 2D array of values."
     waml_examples:
-      - title: "Read Settings"
+      - title: Read Settings
         waml: |
           - step: read_config
             call: google_sheets.action.values.get
             with:
-               spreadsheet_id: "12345abcdefg"
+               spreadsheet_id: 12345abcdefg
                range: "Settings!A2:B2"
 
 interface:
@@ -46,7 +46,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/" + inputs.spreadsheet_id + "/values/" + inputs.range
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -54,7 +54,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -64,14 +64,14 @@ execution:
   - id: extract
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/values"
     returns:
       result: values_array
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -80,9 +80,9 @@ routing:
       - tool: emit
         params:
           port: values
-          value: steps.extract.values_array
+          value: =steps.extract.values_array
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

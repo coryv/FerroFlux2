@@ -5,21 +5,21 @@ meta:
   category: Campaigns
   type: Action
   platform: mailchimp
-  description: "Creates a new email campaign for a specific audience."
-  version: "1.0.0"
+  description: Creates a new email campaign for a specific audience.
+  version: 1.0.0
   discovery:
-    purpose: "Draft automated marketing messages, newsletters, or announcements."
-    usage_context: "Use this to prepare seasonal promotions, sync blog posts to email campaigns, or automate complex marketing workflows."
+    purpose: Draft automated marketing messages, newsletters, or announcements.
+    usage_context: Use this to prepare seasonal promotions, sync blog posts to email campaigns, or automate complex marketing workflows.
     agent_hints:
       - "Requires 'type' (regular, plaintext, etc.) and 'recipients' (list_id)."
       - "The 'settings' object handles 'subject_line' and 'from_name'."
     waml_examples:
-      - title: "Create Promo Campaign"
+      - title: Create Promo Campaign
         waml: |
           - step: mk_campaign
             call: mailchimp.action.campaigns.create
             with:
-               type: "regular"
+               type: regular
                recipients: { list_id: "123..." }
 
 interface:
@@ -51,21 +51,21 @@ execution:
       method: POST
       url: >
         platform.base_url + "/campaigns"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         type: inputs.type
         recipients:
-          list_id: inputs.listId
+          list_id: =inputs.listId
         settings:
-          subject_line: inputs.subjectLine
-          reply_to: inputs.replyTo
-          from_name: inputs.fromName
+          subject_line: =inputs.subjectLine
+          reply_to: =inputs.replyTo
+          from_name: =inputs.fromName
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -74,9 +74,9 @@ routing:
       - tool: emit
         params:
           port: campaign
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

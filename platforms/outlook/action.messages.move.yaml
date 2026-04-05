@@ -5,21 +5,21 @@ meta:
   category: Messages
   type: Action
   platform: outlook
-  description: "Moves an email message to a different folder in the mailbox."
-  version: "1.0.0"
+  description: Moves an email message to a different folder in the mailbox.
+  version: 1.0.0
   discovery:
-    purpose: "Organize inbox items, archive processed emails, or categorize messages into specific project folders."
-    usage_context: "Use this to move processed orders to an 'Orders' folder or archive system notifications after they've been handled."
+    purpose: Organize inbox items, archive processed emails, or categorize messages into specific project folders.
+    usage_context: Use this to move processed orders to an 'Orders' folder or archive system notifications after they've been handled.
     agent_hints:
       - "Requires 'id' (message_id) and 'destinationId' (folder_id or name like 'archive')."
     waml_examples:
-      - title: "Archive Email"
+      - title: Archive Email
         waml: |
           - step: archive_mail
             call: outlook.action.messages.move
             with:
-               id: "AAMk..."
-               destinationId: "archive"
+               id: AAMk...
+               destinationId: archive
 
 interface:
   inputs:
@@ -29,7 +29,7 @@ interface:
       type: string
     - name: destination_id
       type: string
-      default: "deleteditems"
+      default: deleteditems
   outputs:
     - name: Success
       type: flow
@@ -43,7 +43,7 @@ execution:
       method: POST
       url: >
         platform.base_url + "/me/messages/" + inputs.message_id + "/move"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         destinationId: >
           (has(inputs.destination_id) ? inputs.destination_id : 'deleteditems')
@@ -52,7 +52,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "201":
       - tool: emit
@@ -62,4 +62,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

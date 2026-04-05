@@ -5,23 +5,23 @@ meta:
   category: Rows
   type: Action
   platform: excel
-  description: "Append one or more rows to an Excel table."
-  version: "1.0.0"
+  description: Append one or more rows to an Excel table.
+  version: 1.0.0
   discovery:
-    purpose: "Append one or more rows of data to the end of an Excel table or worksheet."
-    usage_context: "Use to log form submissions, record sales transactions, or append monthly expenses to a master workbook."
+    purpose: Append one or more rows of data to the end of an Excel table or worksheet.
+    usage_context: Use to log form submissions, record sales transactions, or append monthly expenses to a master workbook.
     agent_hints:
       - "Requires drive_id, item_id, and a worksheet name or table name."
       - "Data should be provided as a 2D array (values)."
     waml_examples:
-      - title: "Log Entry"
+      - title: Log Entry
         waml: |
           - step: log
             call: excel.action.rows.append
             with:
-               drive_id: "me"
-               item_id: "workbook-123"
-               worksheet: "Sheet1"
+               drive_id: me
+               item_id: workbook-123
+               worksheet: Sheet1
                values: [["2023-11-01", "Coffee", 4.50]]
 
 interface:
@@ -51,9 +51,9 @@ execution:
       method: POST
       url: >
         platform.base_url + "/me/drive/items/" + inputs.file_id + "/workbook/worksheets/" + inputs.sheet_name + "/tables/" + inputs.table_name + "/rows"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        values: inputs.values
+        values: =inputs.values
     returns:
       status: status_code
       body: response_body
@@ -61,7 +61,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 201
           output: success
@@ -71,7 +71,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -80,9 +80,9 @@ routing:
       - tool: emit
         params:
           port: result
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

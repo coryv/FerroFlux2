@@ -5,21 +5,21 @@ meta:
   category: Emails
   type: Action
   platform: gmail
-  description: "Adds a specific label to a Gmail message."
-  version: "1.0.0"
+  description: Adds a specific label to a Gmail message.
+  version: 1.0.0
   discovery:
-    purpose: "Tag a Gmail message with an existing label."
-    usage_context: "Use this to organize messages for other automated processes or to signal that a message has been processed. Requires a message_id and the label ID (e.g. 'CATEGORY_PROMOTIONS', 'Label_123')."
+    purpose: Tag a Gmail message with an existing label.
+    usage_context: Use this to organize messages for other automated processes or to signal that a message has been processed. Requires a message_id and the label ID (e.g. 'CATEGORY_PROMOTIONS', 'Label_123').
     agent_hints:
       - "Label IDs are case-sensitive. Use 'gmail.labels.list' if you need to find the ID for a specific label name."
     waml_examples:
-      - title: "Mark as Processed"
+      - title: Mark as Processed
         waml: |
           - step: tag_message
             call: gmail.emails.add_label
             with:
-               message_id: "18e986fe..."
-               label_id: "Label_Processed"
+               message_id: 18e986fe...
+               label_id: Label_Processed
 
 interface:
   inputs:
@@ -42,7 +42,7 @@ execution:
       method: POST
       url: >
         platform.base_url + "/messages/" + inputs.message_id + "/modify"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         addLabelIds: >
           "[\"" + inputs.label_id + "\"]"
@@ -51,7 +51,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -61,4 +61,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

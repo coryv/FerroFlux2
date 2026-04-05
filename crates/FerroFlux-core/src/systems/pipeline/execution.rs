@@ -67,6 +67,9 @@ pub fn execute_pipeline_node(
 
     // 4. Resolve Node settings (fully hydrated for tool use).
     let mut resolved_settings = serde_json::Map::new();
+    for s in &def.interface.settings {
+        resolved_settings.insert(s.name.clone(), Value::Null);
+    }
     for (k, v) in &node.config {
         let result = resolve_recursive(
             v,
@@ -90,10 +93,12 @@ pub fn execute_pipeline_node(
             }
         }
     } else {
-        // Strict mode: Only populate declared ports
+        // Strict mode: Only populate declared ports, default missing ones to Null
         for name in declared_inputs {
             if let Some(val) = (LazyCtx { data: &workflow_state.context, store, cache: &mut blob_cache }).materialize_key(&name) {
                 inputs_map.insert(name, val);
+            } else {
+                inputs_map.insert(name, Value::Null);
             }
         }
     }
@@ -184,6 +189,15 @@ pub fn execute_pipeline_node(
                 let val = result.get("value").cloned().unwrap_or(Value::Null);
                 // Take a snapshot of the current workflow state (context + history)
                 let mut state_snapshot = workflow_state.clone();
+
+                // Inject the node's output so downstream nodes can reference it directly via its ID
+                let mut node_data = serde_json::Map::new();
+                if let Some(DataRef::Inline(Value::Object(existing))) = state_snapshot.context.get(&node.definition_id) {
+                    node_data = existing.clone();
+                }
+                node_data.insert(port.to_string(), val.clone());
+                state_snapshot.set_ref(&node.definition_id, DataRef::Inline(Value::Object(node_data)));
+
                 for (k, v) in &ctx_map {
                     if k != "inputs" && k != "steps" && k != "settings" && k != "platform" {
                         state_snapshot.set_ref(k, v.clone());
@@ -261,6 +275,14 @@ pub fn execute_pipeline_node(
                 {
                     let val = result.get("value").cloned().unwrap_or(Value::Null);
                     let mut state_snapshot = workflow_state.clone();
+
+                    let mut node_data = serde_json::Map::new();
+                    if let Some(DataRef::Inline(Value::Object(existing))) = state_snapshot.context.get(&node.definition_id) {
+                        node_data = existing.clone();
+                    }
+                    node_data.insert(port.to_string(), val.clone());
+                    state_snapshot.set_ref(&node.definition_id, DataRef::Inline(Value::Object(node_data)));
+
                     for (k, v) in &ctx_map {
                         if k != "inputs" && k != "steps" && k != "settings" && k != "platform" {
                             state_snapshot.set_ref(k, v.clone());
@@ -275,6 +297,14 @@ pub fn execute_pipeline_node(
     // Capture the final state for the default _next port if no emissions occurred
     if emissions.is_empty() {
         let mut final_state = workflow_state.clone();
+
+        let mut node_data = serde_json::Map::new();
+        if let Some(DataRef::Inline(Value::Object(existing))) = final_state.context.get(&node.definition_id) {
+            node_data = existing.clone();
+        }
+        node_data.insert("_next".to_string(), Value::Null);
+        final_state.set_ref(&node.definition_id, DataRef::Inline(Value::Object(node_data)));
+
         for (k, v) in &ctx_map {
             if k != "inputs" && k != "steps" && k != "settings" && k != "platform" {
                 final_state.set_ref(k, v.clone());

@@ -4,11 +4,11 @@ meta:
   name: OpenAI
   type: Platform
   category: AI/ML
-  description: "Connects to the OpenAI API for chat completions, embeddings, and more."
-  version: "1.0.0"
+  description: Connects to the OpenAI API for chat completions, embeddings, and more.
+  version: 1.0.0
   discovery:
-    purpose: "Access state-of-the-art language models (GPT-4o), image generation (DALL-E 3), and text-to-speech."
-    usage_context: "Use this for complex reasoning, natural language understanding, and general-purpose intelligence across all business domains."
+    purpose: Access state-of-the-art language models (GPT-4o), image generation (DALL-E 3), and text-to-speech.
+    usage_context: Use this for complex reasoning, natural language understanding, and general-purpose intelligence across all business domains.
     agent_hints:
       - "Defaults to GPT-4o-mini for efficiency but supports O1 for deep reasoning."
       - "Tokens are charged per request/response; keep system prompts concise."
@@ -16,11 +16,11 @@ meta:
 config:
   base_url: "https://api.openai.com/v1"
   headers:
-    Content-Type: "application/json"
-    Authorization: "Bearer PASTE_YOUR_KEY_HERE"
+    Content-Type: application/json
+    Authorization: Bearer PASTE_YOUR_KEY_HERE
 
 settings:
   - name: api_key
-    label: "API Key"
+    label: API Key
     type: string
     required: true

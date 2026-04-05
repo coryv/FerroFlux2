@@ -4,20 +4,20 @@ meta:
   category: Utilities
   type: Action
   platform: core
-  description: "Logs input data to the console/system log."
-  version: "1.0.0"
+  description: Logs input data to the console/system log.
+  version: 1.0.0
   discovery:
-    purpose: "Output debug information and messages to the workflow logs."
-    usage_context: "Use this to inspect data, trace logic, or provide feedback during development."
+    purpose: Output debug information and messages to the workflow logs.
+    usage_context: Use this to inspect data, trace logic, or provide feedback during development.
     agent_hints:
       - "Does not affect workflow flow; purely for observability."
     waml_examples:
-      - title: "Log Debug Info"
+      - title: Log Debug Info
         waml: |
           - step: debug
             call: core.action.log
             with:
-              message: "Value of counter: ${vars.counter}"
+              message: '="Value of counter: " + vars.counter'
               level: debug
 
 interface:
@@ -38,22 +38,22 @@ interface:
     - name: level
       label: Level
       type: select
-      default: "'INFO'"
+      default: INFO
       options: ["INFO", "WARN", "ERROR", "DEBUG"]
     - name: message
       label: Message Template
       type: string
-      default: "Debug Output"
+      default: Debug Output
 
 execution:
   - id: log
     tool: log
     params:
-      level: settings.level
-      message: settings.message
+      level: =settings.level
+      message: =settings.message
       data: "has(inputs.body) ? inputs.body : inputs"
 
   - id: passthrough
     tool: emit
     params:
-      port: "'Success'"
+      port: Success

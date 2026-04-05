@@ -4,11 +4,11 @@ meta:
   name: Salesforce
   type: Platform
   category: CRM
-  description: "Connects to the Salesforce REST API."
-  version: "1.0.0"
+  description: Connects to the Salesforce REST API.
+  version: 1.0.0
   discovery:
-    purpose: "Enterprise Customer Relationship Management (CRM) for managing leads, accounts, and opportunities."
-    usage_context: "Use Salesforce for managing the entire customer lifecycle, tracking sales pipelines, and automating complex business processes across your organization."
+    purpose: Enterprise Customer Relationship Management (CRM) for managing leads, accounts, and opportunities.
+    usage_context: Use Salesforce for managing the entire customer lifecycle, tracking sales pipelines, and automating complex business processes across your organization.
     agent_hints:
       - "Requires a 'My Domain' (e.g., 'acme-dev-ed') to build the correct API URL."
       - "Note that Salesforce uses its own SOQL (Salesforce Object Query Language) for complex data retrieval."
@@ -17,15 +17,15 @@ config:
   base_url: >
     "https://" + settings.domain + ".my.salesforce.com/services/data/v60.0"
   headers:
-    Content-Type: "application/json"
-    Accept: "application/json"
+    Content-Type: application/json
+    Accept: application/json
 
 settings:
   - name: domain
-    label: "My Domain (e.g. company-name)"
+    label: My Domain (e.g. company-name)
     type: string
     required: true
   - name: connection
-    label: "Salesforce Account"
+    label: Salesforce Account
     type: connection_select
     required: true

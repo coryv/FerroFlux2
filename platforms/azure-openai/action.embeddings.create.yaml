@@ -5,21 +5,21 @@ meta:
   category: Embeddings
   type: Action
   platform: azure-openai
-  description: "Generate vector embeddings for text using an Azure OpenAI embeddings deployment."
-  version: "1.0.0"
+  description: Generate vector embeddings for text using an Azure OpenAI embeddings deployment.
+  version: 1.0.0
   discovery:
-    purpose: "Convert text strings into numerical vector embeddings for similarity search."
-    usage_context: "Use to build Retrieval Augmented Generation (RAG) systems or semantic search within an Azure-secured environment."
+    purpose: Convert text strings into numerical vector embeddings for similarity search.
+    usage_context: Use to build Retrieval Augmented Generation (RAG) systems or semantic search within an Azure-secured environment.
     agent_hints:
       - "Requires a deployment of an embedding model (e.g. text-embedding-3-small)."
     waml_examples:
-      - title: "Create Vector"
+      - title: Create Vector
         waml: |
           - step: vectorize
             call: azure-openai.action.embeddings.create
             with:
-               deployment_name: "text-embeddings"
-               input: "Sample text to embed."
+               deployment_name: text-embeddings
+               input: Sample text to embed.
 
 interface:
   inputs:
@@ -39,26 +39,26 @@ interface:
 
   settings:
     - name: resource_name
-      label: "Azure Resource Name"
+      label: Azure Resource Name
       type: string
       required: true
-      placeholder: "my-openai-resource"
+      placeholder: my-openai-resource
     - name: deployment
-      label: "Deployment Name"
+      label: Deployment Name
       type: string
       required: true
-      placeholder: "text-embedding-3-large"
-      description: "Your embeddings model deployment (e.g., text-embedding-3-large, text-embedding-ada-002)."
+      placeholder: text-embedding-3-large
+      description: Your embeddings model deployment (e.g., text-embedding-3-large, text-embedding-ada-002).
     - name: api_version
-      label: "API Version"
+      label: API Version
       type: string
-      default: "2024-08-01-preview"
+      default: 2024-08-01-preview
       required: true
     - name: dimensions
-      label: "Output Dimensions (optional)"
+      label: Output Dimensions (optional)
       type: number
       required: false
-      description: "Shorten the output embedding vector (supported by text-embedding-3 models only)."
+      description: Shorten the output embedding vector (supported by text-embedding-3 models only).
 
 execution:
   - id: request
@@ -67,10 +67,10 @@ execution:
       method: POST
       url: >
         "https://" + settings.resource_name + ".openai.azure.com/openai/deployments/" + settings.deployment + "/embeddings?api-version=" + settings.api_version
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        input: inputs.input
-        dimensions: settings.dimensions
+        input: =inputs.input
+        dimensions: =settings.dimensions
     returns:
       status: status_code
       body: response_body
@@ -78,7 +78,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -86,12 +86,12 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/data/0/embedding"
         returns:
@@ -106,9 +106,9 @@ routing:
       - tool: emit
         params:
           port: response
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

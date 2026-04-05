@@ -4,11 +4,11 @@ meta:
   name: Discord
   type: Platform
   category: Communication
-  description: "Connects to the Discord API for bot messaging and server management."
-  version: "1.0.0"
+  description: Connects to the Discord API for bot messaging and server management.
+  version: 1.0.0
   discovery:
-    purpose: "Community building and real-time gaming/group chat."
-    usage_context: "Use Discord for community bot interactions, webhook notifications, and role management. Similar to Slack but with a higher emphasis on server/guild structure."
+    purpose: Community building and real-time gaming/group chat.
+    usage_context: Use Discord for community bot interactions, webhook notifications, and role management. Similar to Slack but with a higher emphasis on server/guild structure.
     agent_hints:
       - "Discord uses 'Snowflake' IDs (large integers) for channels, users, and guilds."
       - "Bots must have the correct Permissions and Intents enabled in the Discord Developer Portal to see messages or members."
@@ -16,11 +16,11 @@ meta:
 config:
   base_url: "https://discord.com/api/v10"
   headers:
-    Content-Type: "application/json"
-    Authorization: "Bot PASTE_YOUR_BOT_TOKEN_HERE"
+    Content-Type: application/json
+    Authorization: Bot PASTE_YOUR_BOT_TOKEN_HERE
 
 settings:
   - name: bot_token
-    label: "Bot Token"
+    label: Bot Token
     type: string
     required: true

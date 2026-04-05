@@ -4,11 +4,11 @@ meta:
   name: Linear
   type: Platform
   category: Productivity
-  description: "Connects to the Linear GraphQL API."
-  version: "1.0.0"
+  description: Connects to the Linear GraphQL API.
+  version: 1.0.0
   discovery:
-    purpose: "Modern issue tracking for software development teams."
-    usage_context: "Use Linear for managing sprints, tracking bugs, and coordinating product roadmaps. Optimized for speed and high-performance engineering teams."
+    purpose: Modern issue tracking for software development teams.
+    usage_context: Use Linear for managing sprints, tracking bugs, and coordinating product roadmaps. Optimized for speed and high-performance engineering teams.
     agent_hints:
       - "Uses GraphQL for all data interactions. Nodes wrap specific queries/mutations."
       - "Identifies resources using UUIDs."
@@ -16,11 +16,11 @@ meta:
 config:
   base_url: "https://api.linear.app/graphql"
   headers:
-    Content-Type: "application/json"
-    Authorization: "Bearer PASTE_YOUR_API_KEY_HERE"
+    Content-Type: application/json
+    Authorization: Bearer PASTE_YOUR_API_KEY_HERE
 
 settings:
   - name: api_key
-    label: "Linear API Key"
+    label: Linear API Key
     type: string
     required: true

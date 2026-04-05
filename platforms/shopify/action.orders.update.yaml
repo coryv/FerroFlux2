@@ -5,22 +5,22 @@ meta:
   category: Orders
   type: Action
   platform: shopify
-  description: "Updates an existing Shopify order."
-  version: "1.0.0"
+  description: Updates an existing Shopify order.
+  version: 1.0.0
   discovery:
-    purpose: "Modify the details of an existing Shopify order."
-    usage_context: "Use to update order notes, tags, or customer information after initial placement."
+    purpose: Modify the details of an existing Shopify order.
+    usage_context: Use to update order notes, tags, or customer information after initial placement.
     agent_hints:
       - "Requires the order_id."
     waml_examples:
-      - title: "Tag Order"
+      - title: Tag Order
         waml: |
           - step: tag
             call: shopify.action.orders.update
             with:
-               order_id: "543216789"
-               tags: "priority,vip"
-               note: "Customer requested expedited shipping."
+               order_id: 543216789
+               tags: priority,vip
+               note: Customer requested expedited shipping.
 
 interface:
   inputs:
@@ -47,18 +47,18 @@ execution:
       method: PUT
       url: >
         platform.base_url + "/orders/" + inputs.orderId + ".json"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         order:
           id: inputs.orderId
-          note: inputs.note
-          email: inputs.email
+          note: =inputs.note
+          email: =inputs.email
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -67,9 +67,9 @@ routing:
       - tool: emit
         params:
           port: order
-          value: steps.request.response_body.order
+          value: =steps.request.response_body.order
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -5,22 +5,22 @@ meta:
   category: Admin
   type: Action
   platform: telegram
-  description: "Ban a user from a chat, group, or channel."
-  version: "1.0.0"
+  description: Ban a user from a chat, group, or channel.
+  version: 1.0.0
   discovery:
-    purpose: "Permanently ban a user from a Telegram group or channel."
-    usage_context: "Use to automate moderation, remove users who violate community guidelines, or synchronize bans from an external list."
+    purpose: Permanently ban a user from a Telegram group or channel.
+    usage_context: Use to automate moderation, remove users who violate community guidelines, or synchronize bans from an external list.
     agent_hints:
       - "Requires chat_id and user_id."
       - "The bot must have administrator privileges with 'can_restrict_members' permission."
     waml_examples:
-      - title: "Moderate User"
+      - title: Moderate User
         waml: |
           - step: ban_user
             call: telegram.action.admin.ban
             with:
-               chat_id: "${inputs.group_id}"
-               user_id: "${inputs.bad_user_id}"
+               chat_id: =inputs.group_id
+               user_id: =inputs.bad_user_id
                revoke_messages: true
 
 interface:
@@ -47,15 +47,15 @@ execution:
       url: >
         platform.base_url + "/banChatMember"
       body:
-        chat_id: inputs.chat_id
-        user_id: inputs.user_id
-        until_date: inputs.until_date
+        chat_id: =inputs.chat_id
+        user_id: =inputs.user_id
+        until_date: =inputs.until_date
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -65,4 +65,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

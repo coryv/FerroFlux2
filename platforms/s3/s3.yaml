@@ -4,11 +4,11 @@ meta:
   name: AWS S3
   type: Platform
   category: Storage
-  description: "Connects to the AWS S3 REST API using Signature Version 4."
-  version: "1.0.0"
+  description: Connects to the AWS S3 REST API using Signature Version 4.
+  version: 1.0.0
   discovery:
-    purpose: "Highly scalable object storage for binary data and static assets."
-    usage_context: "Use AWS S3 for production-grade storage, data lakes, or hosting static files. It is the industry standard for reliable, high-throughput object storage."
+    purpose: Highly scalable object storage for binary data and static assets.
+    usage_context: Use AWS S3 for production-grade storage, data lakes, or hosting static files. It is the industry standard for reliable, high-throughput object storage.
     agent_hints:
       - "Bucket names must be globally unique across all AWS accounts."
       - "Requires Region-specific endpoints if not using us-east-1."
@@ -17,19 +17,19 @@ meta:
 config:
   base_url: "https://s3.amazonaws.com"
   headers:
-    Content-Type: "application/json"
+    Content-Type: application/json
 
 settings:
   - name: access_key
-    label: "Access Key ID"
+    label: Access Key ID
     type: string
     required: true
   - name: secret_key
-    label: "Secret Access Key"
+    label: Secret Access Key
     type: password
     required: true
   - name: region
-    label: "Region"
+    label: Region
     type: string
     required: true
-    default: "us-east-1"
+    default: us-east-1

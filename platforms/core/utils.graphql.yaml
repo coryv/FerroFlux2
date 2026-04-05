@@ -4,15 +4,15 @@ meta:
   category: Utilities
   type: Action
   platform: core
-  description: "Execute a GraphQL query or mutation."
-  version: "1.0.0"
+  description: Execute a GraphQL query or mutation.
+  version: 1.0.0
   discovery:
-    purpose: "Execute GraphQL queries and mutations against any GraphQL API."
-    usage_context: "Use to fetch nested data from platforms like Shopify, GitHub, or custom internal backends."
+    purpose: Execute GraphQL queries and mutations against any GraphQL API.
+    usage_context: Use to fetch nested data from platforms like Shopify, GitHub, or custom internal backends.
     agent_hints:
       - "Requires url, query (and optionally variables)."
     waml_examples:
-      - title: "Fetch Product"
+      - title: Fetch Product
         waml: |
           - step: gql
             call: core.utils.graphql
@@ -49,25 +49,25 @@ interface:
       label: Query / Mutation
       type: code
       required: true
-      description: "GraphQL query string."
+      description: GraphQL query string.
     - name: operation_name
       label: Operation Name
       type: string
-      description: "Optional operation name."
+      description: Optional operation name.
     - name: headers
       label: Custom Headers (JSON)
       type: textarea
-      description: "JSON object of headers, e.g. { \"Authorization\": \"Bearer ...\" }"
+      description: 'JSON object of headers, e.g. { \"Authorization\": \"Bearer ...\" }'
 
 execution:
   - id: call
     tool: core.utils.graphql
     params:
-      url: settings.url
-      query: settings.query
-      variables: inputs.variables
-      operation_name: settings.operation_name
-      headers: settings.headers
+      url: =settings.url
+      query: =settings.query
+      variables: =inputs.variables
+      operation_name: =settings.operation_name
+      headers: =settings.headers
     returns:
       status: status
       data: data
@@ -76,9 +76,9 @@ execution:
   - id: check_status
     tool: logic
     params:
-      data: steps.call.status
+      data: =steps.call.status
       rules:
-        - condition: "val < 400"
+        - condition: "=val < 400"
           output: Success
         - condition: default
           output: Error
@@ -87,13 +87,13 @@ execution:
     tool: emit
     params:
       port: data
-      value: steps.call.data
+      value: =steps.call.data
 
   - id: emit_errors
     tool: emit
     params:
       port: errors
-      value: steps.call.errors
+      value: =steps.call.errors
 
   - id: emit_signal
     tool: emit

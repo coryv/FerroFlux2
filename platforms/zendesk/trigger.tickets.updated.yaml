@@ -5,15 +5,15 @@ meta:
   category: Tickets
   type: Trigger
   platform: zendesk
-  description: "Triggers when a ticket is updated."
-  version: "1.0.0"
+  description: Triggers when a ticket is updated.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow whenever an existing Zendesk ticket is modified."
-    usage_context: "Use to sync status changes to Jira, notify assignees of new comments, or update internal dashboards."
+    purpose: Initialize a workflow whenever an existing Zendesk ticket is modified.
+    usage_context: Use to sync status changes to Jira, notify assignees of new comments, or update internal dashboards.
     agent_hints:
       - "Provides details on changed fields and the current ticket state."
     waml_examples:
-      - title: "Sync Status Change"
+      - title: Sync Status Change
         waml: |
           - step: log_update
             type: trigger
@@ -28,7 +28,7 @@ interface:
       type: object
   settings:
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -39,7 +39,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/search.json"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         query: >
           "type:ticket updated>" + state.last_poll
@@ -50,12 +50,12 @@ execution:
       body: response_body
 
 routing:
-  match: steps.query.status_code
+  match: =steps.query.status_code
   cases:
     "200":
       - tool: foreach
         params:
-          items: steps.query.response_body.results
+          items: =steps.query.response_body.results
           action:
             - tool: emit
               params:

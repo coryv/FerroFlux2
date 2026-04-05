@@ -4,23 +4,23 @@ meta:
   category: WhatsApp
   type: Action
   platform: whatsapp
-  description: "Send a pre-approved template message."
-  version: "1.0.0"
+  description: Send a pre-approved template message.
+  version: 1.0.0
   discovery:
-    purpose: "Send a pre-approved WhatsApp message template to a recipient."
-    usage_context: "Use to automate delivery notifications, authentication codes, or customer service updates via the WhatsApp Business Platform."
+    purpose: Send a pre-approved WhatsApp message template to a recipient.
+    usage_context: Use to automate delivery notifications, authentication codes, or customer service updates via the WhatsApp Business Platform.
     agent_hints:
       - "Requires a pre-approved template name and language code."
       - "Phone numbers must be in E.164 format."
     waml_examples:
-      - title: "Send OTP"
+      - title: Send OTP
         waml: |
           - step: send_otp
             call: whatsapp.action.messages.send_template
             with:
-               to: "15551234567"
-               template_name: "auth_code"
-               language_code: "en_US"
+               to: 15551234567
+               template_name: auth_code
+               language_code: en_US
                components: [{ type: "body", parameters: [{ type: "text", text: "123456" }]}]
   permissions:
     - "network:graph.facebook.com"
@@ -35,7 +35,7 @@ interface:
       type: string
     - name: language_code
       type: string
-      default: "en_US"
+      default: en_US
     - name: components
       type: array
   outputs:
@@ -53,16 +53,16 @@ execution:
       method: POST
       url: >
         platform.base_url + "/" + settings.phone_number_id + "/messages"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         messaging_product: whatsapp
-        to: inputs.to
+        to: =inputs.to
         type: template
         template:
-          name: inputs.template_name
+          name: =inputs.template_name
           language: >
             "{ \"code\": \"" + inputs.language_code + "\" }"
-          components: inputs.components
+          components: =inputs.components
     returns:
       status: status_code
       body: response_body
@@ -70,7 +70,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -80,14 +80,14 @@ execution:
   - id: extract_id
     tool: json_query
     params:
-      json: steps.request.response_body
+      json: =steps.request.response_body
       path: >
         "/messages/0/id"
     returns:
       result: mid
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -96,9 +96,9 @@ routing:
       - tool: emit
         params:
           port: message_id
-          value: steps.extract_id.mid
+          value: =steps.extract_id.mid
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

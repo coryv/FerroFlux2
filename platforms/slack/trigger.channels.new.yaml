@@ -5,16 +5,16 @@ meta:
   category: Channels
   type: Trigger
   platform: slack
-  description: "Triggers when a new public channel is created in the Slack workspace."
-  version: "1.0.0"
+  description: Triggers when a new public channel is created in the Slack workspace.
+  version: 1.0.0
   discovery:
-    purpose: "Monitor the Slack workspace for new public channels."
-    usage_context: "Use this to automate channel setup tasks, post welcome messages to new channels, or track workspace growth and organization."
+    purpose: Monitor the Slack workspace for new public channels.
+    usage_context: Use this to automate channel setup tasks, post welcome messages to new channels, or track workspace growth and organization.
     agent_hints:
       - "Only public channels are detected by this trigger by default."
       - "The 'channel' output contains the standard Slack channel object (id, name, created, etc.)."
     waml_examples:
-      - title: "Auto-Welcome New Channels"
+      - title: Auto-Welcome New Channels
         waml: |
           trigger:
             id: channel_welcome
@@ -32,7 +32,7 @@ interface:
 
   settings:
     - name: poll_interval
-      label: "Poll Interval (minutes)"
+      label: Poll Interval (minutes)
       type: number
       default: 5
       min: 1
@@ -44,7 +44,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/conversations.list?types=public_channel&exclude_archived=true&limit=200"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -52,7 +52,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.fetch.status_code
+      value: =steps.fetch.status_code
       cases:
         - condition: 200
           output: success
@@ -60,7 +60,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -69,9 +69,9 @@ routing:
       - tool: emit
         params:
           port: channel
-          value: steps.fetch.response_body
+          value: =steps.fetch.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.fetch.response_body
+          value: =steps.fetch.response_body

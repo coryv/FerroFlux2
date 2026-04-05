@@ -4,22 +4,22 @@ meta:
   category: Documents
   type: Action
   platform: mongodb
-  description: "Finds documents matching a filter in a collection. Automatically participates in any active session for the current flow."
-  version: "1.0.0"
+  description: Finds documents matching a filter in a collection. Automatically participates in any active session for the current flow.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve one or more documents from a MongoDB collection based on a filter."
-    usage_context: "Use to fetch user settings, search for specific entries in a log, or retrieve products from a catalog."
+    purpose: Retrieve one or more documents from a MongoDB collection based on a filter.
+    usage_context: Use to fetch user settings, search for specific entries in a log, or retrieve products from a catalog.
     agent_hints:
       - "Uses standard MongoDB filter (find) syntax."
       - "Returns an array of document objects matching the criteria."
     waml_examples:
-      - title: "Find User"
+      - title: Find User
         waml: |
           - step: find_user
             call: mongodb.action.document.find
             with:
-               database: "prod"
-               collection: "users"
+               database: prod
+               collection: users
                filter: { "email": "${inputs.email}" }
 
 interface:
@@ -28,7 +28,7 @@ interface:
       type: flow
     - name: collection
       type: string
-      description: "The name of the collection to search."
+      description: The name of the collection to search.
     - name: filter
       type: object
       description: "Optional. The filter to apply (e.g. { age: { '$gt': 25 } })."
@@ -45,10 +45,10 @@ execution:
     tool: mongo_query
     params:
       operation: find
-      connection_string: settings.connection_string
-      database: settings.database
-      collection: inputs.collection
-      filter: inputs.filter
+      connection_string: =settings.connection_string
+      database: =settings.database
+      collection: =inputs.collection
+      filter: =inputs.filter
     returns:
       documents: documents
 
@@ -62,4 +62,4 @@ routing:
       - tool: emit
         params:
           port: documents
-          value: steps.find.documents
+          value: =steps.find.documents

@@ -5,20 +5,20 @@ meta:
   type: Action
   node_subtype: Iterator
   platform: core
-  description: "Splits an array into individual items for stream processing."
-  version: "1.0.0"
+  description: Splits an array into individual items for stream processing.
+  version: 1.0.0
   discovery:
-    purpose: "Iterate over an array of items, running downstream steps for each."
-    usage_context: "Use to process lists of data (e.g., rows from a spreadsheet, list of orders) in parallel."
+    purpose: Iterate over an array of items, running downstream steps for each.
+    usage_context: Use to process lists of data (e.g., rows from a spreadsheet, list of orders) in parallel.
     agent_hints:
       - "The rest of the workflow is executed once per item."
     waml_examples:
-      - title: "Process List"
+      - title: Process List
         waml: |
           - step: iterate
             call: core.action.split
             with:
-              items: steps.get_list.body
+              items: =steps.get_list.body
 
 interface:
   inputs:
@@ -37,7 +37,7 @@ execution:
   - id: split_op
     tool: split
     params:
-      array: inputs.array
+      array: =inputs.array
     returns:
       current_item: current_item
       is_done: is_done
@@ -51,7 +51,7 @@ execution:
   - id: check_done
     tool: logic
     params:
-      data: steps.split_op.is_done
+      data: =steps.split_op.is_done
       rules:
-        - condition: "val == true"
+        - condition: =val == true
           output: Done

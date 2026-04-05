@@ -5,23 +5,23 @@ meta:
   category: Subscribers
   type: Action
   platform: mailchimp
-  description: "Adds or updates a subscriber's properties and status in an audience."
-  version: "1.0.0"
+  description: Adds or updates a subscriber's properties and status in an audience.
+  version: 1.0.0
   discovery:
-    purpose: "Sync user data from CRMs, manage newsletter signups, and handle profile updates for existing members."
-    usage_context: "Use this to automate new user onboarding, update subscriber preferences, and manage 'subscribed' or 'unsubscribed' states."
+    purpose: Sync user data from CRMs, manage newsletter signups, and handle profile updates for existing members.
+    usage_context: Use this to automate new user onboarding, update subscriber preferences, and manage 'subscribed' or 'unsubscribed' states.
     agent_hints:
       - "Requires 'list_id' and 'email_address'."
       - "Status must be 'subscribed', 'unsubscribed', 'cleaned', or 'pending'."
     waml_examples:
-      - title: "Subscribe New User"
+      - title: Subscribe New User
         waml: |
           - step: upsert_user
             call: mailchimp.action.subscribers.addUpdate
             with:
-               list_id: "123..."
-               email_address: "user@example.com"
-               status: "subscribed"
+               list_id: 123...
+               email_address: user@example.com
+               status: subscribed
 
 interface:
   inputs:
@@ -50,16 +50,16 @@ execution:
       method: PUT
       url: >
         platform.base_url + "/lists/" + inputs.listId + "/members/" + inputs.subscriberHash
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        email_address: inputs.emailAddress
-        status_if_new: inputs.statusIfNew
+        email_address: =inputs.emailAddress
+        status_if_new: =inputs.statusIfNew
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -68,9 +68,9 @@ routing:
       - tool: emit
         params:
           port: subscriber
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

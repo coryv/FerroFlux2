@@ -5,22 +5,22 @@ meta:
   category: Media
   type: Action
   platform: telegram
-  description: "Send a photo to a Telegram chat."
-  version: "1.0.0"
+  description: Send a photo to a Telegram chat.
+  version: 1.0.0
   discovery:
-    purpose: "Upload and send an image file (photo) to a Telegram chat."
-    usage_context: "Use to send visual data like reports, dashboards, or error screenshots via Telegram."
+    purpose: Upload and send an image file (photo) to a Telegram chat.
+    usage_context: Use to send visual data like reports, dashboards, or error screenshots via Telegram.
     agent_hints:
       - "The photo must be provided as a URL or a file object."
     waml_examples:
-      - title: "Send Screenshot"
+      - title: Send Screenshot
         waml: |
           - step: send_img
             call: telegram.action.media.send_photo
             with:
-               chat_id: "123456789"
+               chat_id: 123456789
                photo: "https://example.com/screenshot.png"
-               caption: "Latest Dashboard Screenshot"
+               caption: Latest Dashboard Screenshot
 
 interface:
   inputs:
@@ -51,7 +51,7 @@ execution:
       parts:
         - name: chat_id
           type: string
-          value: inputs.chat_id
+          value: =inputs.chat_id
         - name: photo
           type: blob
           field: photo
@@ -59,13 +59,13 @@ execution:
           # and 'photo' is the name of the input port of type blob.
         - name: caption
           type: string
-          value: inputs.caption
+          value: =inputs.caption
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -74,9 +74,9 @@ routing:
       - tool: emit
         params:
           port: message
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

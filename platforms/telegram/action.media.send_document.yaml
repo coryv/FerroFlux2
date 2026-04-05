@@ -5,22 +5,22 @@ meta:
   category: Media
   type: Action
   platform: telegram
-  description: "Send a file/document to a chat."
-  version: "1.0.0"
+  description: Send a file/document to a chat.
+  version: 1.0.0
   discovery:
-    purpose: "Upload and send a document (PDF, ZIP, etc.) to a Telegram chat."
-    usage_context: "Use to send invoices, reports, or logs as downloadable files via Telegram."
+    purpose: Upload and send a document (PDF, ZIP, etc.) to a Telegram chat.
+    usage_context: Use to send invoices, reports, or logs as downloadable files via Telegram.
     agent_hints:
       - "Requires a URL to a document or a file object."
     waml_examples:
-      - title: "Send Report PDF"
+      - title: Send Report PDF
         waml: |
           - step: send_doc
             call: telegram.action.media.send_document
             with:
-               chat_id: "123456789"
+               chat_id: 123456789
                document: "https://example.com/report.pdf"
-               caption: "Monthly growth report."
+               caption: Monthly growth report.
 
 interface:
   inputs:
@@ -49,16 +49,16 @@ execution:
         Content-Type: >
           "multipart/form-data"
       body:
-        chat_id: inputs.chat_id
+        chat_id: =inputs.chat_id
         document:
-          ticket: inputs.document
-        caption: inputs.caption
+          ticket: =inputs.document
+        caption: =inputs.caption
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -68,4 +68,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

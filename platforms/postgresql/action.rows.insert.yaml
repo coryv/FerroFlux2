@@ -4,24 +4,24 @@ meta:
   category: Tables
   type: Action
   platform: postgresql
-  description: "Inserts a new row into a PostgreSQL table."
-  version: "1.0.0"
+  description: Inserts a new row into a PostgreSQL table.
+  version: 1.0.0
   discovery:
-    purpose: "Add a new record to a database table."
-    usage_context: "Use this to create new resources, like a new user account, a support ticket, or a transaction record. Supports native PostgreSQL types including JSONB."
+    purpose: Add a new record to a database table.
+    usage_context: Use this to create new resources, like a new user account, a support ticket, or a transaction record. Supports native PostgreSQL types including JSONB.
     agent_hints:
       - "The 'rows' parameter must be an array of objects where each key is a column name."
       - "Omit auto-increment columns (like 'id' or SERIAL) to let the database generate them."
     waml_examples:
-      - title: "Create New User"
+      - title: Create New User
         waml: |
           - step: create_user
             call: postgresql.action.rows.insert
             with:
-               table: "users"
+               table: users
                rows:
-                 - email: "alice@example.com"
-                   name: "Alice"
+                 - email: alice@example.com
+                   name: Alice
                    metadata: { "source": "web" }
 
 interface:
@@ -30,7 +30,7 @@ interface:
       type: flow
     - name: table
       type: string
-      description: "The name of the table to insert into."
+      description: The name of the table to insert into.
     - name: data
       type: object
       description: "The data to insert (column: value)."
@@ -66,9 +66,9 @@ execution:
     tool: sql_query
     params:
       operation: execute
-      connection_string: settings.connection_string
-      query: steps.build_query.query
-      bind: steps.build_query.bind
+      connection_string: =settings.connection_string
+      query: =steps.build_query.query
+      bind: =steps.build_query.bind
     returns:
       result: >
         "rows[0]"
@@ -83,4 +83,4 @@ routing:
       - tool: emit
         params:
           port: result
-          value: steps.execute.result
+          value: =steps.execute.result

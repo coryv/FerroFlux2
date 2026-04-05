@@ -5,23 +5,23 @@ meta:
   category: Email
   type: Action
   platform: smtp
-  description: "Send an email using the SMTP protocol."
-  version: "1.0.0"
+  description: Send an email using the SMTP protocol.
+  version: 1.0.0
   discovery:
-    purpose: "Send a custom email via the configured SMTP server."
-    usage_context: "Use to send error reports to developers, verification codes to users, or daily activity summaries to stakeholders."
+    purpose: Send a custom email via the configured SMTP server.
+    usage_context: Use to send error reports to developers, verification codes to users, or daily activity summaries to stakeholders.
     agent_hints:
       - "Requires to, from, subject, and either text or html content."
     waml_examples:
-      - title: "Send Alert"
+      - title: Send Alert
         waml: |
           - step: notify
             call: smtp.action.email.send
             with:
-               to: "admin@example.com"
-               from: "system@example.com"
+               to: admin@example.com
+               from: system@example.com
                subject: "System Alert: High Memory Usage"
-               text: "Memory usage has exceeded 90%."
+               text: Memory usage has exceeded 90%.
 
 interface:
   inputs:
@@ -51,23 +51,23 @@ execution:
   - id: send
     tool: smtp
     params:
-      host: settings.host
+      host: =settings.host
       port: settings.port
-      username: settings.username
-      password: settings.password
-      encryption: settings.encryption
+      username: =settings.username
+      password: =settings.password
+      encryption: =settings.encryption
 
-      from: inputs.from
-      to: inputs.to
-      subject: inputs.subject
-      body_text: inputs.body_text
-      body_html: inputs.body_html
-      attachments: inputs.attachments
+      from: =inputs.from
+      to: =inputs.to
+      subject: =inputs.subject
+      body_text: =inputs.body_text
+      body_html: =inputs.body_html
+      attachments: =inputs.attachments
     returns:
       result: response_body
 
 routing:
-  match: steps.send.response_body.status
+  match: =steps.send.response_body.status
   cases:
     "sent":
       - tool: emit
@@ -76,9 +76,9 @@ routing:
       - tool: emit
         params:
           port: result
-          value: steps.send.response_body
+          value: =steps.send.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.send.response_body
+          value: =steps.send.response_body

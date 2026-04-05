@@ -4,11 +4,11 @@ meta:
   name: Open-Meteo
   type: Platform
   category: Weather
-  description: "Free, open-source weather API providing current conditions and forecasts with no API key required."
-  version: "1.0.0"
+  description: Free, open-source weather API providing current conditions and forecasts with no API key required.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve high-resolution weather data, forecasts, and historical climate patterns."
-    usage_context: "Use this for automated weather alerts, agricultural planning, or providing localized environmental data in a chat bot."
+    purpose: Retrieve high-resolution weather data, forecasts, and historical climate patterns.
+    usage_context: Use this for automated weather alerts, agricultural planning, or providing localized environmental data in a chat bot.
     agent_hints:
       - "No API key is required for open access."
       - "All weather queries require 'latitude' and 'longitude'."
@@ -17,12 +17,12 @@ meta:
 config:
   base_url: "https://api.open-meteo.com/v1"
   headers:
-    Content-Type: "application/json"
+    Content-Type: application/json
 
 settings:
   - name: default_timezone
-    label: "Default Timezone"
+    label: Default Timezone
     type: string
     required: false
-    default: "auto"
-    placeholder: "e.g. America/New_York, Europe/London, auto"
+    default: auto
+    placeholder: e.g. America/New_York, Europe/London, auto

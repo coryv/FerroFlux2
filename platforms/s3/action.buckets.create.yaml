@@ -5,21 +5,21 @@ meta:
   category: Buckets
   type: Action
   platform: s3
-  description: "Creates a new S3 bucket in a specified region."
-  version: "1.0.0"
+  description: Creates a new S3 bucket in a specified region.
+  version: 1.0.0
   discovery:
-    purpose: "Provision a new storage container in AWS S3."
-    usage_context: "Use this to create isolated storage for new projects, customers, or environments. Note that bucket names must be globally unique across all AWS."
+    purpose: Provision a new storage container in AWS S3.
+    usage_context: Use this to create isolated storage for new projects, customers, or environments. Note that bucket names must be globally unique across all AWS.
     agent_hints:
       - "Bucket names must be DNS-compliant (lowercase, no spaces, 3-63 characters)."
       - "Requires appropriate IAM permissions (s3:CreateBucket)."
     waml_examples:
-      - title: "Create Project Bucket"
+      - title: Create Project Bucket
         waml: |
           - step: mk_bucket
             call: s3.action.buckets.create
             with:
-               bucket: "my-app-logs-2024"
+               bucket: my-app-logs-2024
 
 interface:
   inputs:
@@ -34,10 +34,10 @@ interface:
       type: flow
   settings:
     - name: region
-      label: "Region"
+      label: Region
       type: string
       required: true
-      default: "us-east-1"
+      default: us-east-1
 
 execution:
   - id: request
@@ -48,21 +48,21 @@ execution:
         "https://" + inputs.bucket + ".s3." + settings.region + ".amazonaws.com/"
       aws_auth:
         service: s3
-        region: settings.region
-        access_key: settings.access_key
-        secret_key: settings.secret_key
+        region: =settings.region
+        access_key: =settings.access_key
+        secret_key: =settings.secret_key
       body_type: binary
       content_type: >
         "application/xml"
       body:
         CreateBucketConfiguration:
-          LocationConstraint: settings.region
+          LocationConstraint: =settings.region
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -72,4 +72,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

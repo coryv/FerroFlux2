@@ -5,23 +5,23 @@ meta:
   category: Events
   type: Action
   platform: google_calendar
-  description: "Creates an event."
-  version: "1.0.0"
+  description: Creates an event.
+  version: 1.0.0
   discovery:
-    purpose: "Create a new event on a Google Calendar."
-    usage_context: "Use to automatically schedule meetings from an email thread, block time for focus, or create project-specific calendar entries."
+    purpose: Create a new event on a Google Calendar.
+    usage_context: Use to automatically schedule meetings from an email thread, block time for focus, or create project-specific calendar entries.
     agent_hints:
       - "Requires summary, start, and end (including timezone)."
     waml_examples:
-      - title: "Quick Meeting"
+      - title: Quick Meeting
         waml: |
           - step: schedule
             call: google_calendar.action.events.create
             with:
-               summary: "Project Review"
+               summary: Project Review
                start: { dateTime: "2023-11-01T10:00:00Z" }
                end: { dateTime: "2023-11-01T11:00:00Z" }
-               description: "Discuss quarterly goals."
+               description: Discuss quarterly goals.
 
 interface:
   inputs:
@@ -47,8 +47,8 @@ execution:
       method: POST
       url: >
         platform.base_url + "/" + inputs.calendarId + "/events"
-      headers: platform.headers
-      body: inputs.event_data
+      headers: =platform.headers
+      body: =inputs.event_data
     returns:
       status: status_code
       body: response_body
@@ -56,7 +56,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -64,7 +64,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -73,9 +73,9 @@ routing:
       - tool: emit
         params:
           port: event
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

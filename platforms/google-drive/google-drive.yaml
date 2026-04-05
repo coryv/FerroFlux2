@@ -3,12 +3,12 @@ meta:
   id: google-drive
   name: Google Drive
   type: Platform
-  category: Cloud Storage & Files
-  description: "Connects to the Google Drive API."
-  version: "1.0.0"
+  category: "Cloud Storage & Files"
+  description: Connects to the Google Drive API.
+  version: 1.0.0
   discovery:
-    purpose: "Cloud storage for files, folders, and collaborative documents."
-    usage_context: "Use Google Drive when working with Google Workspace files (Docs, Sheets, Slides) or when you need robust, ID-based file management that integrates deeply with Gmail and other Google services."
+    purpose: Cloud storage for files, folders, and collaborative documents.
+    usage_context: Use Google Drive when working with Google Workspace files (Docs, Sheets, Slides) or when you need robust, ID-based file management that integrates deeply with Gmail and other Google services.
     agent_hints:
       - "Google Drive uses obscure IDs (long alphanumeric strings) for files and folders, NOT relative paths like Dropbox."
       - "The 'root' folder Can be referenced with the 'root' alias in many API calls."
@@ -17,11 +17,11 @@ meta:
 config:
   base_url: "https://www.googleapis.com/drive/v3"
   headers:
-    Content-Type: "application/json"
+    Content-Type: application/json
     # No Authorization header — injected automatically from the stored connection
 
 settings:
   - name: connection
-    label: "Google Drive Account"
+    label: Google Drive Account
     type: connection_select
     required: true

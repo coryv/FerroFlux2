@@ -5,21 +5,21 @@ meta:
   category: Campaigns
   type: Action
   platform: mailchimp
-  description: "Sends a Mailchimp campaign."
-  version: "1.0.0"
+  description: Sends a Mailchimp campaign.
+  version: 1.0.0
   discovery:
-    purpose: "Permanently launch/send a prepared Mailchimp campaign to its audience."
-    usage_context: "Use to automate the final release of newsletters or marketing announcements once content is validated."
+    purpose: Permanently launch/send a prepared Mailchimp campaign to its audience.
+    usage_context: Use to automate the final release of newsletters or marketing announcements once content is validated.
     agent_hints:
       - "Requires a campaign_id."
       - "The campaign must be in 'Ready' status to send."
     waml_examples:
-      - title: "Send Campaign"
+      - title: Send Campaign
         waml: |
           - step: send_now
             call: mailchimp.action.campaigns.send
             with:
-               campaign_id: "71a3999c51"
+               campaign_id: 71a3999c51
 
 interface:
   inputs:
@@ -40,13 +40,13 @@ execution:
       method: POST
       url: >
         platform.base_url + "/campaigns/" + inputs.campaignId + "/actions/send"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -56,4 +56,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

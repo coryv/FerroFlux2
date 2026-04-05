@@ -5,22 +5,22 @@ meta:
   category: Records
   type: Trigger
   platform: salesforce
-  description: "Triggers when an existing Salesforce record is modified."
-  version: "1.0.0"
+  description: Triggers when an existing Salesforce record is modified.
+  version: 1.0.0
   discovery:
-    purpose: "Start a workflow whenever a record (e.g. Lead, Account) is updated."
-    usage_context: "Use this to sync profile changes to external systems, alert account owners of stage changes, or update inventory when an order status changes."
+    purpose: Start a workflow whenever a record (e.g. Lead, Account) is updated.
+    usage_context: Use this to sync profile changes to external systems, alert account owners of stage changes, or update inventory when an order status changes.
     agent_hints:
       - "Polls for modifications based on the 'SystemModstamp' field."
       - "Requires the 'object' name (e.g. 'Account')."
     waml_examples:
-      - title: "Sync Account Updates"
+      - title: Sync Account Updates
         waml: |
           trigger:
             updated_account:
                call: salesforce.trigger.records.updated
                with:
-                  object: "Account"
+                  object: Account
 
 interface:
   inputs: []
@@ -31,11 +31,11 @@ interface:
       type: object
   settings:
     - name: sObjectName
-      label: "SObject Name"
+      label: SObject Name
       type: string
       required: true
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -46,7 +46,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/query"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         q: >
           "SELECT Id FROM " + settings.sObjectName + " WHERE SystemModstamp > " + state.last_poll + " ORDER BY SystemModstamp ASC"
@@ -55,12 +55,12 @@ execution:
       body: response_body
 
 routing:
-  match: steps.query.status_code
+  match: =steps.query.status_code
   cases:
     "200":
       - tool: foreach
         params:
-          items: steps.query.response_body.records
+          items: =steps.query.response_body.records
           action:
             - tool: emit
               params:

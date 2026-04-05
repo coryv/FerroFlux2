@@ -4,11 +4,11 @@ meta:
   name: Twilio
   type: Platform
   category: Communication
-  description: "Global leader in programmable SMS, voice, and WhatsApp messaging."
-  version: "1.0.0"
+  description: Global leader in programmable SMS, voice, and WhatsApp messaging.
+  version: 1.0.0
   discovery:
-    purpose: "Send and receive text messages, manage phone numbers, and build voice interactions."
-    usage_context: "Use this for two-factor authentication (2FA), automated SMS notifications, and real-time support communication."
+    purpose: Send and receive text messages, manage phone numbers, and build voice interactions.
+    usage_context: Use this for two-factor authentication (2FA), automated SMS notifications, and real-time support communication.
     agent_hints:
       - "Requires Account SID and Auth Token."
       - "Supports webhooks for incoming messages and call events."
@@ -16,14 +16,14 @@ meta:
 config:
   base_url: "https://api.twilio.com/2010-04-01/Accounts"
   headers:
-    Content-Type: "application/x-www-form-urlencoded"
+    Content-Type: application/x-www-form-urlencoded
 
 settings:
   - name: account_sid
-    label: "Twilio Account SID"
+    label: Twilio Account SID
     type: string
     required: true
   - name: connection
-    label: "Twilio API Key (Basic Auth)"
+    label: Twilio API Key (Basic Auth)
     type: connection_select
     required: true

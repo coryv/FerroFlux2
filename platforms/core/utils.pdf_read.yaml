@@ -4,21 +4,21 @@ meta:
   category: Utilities
   type: Action
   platform: core
-  description: "Extract text from PDF Blobs or Base64 strings."
-  version: "1.0.0"
+  description: Extract text from PDF Blobs or Base64 strings.
+  version: 1.0.0
   discovery:
-    purpose: "Extract text and metadata from PDF files."
-    usage_context: "Use to parse invoices, research papers, or contract documents for automated analysis or AI-driven insights."
+    purpose: Extract text and metadata from PDF files.
+    usage_context: Use to parse invoices, research papers, or contract documents for automated analysis or AI-driven insights.
     agent_hints:
       - "Requires a file object (URL or file stream)."
       - "Returns concatenated text or structured page-by-page content."
     waml_examples:
-      - title: "Read Document"
+      - title: Read Document
         waml: |
           - step: read_pdf
             call: core.utils.pdf_read
             with:
-               file: steps.fetch_doc.output
+               file: =steps.fetch_doc.output
 
 interface:
   inputs:
@@ -38,7 +38,7 @@ execution:
   - id: read
     tool: core.utils.pdf_read
     params:
-      pdf_base64: inputs.pdf_base64
+      pdf_base64: =inputs.pdf_base64
     returns:
       result: text_content
 
@@ -46,7 +46,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: steps.read.result
+      value: =steps.read.result
 
   - id: done
     tool: emit

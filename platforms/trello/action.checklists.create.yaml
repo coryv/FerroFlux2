@@ -5,21 +5,21 @@ meta:
   category: Checklists
   type: Action
   platform: trello
-  description: "Creates a new checklist on a Trello card."
-  version: "1.0.0"
+  description: Creates a new checklist on a Trello card.
+  version: 1.0.0
   discovery:
-    purpose: "Add a structured checklist (e.g. 'To Do', 'Requirements') to a card."
-    usage_context: "Use this to programmatically add standard checklists to specific task cards, such as a 'QA Checklist' for bug reports."
+    purpose: Add a structured checklist (e.g. 'To Do', 'Requirements') to a card.
+    usage_context: Use this to programmatically add standard checklists to specific task cards, such as a 'QA Checklist' for bug reports.
     agent_hints:
       - "Requires the card ID ('idCard') and a 'name'."
     waml_examples:
-      - title: "Add Requirements Checklist"
+      - title: Add Requirements Checklist
         waml: |
           - step: mk_list
             call: trello.action.checklists.create
             with:
-               idCard: "65a..."
-               name: "Acceptance Criteria"
+               idCard: 65a...
+               name: Acceptance Criteria
 
 interface:
   inputs:
@@ -44,15 +44,15 @@ execution:
       method: POST
       url: >
         platform.base_url + "/cards/" + inputs.idCard + "/checklists"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        name: inputs.name
+        name: =inputs.name
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -61,9 +61,9 @@ routing:
       - tool: emit
         params:
           port: checklist
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

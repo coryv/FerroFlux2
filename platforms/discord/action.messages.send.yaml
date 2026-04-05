@@ -5,21 +5,21 @@ meta:
   category: Messages
   type: Action
   platform: discord
-  description: "Sends a message to a Discord channel."
-  version: "1.0.0"
+  description: Sends a message to a Discord channel.
+  version: 1.0.0
   discovery:
-    purpose: "Post a message to a specific Discord channel."
-    usage_context: "Use this to send notifications, summaries, or alerts to a Discord server. Requires a valid Snowflake Channel ID."
+    purpose: Post a message to a specific Discord channel.
+    usage_context: Use this to send notifications, summaries, or alerts to a Discord server. Requires a valid Snowflake Channel ID.
     agent_hints:
       - "Channel IDs are unique integers (Snowflakes). You can get them by right-clicking a channel in Discord (if Developer Mode is on)."
       - "The 'content' field supports Discord Markdown (e.g., **bold**, *italics*, <@user_id> for mentions)."
     waml_examples:
-      - title: "Send a Server Alert"
+      - title: Send a Server Alert
         waml: |
           - step: notify_discord
             call: discord.action.messages.send
             with:
-               channel_id: "123456789012345678"
+               channel_id: 123456789012345678
                content: "**Alert:** New deployment successful! :rocket:"
 
 interface:
@@ -50,10 +50,10 @@ execution:
       method: POST
       url: >
         platform.base_url + "/channels/" + inputs.channel_id + "/messages"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        content: inputs.content
-        tts: inputs.tts
+        content: =inputs.content
+        tts: =inputs.tts
     returns:
       status: status_code
       body: response_body
@@ -61,7 +61,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -71,7 +71,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -80,9 +80,9 @@ routing:
       - tool: emit
         params:
           port: message
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

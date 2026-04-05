@@ -5,15 +5,15 @@ meta:
   category: Forecast
   type: Action
   platform: open-meteo
-  description: "Fetch hourly weather forecast data for a location, including temperature, humidity, precipitation, and wind over multiple days."
-  version: "1.0.0"
+  description: Fetch hourly weather forecast data for a location, including temperature, humidity, precipitation, and wind over multiple days.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve hourly weather forecasts (up to 7 days) for a specific location."
-    usage_context: "Use to check for rain over the next few hours, temperature changes, or wind speed fluctuations."
+    purpose: Retrieve hourly weather forecasts (up to 7 days) for a specific location.
+    usage_context: Use to check for rain over the next few hours, temperature changes, or wind speed fluctuations.
     agent_hints:
       - "Requires latitude and longitude."
     waml_examples:
-      - title: "Next 24 Hours Info"
+      - title: Next 24 Hours Info
         waml: |
           - step: forecast
             call: open-meteo.action.forecast.hourly
@@ -40,48 +40,48 @@ interface:
       type: object
   settings:
     - name: forecast_days
-      label: "Forecast Days"
+      label: Forecast Days
       type: number
       required: false
       default: 7
       min: 1
       max: 16
     - name: hourly_variables
-      label: "Hourly Variables (comma-separated)"
+      label: Hourly Variables (comma-separated)
       type: string
       required: false
-      default: "temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,visibility,uv_index"
-      placeholder: "temperature_2m,precipitation_probability,wind_speed_10m,..."
+      default: temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,visibility,uv_index
+      placeholder: temperature_2m,precipitation_probability,wind_speed_10m,...
     - name: temperature_unit
-      label: "Temperature Unit"
+      label: Temperature Unit
       type: select
       required: false
-      default: "celsius"
+      default: celsius
       options:
-        - label: "Celsius"
-          value: "celsius"
-        - label: "Fahrenheit"
-          value: "fahrenheit"
+        - label: Celsius
+          value: celsius
+        - label: Fahrenheit
+          value: fahrenheit
     - name: wind_speed_unit
-      label: "Wind Speed Unit"
+      label: Wind Speed Unit
       type: select
       required: false
-      default: "kmh"
+      default: kmh
       options:
-        - label: "km/h"
-          value: "kmh"
-        - label: "mph"
-          value: "mph"
-        - label: "m/s"
-          value: "ms"
-        - label: "knots"
-          value: "kn"
+        - label: km/h
+          value: kmh
+        - label: mph
+          value: mph
+        - label: m/s
+          value: ms
+        - label: knots
+          value: kn
     - name: timezone
-      label: "Timezone"
+      label: Timezone
       type: string
       required: false
-      default: "auto"
-      placeholder: "e.g. America/New_York, Europe/London, auto"
+      default: auto
+      placeholder: e.g. America/New_York, Europe/London, auto
 
 execution:
   - id: request
@@ -90,7 +90,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/forecast?latitude=" + inputs.latitude + "&longitude=" + inputs.longitude + "&hourly=" + settings.hourly_variables + "&forecast_days=" + settings.forecast_days + "&temperature_unit=" + settings.temperature_unit + "&wind_speed_unit=" + settings.wind_speed_unit + "&timezone=" + settings.timezone
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -98,7 +98,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -106,12 +106,12 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/hourly"
         returns:
@@ -122,9 +122,9 @@ routing:
       - tool: emit
         params:
           port: hourly
-          value: steps.request.hourly_data
+          value: =steps.request.hourly_data
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

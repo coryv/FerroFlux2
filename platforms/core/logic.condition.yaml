@@ -5,20 +5,20 @@ meta:
   type: Action
   node_subtype: Router
   platform: core
-  description: "Simple binary condition check."
-  version: "1.0.0"
+  description: Simple binary condition check.
+  version: 1.0.0
   discovery:
-    purpose: "Evaluate a boolean condition to branch workflow execution."
-    usage_context: "Use for if/else logic to decide which path the workflow should take."
+    purpose: Evaluate a boolean condition to branch workflow execution.
+    usage_context: Use for if/else logic to decide which path the workflow should take.
     agent_hints:
       - "The condition is a CEL expression that must return a boolean."
     waml_examples:
-      - title: "Check Amount"
+      - title: Check Amount
         waml: |
           - step: check_value
             call: core.logic.condition
             with:
-              condition: "inputs.amount > 100"
+              condition: "=inputs.amount > 100"
 
 interface:
   inputs:
@@ -37,29 +37,29 @@ interface:
 
   settings:
     - name: a
-      label: "Left Value"
+      label: Left Value
       type: any
     - name: b
-      label: "Right Value"
+      label: Right Value
       type: any
     - name: operator
       label: Operator
       type: select
-      default: "'=='"
+      default:
       options: ["==", "!=", ">", "<", ">=", "<="]
 
 execution:
   - id: check
     tool: logic
     params:
-      data: inputs.a
+      data: =inputs.a
       rules:
-        - output: "'True'"
+        - output: True
           condition:
             field: >
               ""
-            operator: settings.operator
-            value: inputs.b
+            operator: =settings.operator
+            value: =inputs.b
     returns:
       match: branch_name
 
@@ -67,4 +67,4 @@ execution:
     tool: emit
     params:
       port: "steps.check.branch_name == 'default' ? 'False' : steps.check.branch_name"
-      value: inputs.a
+      value: =inputs.a

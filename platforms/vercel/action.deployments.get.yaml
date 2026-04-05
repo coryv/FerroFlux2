@@ -4,21 +4,21 @@ meta:
   category: Deployments
   type: Action
   platform: vercel
-  description: "Gets the status and details of a specific Vercel deployment."
-  version: "1.0.0"
+  description: Gets the status and details of a specific Vercel deployment.
+  version: 1.0.0
   discovery:
-    purpose: "Check if a deployment has finished, failed, or is still building."
-    usage_context: "Use this in a polling loop or after a 'create_deployment' step to verify that the site is live before notifying users."
+    purpose: Check if a deployment has finished, failed, or is still building.
+    usage_context: Use this in a polling loop or after a 'create_deployment' step to verify that the site is live before notifying users.
     agent_hints:
       - "Requires the 'id' (deployment ID) returned by the 'create' action."
       - "Monitor the 'readyState' field ('READY', 'ERROR', 'BUILDING')."
     waml_examples:
-      - title: "Check Build Status"
+      - title: Check Build Status
         waml: |
           - step: check_build
             call: vercel.action.deployments.get
             with:
-               id: "dpl_123..."
+               id: dpl_123...
   permissions:
     - "network:api.vercel.com"
 
@@ -43,7 +43,7 @@ execution:
       method: GET
       url: >
         platform.base_url + "/v13/deployments/" + inputs.id
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
@@ -51,7 +51,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -59,7 +59,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -68,9 +68,9 @@ routing:
       - tool: emit
         params:
           port: deployment
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

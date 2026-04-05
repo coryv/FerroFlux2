@@ -1,20 +1,20 @@
-name: "Slack Webhook Workflow"
-description: "Sends a Slack message when a webhook is triggered"
+name: Slack Webhook Workflow
+description: Sends a Slack message when a webhook is triggered
 triggers:
-  - id: "webhook_in"
-    name: "Incoming Webhook"
-    type: "core.trigger.webhook"
+  - id: webhook_in
+    name: Incoming Webhook
+    type: core.trigger.webhook
     config:
-        path: "/test-webhook"
+        path: /test-webhook
 nodes:
-  - id: "slack_out"
-    name: "Post to Slack"
-    type: "slack.messages.send_dm"
+  - id: slack_out
+    name: Post to Slack
+    type: slack.messages.send_dm
     config:
-      user_id: "U12345"
-      text: "{{ get 'body.text' }}"
+      user_id: U12345
+      text: =inputs.body.text
 edges:
-  - source_id: "webhook_in"
-    source_handle: "body"
-    target_id: "slack_out"
-    target_handle: "body"
+  - source_id: webhook_in
+    source_handle: body
+    target_id: slack_out
+    target_handle: body

@@ -4,26 +4,26 @@ meta:
   category: Events
   type: Action
   platform: segment
-  description: "Sends a 'track' event to Segment for a specific user."
-  version: "1.0.0"
+  description: Sends a 'track' event to Segment for a specific user.
+  version: 1.0.0
   discovery:
-    purpose: "Record a discrete action performed by a user."
-    usage_context: "Use this to track behavioral data, such as 'Signed Up', 'Item Added to Cart', or 'Workflow Completed'. This data is then routed to your analytics and marketing tools."
+    purpose: Record a discrete action performed by a user.
+    usage_context: Use this to track behavioral data, such as 'Signed Up', 'Item Added to Cart', or 'Workflow Completed'. This data is then routed to your analytics and marketing tools.
     agent_hints:
       - "Requires a 'userId' or 'anonymousId' to associate the event."
       - "The 'event' name should be a concise, past-tense string (e.g. 'Order Placed')."
       - "Additional metadata goes into the 'properties' JSON object."
     waml_examples:
-      - title: "Track Purchase"
+      - title: Track Purchase
         waml: |
           - step: log_sale
             call: segment.action.events.track
             with:
-               userId: "user_123"
-               event: "Order Completed"
+               userId: user_123
+               event: Order Completed
                properties:
                  revenue: 49.99
-                 currency: "USD"
+                 currency: USD
   permissions:
     - "network:api.segment.io"
 
@@ -52,12 +52,12 @@ execution:
       method: POST
       url: >
         platform.base_url + "/track"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        event: inputs.event
-        userId: inputs.userId
-        anonymousId: inputs.anonymousId
-        properties: inputs.properties
+        event: =inputs.event
+        userId: =inputs.userId
+        anonymousId: =inputs.anonymousId
+        properties: =inputs.properties
     returns:
       status: status_code
       body: response_body
@@ -65,7 +65,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -73,7 +73,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -83,4 +83,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

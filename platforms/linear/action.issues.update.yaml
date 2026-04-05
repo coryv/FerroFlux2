@@ -5,22 +5,22 @@ meta:
   category: Issues
   type: Action
   platform: linear
-  description: "Updates an existing Linear issue by its UUID."
-  version: "1.0.0"
+  description: Updates an existing Linear issue by its UUID.
+  version: 1.0.0
   discovery:
-    purpose: "Modify fields on a Linear issue, such as its status, priority, or assignee."
-    usage_context: "Use this to advance issues through a workflow (e.g. from 'Todo' to 'Done'), re-assign bugs to developers, or update issue descriptions."
+    purpose: Modify fields on a Linear issue, such as its status, priority, or assignee.
+    usage_context: Use this to advance issues through a workflow (e.g. from 'Todo' to 'Done'), re-assign bugs to developers, or update issue descriptions.
     agent_hints:
       - "Requires the 'id' (UUID)."
       - "Note that 'stateId' is used for custom workflow statuses."
     waml_examples:
-      - title: "Mark Issue Done"
+      - title: Mark Issue Done
         waml: |
           - step: finish_bug
             call: linear.action.issues.update
             with:
-               id: "issue_uuid_123"
-               stateId: "done_state_uuid"
+               id: issue_uuid_123
+               stateId: done_state_uuid
 
 interface:
   inputs:
@@ -45,21 +45,21 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: platform.base_url
-      headers: platform.headers
+      url: =platform.base_url
+      headers: =platform.headers
       body:
         query: >
           "mutation IssueUpdate($id: String!, $title: String, $stateId: String) { issueUpdate(id: $id, input: { title: $title, stateId: $stateId }) { success issue { id title state { name } } } }"
         variables:
           id: inputs.id
-          title: inputs.title
-          stateId: inputs.stateId
+          title: =inputs.title
+          stateId: =inputs.stateId
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -68,9 +68,9 @@ routing:
       - tool: emit
         params:
           port: issue
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

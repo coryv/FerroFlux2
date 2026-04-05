@@ -3,11 +3,11 @@ meta:
   name: PostHog
   type: Platform
   category: Analytics
-  description: "The all-in-one product analytics and data platform for engineers."
-  version: "1.0.0"
+  description: The all-in-one product analytics and data platform for engineers.
+  version: 1.0.0
   discovery:
-    purpose: "Analyze user behavior, manage feature flags, and run experiments."
-    usage_context: "Use this to track critical user events, gate features for specific cohorts, and monitor product performance."
+    purpose: Analyze user behavior, manage feature flags, and run experiments.
+    usage_context: Use this to track critical user events, gate features for specific cohorts, and monitor product performance.
     agent_hints:
       - "Requires a Project/Team ID and a Personal API Key."
       - "Supports real-time event capture and complex cohort analysis."
@@ -17,15 +17,15 @@ meta:
 config:
   base_url: "https://app.posthog.com"
   headers:
-    Content-Type: "application/json"
-    Authorization: "Bearer PASTE_YOUR_PERSONAL_API_KEY_HERE"
+    Content-Type: application/json
+    Authorization: Bearer PASTE_YOUR_PERSONAL_API_KEY_HERE
 
 settings:
   - name: personal_api_key
-    label: "Personal API Key"
+    label: Personal API Key
     type: string
     required: true
   - name: project_api_key
-    label: "Project API Key (Write Key)"
+    label: Project API Key (Write Key)
     type: string
     required: true

@@ -6,14 +6,14 @@ meta:
   type: Action
   platform: jira
   description: "TODO: Describe what this node does."
-  version: "1.0.0"
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve details and status for a specific Jira sprint."
-    usage_context: "Use to check sprint goals, verify state (active vs closed), or retrieve sprint boundaries for reporting."
+    purpose: Retrieve details and status for a specific Jira sprint.
+    usage_context: Use to check sprint goals, verify state (active vs closed), or retrieve sprint boundaries for reporting.
     agent_hints:
       - "Requires a sprintId."
     waml_examples:
-      - title: "Check Sprint Info"
+      - title: Check Sprint Info
         waml: |
           - step: sprint_info
             call: jira.action.sprints.get
@@ -49,7 +49,7 @@ execution:
         "GET            # TODO: GET | POST | PUT | DELETE | PATCH"
       url: >
         platform.base_url + "/TODO"
-      headers: platform.headers
+      headers: =platform.headers
       # body:                >
         # "# Uncomment for POST/PUT/PATCH"
       #   field: inputs.field_name
@@ -61,15 +61,15 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
-        - condition: "\"200\"   # TODO: add all success codes (201, 202, 204, etc.)"
+        - condition: '\"200\' # TODO: add all success codes (201, 202, 204, etc.)"
           output: success
         - condition: default
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -78,9 +78,9 @@ routing:
       - tool: emit
         params:
           port: result
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

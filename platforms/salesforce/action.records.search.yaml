@@ -5,16 +5,16 @@ meta:
   category: Records
   type: Action
   platform: salesforce
-  description: "Executes a Salesforce SOSL search to find text across multiple objects."
-  version: "1.0.0"
+  description: Executes a Salesforce SOSL search to find text across multiple objects.
+  version: 1.0.0
   discovery:
-    purpose: "Perform a global text search across records, objects, and fields."
-    usage_context: "Use this when you have a piece of text (like a name or email) and don't know which object it belongs to, or want to search all objects at once."
+    purpose: Perform a global text search across records, objects, and fields.
+    usage_context: Use this when you have a piece of text (like a name or email) and don't know which object it belongs to, or want to search all objects at once.
     agent_hints:
       - "The 'q' parameter must be a valid SOSL string (e.g. 'FIND {Acme} IN ALL FIELDS RETURNING Account(Id, Name), Lead(Id, Name)')."
       - "SOSL is optimized for text indexing across the entire SObject space."
     waml_examples:
-      - title: "Global Company Search"
+      - title: Global Company Search
         waml: |
           - step: find_acme
             call: salesforce.action.records.search
@@ -42,15 +42,15 @@ execution:
       method: GET
       url: >
         platform.base_url + "/search"
-      headers: platform.headers
+      headers: =platform.headers
       query:
-        q: inputs.query
+        q: =inputs.query
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -59,9 +59,9 @@ routing:
       - tool: emit
         params:
           port: results
-          value: steps.request.response_body
+          value: =steps.request.response_body
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

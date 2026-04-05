@@ -57,18 +57,27 @@ impl<'a> LazyCtx<'a> {
 pub fn resolve_recursive(value: &Value, ctx: &mut LazyCtx<'_>) -> Result<Value> {
     match value {
         Value::String(s) => {
-            let trimmed = s.trim();
-            
-            // Heuristic: If it's a simple operator or very short, treat as literal to avoid CEL parser panics
-            if trimmed.len() <= 2 && (trimmed == ">" || trimmed == "<" || trimmed == "==" || trimmed == "!=" || trimmed == ">=" || trimmed == "<=") {
-                return Ok(Value::String(s.clone()));
+            let s_ref = s.as_str();
+
+            if let Some(stripped) = s_ref.strip_prefix("\\=") {
+                return Ok(Value::String(format!("={stripped}")));
             }
 
-            let program = match Program::compile(trimmed) {
+            let expression = if let Some(stripped) = s_ref.strip_prefix('=') {
+                stripped.trim()
+            } else {
+                // Not an explicit expression, treat as strict literal string.
+                return Ok(Value::String(s.clone()));
+            };
+
+            if expression.is_empty() {
+                return Ok(Value::String(String::new()));
+            }
+
+            let program = match Program::compile(expression) {
                 Ok(p) => p,
-                Err(_) => {
-                    // Not valid CEL -- treat as a literal string.
-                    return Ok(Value::String(s.clone()));
+                Err(e) => {
+                    return Err(anyhow::anyhow!("CEL compile error for explicit expression '{}': {}", expression, e));
                 }
             };
 
@@ -83,8 +92,8 @@ pub fn resolve_recursive(value: &Value, ctx: &mut LazyCtx<'_>) -> Result<Value> 
 
             // Fallback: If no refs were found but the expression is a simple identifier,
             // CEL might not have picked it up. Try materializing it anyway.
-            if refs.is_empty() && trimmed.chars().all(|c| c.is_alphanumeric() || c == '_') {
-                refs.push(trimmed.to_string());
+            if refs.is_empty() && expression.chars().all(|c| c.is_alphanumeric() || c == '_') {
+                refs.push(expression.to_string());
             }
 
             let mut partial = serde_json::Map::new();
@@ -106,12 +115,7 @@ pub fn resolve_recursive(value: &Value, ctx: &mut LazyCtx<'_>) -> Result<Value> 
             match program.execute(&cel_ctx) {
                 Ok(cel_val) => Ok(cel_to_json(cel_val)),
                 Err(e) => {
-                    tracing::debug!(
-                        expression = trimmed,
-                        error = %e,
-                        "CEL execution failed during resolution, using literal string"
-                    );
-                    Ok(Value::String(s.clone()))
+                    Err(anyhow::anyhow!("CEL execution error for explicit expression '{}': {}", expression, e))
                 }
             }
         }

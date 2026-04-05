@@ -5,21 +5,21 @@ meta:
   category: Emails
   type: Action
   platform: gmail
-  description: "Removes a specific label from a Gmail message."
-  version: "1.0.0"
+  description: Removes a specific label from a Gmail message.
+  version: 1.0.0
   discovery:
-    purpose: "Untag a Gmail message."
-    usage_context: "Use this to clean up labels after a multi-step process or to remove a message from a specific automated watch-list."
+    purpose: Untag a Gmail message.
+    usage_context: Use this to clean up labels after a multi-step process or to remove a message from a specific automated watch-list.
     agent_hints:
       - "Does not delete the message; only removes the specified label reference."
     waml_examples:
-      - title: "Clear Processed Label"
+      - title: Clear Processed Label
         waml: |
           - step: untag
             call: gmail.emails.remove_label
             with:
-               message_id: "18e986fe..."
-               label_id: "Label_Processing"
+               message_id: 18e986fe...
+               label_id: Label_Processing
 
 interface:
   inputs:
@@ -42,7 +42,7 @@ execution:
       method: POST
       url: >
         platform.base_url + "/messages/" + inputs.message_id + "/modify"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         removeLabelIds: >
           "[\"" + inputs.label_id + "\"]"
@@ -51,7 +51,7 @@ execution:
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -61,4 +61,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -4,15 +4,15 @@ meta:
   category: Transaction
   type: Action
   platform: postgresql
-  description: "Commits the active SQL transaction for the current execution flow."
-  version: "1.0.0"
+  description: Commits the active SQL transaction for the current execution flow.
+  version: 1.0.0
   discovery:
-    purpose: "Permanently save all changes made during the current transaction."
-    usage_context: "Call this at the end of a successful sequence following a 'begin_transaction' call."
+    purpose: Permanently save all changes made during the current transaction.
+    usage_context: Call this at the end of a successful sequence following a 'begin_transaction' call.
     agent_hints:
       - "This will fail if no transaction is currently active."
     waml_examples:
-      - title: "Commit Changes"
+      - title: Commit Changes
         waml: |
           - step: finish_tx
             call: postgresql.action.tx.commit
@@ -32,7 +32,7 @@ execution:
     tool: sql_query
     params:
       operation: commit
-      connection_string: settings.connection_string
+      connection_string: =settings.connection_string
     returns:
       status: status
 

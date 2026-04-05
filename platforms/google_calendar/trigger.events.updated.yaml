@@ -5,21 +5,21 @@ meta:
   category: Events
   type: Trigger
   platform: google_calendar
-  description: "Polls a Google Calendar for recently updated events."
-  version: "1.0.0"
+  description: Polls a Google Calendar for recently updated events.
+  version: 1.0.0
   discovery:
-    purpose: "Initialize a workflow whenever an existing Google Calendar event is modified."
-    usage_context: "Use to synchronize rescheduled meetings with team availability or update invitees on changes to meeting locations."
+    purpose: Initialize a workflow whenever an existing Google Calendar event is modified.
+    usage_context: Use to synchronize rescheduled meetings with team availability or update invitees on changes to meeting locations.
     agent_hints:
       - "Polls for recently updated events in the specified calendar."
     waml_examples:
-      - title: "Reschedule Sync"
+      - title: Reschedule Sync
         waml: |
           - step: on_change
             type: trigger
             call: google_calendar.trigger.events.updated
             settings:
-               calendar_id: "primary"
+               calendar_id: primary
 
 interface:
   inputs: []
@@ -30,12 +30,12 @@ interface:
       type: object
   settings:
     - name: calendar_id
-      label: "Calendar ID"
+      label: Calendar ID
       type: string
-      default: "primary"
-      description: "Calendar to watch. Use 'primary' for the user's main calendar."
+      default: primary
+      description: Calendar to watch. Use 'primary' for the user's main calendar.
     - name: polling_interval
-      label: "Polling Interval (minutes)"
+      label: Polling Interval (minutes)
       type: number
       default: 15
 
@@ -46,10 +46,10 @@ execution:
       method: GET
       url: >
         "https://www.googleapis.com/calendar/v3/calendars/" + settings.calendar_id + "/events"
-      headers: platform.headers
+      headers: =platform.headers
       query:
         orderBy: updated
-        singleEvents: "true"
+        singleEvents: true
         updatedMin: >
           has(event.cursor) ? event.cursor : "1970-01-01T00:00:00Z"
         maxResults: 50
@@ -58,12 +58,12 @@ execution:
       body: response_body
 
 routing:
-  match: steps.query.status_code
+  match: =steps.query.status_code
   cases:
     "200":
       - tool: iterate
         params:
-          items: steps.query.response_body.items
+          items: =steps.query.response_body.items
           cursor_key: updated
           port: event
       - tool: emit
@@ -73,4 +73,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.query.response_body
+          value: =steps.query.response_body

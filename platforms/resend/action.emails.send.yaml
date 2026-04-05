@@ -5,16 +5,16 @@ meta:
   category: Emails
   type: Action
   platform: resend
-  description: "Sends a transactional email via Resend."
-  version: "1.0.0"
+  description: Sends a transactional email via Resend.
+  version: 1.0.0
   discovery:
-    purpose: "Send high-deliverability emails (welcome, notifications, resets) using a modern, developer-friendly API."
-    usage_context: "Use this for programmatic outbound communication, automated alerts, and professional customer engagement."
+    purpose: Send high-deliverability emails (welcome, notifications, resets) using a modern, developer-friendly API.
+    usage_context: Use this for programmatic outbound communication, automated alerts, and professional customer engagement.
     agent_hints:
       - "Specify 'from', 'to', 'subject', and 'html' or 'text' content."
       - "Supports custom 'headers' and 'tags' for tracking."
     waml_examples:
-      - title: "Send Welcome Email"
+      - title: Send Welcome Email
         waml: |
           - step: say_hello
             call: resend.action.emails.send
@@ -45,20 +45,20 @@ interface:
       type: object
   settings:
     - name: from
-      label: "From Address"
+      label: From Address
       type: string
       required: true
-      placeholder: "you@yourdomain.com"
+      placeholder: you@yourdomain.com
     - name: reply_to
-      label: "Reply-To Address"
+      label: Reply-To Address
       type: string
       required: false
     - name: cc
-      label: "CC Address(es)"
+      label: CC Address(es)
       type: string
       required: false
     - name: bcc
-      label: "BCC Address(es)"
+      label: BCC Address(es)
       type: string
       required: false
 
@@ -69,16 +69,16 @@ execution:
       method: POST
       url: >
         platform.base_url + "/emails"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        from: settings.from
-        to: inputs.to
-        subject: inputs.subject
-        html: inputs.html
-        text: inputs.text
-        reply_to: settings.reply_to
-        cc: settings.cc
-        bcc: settings.bcc
+        from: =settings.from
+        to: =inputs.to
+        subject: =inputs.subject
+        html: =inputs.html
+        text: =inputs.text
+        reply_to: =settings.reply_to
+        cc: =settings.cc
+        bcc: =settings.bcc
     returns:
       status: status_code
       body: response_body
@@ -86,7 +86,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -96,7 +96,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -105,9 +105,9 @@ routing:
       - tool: emit
         params:
           port: email
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

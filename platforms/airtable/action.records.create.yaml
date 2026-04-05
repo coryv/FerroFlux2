@@ -5,27 +5,27 @@ meta:
   category: Records
   type: Action
   platform: airtable
-  description: "Creates one or more records in an Airtable base."
-  version: "1.0.0"
+  description: Creates one or more records in an Airtable base.
+  version: 1.0.0
   discovery:
-    purpose: "Add new row(s) of data to an Airtable table."
-    usage_context: "Use this when you have structured data to insert into a known table. Requires a base_id and a table_id or name."
+    purpose: Add new row(s) of data to an Airtable table.
+    usage_context: Use this when you have structured data to insert into a known table. Requires a base_id and a table_id or name.
     agent_hints:
       - "Field names in the 'fields' object are case-sensitive."
       - "Check the Airtable table schema to ensure all required fields are provided."
       - "The output 'record' contains the newly created record ID and timestamps."
     waml_examples:
-      - title: "Create a Single Record"
+      - title: Create a Single Record
         waml: |
           - step: add_task
             call: airtable.records.create
             with:
-              base_id: "app123456789"
-              table_id_or_name: "Tasks"
+              base_id: app123456789
+              table_id_or_name: Tasks
               fields:
-                Title: "Integrate AI Agent Discovery"
-                Status: "In Progress"
-                Priority: "High"
+                Title: Integrate AI Agent Discovery
+                Status: In Progress
+                Priority: High
 
 interface:
   inputs:
@@ -53,9 +53,9 @@ execution:
       method: POST
       url: >
         platform.base_url + "/" + inputs.base_id + "/" + inputs.table_id_or_name
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        fields: inputs.fields
+        fields: =inputs.fields
     returns:
       status: status_code
       body: response_body
@@ -63,7 +63,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -71,7 +71,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -80,9 +80,9 @@ routing:
       - tool: emit
         params:
           port: record
-          value: steps.request.response_body
+          value: =steps.request.response_body
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

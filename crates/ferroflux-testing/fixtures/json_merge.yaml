@@ -1,23 +1,23 @@
 id: json_merge_workflow
-name: "JSON Deep Merge Test Workflow"
-description: "Test deep merging of two JSON objects."
+name: JSON Deep Merge Test Workflow
+description: Test deep merging of two JSON objects.
 
 nodes:
   - id: webhook_in
-    name: "Incoming Webhook"
+    name: Incoming Webhook
     type: core.trigger.webhook
 
   - id: jmes_merge
-    name: "Deep Merge Objects"
+    name: Deep Merge Objects
     type: core.utils.json
     config:
-      operation: "'merge'"
+      operation: merge
 
   - id: merge_logger
-    name: "Log Merged Result"
+    name: Log Merged Result
     type: core.action.log
     config:
-      message: "'Merged: ' + string(inputs.body)"
+      message: "='Merged: ' + string(inputs.body)"
 
 edges:
   # 1. Flow & Data: Webhook to Merge

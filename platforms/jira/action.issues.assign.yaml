@@ -5,21 +5,21 @@ meta:
   category: Issues
   type: Action
   platform: jira
-  description: "Assign an issue to a specific user."
-  version: "1.0.0"
+  description: Assign an issue to a specific user.
+  version: 1.0.0
   discovery:
-    purpose: "Assign a Jira issue to a specific user (account ID)."
-    usage_context: "Use to automate ticket routing or reassign tasks based on workflow rules."
+    purpose: Assign a Jira issue to a specific user (account ID).
+    usage_context: Use to automate ticket routing or reassign tasks based on workflow rules.
     agent_hints:
       - "Requires the issue key (e.g., PROJ-123) and the accountId of the user."
     waml_examples:
-      - title: "Assign Ticket"
+      - title: Assign Ticket
         waml: |
           - step: assign
             call: jira.issues.assign
             with:
-               issue_id_or_key: "PROJ-123"
-               account_id: "5b10ac8d82e05b22cc7d4ef5"
+               issue_id_or_key: PROJ-123
+               account_id: 5b10ac8d82e05b22cc7d4ef5
 
 interface:
   inputs:
@@ -42,15 +42,15 @@ execution:
       method: PUT
       url: >
         platform.base_url + "/issue/" + inputs.issue_id + "/assignee"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        accountId: inputs.account_id
+        accountId: =inputs.account_id
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "204":
       - tool: emit
@@ -60,4 +60,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -5,16 +5,16 @@ meta:
   category: Users
   type: Action
   platform: zendesk
-  description: "Gets user details."
-  version: "1.0.0"
+  description: Gets user details.
+  version: 1.0.0
   discovery:
-    purpose: "Retrieve detailed profile information for a specific Zendesk user."
-    usage_context: "Use this to verify customer identity, fetch contact details, or check user roles."
+    purpose: Retrieve detailed profile information for a specific Zendesk user.
+    usage_context: Use this to verify customer identity, fetch contact details, or check user roles.
     agent_hints:
       - "Requires the user_id."
       - "Returns the full user object including contact info and tags."
     waml_examples:
-      - title: "Get User Info"
+      - title: Get User Info
         waml: |
           - step: fetch_user
             call: zendesk.action.users.get
@@ -42,13 +42,13 @@ execution:
       method: GET
       url: >
         platform.base_url + "/users/" + inputs.userId + ".json"
-      headers: platform.headers
+      headers: =platform.headers
     returns:
       status: status_code
       body: response_body
 
 routing:
-  match: steps.request.status_code
+  match: =steps.request.status_code
   cases:
     "200":
       - tool: emit
@@ -57,9 +57,9 @@ routing:
       - tool: emit
         params:
           port: user
-          value: steps.request.response_body.user
+          value: =steps.request.response_body.user
     default:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -3,11 +3,11 @@ meta:
   name: Sentry
   type: Platform
   category: Developer Tools
-  description: "The essential monitoring platform for error tracking and performance metrics."
-  version: "1.0.0"
+  description: The essential monitoring platform for error tracking and performance metrics.
+  version: 1.0.0
   discovery:
-    purpose: "Monitor code health, resolve production errors, and optimize frontend performance."
-    usage_context: "Use this to receive real-time alerts on regression bugs, track the impact of new releases, and identify slow API endpoints."
+    purpose: Monitor code health, resolve production errors, and optimize frontend performance.
+    usage_context: Use this to receive real-time alerts on regression bugs, track the impact of new releases, and identify slow API endpoints.
     agent_hints:
       - "Requires an Organization slug and Project slug for most operations."
       - "Integrates well with GitHub/Slack to link errors to code changes and alerts."
@@ -17,11 +17,11 @@ meta:
 config:
   base_url: "https://sentry.io/api/0"
   headers:
-    Content-Type: "application/json"
-    Authorization: "Bearer PASTE_YOUR_AUTH_TOKEN_HERE"
+    Content-Type: application/json
+    Authorization: Bearer PASTE_YOUR_AUTH_TOKEN_HERE
 
 settings:
   - name: api_key
-    label: "Auth Token"
+    label: Auth Token
     type: string
     required: true

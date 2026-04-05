@@ -5,21 +5,21 @@ meta:
   category: AI
   type: Action
   platform: gemini
-  description: "Generates text or multimodal content from a prompt."
-  version: "1.0.0"
+  description: Generates text or multimodal content from a prompt.
+  version: 1.0.0
   discovery:
-    purpose: "Perform single-turn generation for text, code, or data analysis."
-    usage_context: "Use this for summarization, translation, code generation, and analyzing complex documents or media."
+    purpose: Perform single-turn generation for text, code, or data analysis.
+    usage_context: Use this for summarization, translation, code generation, and analyzing complex documents or media.
     agent_hints:
       - "Supports up to 1M+ tokens context window in 1.5 Pro."
       - "Use 'generationConfig' for temperature and top-p settings."
     waml_examples:
-      - title: "Generate Summary"
+      - title: Generate Summary
         waml: |
           - step: summarize
             call: gemini.action.ai.generate_content
             with:
-               model: "gemini-1.5-pro"
+               model: gemini-1.5-pro
                contents:
                   - parts: [{ text: "Summarize this 100-page PDF." }]
 
@@ -46,12 +46,12 @@ interface:
       type: array
   settings:
     - name: temperature
-      label: "Temperature"
+      label: Temperature
       type: number
       required: false
       default: 0.7
     - name: max_tokens
-      label: "Max Tokens"
+      label: Max Tokens
       type: number
       required: false
       default: 2048
@@ -63,17 +63,17 @@ execution:
       method: POST
       url: >
         platform.base_url + "/v1beta/models/" + inputs.model + ":generateContent"
-      headers: platform.headers
+      headers: =platform.headers
       body:
         contents:
           - role: user
             parts:
-              - text: inputs.prompt
-        tools: inputs.tools
-        toolConfig: inputs.tool_config
+              - text: =inputs.prompt
+        tools: =inputs.tools
+        toolConfig: =inputs.tool_config
         generationConfig:
-          temperature: settings.temperature
-          maxOutputTokens: settings.max_tokens
+          temperature: =settings.temperature
+          maxOutputTokens: =settings.max_tokens
     returns:
       status: status_code
       body: response_body
@@ -81,7 +81,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -89,7 +89,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -98,10 +98,10 @@ routing:
       - tool: emit
         params:
           port: response
-          value: steps.request.response_body
+          value: =steps.request.response_body
       - tool: json_query
         params:
-          json: steps.request.response_body
+          json: =steps.request.response_body
           path: >
             "/candidates/0/content/parts"
         returns:
@@ -114,4 +114,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

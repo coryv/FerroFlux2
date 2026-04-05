@@ -5,24 +5,24 @@ meta:
   category: Email
   type: Action
   platform: gmail
-  description: "Sends an email via the Gmail API."
-  version: "1.0.0"
+  description: Sends an email via the Gmail API.
+  version: 1.0.0
   discovery:
-    purpose: "Send a text-based email to one or more recipients."
-    usage_context: "Use this for automated notifications, sharing reports, or sending reminders to external users. Best for asynchronous, formal communication."
+    purpose: Send a text-based email to one or more recipients.
+    usage_context: Use this for automated notifications, sharing reports, or sending reminders to external users. Best for asynchronous, formal communication.
     agent_hints:
       - "The 'to' field should be a comma-separated list of valid email addresses."
       - "Currently supports plain text body only. HTML support is not enabled in this specific node version."
       - "The 'message_id' output can be used later to track threads or for follow-up actions."
     waml_examples:
-      - title: "Send a Status Update"
+      - title: Send a Status Update
         waml: |
           - step: send_status
             call: gmail.action.email.send
             with:
-               to: "manager@example.com"
-               subject: "Project Update"
-               body: "The workflow has completed successfully."
+               to: manager@example.com
+               subject: Project Update
+               body: The workflow has completed successfully.
 
 interface:
   inputs:
@@ -59,9 +59,9 @@ execution:
                   body;
         base64_url_encode(msg)
       input:
-        to: inputs.to
-        subject: inputs.subject
-        body: inputs.body
+        to: =inputs.to
+        subject: =inputs.subject
+        body: =inputs.body
     returns:
       result: raw_body
 
@@ -71,9 +71,9 @@ execution:
       method: POST
       url: >
         platform.base_url + "/users/me/messages/send"
-      headers: platform.headers
+      headers: =platform.headers
       body:
-        raw: steps.prepare_rfc822.raw_body
+        raw: =steps.prepare_rfc822.raw_body
     returns:
       status: status_code
       body: response_body
@@ -81,7 +81,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.send.status_code
+      value: =steps.send.status_code
       cases:
         - condition: 200
           output: success
@@ -89,7 +89,7 @@ execution:
           output: error
 
 routing:
-  match: steps.check_status.branch
+  match: =steps.check_status.branch
   cases:
     success:
       - tool: emit
@@ -98,9 +98,9 @@ routing:
       - tool: emit
         params:
           port: message_id
-          value: steps.send.response_body.id
+          value: =steps.send.response_body.id
     error:
       - tool: emit
         params:
           port: Error
-          value: steps.send.response_body
+          value: =steps.send.response_body
