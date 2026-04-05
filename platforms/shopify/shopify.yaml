@@ -16,11 +16,11 @@ meta:
       - title: List Store Products
         waml: |
           - step: get_products
-            call: shopify.action.products.list
+            call: =shopify.action.products.list
 
 config:
   base_url: >
-    "https://" + settings.store_name + ".myshopify.com/admin/api/2024-01"
+    "https:'=//" + settings.store_name + ".myshopify.com/admin/api/2024-01"'
   headers:
     Content-Type: application/json
     X-Shopify-Access-Token: =settings.access_token

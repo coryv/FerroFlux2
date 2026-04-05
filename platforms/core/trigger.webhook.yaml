@@ -17,7 +17,7 @@ meta:
         waml: |
           - step: incoming_data
             type: trigger
-            call: core.trigger.webhook
+            call: =core.trigger.webhook
             settings:
               path: /orders/sync
 
@@ -28,10 +28,10 @@ interface:
     - name: Success
       type: flow
 
-    - name: body
+    - name: =body
       type: any
 
-    - name: headers
+    - name: =headers
       type: object
 
     - name: query
@@ -73,13 +73,13 @@ execution:
   - id: emit_body
     tool: emit
     params:
-      port: body
+      port: =body
       value: =event.body
 
   - id: emit_headers
     tool: emit
     params:
-      port: headers
+      port: =headers
       value: =event.headers
 
   - id: emit_query

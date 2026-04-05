@@ -15,7 +15,7 @@ meta:
 
 config:
   base_url: >
-    "https://" + settings.server_prefix + ".api.mailchimp.com/3.0"
+    "https:'=//" + settings.server_prefix + ".api.mailchimp.com/3.0"'
   headers:
     Content-Type: application/json
     Authorization: >

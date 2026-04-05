@@ -16,7 +16,7 @@ meta:
       - title: Route by Status
         waml: |
           - step: check_status
-            call: core.action.switch
+            call: =core.action.switch
             with:
                value: =steps.get_status.output
                cases:
@@ -62,5 +62,5 @@ execution:
   - id: route_data
     tool: emit
     params:
-      port: steps.check.match
+      port: =steps.check.match
       value: =inputs.data

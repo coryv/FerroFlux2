@@ -37,7 +37,7 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: deleted_count
+    - name: =deleted_count
       type: number
 
 execution:
@@ -61,5 +61,5 @@ routing:
           port: Success
       - tool: emit
         params:
-          port: deleted_count
+          port: =deleted_count
           value: =steps.delete.deleted_count

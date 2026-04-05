@@ -18,7 +18,7 @@ nodes:
     config:
       script: return 50;
   - id: check
-    name: "=Compare A > B"
+    name: "Compare A > B"
     type: core.logic.condition
     config:
       operator: ">"

@@ -15,7 +15,7 @@ meta:
       - title: Render Template
         waml: |
           - step: format
-            call: core.utils.text
+            call: =core.utils.text
             with:
                action: render
                template: "Hello, {{ name }}!"
@@ -23,12 +23,12 @@ meta:
 
 interface:
   inputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: text
       type: string
   outputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: Error
       type: flow
@@ -61,7 +61,7 @@ interface:
 
 execution:
   - id: process
-    tool: core.utils.text
+    tool: =core.utils.text
     params:
       operation: =settings.operation
       text: =inputs.text

@@ -16,7 +16,7 @@ meta:
 
 config:
   base_url: >
-    "https://" + service + "." + region + ".amazonaws.com"
+    "https:'=//" + service + "." + region + ".amazonaws.com"'
   auth_type: aws_sigv4
   connection_schema:
     - name: access_key

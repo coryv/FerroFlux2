@@ -16,7 +16,7 @@ meta:
       - title: Summarize Text
         waml: |
           - step: summarize
-            call: core.action.agent
+            call: =core.action.agent
             with:
               prompt: '="Summarize this text: " + inputs.text'
 
@@ -45,7 +45,7 @@ interface:
       label: Prompt
       type: textarea
       default: >
-        "Summarize this: " + body
+        "Summarize this: '=" + body'
       
     - name: output_var
       label: Output Variable
@@ -71,7 +71,7 @@ execution:
   - id: emit_res
     tool: emit
     params:
-      port: settings.output_var
+      port: =settings.output_var
       value: =steps.llm.response_text
 
   - id: emit_exec

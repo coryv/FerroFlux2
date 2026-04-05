@@ -37,12 +37,12 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: pages
+    - name: =pages
       type: array
   settings: []
 
 execution:
-  - id: request
+  - id: =request
     tool: paginate
     params:
       method: POST
@@ -76,5 +76,5 @@ routing:
           port: Success
       - tool: emit
         params:
-          port: pages
+          port: =pages
           value: =steps.request.pages

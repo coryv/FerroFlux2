@@ -16,7 +16,7 @@ meta:
       - title: Get Cached Token
         waml: |
           - step: get_token
-            call: =redis.action.keys.get
+            call: redis.action.keys.get
             with:
                key: "auth:token:user_123"
 
@@ -32,7 +32,7 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: value
+    - name: =value
       type: string
 
 execution:
@@ -54,5 +54,5 @@ routing:
           port: Success
       - tool: emit
         params:
-          port: value
+          port: =value
           value: =steps.redis.value

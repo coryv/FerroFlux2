@@ -17,7 +17,7 @@ meta:
         waml: |
           - step: on_row
             type: trigger
-            call: google_sheets.trigger.rows.new
+            call: =google_sheets.trigger.rows.new
             settings:
                spreadsheet_id: 12345abcdefg
                range: "Sheet1!A1"
@@ -54,7 +54,7 @@ execution:
     params:
       method: GET
       url: >
-        "https://sheets.googleapis.com/v4/spreadsheets/" + settings.spreadsheet_id + "/values/" + settings.sheet_range
+        "https:'=//sheets.googleapis.com/v4/spreadsheets/" + settings.spreadsheet_id + "/values/" + settings.sheet_range'
       headers: =platform.headers
     returns:
       status: status_code

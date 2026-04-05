@@ -18,7 +18,7 @@ meta:
         waml: |
           trigger:
             new_card:
-               call: trello.trigger.cards.new
+               call: =trello.trigger.cards.new
                with:
                   idBoard: 65e...
 

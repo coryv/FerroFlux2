@@ -44,6 +44,18 @@ pub fn execute_pipeline_node(
     ctx_map.insert("trace_id".to_string(), DataRef::Inline(Value::String(trace_id.clone())));
     ctx_map.insert("config".to_string(), DataRef::Inline(Value::Object(workflow_config.clone().into_iter().collect())));
 
+    // Inject 'self' for explicit internal access.
+    let mut self_obj = serde_json::Map::new();
+    self_obj.insert("id".to_string(), Value::String(node.definition_id.clone()));
+    self_obj.insert("settings".to_string(), serde_json::to_value(&node.config).unwrap_or(Value::Null));
+    
+    if let Some(platform_id) = &def.meta.platform {
+        if let Some(p) = definitions.platforms.get(platform_id) {
+            self_obj.insert("config".to_string(), serde_json::to_value(&p.config).unwrap_or(Value::Object(serde_json::Map::new())));
+        }
+    }
+    ctx_map.insert("self".to_string(), DataRef::Inline(Value::Object(self_obj)));
+
     // 2. Platform injection -- always Inline (loaded from the definitions registry).
     let mut platform_root = serde_json::Map::new();
     for (id, platform) in &definitions.platforms {
@@ -93,10 +105,13 @@ pub fn execute_pipeline_node(
             }
         }
     } else {
-        // Strict mode: Only populate declared ports, default missing ones to Null
+        // Strict mode: Only populate declared ports, default missing ones to settings then Null
         for name in declared_inputs {
             if let Some(val) = (LazyCtx { data: &workflow_state.context, store, cache: &mut blob_cache }).materialize_key(&name) {
                 inputs_map.insert(name, val);
+            } else if let Some(val) = node.config.get(&name) {
+                // Fallback to static configuration for inputs
+                inputs_map.insert(name.to_string(), val.clone());
             } else {
                 inputs_map.insert(name, Value::Null);
             }

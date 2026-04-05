@@ -16,18 +16,18 @@ meta:
       - title: Read Document
         waml: |
           - step: read_pdf
-            call: core.utils.pdf_read
+            call: =core.utils.pdf_read
             with:
                file: =steps.fetch_doc.output
 
 interface:
   inputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: pdf_base64
       type: string
   outputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: Error
       type: flow
@@ -36,7 +36,7 @@ interface:
 
 execution:
   - id: read
-    tool: core.utils.pdf_read
+    tool: =core.utils.pdf_read
     params:
       pdf_base64: =inputs.pdf_base64
     returns:

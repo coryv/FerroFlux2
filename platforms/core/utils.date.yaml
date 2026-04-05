@@ -15,18 +15,18 @@ meta:
       - title: Format Now
         waml: |
           - step: log_date
-            call: core.utils.date
+            call: =core.utils.date
             with:
                action: format
-               date: now()
+               date: =now()
                format: "%Y-%m-%d %H:%M:%S"
 
 interface:
   inputs:
-    - name: Exec
+    - name: =Exec
       type: flow
   outputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: Error
       type: flow
@@ -60,7 +60,7 @@ interface:
 
 execution:
   - id: process
-    tool: core.utils.date
+    tool: =core.utils.date
     params:
       operation: =settings.operation
       date: =settings.date

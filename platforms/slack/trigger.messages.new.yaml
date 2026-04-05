@@ -18,7 +18,7 @@ meta:
         waml: |
           trigger:
             id: support_monitor
-            call: slack.trigger.messages.new
+            call: =slack.trigger.messages.new
             with:
                channel: C98765432
 

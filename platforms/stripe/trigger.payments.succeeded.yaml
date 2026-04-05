@@ -17,7 +17,7 @@ meta:
         waml: |
           - step: on_success
             type: trigger
-            call: stripe.trigger.payments.succeeded
+            call: =stripe.trigger.payments.succeeded
 
 interface:
   inputs: []

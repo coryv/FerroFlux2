@@ -37,7 +37,7 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: documents
+    - name: =documents
       type: array
 
 execution:
@@ -61,5 +61,5 @@ routing:
           port: Success
       - tool: emit
         params:
-          port: documents
+          port: =documents
           value: =steps.find.documents

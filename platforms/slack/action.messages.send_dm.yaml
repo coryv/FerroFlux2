@@ -38,12 +38,12 @@ interface:
 
 execution:
   - id: open_dm
-    tool: http_client
+    tool: =http_client
     params:
       method: POST
       url: >
-        platform.base_url + "/conversations.open"
-      headers: =platform.headers
+        =self.config.base_url + "/conversations.open"
+      headers: =self.config.headers
       body:
         users: =inputs.user_id
     returns:
@@ -55,8 +55,8 @@ execution:
     params:
       method: POST
       url: >
-        platform.base_url + "/chat.postMessage"
-      headers: =platform.headers
+        =self.config.base_url + "/chat.postMessage"
+      headers: =self.config.headers
       body:
         channel: =steps.open_dm.body.channel.id
         text: =inputs.text

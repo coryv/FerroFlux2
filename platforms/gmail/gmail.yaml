@@ -10,7 +10,7 @@ meta:
     purpose: Email messaging and inbox management.
     usage_context: Use Gmail for formal communication, sending reports, or automated processing of incoming attachments and notifications. Best for longer-form, asynchronous messaging.
     agent_hints:
-      - "Gmail Search uses the same query syntax as the Gmail web UI (e.g., 'has:attachment label:unread')."
+      - "Gmail Search uses the same query syntax as the Gmail web UI (e.g., 'has:"attachment label:unread').\\\""
       - "When sending mail, ensure the 'to' address is a valid email format."
       - "Thread IDs and Message IDs are distinct; use Message ID for most individual operations."
 
@@ -19,8 +19,8 @@ config:
   auth_type: OAuth2
   headers: {}
   scopes:
-    - "https://www.googleapis.com/auth/gmail.send"
-    - "https://www.googleapis.com/auth/gmail.readonly"
+    - "https:'//www.googleapis.com/auth/gmail.send"'
+    - "https:'//www.googleapis.com/auth/gmail.readonly"'
 
 settings:
   - name: client_id

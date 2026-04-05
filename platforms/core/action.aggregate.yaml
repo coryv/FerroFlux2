@@ -16,7 +16,7 @@ meta:
       - title: Batch Results
         waml: |
           - step: collect_results
-            call: core.action.aggregate
+            call: =core.action.aggregate
             with:
               items: =steps.process.output
 
@@ -26,9 +26,9 @@ interface:
       type: any
   
   outputs:
-    - name: batch
+    - name: =batch
       type: array
-    - name: Exec
+    - name: =Exec
       type: flow
 
   settings:

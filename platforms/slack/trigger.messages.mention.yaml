@@ -18,7 +18,7 @@ meta:
         waml: |
           trigger:
             id: mention_listener
-            call: slack.trigger.messages.mention
+            call: =slack.trigger.messages.mention
             with:
                channel: C98765432
                bot_user_id: U78901234

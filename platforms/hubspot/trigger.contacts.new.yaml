@@ -18,7 +18,7 @@ meta:
         waml: |
           trigger:
             new_lead:
-               call: hubspot.trigger.contacts.new
+               call: =hubspot.trigger.contacts.new
                with:
                   properties: ["email", "firstname"]
 

@@ -17,7 +17,7 @@ meta:
       - title: Get User's Email
         waml: |
           - step: fetch_profile
-            call: slack.action.users.get
+            call: =slack.action.users.get
             with:
                user_id: U12345678
 
@@ -42,8 +42,8 @@ execution:
     params:
       method: GET
       url: >
-        platform.slack.base_url + "/users.info"
-      headers: =platform.slack.headers
+        =self.config.base_url + "/users.info"
+      headers: =self.config.headers
       query:
         user: =inputs.user_id
     returns:

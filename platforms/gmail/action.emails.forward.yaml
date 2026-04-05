@@ -16,7 +16,7 @@ meta:
       - title: Forward to Team
         waml: |
           - step: forward_email
-            call: gmail.emails.forward
+            call: =gmail.emails.forward
             with:
                message_id: 18e986fe...
                to: team@company.com
@@ -37,7 +37,7 @@ interface:
 
 execution:
   - id: get_original
-    tool: http_client
+    tool: =http_client
     params:
       method: GET
       url: >

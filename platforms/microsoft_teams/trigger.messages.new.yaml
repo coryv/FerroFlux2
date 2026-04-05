@@ -17,7 +17,7 @@ meta:
         waml: |
           - step: on_teams_msg
             type: trigger
-            call: microsoft_teams.trigger.messages.new
+            call: =microsoft_teams.trigger.messages.new
 
 interface:
   inputs: []
@@ -46,7 +46,7 @@ execution:
     params:
       method: GET
       url: >
-        "https://graph.microsoft.com/v1.0/teams/" + settings.team_id + "/channels/" + settings.channel_id + "/messages/delta"
+        "https:'=//graph.microsoft.com/v1.0/teams/" + settings.team_id + "/channels/" + settings.channel_id + "/messages/delta"'
       headers: =platform.headers
       query:
         $filter: >

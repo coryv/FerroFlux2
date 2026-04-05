@@ -15,20 +15,20 @@ meta:
       - title: Get User ID
         waml: |
           - step: load_id
-            call: core.action.get_var
+            call: =core.action.get_var
             with:
               name: user_id
 
 interface:
   inputs:
-    - name: Exec
+    - name: =Exec
       type: flow
   outputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: Error
       type: flow
-    - name: value
+    - name: =value
       type: any
 
   settings:
@@ -41,7 +41,7 @@ execution:
   - id: get
     tool: get_var
     params:
-      name: =settings.variable_name
+      name: settings.variable_name
     returns:
       value: var_val
 

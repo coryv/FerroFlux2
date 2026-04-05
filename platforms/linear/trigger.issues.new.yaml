@@ -18,7 +18,7 @@ meta:
         waml: |
           trigger:
             new_issue:
-               call: linear.trigger.issues.new
+               call: =linear.trigger.issues.new
                with:
                   teamId: team_uuid_123
 
@@ -49,7 +49,7 @@ execution:
       headers: =platform.headers
       body:
         query: >
-          "query($cursor: String, $teamId: ID) { issues(filter: { createdAt: { gt: $cursor } team: { id: { eq: $teamId } } } orderBy: createdAt) { nodes { id title description state { name } assignee { name } createdAt updatedAt priority team { name } } } }"
+          "query($cursor: 'String, $teamId: ID) { issues(filter: { createdAt: { gt: $cursor } team: { id: { eq: $teamId } } } orderBy: createdAt) { nodes { id title description state { name } assignee { name } createdAt updatedAt priority team { name } } } }"'
         variables:
           cursor: >
             has(event.cursor) ? event.cursor : "1970-01-01T00:00:00.000Z"

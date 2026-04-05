@@ -17,7 +17,7 @@ meta:
         waml: |
           - step: listen
             type: trigger
-            call: core.trigger.sse
+            call: =core.trigger.sse
             settings:
               url: "https://api.example.com/events"
   # RUNTIME NOTE: This trigger requires a persistent SSE connection manager in the
@@ -62,7 +62,7 @@ interface:
       required: false
       description: Optional connection for authenticated SSE endpoints (Bearer, OAuth2, etc.)
 
-    - name: headers
+    - name: =headers
       label: Extra Headers
       type: object
       required: false

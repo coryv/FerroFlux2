@@ -15,7 +15,7 @@ meta:
       - title: Transform Data
         waml: |
           - step: transform
-            call: core.action.script
+            call: =core.action.script
             with:
               code: "return inputs.data.map(i => i.toUpperCase())"
 

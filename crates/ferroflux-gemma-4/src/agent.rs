@@ -10,7 +10,7 @@ use anyhow::{anyhow, Result};
 use candle_core::{DType, Device, Tensor};
 use candle_transformers::generation::{LogitsProcessor, Sampling};
 use candle_transformers::models::gemma4::{config::Gemma4TextConfig, text::TextModel};
-use candle_transformers::models::quantized_gemma3::ModelWeights;
+use crate::quantized_gemma4::ModelWeights;
 use hf_hub::{api::sync::Api, Repo, RepoType};
 use tokenizers::Tokenizer;
 

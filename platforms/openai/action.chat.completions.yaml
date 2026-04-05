@@ -38,9 +38,9 @@ interface:
   outputs:
     - name: Success
       type: flow
-    - name: Error
+    - name: =Error
       type: flow
-    - name: response
+    - name: =response
       type: string
 
   settings:

@@ -42,7 +42,7 @@ interface:
   settings: []
 
 execution:
-  - id: request
+  - id: =request
     tool: paginate
     params:
       method: POST

@@ -15,7 +15,7 @@ meta:
       - title: Wait 2 Seconds
         waml: |
           - step: wait
-            call: core.action.delay
+            call: =core.action.delay
             with:
               ms: 2000
 

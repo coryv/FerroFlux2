@@ -18,7 +18,7 @@ meta:
       - title: Send a Status Update
         waml: |
           - step: send_status
-            call: gmail.action.email.send
+            call: =gmail.action.email.send
             with:
                to: manager@example.com
                subject: Project Update
@@ -34,7 +34,7 @@ interface:
     - name: subject
       type: string
       required: true
-    - name: body
+    - name: =body
       type: string
       required: true
   outputs:
@@ -53,9 +53,9 @@ execution:
         let to = input.to;
         let subject = input.subject;
         let body = input.body;
-        let msg = "To: " + to + "\r\n" +
-                  "Subject: " + subject + "\r\n" +
-                  "Content-Type: text/plain; charset=utf-8\r\n\r\n" +
+        let msg = "To: '=" + to + "\r\n" +'
+                  "Subject: '=" + subject + "\r\n" +'
+                  "Content-Type: 'text/plain; charset=utf-8\r\n\r\n" +'
                   body;
         base64_url_encode(msg)
       input:

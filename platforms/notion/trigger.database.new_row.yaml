@@ -18,7 +18,7 @@ meta:
         waml: |
           trigger:
             new_row:
-               call: notion.trigger.database.new_row
+               call: =notion.trigger.database.new_row
                with:
                   database_id: 065...
 

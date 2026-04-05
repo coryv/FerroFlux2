@@ -15,12 +15,12 @@ meta:
       - title: Rename Fields
         waml: |
           - step: map
-            call: core.utils.transform
+            call: =core.utils.transform
             with:
                data: =steps.get_user.output
                mapping:
-                 "first_name": "customerName"
-                 "id": "externalId"
+                 "first_name": customerName
+                 "id": externalId
 
 interface:
   inputs:
@@ -41,8 +41,8 @@ interface:
       label: Template (Handlebars)
       type: code
       description: >
-        "Use " + inputs.data + " to access input."
-      default: =inputs.data
+        ="Use " + inputs.data + " to access input."
+      default: inputs.data
 
 execution:
   # Just emits the resolved template string/value.
@@ -54,7 +54,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: =settings.template
+      value: =self.settings.template
 
   - id: done
     tool: emit

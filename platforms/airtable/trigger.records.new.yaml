@@ -19,7 +19,7 @@ meta:
         waml: |
           trigger:
             id: airtable_new_lead
-            call: airtable.trigger.records.new
+            call: =airtable.trigger.records.new
             with:
               base_id: app123456789
               table_id_or_name: Leads
@@ -54,10 +54,10 @@ execution:
         platform.base_url + "/" + settings.base_id + "/" + settings.table_name
       headers: =platform.headers
       query:
-        sort[0][field]: "Created Time"
+        sort[0][field]: Created Time
         sort[0][direction]: asc
         filterByFormula: >
-          has(event.cursor) ? "IS_AFTER(CREATED_TIME(), '" + event.cursor + "')" : "1=1"
+          has(event.cursor) ? "IS_AFTER(CREATED_TIME(), '" + event.cursor + "')" : 1=1
         pageSize: 50
     returns:
       status: status_code

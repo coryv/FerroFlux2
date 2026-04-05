@@ -15,7 +15,7 @@ meta:
       - title: Verify Signature
         waml: |
           - step: verify
-            call: core.utils.crypto
+            call: =core.utils.crypto
             with:
                action: hmac_sha256
                key: env.WEBHOOK_SECRET
@@ -23,10 +23,10 @@ meta:
 
 interface:
   inputs:
-    - name: Exec
+    - name: =Exec
       type: flow
   outputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: Error
       type: flow
@@ -54,7 +54,7 @@ interface:
 
 execution:
   - id: crypto
-    tool: core.utils.crypto
+    tool: =core.utils.crypto
     params:
       operation: =settings.operation
       input: =settings.input

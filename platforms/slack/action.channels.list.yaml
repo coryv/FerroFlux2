@@ -17,7 +17,7 @@ meta:
       - title: List All Public Channels
         waml: |
           - step: get_channels
-            call: slack.action.channels.list
+            call: =slack.action.channels.list
             with:
                types: public_channel
 

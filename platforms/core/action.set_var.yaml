@@ -15,7 +15,7 @@ meta:
       - title: Save Result
         waml: |
           - step: save
-            call: core.action.set_var
+            call: =core.action.set_var
             with:
               name: total_count
               value: 42
@@ -40,7 +40,7 @@ execution:
   - id: set
     tool: set_var
     params:
-      name: =settings.variable_name
+      name: settings.variable_name
       value: =inputs.value
 
   - id: done

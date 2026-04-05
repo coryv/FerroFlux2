@@ -17,7 +17,7 @@ meta:
         waml: |
           - step: on_sms
             type: trigger
-            call: twilio.trigger.sms.received
+            call: =twilio.trigger.sms.received
 
 interface:
   inputs: []

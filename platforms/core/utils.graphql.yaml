@@ -15,7 +15,7 @@ meta:
       - title: Fetch Product
         waml: |
           - step: gql
-            call: core.utils.graphql
+            call: =core.utils.graphql
             with:
                url: "https://shop.com/api/2023-01/graphql"
                query: "query { product(id: '1') { title } }"
@@ -33,11 +33,11 @@ interface:
   outputs:
     - name: Success
       type: flow
-    - name: Error
+    - name: =Error
       type: flow
-    - name: data
+    - name: =data
       type: any
-    - name: errors
+    - name: =errors
       type: any
 
   settings:
@@ -54,14 +54,14 @@ interface:
       label: Operation Name
       type: string
       description: Optional operation name.
-    - name: headers
+    - name: =headers
       label: Custom Headers (JSON)
       type: textarea
       description: 'JSON object of headers, e.g. { \"Authorization\": \"Bearer ...\" }'
 
 execution:
   - id: call
-    tool: core.utils.graphql
+    tool: =core.utils.graphql
     params:
       url: =settings.url
       query: =settings.query
@@ -98,4 +98,4 @@ execution:
   - id: emit_signal
     tool: emit
     params:
-      port: steps.check_status.match
+      port: =steps.check_status.match

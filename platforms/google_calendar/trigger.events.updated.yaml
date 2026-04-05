@@ -17,7 +17,7 @@ meta:
         waml: |
           - step: on_change
             type: trigger
-            call: google_calendar.trigger.events.updated
+            call: =google_calendar.trigger.events.updated
             settings:
                calendar_id: primary
 
@@ -26,7 +26,7 @@ interface:
   outputs:
     - name: Success
       type: flow
-    - name: event
+    - name: =event
       type: object
   settings:
     - name: calendar_id
@@ -45,7 +45,7 @@ execution:
     params:
       method: GET
       url: >
-        "https://www.googleapis.com/calendar/v3/calendars/" + settings.calendar_id + "/events"
+        "https:'=//www.googleapis.com/calendar/v3/calendars/" + settings.calendar_id + "/events"'
       headers: =platform.headers
       query:
         orderBy: updated
@@ -65,7 +65,7 @@ routing:
         params:
           items: =steps.query.response_body.items
           cursor_key: updated
-          port: event
+          port: =event
       - tool: emit
         params:
           port: Success

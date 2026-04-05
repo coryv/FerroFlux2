@@ -16,7 +16,7 @@ meta:
       - title: Return User Data
         waml: |
           - step: output
-            call: core.action.subflow_output
+            call: =core.action.subflow_output
             with:
               user: =steps.get_user.body
               status: active

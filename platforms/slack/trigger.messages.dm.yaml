@@ -18,7 +18,7 @@ meta:
         waml: |
           trigger:
             id: dm_listener
-            call: slack.trigger.messages.dm
+            call: =slack.trigger.messages.dm
             with:
                user_id: U12345678
 
@@ -44,7 +44,7 @@ interface:
 
 execution:
   - id: open_dm
-    tool: http_client
+    tool: =http_client
     params:
       method: POST
       url: >

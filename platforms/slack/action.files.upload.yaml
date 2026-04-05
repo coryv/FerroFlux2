@@ -17,7 +17,7 @@ meta:
       - title: Upload a Report to a Channel
         waml: |
           - step: share_report
-            call: slack.action.files.upload
+            call: =slack.action.files.upload
             with:
                file: =steps.generate_pdf.blob
                filename: daily_report.pdf

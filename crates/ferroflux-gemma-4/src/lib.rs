@@ -3,6 +3,7 @@ pub mod config;
 pub mod device;
 pub mod model_selector;
 pub mod parse;
+pub mod quantized_gemma4;
 pub mod syscheck;
 pub mod template;
 pub mod types;

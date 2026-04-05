@@ -15,19 +15,19 @@ meta:
       - title: Strip Tags
         waml: |
           - step: clean_text
-            call: core.utils.html
+            call: =core.utils.html
             with:
                action: strip_tags
                html: "<div>Hello <b>World</b></div>"
 
 interface:
   inputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: html
       type: string
   outputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: Error
       type: flow
@@ -45,7 +45,7 @@ interface:
 
 execution:
   - id: extract
-    tool: core.utils.html
+    tool: =core.utils.html
     params:
       html: =inputs.html
       selector: =settings.selector

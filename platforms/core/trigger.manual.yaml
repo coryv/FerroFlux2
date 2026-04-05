@@ -16,7 +16,7 @@ meta:
         waml: |
           - step: run_manual
             type: trigger
-            call: core.trigger.manual
+            call: =core.trigger.manual
 
 interface:
   inputs: []

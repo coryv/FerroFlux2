@@ -15,19 +15,19 @@ meta:
       - title: Parse RSS Feed
         waml: |
           - step: rss
-            call: core.utils.xml
+            call: =core.utils.xml
             with:
                action: parse
                xml: =steps.get_feed.output
 
 interface:
   inputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: xml
       type: string
   outputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: Error
       type: flow
@@ -36,7 +36,7 @@ interface:
 
 execution:
   - id: parse
-    tool: core.utils.xml
+    tool: =core.utils.xml
     params:
       xml: =inputs.xml
     returns:

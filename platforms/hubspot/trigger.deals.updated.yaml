@@ -18,7 +18,7 @@ meta:
         waml: |
           trigger:
             deal_won:
-               call: hubspot.trigger.deals.updated
+               call: =hubspot.trigger.deals.updated
                with:
                   properties: ["dealstage", "amount"]
 

@@ -15,7 +15,7 @@ meta:
 
 config:
   base_url: >
-    "smtp://" + settings.host
+    "smtp:'=//" + settings.host'
   auth: none # Credentials handled directly by the smtp tool
 
 settings:

@@ -42,7 +42,7 @@ execution:
       headers: =platform.headers
       query:
         query: >
-          "type:ticket updated>" + state.last_poll
+          "type:'=ticket updated>" + state.last_poll'
         sort_by: updated_at
         sort_order: asc
     returns:

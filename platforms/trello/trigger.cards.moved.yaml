@@ -18,7 +18,7 @@ meta:
         waml: |
           trigger:
             task_done:
-               call: trello.trigger.cards.moved
+               call: =trello.trigger.cards.moved
                with:
                   idBoard: 65e...
 

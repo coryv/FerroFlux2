@@ -18,7 +18,7 @@ meta:
         waml: |
           trigger:
             id: admin_reaction_monitor
-            call: slack.trigger.reactions.new
+            call: =slack.trigger.reactions.new
             with:
                user_id: U78901234
 

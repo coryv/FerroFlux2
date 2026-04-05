@@ -15,19 +15,19 @@ meta:
       - title: Create Invoice PDF
         waml: |
           - step: write_pdf
-            call: core.utils.pdf_write
+            call: =core.utils.pdf_write
             with:
                filename: invoice.pdf
                content: "# Invoice\n\n- Item 1: $10.00"
 
 interface:
   inputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: content
       type: string
   outputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: Error
       type: flow
@@ -41,7 +41,7 @@ interface:
 
 execution:
   - id: write
-    tool: core.utils.pdf_write
+    tool: =core.utils.pdf_write
     params:
       title: =settings.title
       content: =inputs.content

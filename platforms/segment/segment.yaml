@@ -12,7 +12,7 @@ meta:
       - "Uses the Segment Write Key for authentication (Basic Auth)."
       - "Interactions follow the standard 'identify', 'track', and 'group' patterns."
   permissions:
-    - "network:api.segment.io"
+    - "network:'api.segment.io"'
 
 config:
   base_url: "https://api.segment.io/v1"

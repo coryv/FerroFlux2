@@ -11,7 +11,7 @@ actions:
         method: POST
         body_template: |
           {
-            "channel": "{{ channel }}",
+            "channel": '"{{ channel }}",'
             "text": "{{ text }}"
           }
     inputs:

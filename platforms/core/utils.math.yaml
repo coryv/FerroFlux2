@@ -15,20 +15,20 @@ meta:
       - title: Calculate Sales Tax
         waml: |
           - step: tax
-            call: core.utils.math
+            call: =core.utils.math
             with:
                expression: '="=" + inputs.subtotal + " * 0.08"'
 
 interface:
   inputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: a
       type: any
     - name: b
       type: any
   outputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: Error
       type: flow
@@ -62,7 +62,7 @@ execution:
     params:
       a: =inputs.a
       b: =inputs.b
-      op: =settings.operation
+      op: =self.settings.operation
     returns:
       result: result
 

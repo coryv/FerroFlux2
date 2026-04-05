@@ -17,7 +17,7 @@ meta:
         waml: |
           - step: log_sub
             type: trigger
-            call: stripe.trigger.subscriptions.updated
+            call: =stripe.trigger.subscriptions.updated
 
 interface:
   inputs: []

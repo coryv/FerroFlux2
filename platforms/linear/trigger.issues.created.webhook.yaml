@@ -18,7 +18,7 @@ meta:
         waml: |
           trigger:
             raw_bug:
-               call: linear.trigger.issues.created.webhook
+               call: =linear.trigger.issues.created.webhook
                with: {} 
 
 interface:

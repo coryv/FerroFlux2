@@ -36,7 +36,7 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: rows
+    - name: =rows
       type: array
 
 execution:
@@ -58,5 +58,5 @@ routing:
           port: Success
       - tool: emit
         params:
-          port: rows
+          port: =rows
           value: =steps.sql.rows

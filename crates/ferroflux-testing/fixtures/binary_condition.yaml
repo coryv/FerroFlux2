@@ -33,7 +33,7 @@ nodes:
     type: core.action.log
     config:
       level: INFO
-      message: "a <= b"
+      message: "=a <= b"
 edges:
   - source_id: webhook_in
     source_handle: Success

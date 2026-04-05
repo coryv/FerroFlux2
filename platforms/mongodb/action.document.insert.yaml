@@ -37,7 +37,7 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: inserted_id
+    - name: =inserted_id
       type: string
 
 execution:
@@ -61,5 +61,5 @@ routing:
           port: Success
       - tool: emit
         params:
-          port: inserted_id
+          port: =inserted_id
           value: =steps.insert.inserted_id

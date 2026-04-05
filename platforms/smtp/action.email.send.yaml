@@ -52,7 +52,7 @@ execution:
     tool: smtp
     params:
       host: =settings.host
-      port: settings.port
+      port: =settings.port
       username: =settings.username
       password: =settings.password
       encryption: =settings.encryption

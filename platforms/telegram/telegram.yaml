@@ -15,7 +15,7 @@ meta:
 
 config:
   base_url: >
-    "https://api.telegram.org/bot" + settings.bot_token
+    "https:'=//api.telegram.org/bot" + settings.bot_token'
   headers:
     Content-Type: application/json
 

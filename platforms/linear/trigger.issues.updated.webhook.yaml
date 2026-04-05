@@ -18,7 +18,7 @@ meta:
         waml: |
           trigger:
             issue_change:
-               call: linear.trigger.issues.updated.webhook
+               call: =linear.trigger.issues.updated.webhook
                with: {}
 
 interface:

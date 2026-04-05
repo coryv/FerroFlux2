@@ -16,7 +16,7 @@ meta:
       - title: Cache User Session
         waml: |
           - step: cache_session
-            call: =redis.action.keys.set
+            call: redis.action.keys.set
             with:
                key: "session:user_456"
                value: active

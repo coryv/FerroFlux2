@@ -15,7 +15,7 @@ meta:
 
 config:
   base_url: >
-    "https://" + settings.domain + ".atlassian.net/wiki/api/v2"
+    "https:'=//" + settings.domain + ".atlassian.net/wiki/api/v2"'
   headers:
     Authorization: >
       "Bearer " + settings.connection.access_token

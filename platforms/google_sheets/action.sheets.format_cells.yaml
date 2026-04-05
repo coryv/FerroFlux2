@@ -16,7 +16,7 @@ meta:
       - title: Highlight Row
         waml: |
           - step: highlight
-            call: google_sheets.action.sheets.format_cells
+            call: =google_sheets.action.sheets.format_cells
             with:
                spreadsheet_id: 12345abcdefg
                sheet_id: 0

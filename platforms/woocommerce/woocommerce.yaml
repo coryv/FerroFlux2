@@ -16,7 +16,7 @@ meta:
 
 config:
   base_url: >
-    "https://" + store_url + "/wp-json/wc/v3"
+    "https:'=//" + store_url + "/wp-json/wc/v3"'
   auth_type: basic
   auth:
     type: basic

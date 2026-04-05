@@ -15,21 +15,21 @@ meta:
       - title: Parse String
         waml: |
           - step: parse
-            call: core.utils.json
+            call: =core.utils.json
             with:
                action: parse
                data: =inputs.raw_string
 
 interface:
   inputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: input
       type: any
     - name: other
       type: any
   outputs:
-    - name: Exec
+    - name: =Exec
       type: flow
     - name: Error
       type: flow
@@ -57,12 +57,12 @@ interface:
 
 execution:
   - id: transform
-    tool: core.utils.json
+    tool: =core.utils.json
     params:
-      operation: =settings.operation
+      operation: =self.settings.operation
       input: =inputs.input
-      expression: =settings.expression
-      other: "has(inputs.other) ? inputs.other : settings.other"
+      expression: =self.settings.expression
+      other: "=has(inputs.other) ? inputs.other : self.settings.other"
     returns:
       result: transformed
 

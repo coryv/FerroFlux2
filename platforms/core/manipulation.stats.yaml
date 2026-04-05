@@ -2,7 +2,7 @@ context: null
 execution:
   - id: analyze
     params:
-      data: inputs
+      data: =inputs
       detect_outliers: =settings.detect_outliers
       enrichment_key: =settings.enrichment_key
       target_field: =settings.target_field
@@ -57,7 +57,7 @@ meta:
       - title: Analyze Prices
         waml: |
           - step: analyze_prices
-            call: core.manipulation.stats
+            call: =core.manipulation.stats
             with:
               target_field: price
               detect_outliers: true

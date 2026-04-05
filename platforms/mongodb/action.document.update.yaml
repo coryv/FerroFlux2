@@ -43,9 +43,9 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: matched_count
+    - name: =matched_count
       type: number
-    - name: modified_count
+    - name: =modified_count
       type: number
 
 execution:
@@ -71,9 +71,9 @@ routing:
           port: Success
       - tool: emit
         params:
-          port: matched_count
+          port: =matched_count
           value: =steps.update.matched_count
       - tool: emit
         params:
-          port: modified_count
+          port: =modified_count
           value: =steps.update.modified_count

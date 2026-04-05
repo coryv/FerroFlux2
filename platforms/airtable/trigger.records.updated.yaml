@@ -17,7 +17,7 @@ meta:
         waml: |
           - step: on_update
             type: trigger
-            call: airtable.trigger.records.updated
+            call: =airtable.trigger.records.updated
             settings:
                baseId: app12345
                tableIdOrName: Inventory
@@ -52,10 +52,10 @@ execution:
         platform.base_url + "/" + settings.base_id + "/" + settings.table_name
       headers: =platform.headers
       query:
-        sort[0][field]: "Last Modified Time"
+        sort[0][field]: Last Modified Time
         sort[0][direction]: asc
         filterByFormula: >
-          has(event.cursor) ? "IS_AFTER(LAST_MODIFIED_TIME(), '" + event.cursor + "')" : "1=1"
+          has(event.cursor) ? "IS_AFTER(LAST_MODIFIED_TIME(), '" + event.cursor + "')" : 1=1
         pageSize: 50
     returns:
       status: status_code

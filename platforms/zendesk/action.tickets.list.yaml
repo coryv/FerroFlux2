@@ -34,7 +34,7 @@ interface:
       type: array
 
 execution:
-  - id: request
+  - id: =request
     tool: paginate
     params:
       method: GET
