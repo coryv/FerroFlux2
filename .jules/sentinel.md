@@ -1,0 +1,4 @@
+## 2024-05-18 - Master Key Exposure via Permissive File Permissions
+**Vulnerability:** The `ferroflux.key` master encryption key was being generated and saved to disk using `std::fs::write`, which defaults to permissive file permissions (e.g., `0o644`). This exposes the symmetric encryption key to any other user on the shared system.
+**Learning:** Default file creation APIs like `std::fs::write` are unsafe for secrets on Unix systems because they do not enforce restrictive file modes, relying instead on the system's potentially permissive umask.
+**Prevention:** Always use `std::fs::OpenOptions` combined with `std::os::unix::fs::OpenOptionsExt` to explicitly set `mode(0o600)` when creating files that store secrets. Use conditional compilation `#[cfg(unix)]` to maintain cross-platform compatibility.
