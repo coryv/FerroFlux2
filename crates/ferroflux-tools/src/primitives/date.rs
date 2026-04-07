@@ -71,7 +71,7 @@ mod tests {
             shadow_mode: false,
             shadow_masks: &masks,
             store: None,
-            secrets: None,
+            secrets: None, executor: None,
         };
         let params = json!({ "operation": "now" });
         let res = tool.run(&mut ctx, params).unwrap();
@@ -94,7 +94,7 @@ mod tests {
             shadow_mode: false,
             shadow_masks: &masks,
             store: None,
-            secrets: None,
+            secrets: None, executor: None,
         };
         let params = json!({
             "operation": "parse",
@@ -120,7 +120,7 @@ mod tests {
             shadow_mode: false,
             shadow_masks: &masks,
             store: None,
-            secrets: None,
+            secrets: None, executor: None,
         };
         let params = json!({
             "operation": "diff",

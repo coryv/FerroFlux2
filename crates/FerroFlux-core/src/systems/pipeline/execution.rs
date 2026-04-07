@@ -192,6 +192,17 @@ pub fn execute_pipeline_node(
                 None
             };
 
+            let executor = crate::tools::CoreActionExecutor {
+                definitions,
+                tools,
+                event_bus: event_bus.clone(),
+                store,
+                secret_store,
+                runtime: runtime.unwrap(), // Runtime is required for executors
+                refresh_locks,
+                workflow_config: workflow_config.clone(),
+            };
+ 
             let mut tool_ctx = ToolContext {
                 local: &mut ctx_map,
                 memory: global_memory,
@@ -203,6 +214,7 @@ pub fn execute_pipeline_node(
                 shadow_masks: masks_ref,
                 store,
                 secrets: secrets_resolver.as_ref().map(|r| r as &dyn crate::tools::SecretResolver),
+                executor: Some(&executor as &dyn ferroflux_types::tool::ActionExecutor),
             };
 
             let result = tool.run(&mut tool_ctx, resolved_params)?;
@@ -295,6 +307,7 @@ pub fn execute_pipeline_node(
                     shadow_masks: &std::collections::HashMap::new(),
                     store,
                     secrets: None,
+                    executor: None, // Routing actions don't get executor for now to avoid cycles
                 };
 
                 let result = tool.run(&mut tool_ctx, resolved_params)?;

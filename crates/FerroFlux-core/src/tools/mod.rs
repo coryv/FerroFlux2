@@ -67,3 +67,66 @@ impl<'a> SecretResolver for CoreSecretResolver<'a> {
             .block_on(async { self.store.get_secret(tenant, key).await })
     }
 }
+
+/// Implementation of `ActionExecutor` for the core engine.
+pub struct CoreActionExecutor<'a> {
+    pub definitions: &'a crate::resources::DefinitionRegistry,
+    pub tools: &'a ferroflux_types::tool::ToolRegistry,
+    pub event_bus: Option<crate::api::events::SystemEventBus>,
+    pub store: Option<&'a crate::store::BlobStore>,
+    pub secret_store: Option<&'a crate::secrets::DatabaseSecretStore>,
+    pub runtime: &'a ferroflux_types::resources::TokioRuntime,
+    pub refresh_locks: Option<&'a ferroflux_db::oauth2::TokenRefreshLocks>,
+    pub workflow_config: HashMap<String, Value>,
+}
+
+impl<'a> ferroflux_types::tool::ActionExecutor for CoreActionExecutor<'a> {
+    fn execute(
+        &self,
+        _tenant_id: &ferroflux_types::tenant::TenantId,
+        action_id: &str,
+        params: Value,
+        context: &mut ToolContext,
+    ) -> anyhow::Result<Value> {
+        use crate::components::pipeline::PipelineNode;
+        use crate::components::execution_state::ActiveWorkflowState;
+
+        let mut node = PipelineNode::new(
+            action_id.to_string(),
+            params.as_object().cloned().unwrap_or_default().into_iter().collect(),
+        );
+
+        let mut workflow_state = ActiveWorkflowState::default();
+        // Propagate current context to the sub-action if needed
+        // For 'Call', we often start fresh or pass explicit inputs.
+
+        let emissions = crate::systems::pipeline::execution::execute_pipeline_node(
+            &mut node,
+            &mut workflow_state,
+            self.definitions,
+            self.tools,
+            context.memory,
+            context.trace_id.clone(),
+            self.event_bus.clone(),
+            self.store,
+            None, // No shadow mode for sub-calls yet
+            None,
+            self.secret_store,
+            Some(self.runtime),
+            self.refresh_locks,
+            self.workflow_config.clone(),
+        )?;
+
+        // Return the first value from any numeric/string port, or the whole Success object
+        for (port, val, _) in emissions {
+            if port != "_next" {
+                return Ok(val);
+            }
+        }
+
+        Ok(Value::Null)
+    }
+}
+
+use serde_json::Value;
+use std::collections::HashMap;

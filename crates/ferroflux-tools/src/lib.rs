@@ -47,5 +47,6 @@ pub fn register_core_tools(registry: &mut ToolRegistry) {
     registry.register(SplitTool);
     registry.register(AggregateTool);
     registry.register(AgentTool);
+    registry.register(CallTool);
 }
 

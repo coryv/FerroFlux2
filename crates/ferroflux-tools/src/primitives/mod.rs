@@ -34,6 +34,7 @@ pub mod pdf_write;
 pub mod crypto;
 pub mod graphql;
 pub mod agent;
+pub mod call;
 
 pub use self::aggregate::AggregateTool;
 pub use self::emit::EmitTool;
@@ -58,6 +59,7 @@ pub use self::pdf_write::PdfWriteTool;
 pub use self::crypto::CryptoTool;
 pub use self::graphql::GraphQlTool;
 pub use self::agent::AgentTool;
+pub use self::call::CallTool;
 
 pub use self::trace::TraceTool;
 pub use self::variable::{GetVarTool, SetVarTool};

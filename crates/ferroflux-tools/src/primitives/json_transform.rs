@@ -105,7 +105,7 @@ mod tests {
             shadow_mode: false,
             shadow_masks: &masks,
             store: None,
-            secrets: None,
+            secrets: None, executor: None,
         };
         let params = json!({
             "operation": "query",
@@ -132,7 +132,7 @@ mod tests {
             shadow_mode: false,
             shadow_masks: &masks,
             store: None,
-            secrets: None,
+            secrets: None, executor: None,
         };
         let params = json!({
             "operation": "merge",
@@ -161,7 +161,7 @@ mod tests {
             shadow_mode: false,
             shadow_masks: &masks,
             store: None,
-            secrets: None,
+            secrets: None, executor: None,
         };
         let params = json!({
             "operation": "flatten",

@@ -52,7 +52,7 @@ async fn test_case_3_12_graphql_query() -> anyhow::Result<()> {
 
     // Verify mock request
     let requests = harness.mock_server().received_requests().await.unwrap();
-    assert!(requests.len() >= 1, "expected at least 1 GraphQL request");
+    assert!(!requests.is_empty(), "expected at least 1 GraphQL request");
 
     Ok(())
 }

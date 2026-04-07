@@ -33,6 +33,19 @@ pub struct ToolContext<'a> {
     pub store: Option<&'a BlobStore>,
     /// Resolver for connections and secrets.
     pub secrets: Option<&'a dyn SecretResolver>,
+    /// Interface for executing platform actions from within a tool.
+    pub executor: Option<&'a dyn ActionExecutor>,
+}
+
+/// Interface for executing platform actions from within a tool.
+pub trait ActionExecutor: Send + Sync {
+    fn execute(
+        &self,
+        tenant_id: &crate::tenant::TenantId,
+        action_id: &str,
+        params: Value,
+        context: &mut ToolContext,
+    ) -> Result<Value>;
 }
 
 /// Abstract interface for resolving secrets and connections.

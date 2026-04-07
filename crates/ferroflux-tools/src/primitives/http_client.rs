@@ -263,6 +263,7 @@ mod tests {
                 shadow_masks: $masks,
                 store: None,
                 secrets: None,
+                executor: None,
             }
         };
         ($local:expr, $memory:expr, $masks:expr, store: $store:expr) => {
@@ -277,6 +278,7 @@ mod tests {
                 shadow_masks: $masks,
                 store: Some($store),
                 secrets: None,
+                executor: None,
             }
         };
     }

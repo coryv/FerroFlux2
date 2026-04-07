@@ -299,6 +299,7 @@ mod tests {
                 shadow_masks: $masks,
                 store: None,
                 secrets: None,
+                executor: None,
             }
         };
     }

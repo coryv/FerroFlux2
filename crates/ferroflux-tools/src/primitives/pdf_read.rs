@@ -48,7 +48,7 @@ mod tests {
             shadow_mode: false,
             shadow_masks: &masks,
             store: None,
-            secrets: None,
+            secrets: None, executor: None,
         };
         let params = json!({
             "pdf_base64": "not-a-pdf"

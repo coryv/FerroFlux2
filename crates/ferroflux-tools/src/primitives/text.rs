@@ -73,7 +73,7 @@ mod tests {
             shadow_mode: false,
             shadow_masks: &masks,
             store: None,
-            secrets: None,
+            secrets: None, executor: None,
         };
         let params = json!({
             "operation": "match",
@@ -101,7 +101,7 @@ mod tests {
             shadow_mode: false,
             shadow_masks: &masks,
             store: None,
-            secrets: None,
+            secrets: None, executor: None,
         };
         let params = json!({
             "operation": "slugify",
@@ -127,7 +127,7 @@ mod tests {
             shadow_mode: false,
             shadow_masks: &masks,
             store: None,
-            secrets: None,
+            secrets: None, executor: None,
         };
         let params = json!({
             "operation": "truncate",

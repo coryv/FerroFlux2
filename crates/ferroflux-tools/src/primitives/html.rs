@@ -54,7 +54,7 @@ mod tests {
             shadow_mode: false,
             shadow_masks: &masks,
             store: None,
-            secrets: None,
+            secrets: None, executor: None,
         };
         let params = json!({
             "html": "<html><body><h1>Hello World</h1><p>Test paragraph</p></body></html>",
@@ -80,7 +80,7 @@ mod tests {
             shadow_mode: false,
             shadow_masks: &masks,
             store: None,
-            secrets: None,
+            secrets: None, executor: None,
         };
         let params = json!({
             "html": "<html><body><a href='https://example.com'>Link</a></body></html>",

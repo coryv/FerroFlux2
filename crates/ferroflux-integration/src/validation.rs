@@ -722,7 +722,7 @@ mod tests {
         let step = PipelineStep {
             id: "call".into(),
             tool: "http_client".into(),
-            params: json!({ "url": "platform.base_url + (invalid syntax", "method": "GET" }),
+            params: json!({ "url": "= platform.base_url + (invalid syntax", "method": "GET" }),
             returns: [("status".into(), "status_code".into()), ("body".into(), "body".into())].into(),
         };
         let node = make_node(

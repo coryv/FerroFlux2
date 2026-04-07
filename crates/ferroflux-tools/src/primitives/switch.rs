@@ -101,6 +101,7 @@ mod tests {
             shadow_masks: &masks,
             store: None,
             secrets: None,
+            executor: None,
         };
 
         let params = serde_json::json!({
@@ -132,6 +133,7 @@ mod tests {
             shadow_masks: &masks,
             store: None,
             secrets: None,
+            executor: None,
         };
 
         let params = serde_json::json!({
@@ -163,6 +165,7 @@ mod tests {
             shadow_masks: &masks,
             store: None,
             secrets: None,
+            executor: None,
         };
 
         let params = serde_json::json!({

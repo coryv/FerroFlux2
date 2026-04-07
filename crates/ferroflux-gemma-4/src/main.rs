@@ -33,9 +33,11 @@ async fn main() -> anyhow::Result<()> {
     println!("🚀 Initializing Gemma 4 Agent...");
     let start_load = Instant::now();
     
-    let mut config = AgentConfig::default();
-    config.enable_thinking = args.thinking;
-    config.max_new_tokens = args.max_tokens;
+    let config = AgentConfig {
+        enable_thinking: args.thinking,
+        max_new_tokens: args.max_tokens,
+        ..AgentConfig::default()
+    };
 
     // The smart loader automatically assesses system RAM (8GB threshold)
     let mut agent = GemmaAgent::load(config)?;
