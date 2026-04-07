@@ -53,8 +53,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: >
-        "https:'=//sheets.googleapis.com/v4/spreadsheets/" + settings.spreadsheet_id + "/values/" + settings.sheet_range'
+      url: >-
+        ="https://sheets.googleapis.com/v4/spreadsheets/" + settings.spreadsheet_id + "/values/" + settings.sheet_range
       headers: =platform.headers
     returns:
       status: status_code

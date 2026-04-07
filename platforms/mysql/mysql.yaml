@@ -10,7 +10,7 @@ meta:
     usage_context: Use MySQL for transactional data, structured application state, or record-keeping that requires strict schemas and ACID compliance. A world-standard for relational workloads.
     agent_hints:
       - "Queries must use standard MySQL Dialect (e.g., BACKTICKS for identifiers)."
-      - "Connection URI format: "'mysql://user:password@host:port/dbname'.\\\""
+      - "Connection URI format: 'mysql://user:password@host:port/dbname'."
       - "Standard MySQL port is 3306."
 
 config:

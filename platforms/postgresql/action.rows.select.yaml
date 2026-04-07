@@ -36,7 +36,7 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: =rows
+    - name: rows
       type: array
 
 execution:

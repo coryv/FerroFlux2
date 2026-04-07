@@ -45,8 +45,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: >
-        "https:'=//graph.microsoft.com/v1.0/teams/" + settings.team_id + "/channels/" + settings.channel_id + "/messages/delta"'
+      url: >-
+        ="https://graph.microsoft.com/v1.0/teams/" + settings.team_id + "/channels/" + settings.channel_id + "/messages/delta"
       headers: =platform.headers
       query:
         $filter: >

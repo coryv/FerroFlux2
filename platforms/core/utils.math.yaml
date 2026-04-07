@@ -21,14 +21,14 @@ meta:
 
 interface:
   inputs:
-    - name: =Exec
+    - name: Exec
       type: flow
     - name: a
       type: any
     - name: b
       type: any
   outputs:
-    - name: =Exec
+    - name: Exec
       type: flow
     - name: Error
       type: flow

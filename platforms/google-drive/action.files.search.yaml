@@ -36,12 +36,12 @@ interface:
       type: array
 
 execution:
-  - id: =request
+  - id: request
     tool: paginate
     params:
       method: GET
-      url: >
-        platform.base_url + "/files"
+      url: >-
+        =platform.base_url + "/files"
       headers: =platform.headers
       strategy: page_token
       cursor_param: pageToken

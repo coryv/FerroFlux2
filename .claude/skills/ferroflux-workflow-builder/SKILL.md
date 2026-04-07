@@ -154,19 +154,19 @@ edges:
 
 | Scenario | source_handle | target_handle |
 |---|---|---|
-| Trigger body → action input | `body` | *(omit)* |
-| Trigger query → action | `query` | *(omit)* |
-| Trigger headers → action | `headers` | *(omit)* |
-| Action success flow | `Success` | *(omit)* |
-| Action error flow | `Error` | *(omit)* |
+| Flow continuation (trigger/action → next action) | `Success` | `Exec` |
+| Error branch | `Error` | `Exec` |
+| Trigger body → action data port | `body` | `body` |
+| Trigger query → action data port | `query` | *(named input port)* |
+| Trigger headers → action data port | `headers` | *(named input port)* |
 | Named data output → named input | output port name | input port name |
-| Router branch | branch label (e.g., `"true"`, `"false"`, `"default"`) | *(omit)* |
+| Router branch | branch label (e.g., `"urgent"`, `"default"`) | `Exec` |
 
 **Rules:**
 - Triggers have no inputs — never create edges pointing *to* a trigger
-- Every action needs flow (an edge arriving at it) or it will never execute
-- Data edges carry payload; flow edges carry execution signal
-- When a trigger emits `body` and the next node needs data, wire `body → body` or rely on context (context accumulates automatically)
+- **Every action MUST have a `target_handle: Exec` flow edge or it will never execute.** Data-only edges are not enough.
+- Flow edges (`Success → Exec`, `Error → Exec`) carry the execution signal; data edges carry payload
+- Always wire both a flow edge (`Success → Exec`) AND a data edge (`body → body`) when you need both execution and data at the next node
 
 ### Step 6 — Validate
 
@@ -241,12 +241,20 @@ nodes:
       text: "Done!"
 
 edges:
+  # Flow edges — give each node its Exec signal
   - source_id: webhook_in
-    source_handle: body
+    source_handle: Success
     target_id: process
+    target_handle: Exec
   - source_id: process
     source_handle: Success
     target_id: notify
+    target_handle: Exec
+  # Data edge — pass webhook body to process node
+  - source_id: webhook_in
+    source_handle: body
+    target_id: process
+    target_handle: body
 ```
 
 ### Schedule → Fetch → AI → Store
@@ -283,12 +291,15 @@ edges:
   - source_id: timer
     source_handle: Success
     target_id: fetch_data
+    target_handle: Exec
   - source_id: fetch_data
     source_handle: Success
     target_id: analyze
+    target_handle: Exec
   - source_id: analyze
     source_handle: Success
     target_id: store_result
+    target_handle: Exec
 ```
 
 ### Branch on Condition
@@ -319,9 +330,11 @@ edges:
   - source_id: check
     source_handle: urgent
     target_id: urgent_path
+    target_handle: Exec
   - source_id: check
     source_handle: normal
     target_id: normal_path
+    target_handle: Exec
 ```
 
 ### Fan-out with Split + Aggregate
@@ -347,9 +360,11 @@ edges:
   - source_id: split_items
     source_handle: item
     target_id: process_item
+    target_handle: Exec
   - source_id: process_item
     source_handle: Success
     target_id: collect_results
+    target_handle: Exec
 ```
 
 ---

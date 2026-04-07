@@ -44,11 +44,11 @@ interface:
 
 execution:
   - id: open_dm
-    tool: =http_client
+    tool: http_client
     params:
       method: POST
-      url: >
-        platform.base_url + "/conversations.open"
+      url: >-
+        =platform.base_url + "/conversations.open"
       headers: =platform.headers
       body:
         users: =settings.user_id
@@ -60,8 +60,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: >
-        platform.base_url + "/conversations.history?channel=" + steps.open_dm.open_body.channel.id + "&oldest=" + event.cursor + "&limit=10"
+      url: >-
+        =platform.base_url + "/conversations.history?channel=" + steps.open_dm.open_body.channel.id + "&oldest=" + event.cursor + "&limit=10"
       headers: =platform.headers
     returns:
       status: status_code

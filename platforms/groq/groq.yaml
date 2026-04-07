@@ -12,7 +12,7 @@ meta:
       - "Groq is specialized in speed, not model training."
       - "Great for chaining multiple small model calls in a single workflow."
   permissions:
-    - "network:'api.groq.com"'
+    - "network:api.groq.com"
 
 config:
   base_url: "https://api.groq.com/openai/v1"

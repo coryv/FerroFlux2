@@ -1,0 +1,39 @@
+name: "Transform Field Mapping"
+description: "Reshapes user data from webhook using a template."
+triggers:
+  - id: "webhook_in"
+    name: "Incoming Webhook"
+    type: "core.trigger.webhook"
+    config:
+      path: "/transform-test"
+nodes:
+  - id: "transform_user"
+    name: "User Mapper"
+    type: "core.utils.transform"
+    config:
+      template: |
+        ={
+          "customerName": first_name + " " + last_name,
+          "customerEmail": email,
+          "metadata": {
+            "source": "webhook"
+          }
+        }
+  - id: "log_res"
+    name: "Log Result"
+    type: "core.action.log"
+    config:
+      message: "Transformed User"
+edges:
+  - source_id: "webhook_in"
+    source_handle: "Success"
+    target_id: "transform_user"
+    target_handle: "Exec"
+  - source_id: "transform_user"
+    source_handle: "Exec"
+    target_id: "log_res"
+    target_handle: "Exec"
+  - source_id: "transform_user"
+    source_handle: "result"
+    target_id: "log_res"
+    target_handle: "body"

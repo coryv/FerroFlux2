@@ -44,8 +44,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: >
-        platform.base_url + "/graphql"
+      url: >-
+        =platform.base_url + "/graphql"
       headers: =platform.headers
       body:
         query: >

@@ -108,47 +108,67 @@ cargo run -p ferroflux-integration --bin ferroflux-sign -- -f platforms/<id>/act
 
 FerroFlux uses [CEL (Common Expression Language)](https://cel.dev) for all variable references in YAML. There is no Handlebars/`{{ }}` syntax.
 
+**The `=` prefix is mandatory.** A string without `=` is always a literal — the engine never guesses. Any expression without `=` will be passed as a raw string, which is almost always a bug.
+
 ### Variable Access
 ```yaml
-url: platform.base_url + "/v1/users"   # string concat
-headers: platform.headers              # pass object directly
+headers: =platform.headers              # pass object directly
 body:
-  path: inputs.path                    # runtime input
-  mode: settings.mode                  # node setting
-  result: steps.request.response_body  # previous step output
+  path: =inputs.path                    # runtime input
+  mode: =self.settings.mode             # node setting (resolved)
+  result: =steps.request.response_body  # previous step output
+```
+
+For URL construction (string concatenation), use a folded block scalar so the `=` prefix is unambiguous:
+```yaml
+url: >-
+  =platform.base_url + "/v1/users/" + inputs.user_id
+```
+
+Or a quoted string for shorter expressions:
+```yaml
+url: "=platform.base_url + \"/v1/users\""
 ```
 
 ### CEL Operators
 ```yaml
 # Ternary
-url: platform.base_url + (settings.version == "v2" ? "/v2" : "/v1") + "/endpoint"
+url: >-
+  =platform.base_url + (self.settings.version == "v2" ? "/v2" : "/v1") + "/endpoint"
 
-# String concat
-header_val: '"Bearer " + platform.token'
+# String concat (quoted form)
+header_val: "=\"Bearer \" + platform.token"
 
 # Comparison and logic
-value: 'inputs.count > 0 && settings.enabled'
+value: "=inputs.count > 0 && self.settings.enabled"
+
+# Optional field guard
+timeout: "=has(self.settings.timeout) ? self.settings.timeout : 30"
 ```
 
 ### `json()` Function
 Serialize a value to a JSON string (useful in header values):
 ```yaml
 headers:
-  X-API-Arg: 'json({"path": inputs.path, "mode": settings.mode})'
+  X-API-Arg: '=json({"path": inputs.path, "mode": self.settings.mode})'
 ```
 
 ### Plain Literals
-Strings that are not valid CEL pass through as-is:
+Strings without `=` are always treated as literals — no CEL evaluation:
 ```yaml
 method: POST            # literal — no quotes needed
 Content-Type: application/octet-stream
 ```
 
 ### Accessing Platform Config
-The platform object exposes exactly the keys defined in your platform YAML `config:` block, plus a special `headers` key built from `auth`:
+`platform` (singular) refers to the **active platform's config** — the keys defined in the platform YAML `config:` block plus a `headers` key built from `auth`. Use `self.settings` for the current node's resolved settings:
 ```yaml
-url: platform.base_url + "/endpoint"
-headers: platform.headers              # pre-built auth headers
+url: >-
+  =platform.base_url + "/endpoint"
+headers: =platform.headers              # pre-built auth headers
+body:
+  name: =self.settings.name             # node's own setting
+  value: =inputs.value                  # data from upstream edge
 ```
 
 ---

@@ -12,7 +12,7 @@ meta:
     usage_context: Use this for interactive assistants, customer support bots, and any task requiring back-and-forth dialogue.
     agent_hints:
       - "Specify the 'model' (e.g. 'gemini-1.5-flash')."
-      - "Maintains history via the 'contents' array (role: "'user/model').\\\""
+      - "Maintains history via the 'contents' array (role: 'user/model')."
     waml_examples:
       - title: Start Gemini Chat
         waml: |
@@ -41,11 +41,11 @@ interface:
   outputs:
     - name: Success
       type: flow
-    - name: =Error
+    - name: Error
       type: flow
-    - name: =response
+    - name: response
       type: object
-    - name: =tool_calls
+    - name: tool_calls
       type: array
   settings:
     - name: temperature
@@ -60,12 +60,12 @@ interface:
       default: 2048
 
 execution:
-  - id: =request
+  - id: request
     tool: http_client
     params:
       method: POST
-      url: >
-        platform.base_url + "/v1beta/models/" + inputs.model + ":'generateContent"'
+      url: >-
+        =platform.base_url + "/v1beta/models/" + inputs.model + ":generateContent"
       headers: =platform.headers
       body:
         contents: =inputs.history
@@ -81,7 +81,7 @@ execution:
   - id: check_status
     tool: switch
     params:
-      value: steps.request.status_code
+      value: =steps.request.status_code
       cases:
         - condition: 200
           output: success
@@ -92,10 +92,10 @@ routing:
   match: =steps.check_status.branch
   cases:
     success:
-      - tool: =emit
+      - tool: emit
         params:
           port: Success
-      - tool: =emit
+      - tool: emit
         params:
           port: response
           value: =steps.request.response_body
@@ -114,4 +114,4 @@ routing:
       - tool: emit
         params:
           port: Error
-          value: steps.request.response_body
+          value: =steps.request.response_body

@@ -13,6 +13,8 @@ async fn test_case_3_7_date_parse_diff() -> Result<()> {
         .with_test_writer()
         .try_init();
 
+    unsafe { std::env::set_var("FERROFLUX_ALLOW_INTERNAL_IPS", "true"); }
+
     // 1. Initialize Test Harness
     let mut harness = TestHarness::new().await;
     let mock_uri = harness.mock_server().uri();
@@ -37,14 +39,8 @@ async fn test_case_3_7_date_parse_diff() -> Result<()> {
     // 3. Trigger the workflow
     let trigger_uuid = Uuid::new_v5(&Uuid::NAMESPACE_DNS, b"webhook_in");
     let payload = json!({
-        "event": {
-            "body": {
-                "start_date": "2023-01-01T00:00:00Z",
-                "end_date": "2023-01-05T12:00:00Z"
-            },
-            "headers": {},
-            "query": {}
-        }
+        "start_date": "2023-01-01T00:00:00Z",
+        "end_date": "2023-01-05T12:00:00Z"
     });
 
     println!(">>> Triggering Case 3.7: Date Parse and Diff");

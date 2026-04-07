@@ -371,16 +371,14 @@ fn check_cel_syntax(
                 let expression = expr.trim();
                 // Empty = is considered an empty string literal, not a broken expression. Usually. 
                 // But since WAML mandates CEL, we can compile it.
-                if !expression.is_empty() {
-                    if let Err(e) = Program::compile(expression) {
-                        result.diagnostics.push(ValidationDiagnostic::error(
-                            "malformed-cel",
-                            format!(
-                                "step '{}': CEL syntax error: {}",
-                                step_id, e
-                            ),
-                        ));
-                    }
+                if !expression.is_empty() && let Err(e) = Program::compile(expression) {
+                    result.diagnostics.push(ValidationDiagnostic::error(
+                        "malformed-cel",
+                        format!(
+                            "step '{}': CEL syntax error: {}",
+                            step_id, e
+                        ),
+                    ));
                 }
             }
         }

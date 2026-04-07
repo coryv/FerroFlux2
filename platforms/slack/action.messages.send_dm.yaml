@@ -38,7 +38,7 @@ interface:
 
 execution:
   - id: open_dm
-    tool: =http_client
+    tool: http_client
     params:
       method: POST
       url: >

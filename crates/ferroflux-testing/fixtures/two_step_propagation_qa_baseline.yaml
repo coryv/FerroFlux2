@@ -11,21 +11,29 @@ nodes:
     name: Get Slack User
     type: slack.action.users.get
     config:
-      user_id: =inputs.body.user_id
+      user_id: =body.user_id
 
   - id: send_dm
     name: Send Direct Message
     type: slack.messages.send_dm
     config:
-      user_id: =inputs.user.id
-      text: "Hello, inputs.user.real_name!"
+      user_id: =user.id
+      text: ="Hello, " + user.real_name + "!"
 
 edges:
+  - source_id: webhook_in
+    source_handle: Success
+    target_id: get_user
+    target_handle: Exec
   - source_id: webhook_in
     source_handle: body
     target_id: get_user
     target_handle: body
 
+  - source_id: get_user
+    source_handle: Success
+    target_id: send_dm
+    target_handle: Exec
   - source_id: get_user
     source_handle: user
     target_id: send_dm

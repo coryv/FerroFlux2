@@ -37,8 +37,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: >
-        platform.base_url + "/customers.json"
+      url: >-
+        =platform.base_url + "/customers.json"
       headers: =platform.headers
       query:
         created_at_min: state.last_poll

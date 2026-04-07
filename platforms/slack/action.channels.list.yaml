@@ -46,8 +46,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: >
-        platform.base_url + "/conversations.list"
+      url: >-
+        =platform.base_url + "/conversations.list"
       headers: =platform.headers
       query:
         types: =inputs.types

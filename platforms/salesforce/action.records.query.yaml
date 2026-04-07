@@ -36,12 +36,12 @@ interface:
       type: array
 
 execution:
-  - id: =request
+  - id: request
     tool: paginate
     params:
       method: GET
-      url: >
-        platform.base_url + "/query"
+      url: >-
+        =platform.base_url + "/query"
       headers: =platform.headers
       query:
         q: =inputs.query

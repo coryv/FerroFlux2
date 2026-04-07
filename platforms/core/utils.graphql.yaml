@@ -33,11 +33,11 @@ interface:
   outputs:
     - name: Success
       type: flow
-    - name: =Error
+    - name: Error
       type: flow
-    - name: =data
+    - name: data
       type: any
-    - name: =errors
+    - name: errors
       type: any
 
   settings:
@@ -54,14 +54,14 @@ interface:
       label: Operation Name
       type: string
       description: Optional operation name.
-    - name: =headers
+    - name: headers
       label: Custom Headers (JSON)
       type: textarea
       description: 'JSON object of headers, e.g. { \"Authorization\": \"Bearer ...\" }'
 
 execution:
   - id: call
-    tool: =core.utils.graphql
+    tool: core.utils.graphql
     params:
       url: =settings.url
       query: =settings.query
@@ -78,9 +78,13 @@ execution:
     params:
       data: =steps.call.status
       rules:
-        - condition: "=val < 400"
+        - condition:
+            operator: "<"
+            value: 400
           output: Success
-        - condition: default
+        - condition:
+            operator: ">="
+            value: 400
           output: Error
 
   - id: emit_data

@@ -44,8 +44,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: >
-        platform.base_url + "/query"
+      url: >-
+        =platform.base_url + "/query"
       headers: =platform.headers
       query:
         q: >

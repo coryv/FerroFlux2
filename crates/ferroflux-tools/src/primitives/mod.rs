@@ -33,6 +33,7 @@ pub mod pdf_read;
 pub mod pdf_write;
 pub mod crypto;
 pub mod graphql;
+pub mod agent;
 
 pub use self::aggregate::AggregateTool;
 pub use self::emit::EmitTool;
@@ -56,6 +57,7 @@ pub use self::pdf_read::PdfReadTool;
 pub use self::pdf_write::PdfWriteTool;
 pub use self::crypto::CryptoTool;
 pub use self::graphql::GraphQlTool;
+pub use self::agent::AgentTool;
 
 pub use self::trace::TraceTool;
 pub use self::variable::{GetVarTool, SetVarTool};

@@ -12,7 +12,7 @@ meta:
       - "Requires a Project/Team ID and a Personal API Key."
       - "Supports real-time event capture and complex cohort analysis."
   permissions:
-    - "network:'app.posthog.com"'
+    - "network:app.posthog.com"
 
 config:
   base_url: "https://app.posthog.com"

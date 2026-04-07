@@ -23,10 +23,12 @@ meta:
 
 interface:
   inputs:
-    - name: =Exec
+    - name: Exec
       type: flow
+    - name: input
+      type: any
   outputs:
-    - name: =Exec
+    - name: Exec
       type: flow
     - name: Error
       type: flow
@@ -54,10 +56,10 @@ interface:
 
 execution:
   - id: crypto
-    tool: =core.utils.crypto
+    tool: core.utils.crypto
     params:
       operation: =settings.operation
-      input: =settings.input
+      input: =inputs.input
       key: =settings.key
     returns:
       result: crypto_res
@@ -66,7 +68,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: =steps.crypto.result
+      value: =crypto_res
 
   - id: done
     tool: emit

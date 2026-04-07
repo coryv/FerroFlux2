@@ -23,10 +23,16 @@ meta:
 
 interface:
   inputs:
-    - name: =Exec
+    - name: Exec
       type: flow
+    - name: date1
+      type: any
+    - name: date2
+      type: any
+    - name: date
+      type: any
   outputs:
-    - name: =Exec
+    - name: Exec
       type: flow
     - name: Error
       type: flow
@@ -60,13 +66,13 @@ interface:
 
 execution:
   - id: process
-    tool: =core.utils.date
+    tool: core.utils.date
     params:
-      operation: =settings.operation
-      date: =settings.date
-      date1: =settings.date1
-      date2: =settings.date2
-      format: =settings.format
+      operation: =self.settings.operation
+      date: =inputs.date
+      date1: =inputs.date1
+      date2: =inputs.date2
+      format: =self.settings.format
     returns:
       result: processed
 
@@ -74,7 +80,7 @@ execution:
     tool: emit
     params:
       port: result
-      value: =steps.process.result
+      value: =processed
 
   - id: done
     tool: emit

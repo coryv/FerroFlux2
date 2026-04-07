@@ -12,7 +12,7 @@ meta:
     usage_context: Use this for private notifications or 1-on-1 interactions with server members. This action handles the 'channel creation' step required by Discord automatically.
     agent_hints:
       - "Requires the Snowflake ID of the recipient user."
-      - "Note: 'Bots can only DM users they share a server with, and who have DMs enabled."'
+      - "Note: Bots can only DM users they share a server with, and who have DMs enabled."
     waml_examples:
       - title: Send a Private Welcome
         waml: |
@@ -38,11 +38,11 @@ interface:
 
 execution:
   - id: create_dm
-    tool: =http_client
+    tool: http_client
     params:
       method: POST
-      url: >
-        platform.base_url + "/users/@me/channels"
+      url: >-
+        =platform.base_url + "/users/@me/channels"
       headers: =platform.headers
       body:
         recipient_id: =inputs.recipient_id
@@ -54,8 +54,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: >
-        platform.base_url + "/channels/" + steps.create_dm.response_body.id + "/messages"
+      url: >-
+        =platform.base_url + "/channels/" + steps.create_dm.response_body.id + "/messages"
       headers: =platform.headers
       body:
         content: =inputs.content

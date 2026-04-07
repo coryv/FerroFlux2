@@ -41,17 +41,17 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: =records
+    - name: records
       type: array
   settings: []
 
 execution:
-  - id: =request
+  - id: request
     tool: paginate
     params:
       method: GET
-      url: >
-        platform.base_url + "/" + inputs.base_id + "/" + inputs.table_id_or_name
+      url: >-
+        =platform.base_url + "/" + inputs.base_id + "/" + inputs.table_id_or_name
       headers: =platform.headers
       strategy: cursor
       cursor_param: offset

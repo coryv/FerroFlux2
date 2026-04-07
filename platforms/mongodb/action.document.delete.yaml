@@ -37,7 +37,7 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: =deleted_count
+    - name: deleted_count
       type: number
 
 execution:

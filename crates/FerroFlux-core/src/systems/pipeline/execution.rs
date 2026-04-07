@@ -49,29 +49,39 @@ pub fn execute_pipeline_node(
     self_obj.insert("id".to_string(), Value::String(node.definition_id.clone()));
     self_obj.insert("settings".to_string(), serde_json::to_value(&node.config).unwrap_or(Value::Null));
     
-    if let Some(platform_id) = &def.meta.platform {
-        if let Some(p) = definitions.platforms.get(platform_id) {
-            self_obj.insert("config".to_string(), serde_json::to_value(&p.config).unwrap_or(Value::Object(serde_json::Map::new())));
-        }
+    if let Some(platform_id) = &def.meta.platform && let Some(p) = definitions.platforms.get(platform_id) {
+        self_obj.insert("config".to_string(), serde_json::to_value(&p.config).unwrap_or(Value::Object(serde_json::Map::new())));
     }
     ctx_map.insert("self".to_string(), DataRef::Inline(Value::Object(self_obj)));
 
     // 2. Platform injection -- always Inline (loaded from the definitions registry).
-    let mut platform_root = serde_json::Map::new();
+    let mut platforms_root = serde_json::Map::new();
+    let mut active_platform_val = None;
+
     for (id, platform) in &definitions.platforms {
         let platform_val = serde_json::to_value(&platform.config).unwrap_or(serde_json::json!({}));
-        platform_root.insert(id.clone(), platform_val.clone());
+        platforms_root.insert(id.clone(), platform_val.clone());
 
-        // Flatten the active platform's keys into the root context.
-        if Some(id) == def.meta.platform.as_ref()
-            && let Some(obj) = platform_val.as_object()
-        {
-            for (rk, rv) in obj {
-                ctx_map.insert(rk.clone(), DataRef::Inline(rv.clone()));
+        // Identify and store the active platform's config
+        if Some(id) == def.meta.platform.as_ref() {
+            active_platform_val = Some(platform_val.clone());
+            
+            // Flatten the active platform's keys into the root context for convenience (e.g. headers, base_url).
+            if let Some(obj) = platform_val.as_object() {
+                for (rk, rv) in obj {
+                    ctx_map.insert(rk.clone(), DataRef::Inline(rv.clone()));
+                }
             }
         }
     }
-    ctx_map.insert("platform".to_string(), DataRef::Inline(Value::Object(platform_root)));
+    
+    // Inject all platforms map
+    ctx_map.insert("platforms".to_string(), DataRef::Inline(Value::Object(platforms_root)));
+
+    // Inject active platform specifically as 'platform'
+    if let Some(apv) = active_platform_val {
+        ctx_map.insert("platform".to_string(), DataRef::Inline(apv));
+    }
 
     // 3. Within-node Blob cache -- shared across all resolve_recursive calls so
     //    each Blob is claimed from the store at most once per node execution.
@@ -89,8 +99,13 @@ pub fn execute_pipeline_node(
         )?;
         resolved_settings.insert(k.clone(), result);
     }
-    let settings_val = Value::Object(resolved_settings);
+    let settings_val = Value::Object(resolved_settings.clone());
     ctx_map.insert("settings".to_string(), DataRef::Inline(settings_val.clone()));
+    
+    // Update self.settings with the resolved values
+    if let Some(DataRef::Inline(Value::Object(self_map))) = ctx_map.get_mut("self") {
+        self_map.insert("settings".to_string(), settings_val.clone());
+    }
     blob_cache.insert("settings".to_string(), settings_val);
 
     // 5. Populate `inputs` from workflow context (ports).
@@ -109,8 +124,8 @@ pub fn execute_pipeline_node(
         for name in declared_inputs {
             if let Some(val) = (LazyCtx { data: &workflow_state.context, store, cache: &mut blob_cache }).materialize_key(&name) {
                 inputs_map.insert(name, val);
-            } else if let Some(val) = node.config.get(&name) {
-                // Fallback to static configuration for inputs
+            } else if let Some(val) = resolved_settings.get(&name) {
+                // Fallback to RESOLVED configuration for inputs
                 inputs_map.insert(name.to_string(), val.clone());
             } else {
                 inputs_map.insert(name, Value::Null);
@@ -193,10 +208,8 @@ pub fn execute_pipeline_node(
             let result = tool.run(&mut tool_ctx, resolved_params)?;
 
             // If the tool is 'split', it may signal if we are done or not
-            if step.tool == "split" {
-                if let Some(done) = result.get("is_done").and_then(|v| v.as_bool()) {
-                    iteration_done = done;
-                }
+            if step.tool == "split" && let Some(done) = result.get("is_done").and_then(|v| v.as_bool()) {
+                iteration_done = done;
             }
 
             // If the tool is 'emit', capture current state snapshot and the value for this port

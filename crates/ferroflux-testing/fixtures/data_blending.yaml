@@ -11,7 +11,7 @@ nodes:
     name: Fetch Slack User
     type: slack.action.users.get
     config:
-      user_id: =inputs.body.user_id
+      user_id: =body.user_id
   
   - id: query_db
     name: Query Mock DB
@@ -19,26 +19,38 @@ nodes:
     platform: core
     config:
       method: GET
-      url: "{{ platform.core.base_url }}/mock_db?email=inputs.user.profile.email"
+      url: "=platform.base_url + \"/mock_db?email=\" + user.profile.email"
       
   - id: log_out
     name: Log Blended Data
     type: core.action.log
     config:
       level: INFO
-      message: "Blended Result: inputs.body"
+      message: "= \"Blended Result: \" + string(body)"
 
 edges:
+  - source_id: webhook_in
+    source_handle: Success
+    target_id: get_slack_user
+    target_handle: Exec
   - source_id: webhook_in
     source_handle: body
     target_id: get_slack_user
     target_handle: body
     
   - source_id: get_slack_user
+    source_handle: Success
+    target_id: query_db
+    target_handle: Exec
+  - source_id: get_slack_user
     source_handle: user
     target_id: query_db
     target_handle: user
     
+  - source_id: query_db
+    source_handle: Success
+    target_id: log_out
+    target_handle: Exec
   - source_id: query_db
     source_handle: body
     target_id: log_out

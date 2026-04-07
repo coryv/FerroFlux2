@@ -23,7 +23,7 @@ nodes:
     name: Constant 'order'
     type: core.action.script
     config:
-      script: "'return \\\\\\\\\\"order\\\\\\\\\\";'"
+      script: return "order";
   - id: const_500
     name: Constant 500
     type: core.action.script
@@ -33,12 +33,12 @@ nodes:
     name: Check if Order
     type: core.logic.condition
     config:
-      operator:
+      operator: "=="
   - id: check_value
     name: Check if High Value
     type: core.logic.condition
     config:
-      operator: "'>'"
+      operator: ">"
   - id: log_not_order
     name: Not an Order
     type: core.action.log

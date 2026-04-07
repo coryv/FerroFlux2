@@ -45,8 +45,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: >
-        platform.base_url + "/databases/" + settings.database_id + "/query"
+      url: >-
+        =platform.base_url + "/databases/" + settings.database_id + "/query"
       headers: =platform.headers
       body:
         sorts:

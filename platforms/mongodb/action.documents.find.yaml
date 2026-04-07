@@ -40,7 +40,7 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: =documents
+    - name: documents
       type: array
 
 execution:

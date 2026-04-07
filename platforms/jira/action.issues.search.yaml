@@ -36,12 +36,12 @@ interface:
       type: array
 
 execution:
-  - id: =request
+  - id: request
     tool: paginate
     params:
       method: GET
-      url: >
-        "https:'=//" + settings.domain + ".atlassian.net/rest/api/3/search"'
+      url: >-
+        ="https://" + settings.domain + ".atlassian.net/rest/api/3/search"
       headers: =platform.headers
       strategy: offset
       offset_param: startAt

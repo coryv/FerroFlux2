@@ -43,9 +43,9 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: =matched_count
+    - name: matched_count
       type: number
-    - name: =modified_count
+    - name: modified_count
       type: number
 
 execution:

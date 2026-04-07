@@ -34,7 +34,7 @@ interface:
     - name: subject
       type: string
       required: true
-    - name: =body
+    - name: body
       type: string
       required: true
   outputs:
@@ -69,8 +69,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: >
-        platform.base_url + "/users/me/messages/send"
+      url: >-
+        =platform.base_url + "/users/me/messages/send"
       headers: =platform.headers
       body:
         raw: =steps.prepare_rfc822.raw_body

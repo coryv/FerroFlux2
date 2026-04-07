@@ -37,8 +37,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: >
-        platform.base_url + "/search.json"
+      url: >-
+        =platform.base_url + "/search.json"
       headers: =platform.headers
       query:
         query: >

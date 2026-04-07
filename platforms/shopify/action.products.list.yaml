@@ -33,12 +33,12 @@ interface:
       type: array
 
 execution:
-  - id: =request
+  - id: request
     tool: paginate
     params:
       method: GET
-      url: >
-        platform.base_url + "/products.json"
+      url: >-
+        =platform.base_url + "/products.json"
       headers: =platform.headers
       strategy: cursor
       cursor_path: link

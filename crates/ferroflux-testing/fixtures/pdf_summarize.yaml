@@ -1,0 +1,41 @@
+name: "PDF Summarize"
+description: "Extracts text from PDF and summarizes via AI agent."
+triggers:
+  - id: "webhook_in"
+    name: "Incoming Webhook"
+    type: "core.trigger.webhook"
+    config:
+      path: "/pdf-test"
+nodes:
+  - id: "pdf_reader"
+    name: "PDF Reader"
+    type: "core.utils.pdf_read"
+    config:
+      pdf_base64: "=pdf_base64"
+  - id: "summary_agent"
+    name: "Summary Agent"
+    type: "core.action.agent"
+    config:
+      prompt: "='Summarize this text: ' + steps.pdf_reader.result"
+  - id: "log_res"
+    name: "Log Result"
+    type: "core.action.log"
+    config:
+      message: "Summary Result"
+edges:
+  - source_id: "webhook_in"
+    source_handle: "Success"
+    target_id: "pdf_reader"
+    target_handle: "Exec"
+  - source_id: "pdf_reader"
+    source_handle: "Exec"
+    target_id: "summary_agent"
+    target_handle: "Exec"
+  - source_id: "summary_agent"
+    source_handle: "Success"
+    target_id: "log_res"
+    target_handle: "Exec"
+  - source_id: "summary_agent"
+    source_handle: "agent_response"
+    target_id: "log_res"
+    target_handle: "body"

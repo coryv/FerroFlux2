@@ -66,7 +66,7 @@ pub fn resolve_recursive(value: &Value, ctx: &mut LazyCtx<'_>) -> Result<Value> 
             let expression = if let Some(stripped) = s_ref.strip_prefix('=') {
                 stripped.trim()
             } else {
-                // Not an explicit expression, treat as strict literal string.
+                // No `=` prefix — treat as a strict literal string.
                 return Ok(Value::String(s.clone()));
             };
 
@@ -77,7 +77,7 @@ pub fn resolve_recursive(value: &Value, ctx: &mut LazyCtx<'_>) -> Result<Value> 
             let program = match Program::compile(expression) {
                 Ok(p) => p,
                 Err(e) => {
-                    return Err(anyhow::anyhow!("CEL compile error for explicit expression '{}': {}", expression, e));
+                    return Err(anyhow::anyhow!("CEL compile error for '{}': {}", expression, e));
                 }
             };
 

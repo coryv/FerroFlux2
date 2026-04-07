@@ -24,11 +24,11 @@
 | 3.6 | math_pipeline | Math Operations Pipeline | ✅ PASS | [report](file:///Users/coryvogan/FerroFlux2/qa-reports/case-3.6-math_pipeline-2026-04-05.md) |
 | 3.7 | date_parse_diff | Date Parse and Diff | ⏳ TODO | - |
 | 3.8 | crypto_hash_uuid | Crypto Hash and UUID | ⏳ TODO | - |
-| 3.9 | html_selector | HTML Selector Extraction | ⏳ TODO | - |
-| 3.10 | xml_to_json | XML to JSON Pipeline | ⏳ TODO | - |
-| 3.11 | transform_mapping | Transform Field Mapping | ⏳ TODO | - |
-| 3.12 | graphql_query | GraphQL Query | ⏳ TODO | - |
-| 3.13 | pdf_read_summarize | PDF Read and Summarize | ⏳ TODO | - |
-| 3.14 | pdf_write_email | PDF Write and Email | ⏳ TODO | - |
+| 3.9 | html_selector | HTML Selector Extraction | ✅ PASS | [report](file:///Users/coryvogan/FerroFlux2/qa-reports/case-3.9-html_selector-2026-04-06.md) |
+| 3.10 | xml_to_json | XML to JSON Pipeline | ✅ PASS | [report](file:///Users/coryvogan/FerroFlux2/qa-reports/case-3.10-xml_to_json-2026-04-06.md) |
+| 3.11 | transform_mapping | Transform Field Mapping | ✅ PASS | [report](file:///Users/coryvogan/FerroFlux2/qa-reports/case-3.11-transform_mapping-2026-04-06.md) |
+| 3.12 | graphql_query | GraphQL Query | ✅ PASS | [report](file:///Users/coryvogan/FerroFlux2/qa-reports/case-3.12-graphql_query-2026-04-06.md) |
+| 3.13 | pdf_read_summarize | PDF Read and Summarize | ✅ PASS | [report](file:///Users/coryvogan/FerroFlux2/qa-reports/case-3.13-pdf_read_summarize-2026-04-06.md) |
+| 3.14 | pdf_write_email | PDF Write and Email | ✅ PASS | [report](file:///Users/coryvogan/FerroFlux2/qa-reports/case-3.14-pdf_write_email-2026-04-06.md) |
 | 3.15 | stats_outlier | Statistics with Outlier Detection | ⏳ TODO | - |
 | ... | ... | ... | ... | ... |

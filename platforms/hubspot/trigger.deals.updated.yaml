@@ -45,8 +45,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: >
-        platform.base_url + "/crm/v3/objects/deals"
+      url: >-
+        =platform.base_url + "/crm/v3/objects/deals"
       headers: =platform.headers
       query:
         limit: 50

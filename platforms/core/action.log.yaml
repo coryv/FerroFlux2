@@ -24,7 +24,7 @@ interface:
   inputs:
     - name: Exec
       type: flow
-    - name: =body
+    - name: body
       type: any
 
   

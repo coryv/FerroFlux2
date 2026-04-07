@@ -37,7 +37,7 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: =rows
+    - name: rows
       type: array
       description: The result sets returned by the query.
 

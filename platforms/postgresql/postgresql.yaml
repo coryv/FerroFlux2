@@ -11,7 +11,7 @@ meta:
     agent_hints:
       - "Standard PostgreSQL port is 5432."
       - "Always use double quotes for case-sensitive identifiers in queries (e.g., SELECT * FROM \"Users\")."
-      - "Connection URI format: "'postgres://user:password@host:port/dbname'.\\\""
+      - "Connection URI format: 'postgres://user:password@host:port/dbname'."
 
 config:
   driver: postgres

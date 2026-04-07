@@ -37,12 +37,12 @@ interface:
       type: array
 
 execution:
-  - id: =request
+  - id: request
     tool: paginate
     params:
       method: GET
-      url: >
-        platform.base_url + "/tasks"
+      url: >-
+        =platform.base_url + "/tasks"
       headers: =platform.headers
       query:
         project: =inputs.projectGid

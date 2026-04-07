@@ -42,8 +42,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: >
-        platform.base_url + "/conversations.list?types=public_channel&exclude_archived=true&limit=200"
+      url: >-
+        =platform.base_url + "/conversations.list?types=public_channel&exclude_archived=true&limit=200"
       headers: =platform.headers
     returns:
       status: status_code

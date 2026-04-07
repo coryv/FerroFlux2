@@ -12,8 +12,12 @@ nodes:
     type: slack.messages.send_dm
     config:
       user_id: U12345
-      text: =inputs.body.text
+      text: =body.text
 edges:
+  - source_id: webhook_in
+    source_handle: Success
+    target_id: slack_out
+    target_handle: Exec
   - source_id: webhook_in
     source_handle: body
     target_id: slack_out

@@ -1,0 +1,37 @@
+name: "GraphQL Query"
+description: "Executes a GraphQL query against a mocked endpoint."
+triggers:
+  - id: "manual_trigger"
+    name: "Manual Trigger"
+    type: "core.trigger.manual"
+nodes:
+  - id: "gql_call"
+    name: "GraphQL Client"
+    type: "core.utils.graphql"
+    config:
+      url: "=gql_url"
+      query: |
+        query GetUser($id: ID!) {
+          user(id: $id) {
+            name
+            email
+          }
+        }
+  - id: "log_res"
+    name: "Log Result"
+    type: "core.action.log"
+    config:
+      message: "GraphQL Response"
+edges:
+  - source_id: "manual_trigger"
+    source_handle: "Success"
+    target_id: "gql_call"
+    target_handle: "Exec"
+  - source_id: "gql_call"
+    source_handle: "Success"
+    target_id: "log_res"
+    target_handle: "Exec"
+  - source_id: "gql_call"
+    source_handle: "data"
+    target_id: "log_res"
+    target_handle: "body"

@@ -53,8 +53,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: >
-        platform.base_url + "/conversations.history?channel=" + settings.channel + "&oldest=" + event.cursor + "&limit=20"
+      url: >-
+        =platform.base_url + "/conversations.history?channel=" + settings.channel + "&oldest=" + event.cursor + "&limit=20"
       headers: =platform.headers
     returns:
       status: status_code

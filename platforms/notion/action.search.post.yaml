@@ -42,12 +42,12 @@ interface:
   settings: []
 
 execution:
-  - id: =request
+  - id: request
     tool: paginate
     params:
       method: POST
-      url: >
-        platform.base_url + "/search"
+      url: >-
+        =platform.base_url + "/search"
       headers: =platform.headers
       strategy: cursor
       cursor_param: start_cursor

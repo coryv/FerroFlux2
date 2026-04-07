@@ -22,12 +22,12 @@ meta:
 
 interface:
   inputs:
-    - name: =Exec
+    - name: Exec
       type: flow
     - name: xml
       type: string
   outputs:
-    - name: =Exec
+    - name: Exec
       type: flow
     - name: Error
       type: flow
@@ -36,11 +36,11 @@ interface:
 
 execution:
   - id: parse
-    tool: =core.utils.xml
+    tool: core.utils.xml
     params:
       xml: =inputs.xml
     returns:
-      result: xml_result
+      result: result
 
   - id: emit_res
     tool: emit

@@ -162,8 +162,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: >
-        "https://sheets.googleapis.com/v4/spreadsheets/" + settings.spreadsheet_id + ":batchUpdate"
+      url: >-
+        ="https://sheets.googleapis.com/v4/spreadsheets/" + settings.spreadsheet_id + ":batchUpdate"
       headers: =platform.headers
       body: =steps.build_request.batch_request
     returns:

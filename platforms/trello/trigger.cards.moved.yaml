@@ -48,8 +48,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: >
-        platform.base_url + "/1/boards/" + settings.board_id + "/actions"
+      url: >-
+        =platform.base_url + "/1/boards/" + settings.board_id + "/actions"
       headers: =platform.headers
       query:
         filter: "updateCard:idList"

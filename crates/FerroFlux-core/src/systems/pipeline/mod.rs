@@ -4,13 +4,13 @@ use crate::resources::{DefinitionRegistry, GraphTopology, WorkDone, TokioRuntime
 use crate::tools::ToolRegistry;
 use bevy_ecs::prelude::*;
 use serde_json::Value;
-use std::collections::HashMap;
 use uuid::Uuid;
 
 pub mod execution;
 pub mod resolution;
 
 use execution::execute_pipeline_node;
+use resolution::resolve_dataref_to_value;
 
 /// System that executes PipelineNodes when triggered.
 ///
@@ -38,7 +38,7 @@ pub fn pipeline_execution_system(
     mut work_done: ResMut<WorkDone>,
     topology: Res<GraphTopology>,
     mut commands: Commands,
-    mut global_memory: ResMut<crate::resources::GlobalMemory>,
+    global_memory: ResMut<crate::resources::GlobalMemory>,
     workflow_defs: Query<&crate::components::execution_state::WorkflowDefinition>,
 ) {
     let query_count = query.iter().count();
@@ -70,9 +70,6 @@ pub fn pipeline_execution_system(
         }
 
         // 2. Process ready traces
-        // Note: If we just inserted InputBuffer via commands, it won't be available in the query until next frame.
-        // We'll handle both cases if possible, but Bevy's Query approach usually means waiting a frame.
-        // However, if it ALREADY has a buffer, we process it now.
         if let Some(ref mut buffer) = input_buffer {
             let mut ready_traces = Vec::new();
 
@@ -115,7 +112,6 @@ pub fn pipeline_execution_system(
                     work_done.0 = true;
 
                     // 1. Merge States
-                    // We pick one ticket as the "Primary" (prioritize Exec) and merge others into it.
                     let primary_ticket = port_tickets
                         .get("Exec")
                         .or_else(|| port_tickets.values().next())
@@ -136,8 +132,16 @@ pub fn pipeline_execution_system(
                         if let Ok(val) = serde_json::from_slice::<serde_json::Value>(&data) {
                             if let Some(ticket_port) = port_tickets.iter().find(|(_, t)| t.id == primary_ticket.id).map(|(p, _)| p) {
                                 let mut map = serde_json::Map::new();
-                                map.insert(ticket_port.clone(), val);
+                                map.insert(ticket_port.clone(), val.clone());
                                 s.merge(serde_json::Value::Object(map));
+                                // Also flatten if it's a special port and a JSON object
+                                if (*ticket_port == "Exec" || *ticket_port == "body") && val.is_object() {
+                                    s.merge(val.clone());
+                                    // Provide as 'event' for trigger nodes if not already there
+                                    if *ticket_port == "Exec" && !val.as_object().map(|obj| obj.contains_key("event")).unwrap_or(false) {
+                                        s.set("event", val);
+                                    }
+                                }
                             } else {
                                 s.merge(val);
                             }
@@ -145,25 +149,39 @@ pub fn pipeline_execution_system(
                         s
                     };
 
-                    // Merge all tickets into the state
-                    for (port_name, ticket) in &port_tickets {
-                        if let Ok(ticket_data) = store.claim(ticket) {
-                            if let Ok(val) = serde_json::from_slice::<serde_json::Value>(&ticket_data) {
-                                // If it's a state, merge its context
-                                if let Some(obj) = val.as_object() && obj.contains_key("context") && obj.contains_key("history")
-                                    && let Ok(incoming_state) = serde_json::from_value::<ActiveWorkflowState>(val.clone())
-                                {
-                                    for (k, v) in &incoming_state.context {
-                                        state.set_ref(&format!("{}.{}", port_name, k), v.clone());
-                                        if port_name == "body" || port_name == "Exec" {
-                                            state.set_ref(k, v.clone());
-                                        }
+                    let mut sorted_tickets: Vec<(&String, &_)> = port_tickets.iter().collect();
+                    sorted_tickets.sort_by_key(|(name, _)| {
+                        if *name == "Exec" || *name == "body" { 0u8 } else { 1u8 }
+                    });
+                    for (port_name, ticket) in sorted_tickets {
+                        if let Ok(ticket_data) = store.claim(ticket)
+                            && let Ok(val) = serde_json::from_slice::<serde_json::Value>(&ticket_data) {
+                            
+                            if let Some(obj) = val.as_object() && obj.contains_key("context") && obj.contains_key("history")
+                                && let Ok(incoming_state) = serde_json::from_value::<ActiveWorkflowState>(val.clone())
+                            {
+                                for (k, v) in &incoming_state.context {
+                                    state.set_ref(&format!("{}.{}", port_name, k), v.clone());
+                                    if port_name == "body" || port_name == "Exec" {
+                                        state.set_ref(k, v.clone());
                                     }
-                                    if let Some(val_ref) = incoming_state.context.get("_value") {
-                                        state.set_ref(port_name, val_ref.clone());
+                                }
+                                if let Some(val_ref) = incoming_state.context.get("_value") {
+                                    state.set_ref(port_name, val_ref.clone());
+                                    
+                                    if (port_name == "body" || port_name == "Exec")
+                                        && let Some(val) = resolve_dataref_to_value(val_ref, Some(&*store))
+                                        && val.is_object() {
+                                        state.merge(val);
                                     }
-                                } else {
-                                    state.set(port_name, val);
+                                }
+                            } else {
+                                state.set(port_name, val.clone());
+                                if (*port_name == "Exec" || *port_name == "body") && val.is_object() {
+                                    state.merge(val.clone());
+                                    if *port_name == "Exec" && !val.as_object().map(|obj| obj.contains_key("event")).unwrap_or(false) {
+                                        state.set("event", val);
+                                    }
                                 }
                             }
                         }
@@ -179,7 +197,7 @@ pub fn pipeline_execution_system(
                             &mut state,
                             &node_registry,
                             &tool_registry,
-                            &mut *memory_lock,
+                            &mut memory_lock,
                             t_id.clone(),
                             Some(bus.clone()),
                             Some(&store),
@@ -222,12 +240,9 @@ pub fn pipeline_execution_system(
                         if !val.is_null() {
                             out_state.set("_value", val);
                         }
-                        if let Ok(new_bytes) = serde_json::to_vec(&out_state) {
-                            if let Ok(new_ticket) =
-                                store.check_in_with_metadata(&new_bytes, primary_ticket.metadata.clone())
-                            {
-                                outbox.queue.push_back((Some(port), new_ticket));
-                            }
+                        if let Ok(new_bytes) = serde_json::to_vec(&out_state)
+                            && let Ok(new_ticket) = store.check_in_with_metadata(&new_bytes, primary_ticket.metadata.clone()) {
+                            outbox.queue.push_back((Some(port), new_ticket));
                         }
                     }
                 }

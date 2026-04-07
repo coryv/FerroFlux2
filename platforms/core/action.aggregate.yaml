@@ -26,9 +26,9 @@ interface:
       type: any
   
   outputs:
-    - name: =batch
+    - name: batch
       type: array
-    - name: =Exec
+    - name: Exec
       type: flow
 
   settings:

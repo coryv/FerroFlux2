@@ -62,7 +62,7 @@ interface:
       required: false
       description: Optional connection for authenticated SSE endpoints (Bearer, OAuth2, etc.)
 
-    - name: =headers
+    - name: headers
       label: Extra Headers
       type: object
       required: false

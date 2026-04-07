@@ -37,7 +37,7 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: =inserted_id
+    - name: inserted_id
       type: string
 
 execution:

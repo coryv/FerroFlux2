@@ -12,7 +12,7 @@ meta:
     usage_context: Use this to automate document processing, backup files to another service, or scan for sensitive content. Can filter by a specific channel or monitor the entire authorized workspace.
     agent_hints:
       - "The 'file' output contains the Slack file object, with 'url_private' for downloading and 'mimetype' for filtering."
-      - "Note that the bot must have 'files:"read' scopes to detect files outside of channels it is a member of.\\\""
+      - "Note that the bot must have 'files:read' scopes to detect files outside of channels it is a member of."
     waml_examples:
       - title: Monitor Channel Files
         waml: |
@@ -45,8 +45,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: >
-        platform.base_url + "/files.list"
+      url: >-
+        =platform.base_url + "/files.list"
       headers: =platform.headers
       query:
         channel: =settings.channel
@@ -59,7 +59,7 @@ execution:
   - id: extract_files
     tool: json_query
     params:
-      json: steps.fetch.response_body
+      json: =steps.fetch.response_body
       path: >
         "/files"
     returns:

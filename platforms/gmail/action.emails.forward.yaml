@@ -37,11 +37,11 @@ interface:
 
 execution:
   - id: get_original
-    tool: =http_client
+    tool: http_client
     params:
       method: GET
-      url: >
-        platform.base_url + "/messages/" + inputs.message_id
+      url: >-
+        =platform.base_url + "/messages/" + inputs.message_id
       headers: =platform.headers
     returns:
       status: status_code
@@ -51,8 +51,8 @@ execution:
     tool: http_client
     params:
       method: POST
-      url: >
-        platform.base_url + "/messages/send"
+      url: >-
+        =platform.base_url + "/messages/send"
       headers: =platform.headers
       body:
         threadId: =steps.get_original.response_body.threadId

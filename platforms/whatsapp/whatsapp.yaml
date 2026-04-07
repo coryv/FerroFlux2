@@ -12,7 +12,7 @@ meta:
       - "Requires a Phone Number ID and System User Access Token from Meta."
       - "Note that business-initiated conversations require pre-approved templates."
   permissions:
-    - "network:'graph.facebook.com"'
+    - "network:graph.facebook.com"
 
 config:
   base_url: "https://graph.facebook.com/v21.0"

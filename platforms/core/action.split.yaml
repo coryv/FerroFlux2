@@ -28,9 +28,9 @@ interface:
       type: array
   
   outputs:
-    - name: =item
+    - name: item
       type: flow
-    - name: =Done
+    - name: Done
       type: flow
 
 execution:

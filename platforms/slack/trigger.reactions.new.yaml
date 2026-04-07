@@ -47,8 +47,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: >
-        platform.base_url + "/reactions.list?user=" + settings.user_id + "&limit=10"
+      url: >-
+        =platform.base_url + "/reactions.list?user=" + settings.user_id + "&limit=10"
       headers: =platform.headers
     returns:
       status: status_code

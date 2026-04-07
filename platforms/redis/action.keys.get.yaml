@@ -32,7 +32,7 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: =value
+    - name: value
       type: string
 
 execution:

@@ -48,8 +48,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: >
-        platform.base_url + "/" + settings.base_id + "/" + settings.table_name
+      url: >-
+        =platform.base_url + "/" + settings.base_id + "/" + settings.table_name
       headers: =platform.headers
       query:
         sort[0][field]: Last Modified Time

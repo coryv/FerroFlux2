@@ -15,18 +15,15 @@ async fn test_github_issues_create() -> anyhow::Result<()> {
     let mut harness = TestHarness::new().await;
     let _mock_uri = harness.mock_server().uri();
 
-    // NOTE: load_platforms() fails due to a pre-existing YAML parse error in
-    // platforms/core/utils.graphql.yaml (malformed block scalar at line 68).
-    // The error aborts the entire directory load, so 'github' is never registered.
-    // We work around this by loading the github platform directly via add_mocked_integration.
+    // 1. Load platforms first (best-effort)
+    harness.load_platforms().ok();
+
+    // 2. Add/Override github platform with mock URL
     let github_platform_yaml = std::fs::read_to_string(
         std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../../platforms/github/github.yaml")
     )?;
     harness.add_mocked_integration(&github_platform_yaml)?;
-
-    // Also load the github.issues.create node definition explicitly
-    harness.load_platforms().ok(); // best-effort for core nodes; errors are expected
 
     // GitHub issues.create makes POST /repos/{owner}/{repo}/issues — expect 201
     Mock::given(method("POST"))

@@ -11,11 +11,15 @@ nodes:
     name: Create GitHub Issue
     type: github.issues.create
     config:
-      owner: =inputs.body.owner
-      repo: =inputs.body.repo
-      title: =inputs.body.title
-      body: =inputs.body.body
+      owner: =owner
+      repo: =repo
+      title: =title
+      body: =body
 edges:
+  - source_id: webhook_in
+    source_handle: Success
+    target_id: create_issue
+    target_handle: Exec
   - source_id: webhook_in
     source_handle: body
     target_id: create_issue

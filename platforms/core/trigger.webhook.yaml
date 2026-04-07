@@ -28,10 +28,10 @@ interface:
     - name: Success
       type: flow
 
-    - name: =body
+    - name: body
       type: any
 
-    - name: =headers
+    - name: headers
       type: object
 
     - name: query
@@ -73,28 +73,29 @@ execution:
   - id: emit_body
     tool: emit
     params:
-      port: =body
-      value: =event.body
+      port: body
+      value: "=has(event.body) ? event.body : event"
 
   - id: emit_headers
     tool: emit
     params:
-      port: =headers
-      value: =event.headers
+      port: headers
+      value: "=has(event.headers) ? event.headers : {}"
 
   - id: emit_query
     tool: emit
     params:
       port: query
-      value: =event.query
+      value: "=has(event.query) ? event.query : {}"
 
   - id: emit_raw_body
     tool: emit
     params:
       port: raw_body
-      value: =event.raw_body
+      value: "=has(event.raw_body) ? event.raw_body : \"\""
 
   - id: emit_exec
     tool: emit
     params:
       port: Success
+      value: true

@@ -2,7 +2,7 @@ use ferroflux_testing::harness::TestHarness;
 use uuid::Uuid;
 use serde_json::json;
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn test_harness_smoke() -> anyhow::Result<()> {
     let mut harness = TestHarness::new().await;
     

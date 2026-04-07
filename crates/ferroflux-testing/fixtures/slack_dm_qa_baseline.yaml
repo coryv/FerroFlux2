@@ -11,9 +11,13 @@ nodes:
     name: Send Direct Message
     type: slack.messages.send_dm
     config:
-      user_id: =inputs.body.user_id
-      text: =inputs.body.text
+      user_id: =body.user_id
+      text: =body.text
 edges:
+  - source_id: webhook_in
+    source_handle: Success
+    target_id: send_dm
+    target_handle: Exec
   - source_id: webhook_in
     source_handle: body
     target_id: send_dm

@@ -12,7 +12,7 @@ meta:
       - "Requires an Organization slug and Project slug for most operations."
       - "Integrates well with GitHub/Slack to link errors to code changes and alerts."
   permissions:
-    - "network:'sentry.io"'
+    - "network:sentry.io"
 
 config:
   base_url: "https://sentry.io/api/0"

@@ -1,0 +1,38 @@
+name: "PDF Email"
+description: "Generates a PDF and sends it via Resend."
+triggers:
+  - id: "webhook_in"
+    name: "Incoming Webhook"
+    type: "core.trigger.webhook"
+    config:
+      path: "/pdf-email"
+nodes:
+  - id: "pdf_gen"
+    name: "PDF Generator"
+    type: "core.utils.pdf_write"
+    config:
+      title: "Test Report"
+      content: "=report_data"
+  - id: "email_sender"
+    name: "Email Sender"
+    type: "resend.emails.send"
+    config:
+      from: "FF QA <qa@ferroflux.com>"
+    # Mapping to input ports
+    with:
+      to: "customer@example.com"
+      subject: "Your Report"
+      html: "='Please find your report attached (simulated). Content: ' + report_data"
+edges:
+  - source_id: "webhook_in"
+    source_handle: "Success"
+    target_id: "pdf_gen"
+    target_handle: "Exec"
+  - source_id: "pdf_gen"
+    source_handle: "Exec"
+    target_id: "email_sender"
+    target_handle: "Exec"
+  - source_id: "pdf_gen"
+    source_handle: "result"
+    target_id: "email_sender"
+    target_handle: "text" # Sending PDF base64 as text for simplicity in this mock test

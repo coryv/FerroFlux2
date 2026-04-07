@@ -1,4 +1,4 @@
-use crate::components::{Inbox, NodeConfig, Outbox, WorkDone};
+use crate::components::{Inbox, NodeConfig, WorkDone};
 use crate::store::BlobStore;
 use bevy_ecs::prelude::*;
 use ferroflux_iam::TenantId;
@@ -31,31 +31,12 @@ pub fn handle_trigger_node(
             let mut metadata = std::collections::HashMap::new();
             metadata.insert("trace_id".to_string(), uuid::Uuid::new_v4().to_string());
 
-            if let Ok(ticket) = store.check_in_with_metadata(&payload_bytes, metadata) {
-                let is_source = if let Some(conf) = world.get::<NodeConfig>(e) {
-                    conf.node_type == "Webhook"
-                        || conf.node_type == "Cron"
-                        || conf.node_type == "Manual"
-                        || conf.node_type.contains(".trigger.")
-                        || conf.node_type.starts_with("trigger.")
-                } else {
-                    false
-                };
-
-                if is_source {
-                    if let Some(mut outbox) = world.get_mut::<Outbox>(e) {
-                        outbox.queue.push_back((None, ticket));
-                        tracing::info!(entity = ?e, "Trigger sent to OUTBOX (Source Node)");
-                        if let Some(mut wd) = world.get_resource_mut::<WorkDone>() {
-                            wd.0 = true;
-                        }
-                    }
-                } else if let Some(mut inbox) = world.get_mut::<Inbox>(e) {
-                    inbox.queue.push_back((None, ticket));
-                    tracing::info!(entity = ?e, "Trigger sent to INBOX");
-                    if let Some(mut wd) = world.get_resource_mut::<WorkDone>() {
-                        wd.0 = true;
-                    }
+            if let Ok(ticket) = store.check_in_with_metadata(&payload_bytes, metadata)
+                && let Some(mut inbox) = world.get_mut::<Inbox>(e) {
+                inbox.queue.push_back((None, ticket));
+                tracing::info!(entity = ?e, "Trigger sent to INBOX");
+                if let Some(mut wd) = world.get_resource_mut::<WorkDone>() {
+                    wd.0 = true;
                 }
             }
         }
@@ -91,31 +72,12 @@ pub fn handle_trigger_workflow(
             let mut metadata = std::collections::HashMap::new();
             metadata.insert("trace_id".to_string(), uuid::Uuid::new_v4().to_string());
 
-            if let Ok(ticket) = store.check_in_with_metadata(&payload_bytes, metadata) {
-                let is_source = if let Some(conf) = world.get::<NodeConfig>(e) {
-                    conf.node_type == "Webhook"
-                        || conf.node_type == "Cron"
-                        || conf.node_type == "Manual"
-                        || conf.node_type.contains(".trigger.")
-                        || conf.node_type.starts_with("trigger.")
-                } else {
-                    false
-                };
-
-                if is_source {
-                    if let Some(mut outbox) = world.get_mut::<Outbox>(e) {
-                        outbox.queue.push_back((None, ticket));
-                        tracing::info!(entity = ?e, "Workflow trigger sent to OUTBOX (Source)");
-                        if let Some(mut wd) = world.get_resource_mut::<WorkDone>() {
-                            wd.0 = true;
-                        }
-                    }
-                } else if let Some(mut inbox) = world.get_mut::<Inbox>(e) {
-                    inbox.queue.push_back((None, ticket));
-                    tracing::info!(entity = ?e, "Workflow trigger sent to INBOX");
-                    if let Some(mut wd) = world.get_resource_mut::<WorkDone>() {
-                        wd.0 = true;
-                    }
+            if let Ok(ticket) = store.check_in_with_metadata(&payload_bytes, metadata)
+                && let Some(mut inbox) = world.get_mut::<Inbox>(e) {
+                inbox.queue.push_back((None, ticket));
+                tracing::info!(entity = ?e, "Workflow trigger sent to INBOX");
+                if let Some(mut wd) = world.get_resource_mut::<WorkDone>() {
+                    wd.0 = true;
                 }
             }
         }

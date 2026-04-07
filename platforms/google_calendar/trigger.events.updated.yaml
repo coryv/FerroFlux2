@@ -26,7 +26,7 @@ interface:
   outputs:
     - name: Success
       type: flow
-    - name: =event
+    - name: event
       type: object
   settings:
     - name: calendar_id
@@ -44,8 +44,8 @@ execution:
     tool: http_client
     params:
       method: GET
-      url: >
-        "https:'=//www.googleapis.com/calendar/v3/calendars/" + settings.calendar_id + "/events"'
+      url: >-
+        ="https://www.googleapis.com/calendar/v3/calendars/" + settings.calendar_id + "/events"
       headers: =platform.headers
       query:
         orderBy: updated

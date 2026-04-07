@@ -12,7 +12,7 @@ meta:
       - "Requires a Vercel API token with appropriate scopes (Personal or Team)."
       - "Deployment IDs are usually the primary handle for build-related actions."
   permissions:
-    - "network:'api.vercel.com"'
+    - "network:api.vercel.com"
 
 config:
   base_url: "https://api.vercel.com"

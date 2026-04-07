@@ -22,12 +22,12 @@ meta:
 
 interface:
   inputs:
-    - name: =Exec
+    - name: Exec
       type: flow
     - name: pdf_base64
       type: string
   outputs:
-    - name: =Exec
+    - name: Exec
       type: flow
     - name: Error
       type: flow
@@ -36,11 +36,11 @@ interface:
 
 execution:
   - id: read
-    tool: =core.utils.pdf_read
+    tool: core.utils.pdf_read
     params:
       pdf_base64: =inputs.pdf_base64
     returns:
-      result: text_content
+      result: result
 
   - id: emit_res
     tool: emit

@@ -13,6 +13,8 @@ async fn test_case_3_6_math_pipeline() -> Result<()> {
         .with_test_writer()
         .try_init();
 
+    unsafe { std::env::set_var("FERROFLUX_ALLOW_INTERNAL_IPS", "true"); }
+
     // 1. Initialize Test Harness
     let mut harness = TestHarness::new().await;
     let mock_uri = harness.mock_server().uri();

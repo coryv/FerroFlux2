@@ -21,3 +21,4 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 async-channel = "2.3.1"
 ferroflux-tools = { path = "../ferroflux-tools" }
 ferroflux-integration = { path = "../ferroflux-integration" }
+base64 = "0.22.1"

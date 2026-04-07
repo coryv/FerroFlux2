@@ -37,17 +37,17 @@ interface:
       type: flow
     - name: Error
       type: flow
-    - name: =pages
+    - name: pages
       type: array
   settings: []
 
 execution:
-  - id: =request
+  - id: request
     tool: paginate
     params:
       method: POST
-      url: >
-        platform.base_url + "/databases/" + inputs.database_id + "/query"
+      url: >-
+        =platform.base_url + "/databases/" + inputs.database_id + "/query"
       headers: =platform.headers
       strategy: cursor
       cursor_param: start_cursor
