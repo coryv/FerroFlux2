@@ -95,7 +95,24 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
     rand::thread_rng().fill_bytes(&mut key);
     let hex_key = hex::encode(key);
 
-    fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    #[cfg(unix)]
+    {
+        use std::fs::OpenOptions;
+        use std::os::unix::fs::OpenOptionsExt;
+        use std::io::Write;
+
+        let mut options = OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        options.mode(0o600);
+
+        let mut file = options.open(key_path).context("Failed to open ferroflux.key file with restricted permissions")?;
+        file.write_all(hex_key.as_bytes()).context("Failed to write ferroflux.key")?;
+    }
+
+    #[cfg(not(unix))]
+    {
+        fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    }
 
     Ok(key.to_vec())
 }
@@ -113,5 +130,57 @@ mod tests {
         let decrypted = decrypt(&ciphertext, &key, &nonce).unwrap();
 
         assert_eq!(data.to_vec(), decrypted);
+    }
+}
+
+#[cfg(test)]
+mod additional_tests {
+    use super::*;
+    use std::fs;
+    #[cfg(unix)]
+    use std::os::unix::fs::PermissionsExt;
+
+    #[test]
+    fn test_get_or_create_master_key_permissions() {
+        // Set up test file in temp directory to avoid race conditions
+        let temp_dir = std::env::temp_dir();
+        let test_dir = temp_dir.join(format!("ferroflux_test_dir_{}", std::process::id()));
+        std::fs::create_dir_all(&test_dir).unwrap();
+
+        // Backup original working directory
+        let original_dir = std::env::current_dir().unwrap();
+
+        // Change working directory to temp dir so get_or_create_master_key writes there
+        std::env::set_current_dir(&test_dir).unwrap();
+
+        let file_name = Path::new("ferroflux.key");
+        if file_name.exists() {
+            let _ = fs::remove_file(file_name);
+        }
+
+        let _key = get_or_create_master_key().expect("Failed to get or create master key");
+
+        let metadata = fs::metadata(file_name).expect("Failed to get metadata");
+        #[cfg(unix)]
+        {
+            let permissions = metadata.permissions();
+            let mode = permissions.mode() & 0o777;
+
+            // Cleanup
+            let _ = fs::remove_file(file_name);
+
+            // Restore original working directory
+            std::env::set_current_dir(original_dir).unwrap();
+
+            assert_eq!(mode, 0o600, "File should have 0o600 permissions");
+        }
+        #[cfg(not(unix))]
+        {
+            // Cleanup
+            let _ = fs::remove_file(file_name);
+
+            // Restore original working directory
+            std::env::set_current_dir(original_dir).unwrap();
+        }
     }
 }
