@@ -1,0 +1,4 @@
+## 2024-04-09 - [Fix SSRF vulnerability in integration action execution]
+**Vulnerability:** Execution node in `FerroFlux-core` constructs URLs from configurations (which might come from users or databases) and makes requests blindly, allowing Server-Side Request Forgery (SSRF). Attackers could request internal systems (e.g. `http://localhost`, `169.254.169.254`, etc.) which might otherwise be protected behind firewalls.
+**Learning:** `ferroflux_security::network::validate_url` performs proper SSRF validation (including checking blocked IPs, loopback, private networks). It should be used for all outbound request targets, especially those constructed dynamically or from potentially untrusted configurations.
+**Prevention:** Always validate all outbound URLs (especially webhooks or action URLs) using `ferroflux_security::network::validate_url` before calling `reqwest::Client`.
