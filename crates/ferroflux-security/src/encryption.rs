@@ -95,7 +95,24 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
     rand::thread_rng().fill_bytes(&mut key);
     let hex_key = hex::encode(key);
 
-    fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    #[cfg(unix)]
+    {
+        use std::fs::OpenOptions;
+        use std::os::unix::fs::OpenOptionsExt;
+        use std::io::Write;
+
+        let mut options = OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        options.mode(0o600);
+
+        let mut file = options.open(&key_path).context("Failed to open master key file with restricted permissions")?;
+        file.write_all(hex_key.as_bytes()).context("Failed to write master key to file")?;
+    }
+
+    #[cfg(not(unix))]
+    {
+        fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    }
 
     Ok(key.to_vec())
 }
@@ -103,6 +120,9 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+    #[cfg(unix)]
+    use std::os::unix::fs::PermissionsExt;
 
     #[test]
     fn test_roundtrip() {
@@ -113,5 +133,31 @@ mod tests {
         let decrypted = decrypt(&ciphertext, &key, &nonce).unwrap();
 
         assert_eq!(data.to_vec(), decrypted);
+    }
+
+    #[test]
+    fn test_get_or_create_master_key_permissions() {
+        let key_path = Path::new("ferroflux.key");
+
+        // Ensure no environment variable forces a different behavior
+        env::remove_var("FERROFLUX_MASTER_KEY");
+
+        if key_path.exists() {
+            fs::remove_file(key_path).unwrap();
+        }
+
+        let _key = get_or_create_master_key().expect("Failed to get or create master key");
+
+        let metadata = fs::metadata(key_path).expect("Failed to get metadata");
+        #[cfg(unix)]
+        {
+            let permissions = metadata.permissions();
+            let mode = permissions.mode() & 0o777;
+
+            // Cleanup
+            fs::remove_file(key_path).unwrap();
+
+            assert_eq!(mode, 0o600, "File should have 0o600 permissions");
+        }
     }
 }
