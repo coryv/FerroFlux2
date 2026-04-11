@@ -16,6 +16,11 @@ impl Tool for CryptoTool {
     fn run(&self, _context: &mut ToolContext, params: Value) -> Result<Value> {
         let operation = params.get("operation").and_then(|v| v.as_str()).unwrap_or("hash");
 
+        if operation == "uuid" {
+            let id = Uuid::new_v4();
+            return Ok(json!({ "result": id.to_string() }));
+        }
+
         let input_val = params.get("input").ok_or_else(|| anyhow!("Missing 'input'"))?;
         let input = if let Some(s) = input_val.as_str() {
             s.to_string()
@@ -37,9 +42,6 @@ impl Tool for CryptoTool {
                 mac.update(input.as_bytes());
                 let result = mac.finalize();
                 Ok(json!({ "result": hex::encode(result.into_bytes()) }))
-            },
-            "uuid" => {
-                Ok(json!({ "result": Uuid::new_v4().to_string() }))
             },
             _ => Err(anyhow!("Unsupported operation: {}", operation)),
         }
