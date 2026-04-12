@@ -95,7 +95,24 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
     rand::thread_rng().fill_bytes(&mut key);
     let hex_key = hex::encode(key);
 
-    fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    #[cfg(unix)]
+    {
+        use std::fs::OpenOptions;
+        use std::os::unix::fs::OpenOptionsExt;
+        use std::io::Write;
+
+        let mut options = OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        options.mode(0o600);
+
+        let mut file = options.open(key_path).context("Failed to open ferroflux.key with restricted permissions")?;
+        file.write_all(hex_key.as_bytes()).context("Failed to write ferroflux.key")?;
+    }
+
+    #[cfg(not(unix))]
+    {
+        fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    }
 
     Ok(key.to_vec())
 }
@@ -113,5 +130,40 @@ mod tests {
         let decrypted = decrypt(&ciphertext, &key, &nonce).unwrap();
 
         assert_eq!(data.to_vec(), decrypted);
+    }
+
+    #[test]
+    fn test_get_or_create_master_key_permissions() {
+        // If the environment variable is set, this test cannot run reliably without
+        // mutating global state, so we skip it to avoid race conditions.
+        if env::var("FERROFLUX_MASTER_KEY").is_ok() {
+            return;
+        }
+
+        struct FileCleanup(std::path::PathBuf);
+        impl Drop for FileCleanup {
+            fn drop(&mut self) {
+                let _ = fs::remove_file(&self.0);
+            }
+        }
+
+        let key_file = Path::new("ferroflux.key");
+        let _cleanup = FileCleanup(key_file.to_path_buf());
+
+        if key_file.exists() {
+            fs::remove_file(&key_file).unwrap();
+        }
+
+        let _key = get_or_create_master_key().expect("Failed to get or create master key");
+
+        let metadata = fs::metadata(key_file).expect("Failed to get metadata");
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let permissions = metadata.permissions();
+            let mode = permissions.mode() & 0o777;
+            assert_eq!(mode, 0o600, "Master key file should have 0o600 permissions");
+        }
     }
 }
