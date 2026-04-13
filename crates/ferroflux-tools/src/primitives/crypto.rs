@@ -16,30 +16,27 @@ impl Tool for CryptoTool {
     fn run(&self, _context: &mut ToolContext, params: Value) -> Result<Value> {
         let operation = params.get("operation").and_then(|v| v.as_str()).unwrap_or("hash");
 
-        let input_val = params.get("input").ok_or_else(|| anyhow!("Missing 'input'"))?;
-        let input = if let Some(s) = input_val.as_str() {
-            s.to_string()
-        } else {
-            input_val.to_string()
-        };
-
         match operation {
+            "uuid" => {
+                Ok(json!({ "result": Uuid::new_v4().to_string() }))
+            },
             "hash" => {
+                let input_val = params.get("input").ok_or_else(|| anyhow!("Missing 'input'"))?;
+                let input = if let Some(s) = input_val.as_str() { s.to_string() } else { input_val.to_string() };
                 let mut hasher = Sha256::new();
                 hasher.update(input.as_bytes());
                 let result = hasher.finalize();
                 Ok(json!({ "result": hex::encode(result) }))
             },
             "hmac" => {
+                let input_val = params.get("input").ok_or_else(|| anyhow!("Missing 'input'"))?;
+                let input = if let Some(s) = input_val.as_str() { s.to_string() } else { input_val.to_string() };
                 let key = params.get("key").and_then(|v| v.as_str()).ok_or_else(|| anyhow!("Missing 'key'"))?;
                 type HmacSha256 = Hmac<Sha256>;
                 let mut mac = HmacSha256::new_from_slice(key.as_bytes())?;
                 mac.update(input.as_bytes());
                 let result = mac.finalize();
                 Ok(json!({ "result": hex::encode(result.into_bytes()) }))
-            },
-            "uuid" => {
-                Ok(json!({ "result": Uuid::new_v4().to_string() }))
             },
             _ => Err(anyhow!("Unsupported operation: {}", operation)),
         }

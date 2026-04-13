@@ -1,0 +1,4 @@
+## 2024-04-13 - SSRF Vulnerability via Naive String Matching
+**Vulnerability:** The HTTP client in `ferroflux-tools` used a naive `check_ssrf` implementation that only blocked exact string matches for "localhost", "127.0.0.1", "0.0.0.0", and prefixes "192.168." and "10.". This failed to block other loopback representations (like `127.0.0.2` or IPv6 `::1`), link-local metadata IPs (`169.254.169.254`), or private IPs via DNS resolution.
+**Learning:** Naive string matching on URLs is insufficient for SSRF protection because attackers can use alternative IP formats or DNS rebinding. A dedicated security module with IP parsing and DNS resolution is essential.
+**Prevention:** Always use `ferroflux_security::network::validate_url` for URL validation instead of custom logic. This ensures DNS resolution, correct parsing, and comprehensive checks against all private and reserved IP ranges.
