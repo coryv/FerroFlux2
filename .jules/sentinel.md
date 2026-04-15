@@ -1,0 +1,4 @@
+## 2024-04-15 - [Insecure File Permissions for Auto-Generated Keys]
+**Vulnerability:** The auto-generated master encryption key (`ferroflux.key`) was created using `std::fs::write`, which defaults to overly permissive file permissions (often `0o644`) on Unix systems, potentially allowing other users on the system to read the master key.
+**Learning:** Default file creation methods like `std::fs::write` in Rust do not restrict file permissions by default. When handling sensitive data like encryption keys, explicit permission settings are required. This was a pattern in the codebase, as it was fixed similarly in `api_key.rs`.
+**Prevention:** Always use `std::fs::OpenOptions` combined with `std::os::unix::fs::OpenOptionsExt` to explicitly set secure file modes (like `0o600`) when creating files containing sensitive information on Unix systems.
