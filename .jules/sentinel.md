@@ -1,0 +1,4 @@
+## 2026-04-16 - Insecure File Permissions on Master Key
+**Vulnerability:** The master encryption key (`ferroflux.key`) was created using `std::fs::write`, which defaults to overly permissive file permissions (e.g., `0o644` or `0o666` depending on umask) on Unix platforms. This allowed other local users to potentially read the encryption key, compromising all encrypted data.
+**Learning:** `std::fs::write` is insecure for creating sensitive files. Even if the file is quickly overwritten, the permissive creation mode introduces a race condition and a fundamental security gap.
+**Prevention:** Use `std::fs::OpenOptions` with the Unix-specific `std::os::unix::fs::OpenOptionsExt` trait to explicitly set the mode to `0o600` before writing the file contents, wrapped in a `#[cfg(unix)]` block to maintain cross-platform compatibility.
