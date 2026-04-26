@@ -95,7 +95,24 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
     rand::thread_rng().fill_bytes(&mut key);
     let hex_key = hex::encode(key);
 
-    fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    #[cfg(unix)]
+    {
+        use std::fs::OpenOptions;
+        use std::os::unix::fs::OpenOptionsExt;
+        use std::io::Write;
+
+        let mut options = OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        options.mode(0o600);
+
+        let mut file = options.open(key_path).context("Failed to open master key file with restricted permissions")?;
+        file.write_all(hex_key.as_bytes()).context("Failed to write master key to file")?;
+    }
+
+    #[cfg(not(unix))]
+    {
+        fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    }
 
     Ok(key.to_vec())
 }
@@ -103,6 +120,33 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(unix)]
+    use std::os::unix::fs::PermissionsExt;
+
+    #[test]
+    fn test_master_key_permissions() {
+        // Ensure clean state
+        let key_path = Path::new("ferroflux.key");
+        if key_path.exists() {
+            fs::remove_file(key_path).unwrap();
+        }
+
+        // Generate key
+        let _key = get_or_create_master_key().unwrap();
+
+        // Check permissions
+        #[cfg(unix)]
+        {
+            let metadata = fs::metadata(key_path).unwrap();
+            let mode = metadata.permissions().mode() & 0o777;
+            assert_eq!(mode, 0o600, "Master key file should have 0o600 permissions");
+        }
+
+        // Cleanup
+        if key_path.exists() {
+            fs::remove_file(key_path).unwrap();
+        }
+    }
 
     #[test]
     fn test_roundtrip() {
