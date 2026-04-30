@@ -11,6 +11,8 @@ impl Tool for GraphQlTool {
 
     fn run(&self, _context: &mut ToolContext, params: Value) -> Result<Value> {
         let url = params.get("url").and_then(|v| v.as_str()).ok_or_else(|| anyhow!("Missing 'url'"))?;
+        ferroflux_security::network::validate_url(url).map_err(|e| anyhow!("SSRF blocked: {}", e))?;
+
         let query = params.get("query").and_then(|v| v.as_str()).ok_or_else(|| anyhow!("Missing 'query'"))?;
         let variables = params.get("variables").cloned().unwrap_or(json!({}));
         let operation_name = params.get("operation_name").and_then(|v| v.as_str());
