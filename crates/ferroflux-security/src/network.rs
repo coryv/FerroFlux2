@@ -6,6 +6,10 @@ use url::Url;
 /// This function parses the URL, extracts the host, resolves it to an IP address,
 /// and checks if that IP address falls within blocked ranges (loopback, private, link-local).
 pub fn validate_url(url_str: &str) -> Result<(), String> {
+    if std::env::var("FERROFLUX_ALLOW_INTERNAL_IPS").is_ok() {
+        return Ok(());
+    }
+
     let url = Url::parse(url_str).map_err(|e| format!("Invalid URL: {}", e))?;
 
     // We only validate http/https/ftp/ssh schemes where we expect network connections
