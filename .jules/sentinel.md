@@ -1,0 +1,4 @@
+## 2024-05-24 - SSRF Check Vulnerability in HTTP Client
+**Vulnerability:** The HTTP client module (`http_client.rs`/`request.rs`) had an SSRF check `check_ssrf` that performed simple string comparisons against the parsed host (`host == "127.0.0.1"`, etc.).
+**Learning:** Naive string matching for IP filtering is fundamentally flawed and trivial to bypass using alternative IP representations (e.g. integer IP representation like `2130706433`, hex, or DNS rebinding/IPv6 mappings). Security validations related to network addresses must rely on actual DNS resolution and canonical IP checks.
+**Prevention:** Always use dedicated network security validation libraries (e.g. `ferroflux_security::network::validate_url`) that correctly resolve hostnames and evaluate the resulting IP addresses against standard blocked ranges.
