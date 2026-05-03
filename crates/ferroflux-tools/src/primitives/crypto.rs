@@ -96,7 +96,7 @@ mod tests {
             store: None,
             secrets: None, executor: None,
         };
-        let params = json!({ "operation": "uuid" });
+        let params = json!({ "operation": "uuid", "input": "" });
         let res = tool.run(&mut ctx, params).unwrap();
         assert!(Uuid::parse_str(res["result"].as_str().unwrap()).is_ok());
     }
