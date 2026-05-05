@@ -3,7 +3,6 @@ use anyhow::{Result, anyhow};
 use serde_json::{Value, json};
 use sha2::{Sha256, Digest};
 use hmac::{Hmac, Mac};
-use uuid::Uuid;
 use hex;
 
 pub struct CryptoTool;
@@ -16,15 +15,20 @@ impl Tool for CryptoTool {
     fn run(&self, _context: &mut ToolContext, params: Value) -> Result<Value> {
         let operation = params.get("operation").and_then(|v| v.as_str()).unwrap_or("hash");
 
-        let input_val = params.get("input").ok_or_else(|| anyhow!("Missing 'input'"))?;
-        let input = if let Some(s) = input_val.as_str() {
-            s.to_string()
-        } else {
-            input_val.to_string()
-        };
-
         match operation {
-            "hash" => {
+            "uuid" => {
+                Ok(json!({ "result": uuid::Uuid::new_v4().to_string() }))
+            },
+            _ => {
+                let input_val = params.get("input").ok_or_else(|| anyhow!("Missing 'input'"))?;
+                let input = if let Some(s) = input_val.as_str() {
+                    s.to_string()
+                } else {
+                    input_val.to_string()
+                };
+
+                match operation {
+                    "hash" => {
                 let mut hasher = Sha256::new();
                 hasher.update(input.as_bytes());
                 let result = hasher.finalize();
@@ -38,10 +42,9 @@ impl Tool for CryptoTool {
                 let result = mac.finalize();
                 Ok(json!({ "result": hex::encode(result.into_bytes()) }))
             },
-            "uuid" => {
-                Ok(json!({ "result": Uuid::new_v4().to_string() }))
-            },
-            _ => Err(anyhow!("Unsupported operation: {}", operation)),
+                    _ => Err(anyhow!("Unsupported operation: {}", operation)),
+                }
+            }
         }
     }
 }
