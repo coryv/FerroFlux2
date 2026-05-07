@@ -1,0 +1,7 @@
+## 2024-05-08 - SSRF Vulnerability in GraphQL Tool Tests
+
+**Vulnerability:** The GraphQL tool in `crates/ferroflux-tools/src/primitives/graphql.rs` was making external HTTP requests based on user input without any validation. While the rest of the application (e.g., `http_client.rs`) utilized `check_ssrf()` to prevent Server-Side Request Forgery, `graphql.rs` bypassed this, allowing internal IP addresses to be queried. Additionally, an attempt was made to temporarily enable internal IP requests during testing via an `unsafe` block modifying environment variables from within a test thread.
+
+**Learning:** This revealed two significant findings. Firstly, an oversight in the GraphQL tool left an SSRF vulnerability despite existing mitigation strategies elsewhere. Secondly, the test environment had an unsafe pattern: using `std::env::set_var("FERROFLUX_ALLOW_INTERNAL_IPS", "true")` inside `std::thread::spawn` during concurrent `cargo test` execution introduces undefined behavior (data races) because environment variables are process-wide global state. This makes tests brittle and fundamentally flawed.
+
+**Prevention:** To prevent similar SSRF vulnerabilities, ensure `check_ssrf(url)` is consistently applied across all modules performing outgoing requests. To prevent test environment data races, avoid `std::env::set_var` in concurrent tests. Instead, either spawn child processes, or configure environment variables at the top-level test runner (e.g., `FERROFLUX_ALLOW_INTERNAL_IPS=1 cargo test`).

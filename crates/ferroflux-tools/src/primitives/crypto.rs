@@ -16,7 +16,7 @@ impl Tool for CryptoTool {
     fn run(&self, _context: &mut ToolContext, params: Value) -> Result<Value> {
         let operation = params.get("operation").and_then(|v| v.as_str()).unwrap_or("hash");
 
-        let input_val = params.get("input").ok_or_else(|| anyhow!("Missing 'input'"))?;
+        let input_val = params.get("input").unwrap_or(&Value::Null);
         let input = if let Some(s) = input_val.as_str() {
             s.to_string()
         } else {
