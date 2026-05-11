@@ -97,6 +97,11 @@ fn spawn_sse_connection(
         let mut attempts = 0;
         let max_attempts = config.max_reconnect_attempts;
 
+        if let Err(e) = ferroflux_security::network::validate_url(&config.url) {
+            tracing::error!(node_id = %node_id, url = %config.url, error = %e, "SSE URL failed security validation (SSRF protection)");
+            return;
+        }
+
         loop {
             tracing::info!(node_id = %node_id, url = %config.url, "Connecting to SSE stream");
 
