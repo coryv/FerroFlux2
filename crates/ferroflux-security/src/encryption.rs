@@ -95,7 +95,24 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
     rand::thread_rng().fill_bytes(&mut key);
     let hex_key = hex::encode(key);
 
-    fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    #[cfg(unix)]
+    {
+        use std::fs::OpenOptions;
+        use std::os::unix::fs::OpenOptionsExt;
+        use std::io::Write;
+
+        let mut options = OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        options.mode(0o600);
+
+        let mut file = options.open(key_path).context("Failed to open ferroflux.key file with restricted permissions")?;
+        file.write_all(hex_key.as_bytes()).context("Failed to write ferroflux.key to file")?;
+    }
+
+    #[cfg(not(unix))]
+    {
+        fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    }
 
     Ok(key.to_vec())
 }
@@ -113,5 +130,56 @@ mod tests {
         let decrypted = decrypt(&ciphertext, &key, &nonce).unwrap();
 
         assert_eq!(data.to_vec(), decrypted);
+    }
+
+    #[test]
+    fn test_get_or_create_master_key_permissions() {
+        // Since get_or_create_master_key hardcodes the path to the current working directory
+        // and relies on environment variables, we must run it in an isolated process to avoid
+        // global state mutations that cause flaky tests.
+        use std::process::Command;
+        use uuid::Uuid;
+
+        let temp_dir = std::env::temp_dir().join(Uuid::new_v4().to_string());
+        fs::create_dir_all(&temp_dir).unwrap();
+
+        let cargo_toml = format!(
+            r#"[package]
+name = "test_permissions"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ferroflux-security = {{ path = "{}" }}
+"#,
+            env!("CARGO_MANIFEST_DIR")
+        );
+
+        fs::write(temp_dir.join("Cargo.toml"), cargo_toml).unwrap();
+        fs::create_dir_all(temp_dir.join("src")).unwrap();
+
+        let main_rs = r#"
+fn main() {
+    std::env::remove_var("FERROFLUX_MASTER_KEY");
+    let _ = ferroflux_security::encryption::get_or_create_master_key().unwrap();
+    let metadata = std::fs::metadata("ferroflux.key").unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        assert_eq!(metadata.permissions().mode() & 0o777, 0o600);
+    }
+}
+"#;
+        fs::write(temp_dir.join("src/main.rs"), main_rs).unwrap();
+
+        let status = Command::new("cargo")
+            .arg("run")
+            .current_dir(&temp_dir)
+            .status()
+            .unwrap();
+
+        fs::remove_dir_all(&temp_dir).unwrap();
+
+        assert!(status.success());
     }
 }
