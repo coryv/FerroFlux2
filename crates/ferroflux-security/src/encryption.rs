@@ -95,7 +95,24 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
     rand::thread_rng().fill_bytes(&mut key);
     let hex_key = hex::encode(key);
 
-    fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    #[cfg(unix)]
+    {
+        use std::fs::OpenOptions;
+        use std::os::unix::fs::OpenOptionsExt;
+        use std::io::Write;
+
+        let mut options = OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        options.mode(0o600);
+
+        let mut file = options.open(key_path).context("Failed to open master key file with restricted permissions")?;
+        file.write_all(hex_key.as_bytes()).context("Failed to write ferroflux.key")?;
+    }
+
+    #[cfg(not(unix))]
+    {
+        fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    }
 
     Ok(key.to_vec())
 }
@@ -113,5 +130,52 @@ mod tests {
         let decrypted = decrypt(&ciphertext, &key, &nonce).unwrap();
 
         assert_eq!(data.to_vec(), decrypted);
+    }
+
+    // Drop guard to securely clean up the environment and file system after tests,
+    // ensuring cleanup runs even if a panic occurs.
+    struct EnvGuard {
+        key_file: &'static Path,
+        old_env: Result<String, env::VarError>,
+    }
+
+    impl Drop for EnvGuard {
+        fn drop(&mut self) {
+            let _ = fs::remove_file(self.key_file);
+            match &self.old_env {
+                Ok(val) => env::set_var("FERROFLUX_MASTER_KEY", val),
+                Err(_) => env::remove_var("FERROFLUX_MASTER_KEY"),
+            }
+        }
+    }
+
+    #[test]
+    fn test_master_key_permissions() {
+        let key_file = Path::new("ferroflux.key");
+        let old_env = env::var("FERROFLUX_MASTER_KEY");
+
+        // Setup guard for cleanup
+        let _guard = EnvGuard {
+            key_file,
+            old_env,
+        };
+
+        // Ensure clean state before test
+        if key_file.exists() {
+            let _ = fs::remove_file(key_file);
+        }
+        env::remove_var("FERROFLUX_MASTER_KEY");
+
+        // Generate the key
+        let _key = get_or_create_master_key().expect("Failed to create master key");
+
+        // Assert permissions
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let metadata = fs::metadata(key_file).expect("Failed to get metadata");
+            let mode = metadata.permissions().mode() & 0o777;
+            assert_eq!(mode, 0o600, "ferroflux.key should have 0o600 permissions");
+        }
     }
 }
