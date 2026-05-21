@@ -16,6 +16,13 @@ impl Tool for CryptoTool {
     fn run(&self, _context: &mut ToolContext, params: Value) -> Result<Value> {
         let operation = params.get("operation").and_then(|v| v.as_str()).unwrap_or("hash");
 
+        match operation {
+            "uuid" => {
+                return Ok(json!({ "result": Uuid::new_v4().to_string() }));
+            },
+            _ => {}
+        }
+
         let input_val = params.get("input").ok_or_else(|| anyhow!("Missing 'input'"))?;
         let input = if let Some(s) = input_val.as_str() {
             s.to_string()
