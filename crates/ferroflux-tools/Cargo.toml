@@ -49,6 +49,7 @@ tokio = { version = "1.36.0", features = ["rt", "rt-multi-thread"] }
 futures = "0.3.32"
 redis_actual = { version = "1.1.0", package = "redis", features = ["tokio-comp", "tokio-rustls-comp"] }
 redis = { version = "0.27", features = ["tokio-comp", "tokio-rustls-comp"] }
+ferroflux-security = { version = "0.1.0", path = "../ferroflux-security" }
 
 
 
