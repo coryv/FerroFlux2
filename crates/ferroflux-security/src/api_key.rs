@@ -53,15 +53,18 @@ pub fn get_or_create_api_key() -> Result<String> {
     #[cfg(unix)]
     {
         use std::fs::OpenOptions;
-        use std::os::unix::fs::OpenOptionsExt;
         use std::io::Write;
+        use std::os::unix::fs::OpenOptionsExt;
 
         let mut options = OpenOptions::new();
         options.write(true).create(true).truncate(true);
         options.mode(0o600);
 
-        let mut file = options.open(&key_path).context("Failed to open API key file with restricted permissions")?;
-        file.write_all(key.as_bytes()).context("Failed to write API key to file")?;
+        let mut file = options
+            .open(&key_path)
+            .context("Failed to open API key file with restricted permissions")?;
+        file.write_all(key.as_bytes())
+            .context("Failed to write API key to file")?;
     }
 
     #[cfg(not(unix))]
