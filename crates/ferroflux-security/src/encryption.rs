@@ -95,7 +95,24 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
     rand::thread_rng().fill_bytes(&mut key);
     let hex_key = hex::encode(key);
 
-    fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    #[cfg(unix)]
+    {
+        use std::fs::OpenOptions;
+        use std::os::unix::fs::OpenOptionsExt;
+        use std::io::Write;
+
+        let mut options = OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        options.mode(0o600);
+
+        let mut file = options.open(key_path).context("Failed to open ferroflux.key file with restricted permissions")?;
+        file.write_all(hex_key.as_bytes()).context("Failed to write ferroflux.key to file")?;
+    }
+
+    #[cfg(not(unix))]
+    {
+        fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    }
 
     Ok(key.to_vec())
 }
@@ -103,6 +120,58 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(unix)]
+    use std::os::unix::fs::PermissionsExt;
+
+    struct TestEnvGuard {
+        original_var: Result<String, env::VarError>,
+        key_path: std::path::PathBuf,
+    }
+
+    impl TestEnvGuard {
+        fn new() -> Self {
+            let original_var = env::var("FERROFLUX_MASTER_KEY");
+            env::remove_var("FERROFLUX_MASTER_KEY");
+            let key_path = Path::new("ferroflux.key").to_path_buf();
+            if key_path.exists() {
+                fs::remove_file(&key_path).unwrap();
+            }
+            Self {
+                original_var,
+                key_path,
+            }
+        }
+    }
+
+    impl Drop for TestEnvGuard {
+        fn drop(&mut self) {
+            if let Ok(val) = &self.original_var {
+                env::set_var("FERROFLUX_MASTER_KEY", val);
+            } else {
+                env::remove_var("FERROFLUX_MASTER_KEY");
+            }
+            if self.key_path.exists() {
+                let _ = fs::remove_file(&self.key_path);
+            }
+        }
+    }
+
+    #[test]
+    fn test_get_or_create_master_key_permissions() {
+        let guard = TestEnvGuard::new();
+
+        let _key = get_or_create_master_key().expect("Failed to get or create master key");
+
+        let metadata = fs::metadata(&guard.key_path).expect("Failed to get metadata");
+        #[cfg(unix)]
+        {
+            let permissions = metadata.permissions();
+            let mode = permissions.mode() & 0o777;
+
+            assert_eq!(mode, 0o600, "File should have 0o600 permissions");
+        }
+    }
 
     #[test]
     fn test_roundtrip() {
