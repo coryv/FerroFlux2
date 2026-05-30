@@ -95,7 +95,24 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
     rand::thread_rng().fill_bytes(&mut key);
     let hex_key = hex::encode(key);
 
-    fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    #[cfg(unix)]
+    {
+        use std::fs::OpenOptions;
+        use std::os::unix::fs::OpenOptionsExt;
+        use std::io::Write;
+
+        let mut options = OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        options.mode(0o600);
+
+        let mut file = options.open(key_path).context("Failed to open ferroflux.key with restricted permissions")?;
+        file.write_all(hex_key.as_bytes()).context("Failed to write ferroflux.key")?;
+    }
+
+    #[cfg(not(unix))]
+    {
+        fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    }
 
     Ok(key.to_vec())
 }
@@ -113,5 +130,42 @@ mod tests {
         let decrypted = decrypt(&ciphertext, &key, &nonce).unwrap();
 
         assert_eq!(data.to_vec(), decrypted);
+    }
+
+    #[cfg(unix)]
+    use std::os::unix::fs::PermissionsExt;
+
+    struct EnvGuard {
+        key_path: std::path::PathBuf,
+    }
+
+    impl Drop for EnvGuard {
+        fn drop(&mut self) {
+            if self.key_path.exists() {
+                let _ = std::fs::remove_file(&self.key_path);
+            }
+            std::env::remove_var("FERROFLUX_MASTER_KEY");
+        }
+    }
+
+    #[test]
+    fn test_master_key_permissions() {
+        let guard = EnvGuard {
+            key_path: std::path::PathBuf::from("ferroflux.key"),
+        };
+
+        if guard.key_path.exists() {
+            std::fs::remove_file(&guard.key_path).unwrap();
+        }
+        std::env::remove_var("FERROFLUX_MASTER_KEY");
+
+        let _key = get_or_create_master_key().unwrap();
+
+        let metadata = std::fs::metadata(&guard.key_path).unwrap();
+        #[cfg(unix)]
+        {
+            let mode = metadata.permissions().mode() & 0o777;
+            assert_eq!(mode, 0o600, "ferroflux.key should have 0o600 permissions");
+        }
     }
 }
