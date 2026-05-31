@@ -95,7 +95,27 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
     rand::thread_rng().fill_bytes(&mut key);
     let hex_key = hex::encode(key);
 
-    fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    #[cfg(unix)]
+    {
+        use std::fs::OpenOptions;
+        use std::io::Write;
+        use std::os::unix::fs::OpenOptionsExt;
+
+        let mut options = OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        options.mode(0o600);
+
+        let mut file = options
+            .open(key_path)
+            .context("Failed to open ferroflux.key with restricted permissions")?;
+        file.write_all(hex_key.as_bytes())
+            .context("Failed to write ferroflux.key")?;
+    }
+
+    #[cfg(not(unix))]
+    {
+        fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    }
 
     Ok(key.to_vec())
 }
@@ -113,5 +133,56 @@ mod tests {
         let decrypted = decrypt(&ciphertext, &key, &nonce).unwrap();
 
         assert_eq!(data.to_vec(), decrypted);
+    }
+
+    #[test]
+    fn test_get_or_create_master_key_permissions() {
+        use std::env;
+        use std::fs;
+        #[cfg(unix)]
+        use std::os::unix::fs::PermissionsExt;
+        use std::path::PathBuf;
+
+        // RAII struct for env var and file cleanup
+        struct TestCleanup {
+            key_file: PathBuf,
+            old_env: Option<String>,
+        }
+
+        impl Drop for TestCleanup {
+            fn drop(&mut self) {
+                if self.key_file.exists() {
+                    let _ = fs::remove_file(&self.key_file);
+                }
+                if let Some(ref val) = self.old_env {
+                    env::set_var("FERROFLUX_MASTER_KEY", val);
+                } else {
+                    env::remove_var("FERROFLUX_MASTER_KEY");
+                }
+            }
+        }
+
+        let cleanup = TestCleanup {
+            key_file: PathBuf::from("ferroflux.key"),
+            old_env: env::var("FERROFLUX_MASTER_KEY").ok(),
+        };
+
+        // Ensure clean state
+        if cleanup.key_file.exists() {
+            fs::remove_file(&cleanup.key_file).unwrap();
+        }
+
+        // Remove env var to force file creation
+        env::remove_var("FERROFLUX_MASTER_KEY");
+
+        let _key = get_or_create_master_key().expect("Failed to get or create master key");
+
+        let metadata = fs::metadata(&cleanup.key_file).expect("Failed to get metadata");
+        #[cfg(unix)]
+        {
+            let permissions = metadata.permissions();
+            let mode = permissions.mode() & 0o777;
+            assert_eq!(mode, 0o600, "File should have 0o600 permissions");
+        }
     }
 }
