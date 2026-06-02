@@ -2,6 +2,8 @@ use ferroflux_types::tool::{Tool, ToolContext};
 use anyhow::{Result, anyhow, Context};
 use serde_json::{Value, json};
 
+use crate::primitives::request::check_ssrf;
+
 pub struct GraphQlTool;
 
 impl Tool for GraphQlTool {
@@ -23,6 +25,9 @@ impl Tool for GraphQlTool {
         if let Some(name) = operation_name {
             body.as_object_mut().unwrap().insert("operationName".to_string(), json!(name));
         }
+
+        // SSRF protection check
+        check_ssrf(url)?;
 
         // We'll use a blocking client for simplicity in this primitive, 
         // consistent with other tools in this crate.
@@ -156,5 +161,34 @@ mod tests {
         .unwrap();
 
         assert_eq!(res["errors"][0]["message"], "Unauthorized access");
+    }
+
+    #[test]
+    fn test_graphql_ssrf_protection() {
+        let tool = GraphQlTool;
+        let params = json!({
+            "url": "http://127.0.0.1:8080/graphql",
+            "query": "{ test }"
+        });
+
+        let mut local = HashMap::new();
+        let mut memory = HashMap::new();
+        let masks = HashMap::new();
+        let mut ctx = ToolContext {
+            local: &mut local,
+            memory: &mut memory,
+            trace_id: "test".to_string(),
+            node_id: "test_node".to_string(),
+            tenant_id: "test_tenant".to_string(),
+            event_bus: None,
+            shadow_mode: false,
+            shadow_masks: &masks,
+            store: None,
+            secrets: None, executor: None,
+        };
+
+        let result = tool.run(&mut ctx, params);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("blocked"));
     }
 }
