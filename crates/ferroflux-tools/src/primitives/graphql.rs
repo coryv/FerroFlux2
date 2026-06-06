@@ -1,6 +1,7 @@
 use ferroflux_types::tool::{Tool, ToolContext};
 use anyhow::{Result, anyhow, Context};
 use serde_json::{Value, json};
+use crate::primitives::request::check_ssrf;
 
 pub struct GraphQlTool;
 
@@ -23,6 +24,9 @@ impl Tool for GraphQlTool {
         if let Some(name) = operation_name {
             body.as_object_mut().unwrap().insert("operationName".to_string(), json!(name));
         }
+
+        // Prevent SSRF vulnerabilities by checking the URL before making the request.
+        check_ssrf(url)?;
 
         // We'll use a blocking client for simplicity in this primitive, 
         // consistent with other tools in this crate.
