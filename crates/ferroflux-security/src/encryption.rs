@@ -95,7 +95,24 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
     rand::thread_rng().fill_bytes(&mut key);
     let hex_key = hex::encode(key);
 
-    fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    #[cfg(unix)]
+    {
+        use std::fs::OpenOptions;
+        use std::io::Write;
+        use std::os::unix::fs::OpenOptionsExt;
+
+        let mut options = OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        options.mode(0o600);
+
+        let mut file = options.open(key_path).context("Failed to open ferroflux.key file with restricted permissions")?;
+        file.write_all(hex_key.as_bytes()).context("Failed to write ferroflux.key")?;
+    }
+
+    #[cfg(not(unix))]
+    {
+        fs::write(key_path, hex_key).context("Failed to write ferroflux.key")?;
+    }
 
     Ok(key.to_vec())
 }
@@ -103,6 +120,78 @@ pub fn get_or_create_master_key() -> Result<Vec<u8>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(unix)]
+    use std::os::unix::fs::PermissionsExt;
+
+    // RAII for cleaning up environment variables
+    struct EnvRestorer {
+        key: String,
+        original_value: Option<String>,
+    }
+
+    impl EnvRestorer {
+        fn new(key: &str) -> Self {
+            let original_value = env::var(key).ok();
+            Self {
+                key: key.to_string(),
+                original_value,
+            }
+        }
+    }
+
+    impl Drop for EnvRestorer {
+        fn drop(&mut self) {
+            if let Some(ref val) = &self.original_value {
+                unsafe { env::set_var(&self.key, val) };
+            } else {
+                unsafe { env::remove_var(&self.key) };
+            }
+        }
+    }
+
+    // RAII for cleaning up files
+    struct FileCleanup {
+        path: std::path::PathBuf,
+    }
+
+    impl FileCleanup {
+        fn new(path: std::path::PathBuf) -> Self {
+            Self { path }
+        }
+    }
+
+    impl Drop for FileCleanup {
+        fn drop(&mut self) {
+            if self.path.exists() {
+                let _ = fs::remove_file(&self.path);
+            }
+        }
+    }
+
+    #[test]
+    fn test_master_key_file_permissions() {
+        let _env_restorer = EnvRestorer::new("FERROFLUX_MASTER_KEY");
+        unsafe {
+            std::env::remove_var("FERROFLUX_MASTER_KEY");
+        }
+
+        let key_path = Path::new("ferroflux.key");
+        let _file_cleanup = FileCleanup::new(key_path.to_path_buf());
+        if key_path.exists() {
+            fs::remove_file(key_path).unwrap();
+        }
+
+        let _key = get_or_create_master_key().expect("Failed to get or create master key");
+
+        let metadata = fs::metadata(key_path).expect("Failed to get metadata");
+        #[cfg(unix)]
+        {
+            let permissions = metadata.permissions();
+            let mode = permissions.mode() & 0o777;
+
+            assert_eq!(mode, 0o600, "File should have 0o600 permissions");
+        }
+    }
 
     #[test]
     fn test_roundtrip() {
