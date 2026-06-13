@@ -1,5 +1,6 @@
 use ferroflux_types::tool::{Tool, ToolContext};
 use anyhow::{Result, anyhow, Context};
+use crate::primitives::request::check_ssrf;
 use serde_json::{Value, json};
 
 pub struct GraphQlTool;
@@ -11,6 +12,7 @@ impl Tool for GraphQlTool {
 
     fn run(&self, _context: &mut ToolContext, params: Value) -> Result<Value> {
         let url = params.get("url").and_then(|v| v.as_str()).ok_or_else(|| anyhow!("Missing 'url'"))?;
+        check_ssrf(url)?;
         let query = params.get("query").and_then(|v| v.as_str()).ok_or_else(|| anyhow!("Missing 'query'"))?;
         let variables = params.get("variables").cloned().unwrap_or(json!({}));
         let operation_name = params.get("operation_name").and_then(|v| v.as_str());
@@ -56,6 +58,20 @@ impl Tool for GraphQlTool {
 
 #[cfg(test)]
 mod tests {
+
+    struct EnvGuard;
+    impl EnvGuard {
+        fn new() -> Self {
+            unsafe { std::env::set_var("FERROFLUX_ALLOW_INTERNAL_IPS", "true") };
+            Self
+        }
+    }
+    impl Drop for EnvGuard {
+        fn drop(&mut self) {
+            unsafe { std::env::remove_var("FERROFLUX_ALLOW_INTERNAL_IPS") };
+        }
+    }
+
     use super::*;
     use ferroflux_types::tool::ToolContext;
     use std::collections::HashMap;
@@ -64,6 +80,7 @@ mod tests {
 
     #[tokio::test(flavor = "multi_thread")]
     async fn test_graphql_success() {
+        let _guard = EnvGuard::new();
         let server = MockServer::start().await;
         let mock_response = json!({
             "data": {
@@ -114,6 +131,7 @@ mod tests {
 
     #[tokio::test(flavor = "multi_thread")]
     async fn test_graphql_errors() {
+        let _guard = EnvGuard::new();
         let server = MockServer::start().await;
         let mock_response = json!({
             "errors": [
