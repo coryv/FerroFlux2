@@ -2,6 +2,8 @@ use ferroflux_types::tool::{Tool, ToolContext};
 use anyhow::{Result, anyhow, Context};
 use serde_json::{Value, json};
 
+use crate::primitives::request::check_ssrf;
+
 pub struct GraphQlTool;
 
 impl Tool for GraphQlTool {
@@ -11,6 +13,7 @@ impl Tool for GraphQlTool {
 
     fn run(&self, _context: &mut ToolContext, params: Value) -> Result<Value> {
         let url = params.get("url").and_then(|v| v.as_str()).ok_or_else(|| anyhow!("Missing 'url'"))?;
+        check_ssrf(url)?;
         let query = params.get("query").and_then(|v| v.as_str()).ok_or_else(|| anyhow!("Missing 'query'"))?;
         let variables = params.get("variables").cloned().unwrap_or(json!({}));
         let operation_name = params.get("operation_name").and_then(|v| v.as_str());
