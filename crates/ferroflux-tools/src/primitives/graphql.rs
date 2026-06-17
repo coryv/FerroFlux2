@@ -1,6 +1,7 @@
 use ferroflux_types::tool::{Tool, ToolContext};
 use anyhow::{Result, anyhow, Context};
 use serde_json::{Value, json};
+use crate::primitives::request::check_ssrf;
 
 pub struct GraphQlTool;
 
@@ -11,6 +12,8 @@ impl Tool for GraphQlTool {
 
     fn run(&self, _context: &mut ToolContext, params: Value) -> Result<Value> {
         let url = params.get("url").and_then(|v| v.as_str()).ok_or_else(|| anyhow!("Missing 'url'"))?;
+        check_ssrf(url)?;
+
         let query = params.get("query").and_then(|v| v.as_str()).ok_or_else(|| anyhow!("Missing 'query'"))?;
         let variables = params.get("variables").cloned().unwrap_or(json!({}));
         let operation_name = params.get("operation_name").and_then(|v| v.as_str());
@@ -64,6 +67,7 @@ mod tests {
 
     #[tokio::test(flavor = "multi_thread")]
     async fn test_graphql_success() {
+        unsafe { std::env::set_var("FERROFLUX_ALLOW_INTERNAL_IPS", "true") };
         let server = MockServer::start().await;
         let mock_response = json!({
             "data": {
@@ -114,6 +118,7 @@ mod tests {
 
     #[tokio::test(flavor = "multi_thread")]
     async fn test_graphql_errors() {
+        unsafe { std::env::set_var("FERROFLUX_ALLOW_INTERNAL_IPS", "true") };
         let server = MockServer::start().await;
         let mock_response = json!({
             "errors": [
