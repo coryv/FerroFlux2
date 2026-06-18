@@ -1,0 +1,4 @@
+## 2025-02-23 - SSRF Vulnerability in Tool Primitives
+**Vulnerability:** The `core.utils.graphql` tool primitive allowed users to provide an arbitrary URL that was fetched via HTTP POST without validation. This allowed Server-Side Request Forgery (SSRF) against internal services like `localhost` or internal subnets.
+**Learning:** Even specialized request primitives (like GraphQL) that are not the primary HTTP client tool must validate URLs. The existence of `crate::primitives::request::check_ssrf` makes this easy, but it relies on manual inclusion in every tool that performs network operations.
+**Prevention:** Ensure all new tool primitives that accept user-provided URLs or make network calls explicitly call `check_ssrf` or `ferroflux_security::network::validate_url` before issuing requests. Consider creating a centralized client wrapper that enforces this automatically in the future.
