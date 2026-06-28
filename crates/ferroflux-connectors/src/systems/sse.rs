@@ -100,6 +100,11 @@ fn spawn_sse_connection(
         loop {
             tracing::info!(node_id = %node_id, url = %config.url, "Connecting to SSE stream");
 
+            if let Err(e) = ferroflux_security::network::validate_url(&config.url) {
+                tracing::error!(node_id = %node_id, url = %config.url, error = %e, "SSE Config URL failed security validation");
+                break;
+            }
+
             let mut request = reqwest::Client::new().get(&config.url);
             for (k, v) in &config.headers {
                 request = request.header(k, v);
