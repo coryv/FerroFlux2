@@ -2,6 +2,7 @@ use anyhow::Result;
 use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::{Pool, Row, Sqlite};
 use uuid::Uuid;
+use rand::RngCore;
 
 pub use ferroflux_types::tenant::TenantId;
 
@@ -58,7 +59,9 @@ impl IamStore {
 
     pub async fn create_magic_link(&self, email: &str) -> Result<(String, String)> {
         let user_id = self.get_or_create_user_by_email(email).await?;
-        let token = Uuid::new_v4().to_string();
+        let mut key_bytes = [0u8; 32];
+        rand::rngs::OsRng.fill_bytes(&mut key_bytes);
+        let token = hex::encode(key_bytes);
         let expires_at = chrono::Utc::now() + chrono::Duration::minutes(15);
 
         sqlx::query(
