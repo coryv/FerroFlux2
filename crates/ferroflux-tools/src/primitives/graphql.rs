@@ -15,6 +15,8 @@ impl Tool for GraphQlTool {
         let variables = params.get("variables").cloned().unwrap_or(json!({}));
         let operation_name = params.get("operation_name").and_then(|v| v.as_str());
 
+        crate::primitives::request::check_ssrf(url)?;
+
         // Build the payload
         let mut body = json!({
             "query": query,
