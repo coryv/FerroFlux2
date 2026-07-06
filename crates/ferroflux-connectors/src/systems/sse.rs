@@ -94,6 +94,11 @@ fn spawn_sse_connection(
     let (_workflow_id, node_id) = identity;
 
     let join_handle = runtime.spawn(async move {
+        if let Err(e) = ferroflux_security::network::validate_url(&config.url) {
+            tracing::error!(node_id = %node_id, error = %e, "SSRF Security Violation: Invalid SSE URL");
+            return;
+        }
+
         let mut attempts = 0;
         let max_attempts = config.max_reconnect_attempts;
 
