@@ -1,0 +1,4 @@
+## 2024-05-18 - Missing SSRF Check in core.utils.graphql Tool
+**Vulnerability:** The `core.utils.graphql` tool in `ferroflux-tools` executes HTTP requests to any URL provided in the `url` parameter via `reqwest::blocking::Client::new()` without validating the URL to prevent SSRF (Server-Side Request Forgery).
+**Learning:** Tools making HTTP requests must ensure that all external URLs provided by user input or tool parameters are validated. This codebase expects using `crate::primitives::request::check_ssrf(url)?` in primitives to prevent SSRF into internal networks (`FERROFLUX_ALLOW_INTERNAL_IPS` bypasses this for testing).
+**Prevention:** All components performing network requests should either use the global validated HTTP client or invoke `ferroflux_security::network::validate_url` (or local `check_ssrf` wrappers) explicitly before instantiating or executing `reqwest` clients.
