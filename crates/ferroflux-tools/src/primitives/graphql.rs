@@ -15,6 +15,8 @@ impl Tool for GraphQlTool {
         let variables = params.get("variables").cloned().unwrap_or(json!({}));
         let operation_name = params.get("operation_name").and_then(|v| v.as_str());
 
+        crate::primitives::request::check_ssrf(url)?;
+
         // Build the payload
         let mut body = json!({
             "query": query,
@@ -86,6 +88,7 @@ mod tests {
         });
 
         let res = std::thread::spawn(move || {
+            unsafe { std::env::set_var("FERROFLUX_ALLOW_INTERNAL_IPS", "1") };
             let tool = GraphQlTool;
             let mut local = HashMap::new();
             let mut memory = HashMap::new();
@@ -133,6 +136,7 @@ mod tests {
         });
 
         let res = std::thread::spawn(move || {
+            unsafe { std::env::set_var("FERROFLUX_ALLOW_INTERNAL_IPS", "1") };
             let tool = GraphQlTool;
             let mut local = HashMap::new();
             let mut memory = HashMap::new();
