@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use std::env;
 use std::fs;
 use std::path::PathBuf;
+use rand::RngCore;
 
 fn get_api_key_path() -> PathBuf {
     if let Ok(path_str) = env::var("FERROFLUX_API_KEY_PATH") {
@@ -48,7 +49,9 @@ pub fn get_or_create_api_key() -> Result<String> {
 
     // 3. Auto-generate
     tracing::info!("Generating new API key -> {:?}", key_path);
-    let key = uuid::Uuid::new_v4().to_string();
+    let mut key_bytes = [0u8; 32];
+    rand::RngCore::fill_bytes(&mut rand::rngs::OsRng, &mut key_bytes);
+    let key = hex::encode(key_bytes);
 
     #[cfg(unix)]
     {
