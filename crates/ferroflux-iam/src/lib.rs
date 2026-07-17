@@ -1,4 +1,6 @@
 use anyhow::Result;
+use rand::RngCore;
+use rand::rngs::OsRng;
 use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::{Pool, Row, Sqlite};
 use uuid::Uuid;
@@ -58,7 +60,9 @@ impl IamStore {
 
     pub async fn create_magic_link(&self, email: &str) -> Result<(String, String)> {
         let user_id = self.get_or_create_user_by_email(email).await?;
-        let token = Uuid::new_v4().to_string();
+        let mut key = [0u8; 32];
+        OsRng.fill_bytes(&mut key);
+        let token = hex::encode(key);
         let expires_at = chrono::Utc::now() + chrono::Duration::minutes(15);
 
         sqlx::query(
