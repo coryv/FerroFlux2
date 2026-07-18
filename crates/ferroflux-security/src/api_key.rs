@@ -48,7 +48,9 @@ pub fn get_or_create_api_key() -> Result<String> {
 
     // 3. Auto-generate
     tracing::info!("Generating new API key -> {:?}", key_path);
-    let key = uuid::Uuid::new_v4().to_string();
+    let mut bytes = [0u8; 32];
+    rand::RngCore::fill_bytes(&mut rand::rngs::OsRng, &mut bytes);
+    let key = hex::encode(bytes);
 
     #[cfg(unix)]
     {
