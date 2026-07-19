@@ -1,0 +1,4 @@
+## 2024-05-30 - SSRF Vulnerability in SSE Connector
+**Vulnerability:** The SSE connector (`crates/ferroflux-connectors/src/systems/sse.rs`) accepts user-provided URLs in `config.url` without running `ferroflux_security::network::validate_url(&url)` or `ferroflux_tools::primitives::request::check_ssrf(url)`, leading to Server-Side Request Forgery (SSRF) where external requests could connect to internal networks.
+**Learning:** Even stream-based HTTP clients (like SSE connections) are vulnerable to SSRF. Only synchronous connectors (like RSS) had SSRF protection while asynchronous background connections (SSE) were missed.
+**Prevention:** Always ensure any URL derived from external/user configuration is validated against SSRF before passing to any HTTP client builder, whether blocking or asynchronous.
