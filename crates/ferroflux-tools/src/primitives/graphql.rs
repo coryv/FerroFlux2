@@ -1,6 +1,7 @@
 use ferroflux_types::tool::{Tool, ToolContext};
 use anyhow::{Result, anyhow, Context};
 use serde_json::{Value, json};
+use crate::primitives::request::check_ssrf;
 
 pub struct GraphQlTool;
 
@@ -23,6 +24,8 @@ impl Tool for GraphQlTool {
         if let Some(name) = operation_name {
             body.as_object_mut().unwrap().insert("operationName".to_string(), json!(name));
         }
+
+        check_ssrf(url)?;
 
         // We'll use a blocking client for simplicity in this primitive, 
         // consistent with other tools in this crate.
@@ -86,6 +89,7 @@ mod tests {
         });
 
         let res = std::thread::spawn(move || {
+            unsafe { std::env::set_var("FERROFLUX_ALLOW_INTERNAL_IPS", "true") };
             let tool = GraphQlTool;
             let mut local = HashMap::new();
             let mut memory = HashMap::new();
@@ -133,6 +137,7 @@ mod tests {
         });
 
         let res = std::thread::spawn(move || {
+            unsafe { std::env::set_var("FERROFLUX_ALLOW_INTERNAL_IPS", "true") };
             let tool = GraphQlTool;
             let mut local = HashMap::new();
             let mut memory = HashMap::new();
