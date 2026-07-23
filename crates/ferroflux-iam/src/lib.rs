@@ -58,7 +58,11 @@ impl IamStore {
 
     pub async fn create_magic_link(&self, email: &str) -> Result<(String, String)> {
         let user_id = self.get_or_create_user_by_email(email).await?;
-        let token = Uuid::new_v4().to_string();
+        use rand::RngCore;
+        let mut key_bytes = [0u8; 32];
+        // Sentinel: Generate 256-bit cryptographically secure token for magic links instead of UUIDv4 to increase entropy and prevent brute-force guessing
+        rand::rngs::OsRng.fill_bytes(&mut key_bytes);
+        let token = hex::encode(key_bytes);
         let expires_at = chrono::Utc::now() + chrono::Duration::minutes(15);
 
         sqlx::query(
