@@ -1,0 +1,4 @@
+## 2025-02-28 - Insecure Magic Link Generation
+**Vulnerability:** The `ferroflux-iam` crate used `Uuid::new_v4()` for generating magic links. While UUIDv4 provides 122 bits of entropy, using a cryptographically secure pseudo-random number generator (CSPRNG) like `OsRng` with 256 bits of entropy is the recommended standard for authentication tokens to prevent brute-force or prediction attacks.
+**Learning:** We need to ensure that authentication-related tokens strictly use CSPRNGs with sufficient entropy rather than UUIDs which might have more predictable distributions depending on implementation details or lack sufficient length for high-security contexts.
+**Prevention:** Always use `rand::rngs::OsRng` and hex encode random bytes for security tokens, session IDs, and magic links instead of UUIDs.
