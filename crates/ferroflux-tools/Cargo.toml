@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+ferroflux-security = { path = "../ferroflux-security" }
 anyhow = "1.0"
 bevy_ecs = "0.13.0"
 ferroflux-types = { path = "../ferroflux-types" }
@@ -55,3 +56,4 @@ redis = { version = "0.27", features = ["tokio-comp", "tokio-rustls-comp"] }
 [dev-dependencies]
 tokio = { version = "1.36.0", features = ["full"] }
 wiremock = "0.6"
+ferroflux-security = { path = "../ferroflux-security" }
