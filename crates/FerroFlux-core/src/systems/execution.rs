@@ -108,6 +108,11 @@ pub async fn execute_integration_action(
 
     let url = format!("{}{}", def.base_url, path_str);
 
+    // Validate URL against SSRF and block internal IPs
+    if let Err(e) = ferroflux_security::network::validate_url(&url) {
+        return Err(format!("Security Violation: Invalid or forbidden URL: {}", e));
+    }
+
     // Headers
     let client = reqwest::Client::new();
     let method = match action_def.implementation.config.method.as_str() {
