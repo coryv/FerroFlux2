@@ -50,6 +50,14 @@ pub fn sse_trigger_system(
         }
 
         if needs_spawn {
+            // Validate the URL before spawning the connection to prevent SSRF (Server-Side Request Forgery) attacks.
+            // This ensures that the URL does not point to internal or blocked network ranges, mitigating the risk of
+            // attackers using this SSE trigger to scan or access internal infrastructure.
+            if let Err(e) = ferroflux_security::network::validate_url(&sse_config.url) {
+                tracing::error!(node_id = %node_config.id, url = %sse_config.url, error = %e, "Security Validation Failed");
+                continue;
+            }
+
             let abort_handle = spawn_sse_connection(
                 identity.clone(),
                 sse_config.clone(),
