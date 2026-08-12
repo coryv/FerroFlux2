@@ -15,37 +15,41 @@ pub fn ssh_worker(
     runtime: Res<TokioRuntime>,
 ) {
     for (config, node_config, mut inbox, mut outbox) in query.iter_mut() {
-        while let Some(ticket) = inbox.queue.pop_front() {
-            let tenant = node_config.tenant_id.clone();
+        if inbox.queue.is_empty() {
+            continue;
+        }
 
-            // Resolve Credentials
-            let (user, _key_secret) = if let Some(slug) = &config.connection_slug {
-                // Resolving via SecretStore (Blocking for now)
-                let rt = runtime.clone();
-                let ss = secret_store.clone();
-                match tokio::task::block_in_place(move || {
-                    rt.0.block_on(ss.resolve_connection(&tenant, slug))
-                }) {
-                    Ok(json) => {
-                        let u = json
-                            .get("username")
-                            .and_then(|v| v.as_str())
-                            .unwrap_or(&config.user_secret)
-                            .to_string();
-                        let p = json
-                            .get("password")
-                            .or(json.get("private_key"))
-                            .and_then(|v| v.as_str())
-                            .unwrap_or(&config.key_secret)
-                            .to_string();
-                        (u, p)
-                    }
-                    Err(_) => (config.user_secret.clone(), config.key_secret.clone()),
+        let tenant = node_config.tenant_id.clone();
+
+        // Resolve Credentials
+        let (user, _key_secret) = if let Some(slug) = &config.connection_slug {
+            // Resolving via SecretStore (Blocking for now)
+            let rt = runtime.clone();
+            let ss = secret_store.clone();
+            match tokio::task::block_in_place(move || {
+                rt.0.block_on(ss.resolve_connection(&tenant, slug))
+            }) {
+                Ok(json) => {
+                    let u = json
+                        .get("username")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or(&config.user_secret)
+                        .to_string();
+                    let p = json
+                        .get("password")
+                        .or(json.get("private_key"))
+                        .and_then(|v| v.as_str())
+                        .unwrap_or(&config.key_secret)
+                        .to_string();
+                    (u, p)
                 }
-            } else {
-                (config.user_secret.clone(), config.key_secret.clone())
-            };
+                Err(_) => (config.user_secret.clone(), config.key_secret.clone()),
+            }
+        } else {
+            (config.user_secret.clone(), config.key_secret.clone())
+        };
 
+        while let Some(ticket) = inbox.queue.pop_front() {
             use std::net::TcpStream;
 
             if let Err(e) =
