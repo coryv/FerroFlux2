@@ -25,6 +25,12 @@ pub fn sse_trigger_system(
         let identity = (node_config.workflow_id.clone(), node_config.id);
         active_identities.insert(identity.clone(), entity);
 
+        // Validate the user-provided URL to block internal IP ranges and prevent SSRF vulnerabilities.
+        if let Err(e) = ferroflux_security::network::validate_url(&sse_config.url) {
+            tracing::error!(node_id = %node_config.id, error = %e, url = %sse_config.url, "Security validation failed for SSE URL");
+            continue;
+        }
+
         // Calculate config hash
         let mut hasher = DefaultHasher::new();
         sse_config.url.hash(&mut hasher);
