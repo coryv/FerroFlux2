@@ -80,18 +80,15 @@ fn access_token_from_conn(conn: &Value) -> Result<String> {
         .ok_or_else(|| anyhow::anyhow!("Missing 'access_token' in OAuth2 connection"))
 }
 
-/// Simple SSRF check - prevents access to internal IP ranges.
+/// Strict SSRF check - prevents access to internal IP ranges via DNS resolution.
 pub fn check_ssrf(url: &str) -> Result<()> {
     if std::env::var("FERROFLUX_ALLOW_INTERNAL_IPS").is_ok() {
         return Ok(());
     }
 
-    let parsed = url::Url::parse(url).context("Invalid URL")?;
-    let host = parsed.host_str().ok_or_else(|| anyhow::anyhow!("URL missing host"))?;
-
-    // Block localhost and common internal ranges
-    if host == "localhost" || host == "127.0.0.1" || host == "0.0.0.0" || host.starts_with("192.168.") || host.starts_with("10.") {
-        anyhow::bail!("Access to internal host '{}' is blocked", host);
+    // Validate the URL properly resolving IPs to prevent SSRF bypasses via custom DNS or alternate IP formats.
+    if let Err(e) = ferroflux_security::network::validate_url(url) {
+        anyhow::bail!("SSRF Protection blocked URL: {}", e);
     }
 
     Ok(())
