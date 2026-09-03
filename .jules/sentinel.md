@@ -1,0 +1,4 @@
+## 2024-03-22 - SSRF Bypass via IPv4-mapped IPv6 Addresses
+**Vulnerability:** The SSRF protection mechanism `is_blocked_ip` could be bypassed by using IPv4-mapped IPv6 addresses (e.g., `::ffff:127.0.0.1`). Rust's standard `IpAddr::is_loopback()` and IPv4 range checks do not automatically handle these mapped addresses, treating them as generic IPv6 addresses which pass the standard IPv6 blocked ranges check.
+**Learning:** Standard IP range checks in Rust (and other languages) do not automatically unmap IPv4-mapped IPv6 addresses. We must explicitly convert them back to their standard IPv4 representation before applying range blocks.
+**Prevention:** Always normalize IP addresses by calling `to_ipv4_mapped()` (or equivalent) to unwrap IPv4-mapped IPv6 addresses before applying SSRF protections.
