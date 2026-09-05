@@ -38,7 +38,14 @@ pub fn validate_host_port(host: &str, port: u16) -> Result<(), String> {
     Ok(())
 }
 
-fn is_blocked_ip(ip: IpAddr) -> bool {
+fn is_blocked_ip(mut ip: IpAddr) -> bool {
+    // Unmap IPv4-mapped IPv6 addresses to prevent bypasses
+    if let IpAddr::V6(ipv6) = ip {
+        if let Some(mapped_ipv4) = ipv6.to_ipv4_mapped() {
+            ip = IpAddr::V4(mapped_ipv4);
+        }
+    }
+
     // Block Loopback (127.0.0.0/8)
     if ip.is_loopback() {
         return true;
