@@ -1,0 +1,4 @@
+## 2024-05-24 - SSRF Bypass via Naive String Matching
+**Vulnerability:** The SSRF protection in HTTP tools (`check_ssrf`) relied on naive string matching against `host_str()` (e.g., checking if host starts with `192.168.`). This allowed bypasses using alternative IP representations like IPv4-mapped IPv6 (`::ffff:127.0.0.1`), integer IPs (`2130706433`), IPv6 loopback (`::1`), or unhandled private blocks like `172.16.0.0/12`.
+**Learning:** Never rely on string operations to validate network destinations. DNS resolution and IP address decoding are complex and have many edge cases. Always use centralized security functions that properly parse and map addresses.
+**Prevention:** Consistently utilize the centralized `ferroflux_security::network::validate_url` for all external HTTP requests, which correctly resolves and checks IP ranges.
