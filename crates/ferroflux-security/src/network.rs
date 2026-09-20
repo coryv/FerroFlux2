@@ -1,4 +1,4 @@
-use std::net::{IpAddr, ToSocketAddrs};
+use std::net::{IpAddr, ToSocketAddrs, };
 use url::Url;
 
 /// Validates that a given URL does not point to a private or reserved network address.
@@ -26,7 +26,17 @@ pub fn validate_host_port(host: &str, port: u16) -> Result<(), String> {
         .map_err(|e| format!("Failed to resolve host '{}': {}", host, e))?;
 
     for addr in addrs {
-        let ip = addr.ip();
+        let mut ip = addr.ip();
+
+        // Convert IPv4-mapped IPv6 addresses (::ffff:x.x.x.x) to IPv4
+        // to prevent SSRF bypasses where standard IPv4 range checks
+        // would fail to identify them.
+        if let IpAddr::V6(ipv6) = ip {
+            if let Some(ipv4) = ipv6.to_ipv4_mapped() {
+                ip = IpAddr::V4(ipv4);
+            }
+        }
+
         if is_blocked_ip(ip) {
             return Err(format!(
                 "Host '{}' resolves to blocked IP address '{}'",
@@ -122,5 +132,9 @@ mod tests {
         // But we can test raw IPs in URLs.
         assert!(validate_url("http://127.0.0.1").is_err());
         assert!(validate_url("http://192.168.0.1:8080").is_err());
+
+        // Test IPv4-mapped IPv6 SSRF bypass
+        assert!(validate_url("http://[::ffff:127.0.0.1]").is_err());
+        assert!(validate_url("http://[::ffff:192.168.0.1]:8080").is_err());
     }
 }
