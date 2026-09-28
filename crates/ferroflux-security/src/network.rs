@@ -38,7 +38,14 @@ pub fn validate_host_port(host: &str, port: u16) -> Result<(), String> {
     Ok(())
 }
 
-fn is_blocked_ip(ip: IpAddr) -> bool {
+fn is_blocked_ip(mut ip: IpAddr) -> bool {
+    // Security: Unmap IPv4-mapped IPv6 addresses to prevent SSRF bypass via IPv6 representations (e.g., ::ffff:127.0.0.1)
+    if let IpAddr::V6(ipv6) = ip {
+        if let Some(mapped_v4) = ipv6.to_ipv4_mapped() {
+            ip = IpAddr::V4(mapped_v4);
+        }
+    }
+
     // Block Loopback (127.0.0.0/8)
     if ip.is_loopback() {
         return true;
@@ -122,5 +129,12 @@ mod tests {
         // But we can test raw IPs in URLs.
         assert!(validate_url("http://127.0.0.1").is_err());
         assert!(validate_url("http://192.168.0.1:8080").is_err());
+    }
+
+    #[test]
+    fn test_is_blocked_ip_v6_mapped() {
+        assert!(is_blocked_ip("::ffff:127.0.0.1".parse().unwrap()));
+        assert!(is_blocked_ip("::ffff:169.254.169.254".parse().unwrap()));
+        assert!(is_blocked_ip("::ffff:10.0.0.1".parse().unwrap()));
     }
 }
