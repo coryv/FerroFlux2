@@ -1,0 +1,4 @@
+## 2026-09-03 - SSRF Bypass via IPv4-Mapped IPv6 Addresses
+**Vulnerability:** The `is_blocked_ip` function in `ferroflux-security` correctly blocks private IPv4 and unique local IPv6 addresses. However, it fails to block IPv4-mapped IPv6 addresses (e.g., `::ffff:127.0.0.1`). When an attacker passes an IPv4-mapped IPv6 address, it gets parsed as `IpAddr::V6`, bypassing the `IpAddr::V4` block list, but the underlying system (and HTTP client) will resolve it to the mapped IPv4 address (e.g., `127.0.0.1`), allowing an SSRF attack against internal services.
+**Learning:** Network validations must explicitly unmap IPv4-mapped IPv6 addresses (using `to_ipv4_mapped()`) to their underlying IPv4 representation before applying block lists, as they are functionally identical at the network layer.
+**Prevention:** Always normalize `IpAddr::V6` by checking `to_ipv4_mapped()` and, if it exists, evaluate the resulting IPv4 address using the standard IPv4 rules.
