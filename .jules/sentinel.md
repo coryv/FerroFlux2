@@ -1,0 +1,4 @@
+## 2024-05-24 - [Replace Simple SSRF Check with Robust Validation]
+**Vulnerability:** A naive SSRF validation check (`check_ssrf`) relies on rudimentary string matching (`"localhost"`, `"127.0.0.1"`, `"0.0.0.0"`, `"192.168."`, `"10."`), which fails to resolve DNS names to IP addresses or handle diverse IP formats (e.g. IPv6 mapped IPv4, alternative representations).
+**Learning:** Checking for SSRF using simple host string matches provides a false sense of security. Attackers can bypass these blocks using IP obfuscation, DNS rebinding, or other internal ranges (e.g. `169.254.x.x`). A dedicated network validation library is required.
+**Prevention:** Use an established security library or internal crate (like `ferroflux-security::network::validate_url`) that parses the URL, resolves the host to actual IPs, and validates against comprehensive private/reserved IP ranges.
