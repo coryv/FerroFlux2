@@ -86,12 +86,9 @@ pub fn check_ssrf(url: &str) -> Result<()> {
         return Ok(());
     }
 
-    let parsed = url::Url::parse(url).context("Invalid URL")?;
-    let host = parsed.host_str().ok_or_else(|| anyhow::anyhow!("URL missing host"))?;
-
-    // Block localhost and common internal ranges
-    if host == "localhost" || host == "127.0.0.1" || host == "0.0.0.0" || host.starts_with("192.168.") || host.starts_with("10.") {
-        anyhow::bail!("Access to internal host '{}' is blocked", host);
+    // Use robust network validation library to prevent SSRF via DNS rebinding, IPv6 mapped IPs, and obfuscated formats.
+    if let Err(e) = ferroflux_security::network::validate_url(url) {
+        anyhow::bail!("SSRF Validation failed: {}", e);
     }
 
     Ok(())
