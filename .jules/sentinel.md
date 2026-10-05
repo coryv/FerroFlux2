@@ -1,0 +1,4 @@
+## 2024-05-15 - Unmapped IPv4-mapped IPv6 Addresses Bypass SSRF Protection
+**Vulnerability:** The SSRF protection mechanism `is_blocked_ip` in `crates/ferroflux-security/src/network.rs` does not unmap IPv4-mapped IPv6 addresses (e.g., `::ffff:127.0.0.1`) before validating IP addresses.
+**Learning:** IPv4 addresses can be mapped into the IPv6 address space. If the code simply treats them as standard IPv6 addresses without explicitly unmapping them or checking for the IPv4-mapped format, they will bypass the standard IPv4 range checks, allowing SSRF attacks on local/private networks using mapped IPs.
+**Prevention:** When implementing IP range checks for security features like SSRF prevention, always check if an IPv6 address is an IPv4-mapped address (`Ipv6Addr::to_ipv4_mapped()`), and if so, apply the IPv4 range checks to the underlying IPv4 address.
