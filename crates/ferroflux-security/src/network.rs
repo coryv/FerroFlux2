@@ -80,6 +80,11 @@ fn is_blocked_ip(ip: IpAddr) -> bool {
             }
         }
         IpAddr::V6(ipv6) => {
+            // Security Note: Prevent SSRF bypass using IPv4-mapped IPv6 addresses (e.g., ::ffff:127.0.0.1)
+            if let Some(ipv4) = ipv6.to_ipv4_mapped() {
+                return is_blocked_ip(IpAddr::V4(ipv4));
+            }
+
             // Block Unique Local Address (fc00::/7) - roughly equivalent to private IPv4
             // Range is fc00::/7 (fc00... to fdff...)
             if (ipv6.segments()[0] & 0xfe00) == 0xfc00 {
@@ -113,6 +118,13 @@ mod tests {
         assert!(!is_blocked_ip("8.8.8.8".parse().unwrap()));
         assert!(!is_blocked_ip("1.1.1.1".parse().unwrap()));
         assert!(!is_blocked_ip("172.32.0.1".parse().unwrap())); // Outside private range
+    }
+
+    #[test]
+    fn test_is_blocked_ip_v6() {
+        assert!(is_blocked_ip("::1".parse().unwrap()));
+        assert!(is_blocked_ip("::ffff:127.0.0.1".parse().unwrap()));
+        assert!(is_blocked_ip("::ffff:10.0.0.1".parse().unwrap()));
     }
 
     #[test]
