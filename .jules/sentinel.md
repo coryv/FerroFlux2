@@ -1,0 +1,5 @@
+
+## 2025-01-20 - Prevent SSRF bypass using IPv4-mapped IPv6 and Raw IPv6 brackets
+**Vulnerability:** The application was susceptible to SSRF because standard IPv4 range checks (like identifying private subnets) do not automatically match IPv4-mapped IPv6 addresses (e.g., `::ffff:127.0.0.1`), allowing an attacker to request localhost or private IPs by wrapping them in mapped IPv6. Furthermore, standard library `to_socket_addrs()` fails if it receives raw IPv6 hosts with literal brackets extracted from URLs (e.g., `[::1]`), potentially preventing internal resolution components from performing correct validation checks on IPv6.
+**Learning:** `std::net::IpAddr::V6` checks must explicitly unmap addresses using `ipv6.to_ipv4_mapped()` before applying standard blocklists. Also, when interacting with components downstream of `url::Url` parsing, brackets must be trimmed from IPv6 hosts for compatibility with lower-level resolution mechanisms.
+**Prevention:** Always sanitize IPv6 hosts by trimming brackets before socket resolution. Always check if an `IpAddr::V6` maps to a blocked `IpAddr::V4` before determining if it is safe to connect.
