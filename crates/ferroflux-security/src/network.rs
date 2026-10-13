@@ -38,7 +38,14 @@ pub fn validate_host_port(host: &str, port: u16) -> Result<(), String> {
     Ok(())
 }
 
-fn is_blocked_ip(ip: IpAddr) -> bool {
+fn is_blocked_ip(mut ip: IpAddr) -> bool {
+    // Unmap IPv4-mapped IPv6 addresses to prevent bypasses
+    if let IpAddr::V6(ipv6) = ip {
+        if let Some(ipv4) = ipv6.to_ipv4_mapped() {
+            ip = IpAddr::V4(ipv4);
+        }
+    }
+
     // Block Loopback (127.0.0.0/8)
     if ip.is_loopback() {
         return true;
@@ -113,6 +120,16 @@ mod tests {
         assert!(!is_blocked_ip("8.8.8.8".parse().unwrap()));
         assert!(!is_blocked_ip("1.1.1.1".parse().unwrap()));
         assert!(!is_blocked_ip("172.32.0.1".parse().unwrap())); // Outside private range
+    }
+
+    #[test]
+    fn test_is_blocked_ip_v4_mapped_v6() {
+        // Block mapped local/private
+        assert!(is_blocked_ip("::ffff:127.0.0.1".parse().unwrap()));
+        assert!(is_blocked_ip("::ffff:169.254.169.254".parse().unwrap()));
+
+        // Allowed public IPs
+        assert!(!is_blocked_ip("::ffff:8.8.8.8".parse().unwrap()));
     }
 
     #[test]
