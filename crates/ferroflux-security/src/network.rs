@@ -20,8 +20,10 @@ pub fn validate_url(url_str: &str) -> Result<(), String> {
 
 /// Validates that a host and port do not resolve to a private or reserved network address.
 pub fn validate_host_port(host: &str, port: u16) -> Result<(), String> {
+    // Trim brackets from IPv6 hosts (e.g. "[::1]") since ToSocketAddrs expects raw IPs
+    let host_trimmed = host.trim_start_matches('[').trim_end_matches(']');
     // Resolve the host to IP addresses
-    let addrs = (host, port)
+    let addrs = (host_trimmed, port)
         .to_socket_addrs()
         .map_err(|e| format!("Failed to resolve host '{}': {}", host, e))?;
 
@@ -39,6 +41,12 @@ pub fn validate_host_port(host: &str, port: u16) -> Result<(), String> {
 }
 
 fn is_blocked_ip(ip: IpAddr) -> bool {
+    // Unmap IPv4-mapped IPv6 addresses so standard IPv4 checks apply
+    let ip = match ip {
+        IpAddr::V6(v6) => v6.to_ipv4_mapped().map(IpAddr::V4).unwrap_or(ip),
+        _ => ip,
+    };
+
     // Block Loopback (127.0.0.0/8)
     if ip.is_loopback() {
         return true;
@@ -122,5 +130,7 @@ mod tests {
         // But we can test raw IPs in URLs.
         assert!(validate_url("http://127.0.0.1").is_err());
         assert!(validate_url("http://192.168.0.1:8080").is_err());
+        assert!(validate_url("http://[::ffff:127.0.0.1]").is_err());
+        assert!(validate_url("http://[::1]").is_err());
     }
 }
