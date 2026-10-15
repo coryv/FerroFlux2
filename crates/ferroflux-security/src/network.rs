@@ -13,6 +13,7 @@ pub fn validate_url(url_str: &str) -> Result<(), String> {
     // for now we focus on the host validation.
 
     let host = url.host_str().ok_or("URL missing host")?;
+    let host = host.trim_start_matches('[').trim_end_matches(']');
     let port = url.port_or_known_default().ok_or("URL missing port")?;
 
     validate_host_port(host, port)
@@ -38,7 +39,14 @@ pub fn validate_host_port(host: &str, port: u16) -> Result<(), String> {
     Ok(())
 }
 
-fn is_blocked_ip(ip: IpAddr) -> bool {
+fn is_blocked_ip(mut ip: IpAddr) -> bool {
+    // Unmap IPv4-mapped IPv6 addresses to ensure they are checked correctly against IPv4 rules
+    if let IpAddr::V6(ipv6) = ip {
+        if let Some(ipv4) = ipv6.to_ipv4_mapped() {
+            ip = IpAddr::V4(ipv4);
+        }
+    }
+
     // Block Loopback (127.0.0.0/8)
     if ip.is_loopback() {
         return true;
@@ -122,5 +130,10 @@ mod tests {
         // But we can test raw IPs in URLs.
         assert!(validate_url("http://127.0.0.1").is_err());
         assert!(validate_url("http://192.168.0.1:8080").is_err());
+
+        // Test IPv6 loopback and mapped addresses
+        assert!(validate_url("http://[::1]").is_err());
+        assert!(validate_url("http://[::ffff:127.0.0.1]").is_err());
+        assert!(validate_url("http://[::ffff:192.168.1.1]").is_err());
     }
 }
