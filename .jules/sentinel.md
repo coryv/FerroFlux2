@@ -1,0 +1,4 @@
+## 2024-10-22 - Fix SSRF Bypass via IPv4-mapped IPv6 Addresses
+**Vulnerability:** The SSRF protection mechanism `is_blocked_ip` in `crates/ferroflux-security/src/network.rs` did not explicitly unmap IPv4-mapped IPv6 addresses (e.g., `::ffff:127.0.0.1`) before applying range checks. This allowed standard IPv4 checks to fail, bypassing the protection.
+**Learning:** Rust's `IpAddr` does not automatically unmap IPv4-mapped IPv6 addresses when evaluating them. They must be explicitly checked and converted using `to_ipv4_mapped()` before applying standard logic. Furthermore, when working with IPv6 hosts from `url::Url`, they retain their square brackets (`[]`) which must be stripped before passing to standard socket resolution functions.
+**Prevention:** Always unmap IPv4-mapped IPv6 addresses via `to_ipv4_mapped()` at the beginning of any IP validation function. Trim brackets from URL host strings before passing them to networking functions.
