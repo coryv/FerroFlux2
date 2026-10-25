@@ -80,6 +80,10 @@ fn is_blocked_ip(ip: IpAddr) -> bool {
             }
         }
         IpAddr::V6(ipv6) => {
+            if let Some(ipv4) = ipv6.to_ipv4_mapped() {
+                return is_blocked_ip(IpAddr::V4(ipv4));
+            }
+
             // Block Unique Local Address (fc00::/7) - roughly equivalent to private IPv4
             // Range is fc00::/7 (fc00... to fdff...)
             if (ipv6.segments()[0] & 0xfe00) == 0xfc00 {
@@ -99,6 +103,18 @@ fn is_blocked_ip(ip: IpAddr) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_is_blocked_ipv4_mapped_ipv6() {
+        assert!(is_blocked_ip("::ffff:127.0.0.1".parse().unwrap()));
+        assert!(is_blocked_ip("::ffff:10.0.0.5".parse().unwrap()));
+        assert!(is_blocked_ip("::ffff:192.168.1.1".parse().unwrap()));
+        assert!(is_blocked_ip("::ffff:172.16.0.1".parse().unwrap()));
+
+        // Allowed public IPs
+        assert!(!is_blocked_ip("::ffff:8.8.8.8".parse().unwrap()));
+        assert!(!is_blocked_ip("::ffff:1.1.1.1".parse().unwrap()));
+    }
 
     #[test]
     fn test_is_blocked_ip_v4() {
@@ -122,5 +138,7 @@ mod tests {
         // But we can test raw IPs in URLs.
         assert!(validate_url("http://127.0.0.1").is_err());
         assert!(validate_url("http://192.168.0.1:8080").is_err());
+        assert!(validate_url("http://[::ffff:127.0.0.1]").is_err());
+        assert!(validate_url("http://[::ffff:192.168.0.1]:8080").is_err());
     }
 }
