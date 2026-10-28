@@ -20,10 +20,11 @@ pub fn validate_url(url_str: &str) -> Result<(), String> {
 
 /// Validates that a host and port do not resolve to a private or reserved network address.
 pub fn validate_host_port(host: &str, port: u16) -> Result<(), String> {
+    let host_trimmed = host.trim_start_matches('[').trim_end_matches(']');
     // Resolve the host to IP addresses
-    let addrs = (host, port)
+    let addrs = (host_trimmed, port)
         .to_socket_addrs()
-        .map_err(|e| format!("Failed to resolve host '{}': {}", host, e))?;
+        .map_err(|e| format!("Failed to resolve host '{}': {}", host_trimmed, e))?;
 
     for addr in addrs {
         let ip = addr.ip();
@@ -39,6 +40,14 @@ pub fn validate_host_port(host: &str, port: u16) -> Result<(), String> {
 }
 
 fn is_blocked_ip(ip: IpAddr) -> bool {
+    // Unmap IPv4-mapped IPv6 addresses for correct validation
+    let mut ip = ip;
+    if let IpAddr::V6(ipv6) = ip {
+        if let Some(ipv4) = ipv6.to_ipv4_mapped() {
+            ip = IpAddr::V4(ipv4);
+        }
+    }
+
     // Block Loopback (127.0.0.0/8)
     if ip.is_loopback() {
         return true;
