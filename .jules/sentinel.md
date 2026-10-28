@@ -1,0 +1,4 @@
+## 2024-10-28 - SSRF bypass via IPv4-mapped IPv6 and raw brackets
+**Vulnerability:** The SSRF protection in `is_blocked_ip` failed to unmap IPv4-mapped IPv6 addresses (e.g. `::ffff:127.0.0.1`), allowing bypass of IPv4 loopback checks. Additionally, `validate_host_port` passed bracketed IPv6 literals (e.g. `[::1]`) directly to `to_socket_addrs`, which fails to resolve them, preventing SSRF checks from executing.
+**Learning:** Always unmap IPv6 addresses to IPv4 using `to_ipv4_mapped()` before performing security blocklist checks, because an IPv4-mapped IPv6 address won't trigger standard V4 or V6 loopback/private checks. Additionally, URLs parsed with the `url` crate retain the square brackets around IPv6 addresses in `host_str()`, which breaks DNS resolution via `to_socket_addrs`.
+**Prevention:** Unmap `IpAddr::V6` before validating, and manually trim `[` and `]` brackets from URL host strings before resolving them via sockets.
