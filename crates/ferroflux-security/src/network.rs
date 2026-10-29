@@ -13,9 +13,10 @@ pub fn validate_url(url_str: &str) -> Result<(), String> {
     // for now we focus on the host validation.
 
     let host = url.host_str().ok_or("URL missing host")?;
+    let host_trimmed = host.trim_start_matches('[').trim_end_matches(']');
     let port = url.port_or_known_default().ok_or("URL missing port")?;
 
-    validate_host_port(host, port)
+    validate_host_port(host_trimmed, port)
 }
 
 /// Validates that a host and port do not resolve to a private or reserved network address.
@@ -38,7 +39,14 @@ pub fn validate_host_port(host: &str, port: u16) -> Result<(), String> {
     Ok(())
 }
 
-fn is_blocked_ip(ip: IpAddr) -> bool {
+fn is_blocked_ip(mut ip: IpAddr) -> bool {
+    // SECURITY: Unmap IPv4-mapped IPv6 addresses to prevent SSRF bypasses via IPv6 (e.g., ::ffff:127.0.0.1)
+    if let IpAddr::V6(ipv6) = ip {
+        if let Some(ipv4) = ipv6.to_ipv4_mapped() {
+            ip = IpAddr::V4(ipv4);
+        }
+    }
+
     // Block Loopback (127.0.0.0/8)
     if ip.is_loopback() {
         return true;
@@ -116,11 +124,20 @@ mod tests {
     }
 
     #[test]
+    fn test_is_blocked_ip_v6_mapped() {
+        assert!(is_blocked_ip("::ffff:127.0.0.1".parse().unwrap()));
+        assert!(is_blocked_ip("::ffff:192.168.1.1".parse().unwrap()));
+        assert!(!is_blocked_ip("::ffff:8.8.8.8".parse().unwrap()));
+    }
+
+    #[test]
     fn test_validate_url() {
         assert!(validate_url("http://google.com").is_ok());
         // We can't easily test "http://localhost" because it depends on DNS resolution of the machine running tests.
         // But we can test raw IPs in URLs.
         assert!(validate_url("http://127.0.0.1").is_err());
         assert!(validate_url("http://192.168.0.1:8080").is_err());
+        // Test IPv6 formatting
+        assert!(validate_url("http://[::ffff:127.0.0.1]").is_err());
     }
 }
