@@ -1,0 +1,4 @@
+## 2024-10-29 - SSRF Bypass via IPv4-mapped IPv6 Addresses
+**Vulnerability:** The SSRF check failed to correctly identify blocked IP addresses like `127.0.0.1` when supplied as an IPv4-mapped IPv6 address (e.g., `::ffff:127.0.0.1`), allowing an attacker to bypass IP filtering logic. Also `Url::host_str()` returns IPv6 strings with bracket wrappers (`[::1]`) which breaks `to_socket_addrs()` if not stripped.
+**Learning:** `std::net::IpAddr::V6` needs to be explicitly unmapped using `to_ipv4_mapped()` before applying standard blocklists, and URLs containing raw IPv6 require brackets to be trimmed before host resolution.
+**Prevention:** Always sanitize IPv6 addresses to unmap them into IPv4 when applying blocklists, and verify IPv6 string representations used in socket resolution do not have brackets.
